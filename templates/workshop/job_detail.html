@@ -1,0 +1,296 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}JC-{{ job.job_number }} — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="mb-3">
+  <a href="{% url 'workshop:job_list' slug=biz.slug %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i>Job Cards
+  </a>
+</div>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0">
+      <span class="badge bg-secondary me-2">JC-{{ job.job_number }}</span>
+      {{ job.vehicle_make }} {{ job.vehicle_model }}
+      {% if job.vehicle_year %}({{ job.vehicle_year }}){% endif %}
+    </h4>
+    <div class="text-muted small mt-1">
+      <i class="bi bi-person me-1"></i>{{ job.customer_name }}
+      {% if job.customer_phone %} · {{ job.customer_phone }}{% endif %}
+      {% if job.customer_email %} · {{ job.customer_email }}{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if job.status == 'in_progress' %}<span class="badge bg-warning text-dark fs-6">In Progress</span>
+    {% elif job.status == 'ready' %}<span class="badge bg-success fs-6">Ready for Collection</span>
+    {% elif job.status == 'collected' %}<span class="badge bg-primary fs-6">Collected</span>
+    {% elif job.status == 'invoiced' %}<span class="badge bg-info fs-6">Invoiced & Closed</span>
+    {% elif job.status == 'cancelled' %}<span class="badge bg-danger fs-6">Cancelled</span>
+    {% else %}<span class="badge bg-secondary fs-6">{{ job.get_status_display }}</span>{% endif %}
+    {% if job.priority == 'urgent' %}<span class="badge bg-danger">Urgent</span>
+    {% elif job.priority == 'high' %}<span class="badge bg-warning text-dark">High</span>{% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left: vehicle + job info -->
+  <div class="col-lg-4">
+    <!-- Vehicle -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-car-front me-1"></i>Vehicle</div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-5 text-muted">Reg</div><div class="col-7 font-monospace fw-bold">{{ job.vehicle_reg|default:"—" }}</div>
+          <div class="col-5 text-muted">Make</div><div class="col-7">{{ job.vehicle_make }}</div>
+          <div class="col-5 text-muted">Model</div><div class="col-7">{{ job.vehicle_model|default:"—" }}</div>
+          <div class="col-5 text-muted">Year</div><div class="col-7">{{ job.vehicle_year|default:"—" }}</div>
+          <div class="col-5 text-muted">Colour</div><div class="col-7">{{ job.colour|default:"—" }}</div>
+          <div class="col-5 text-muted">VIN</div><div class="col-7 font-monospace">{{ job.vin|default:"—" }}</div>
+          <div class="col-5 text-muted">Mileage In</div><div class="col-7">{{ job.mileage_in|default:"—" }}</div>
+          <div class="col-5 text-muted">Mileage Out</div><div class="col-7">{{ job.mileage_out|default:"—" }}</div>
+          <div class="col-5 text-muted">Fuel</div><div class="col-7">{{ job.fuel_level|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Info -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>Job Info</div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-5 text-muted">Service</div><div class="col-7">{{ job.get_service_type_display }}</div>
+          <div class="col-5 text-muted">Received</div><div class="col-7">{{ job.received_at|date:"d M Y H:i" }}</div>
+          <div class="col-5 text-muted">Est. Done</div><div class="col-7">{{ job.estimated_completion|date:"d M Y H:i"|default:"—" }}</div>
+          <div class="col-5 text-muted">Mechanic</div><div class="col-7">{{ job.assigned_to.user.get_full_name|default:"—" }}</div>
+          <div class="col-5 text-muted">Bay</div><div class="col-7">{{ job.bay.name|default:"—" }}</div>
+          <div class="col-5 text-muted">Notified</div>
+          <div class="col-7">
+            {% if job.customer_notified %}<span class="text-success">Yes ({{ job.notification_method }})</span>
+            {% else %}<span class="text-muted">No</span>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Complaint -->
+    {% if job.customer_complaint %}
+    <div class="card bg-dark border-warning mb-3">
+      <div class="card-header text-warning small"><i class="bi bi-chat-left-text me-1"></i>Customer Complaint</div>
+      <div class="card-body small">{{ job.customer_complaint }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: actions + items -->
+  <div class="col-lg-8">
+
+    <!-- Update Status -->
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-arrow-repeat me-1"></i>Update Status</div>
+      <div class="card-body">
+        <form method="post" class="d-flex gap-2 flex-wrap">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="status">
+          <select name="status" class="form-select bg-dark text-white border-secondary" style="max-width:220px">
+            {% for code, label in statuses %}
+            <option value="{{ code }}" {% if job.status == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <input type="text" name="note" class="form-control bg-dark text-white border-secondary" placeholder="Optional note…" style="max-width:300px">
+          <button type="submit" class="btn btn-warning">Update</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Assign Mechanic / Bay -->
+    {% if access_level >= 4 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-person-check me-1"></i>Assign</div>
+      <div class="card-body">
+        <form method="post" class="d-flex gap-2 flex-wrap">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="assign">
+          <select name="assigned_to_id" class="form-select bg-dark text-white border-secondary" style="max-width:200px">
+            <option value="">Unassigned</option>
+            {% for emp in employees %}
+            <option value="{{ emp.pk }}" {% if job.assigned_to_id == emp.pk %}selected{% endif %}>{{ emp.user.get_full_name }}</option>
+            {% endfor %}
+          </select>
+          <select name="bay_id" class="form-select bg-dark text-white border-secondary" style="max-width:150px">
+            <option value="">No Bay</option>
+            {% for bay in bays %}
+            <option value="{{ bay.pk }}" {% if job.bay_id == bay.pk %}selected{% endif %}>{{ bay.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-outline-info">Save</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Diagnosis & Work -->
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-clipboard2-pulse me-1"></i>Diagnosis & Work</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="diagnosis">
+          <div class="mb-2">
+            <label class="form-label small">Diagnosis</label>
+            <textarea name="diagnosis" rows="3" class="form-control bg-dark text-white border-secondary">{{ job.diagnosis }}</textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Work Done</label>
+            <textarea name="work_done" rows="3" class="form-control bg-dark text-white border-secondary">{{ job.work_done }}</textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Internal Notes</label>
+            <textarea name="internal_notes" rows="2" class="form-control bg-dark text-white border-secondary">{{ job.internal_notes }}</textarea>
+          </div>
+          <div class="mb-2" style="max-width:200px">
+            <label class="form-label small">Mileage Out</label>
+            <input type="number" name="mileage_out" value="{{ job.mileage_out|default:'' }}" class="form-control bg-dark text-white border-secondary">
+          </div>
+          <button type="submit" class="btn btn-outline-warning btn-sm">Save Details</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Service Items -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-check me-1"></i>Service Items</span>
+        <span class="fw-bold text-success">Total: R{{ job.total_amount|floatformat:2 }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if items %}
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0">
+            <thead class="table-secondary">
+              <tr>
+                <th>Type</th><th>Description</th><th>Part #</th>
+                <th>Qty</th><th>Unit Price</th><th>Disc%</th><th>Total</th>
+                {% if access_level >= 4 %}<th></th>{% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr>
+                <td><span class="badge bg-secondary">{{ item.get_item_type_display }}</span></td>
+                <td>{{ item.description }}</td>
+                <td class="small font-monospace">{{ item.part_number|default:"—" }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>R{{ item.unit_price }}</td>
+                <td>{{ item.discount_percent }}%</td>
+                <td class="text-success fw-bold">R{{ item.line_total|floatformat:2 }}</td>
+                {% if access_level >= 4 %}
+                <td>
+                  <form method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_item">
+                    <input type="hidden" name="item_id" value="{{ item.pk }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="return confirm('Delete this item?')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted small">No items added</div>
+        {% endif %}
+      </div>
+
+      {% if access_level >= 3 %}
+      <div class="card-footer">
+        <form method="post" class="row g-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_item">
+          <div class="col-md-2">
+            <select name="item_type" class="form-select form-select-sm bg-dark text-white border-secondary">
+              {% for code, label in item_types %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input type="text" name="description" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Description" required>
+          </div>
+          <div class="col-md-2">
+            <input type="text" name="part_number" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Part #">
+          </div>
+          <div class="col-md-1">
+            <input type="number" name="quantity" value="1" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Qty">
+          </div>
+          <div class="col-md-2">
+            <input type="number" name="unit_price" value="0" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Price">
+          </div>
+          <div class="col-md-1">
+            <input type="number" name="discount_percent" value="0" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Disc%">
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-sm btn-warning w-100">Add</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Notify Customer -->
+    {% if access_level >= 2 and not job.customer_notified %}
+    <div class="card bg-dark border-info mb-3">
+      <div class="card-header text-info"><i class="bi bi-bell me-1"></i>Customer Notification</div>
+      <div class="card-body">
+        <form method="post" class="d-flex gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="notify">
+          <select name="notification_method" class="form-select bg-dark text-white border-secondary" style="max-width:180px">
+            <option value="sms">SMS</option>
+            <option value="email">Email</option>
+            <option value="call">Phone Call</option>
+            <option value="none">Other</option>
+          </select>
+          <button type="submit" class="btn btn-info text-dark">Mark Notified</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Status Log -->
+    {% if logs %}
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-clock-history me-1"></i>Status History</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0">
+            <thead class="table-secondary"><tr><th>Date</th><th>From</th><th>To</th><th>Note</th><th>By</th></tr></thead>
+            <tbody>
+              {% for log in logs %}
+              <tr class="small">
+                <td class="text-muted">{{ log.changed_at|date:"d M H:i" }}</td>
+                <td>{{ log.old_status }}</td>
+                <td>{{ log.new_status }}</td>
+                <td>{{ log.note }}</td>
+                <td>{{ log.changed_by.get_full_name }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

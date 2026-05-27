@@ -1,0 +1,81 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}PMS — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-building-check me-2 text-info"></i>Property Management</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'pms:room_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Rooms</a>
+    <a href="{% url 'pms:reservation_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Reservations</a>
+    <a href="{% url 'pms:housekeeping' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Housekeeping</a>
+    {% if access_level >= 2 %}<a href="{% url 'pms:reservation_add' slug=biz.slug %}" class="btn btn-info text-dark"><i class="bi bi-plus-lg me-1"></i>New Reservation</a>{% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-2">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-white">{{ total_rooms }}</div>
+      <div class="small text-muted mt-1">Total Rooms</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ available_rooms }}</div>
+      <div class="small text-muted mt-1">Available</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card bg-dark border-danger text-center p-3">
+      <div class="display-6 fw-bold text-danger">{{ occupied }}</div>
+      <div class="small text-muted mt-1">Occupied</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ reservations_today }}</div>
+      <div class="small text-muted mt-1">Reservations Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ arrivals }}</div>
+      <div class="small text-muted mt-1">Arrivals Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-muted">{{ departures }}</div>
+      <div class="small text-muted mt-1">Departures Today</div>
+    </div>
+  </div>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-calendar-check me-1"></i>Recent Reservations</span>
+    <a href="{% url 'pms:reservation_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info">All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Ref #</th><th>Guest</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Source</th></tr></thead>
+        <tbody>
+          {% for r in recent_reservations %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'pms:reservation_detail' slug=biz.slug res_id=r.pk %}'">
+            <td class="font-monospace text-info">{{ r.reservation_number }}</td>
+            <td class="fw-semibold">{{ r.guest.full_name }}</td>
+            <td class="text-muted">{{ r.room.room_number|default:"TBA" }}</td>
+            <td>{{ r.check_in_date|date:"d M Y" }}</td>
+            <td>{{ r.check_out_date|date:"d M Y" }}</td>
+            <td><span class="badge {% if r.status == 'checked_in' %}bg-success{% elif r.status == 'checked_out' %}bg-secondary{% elif r.status == 'cancelled' %}bg-danger{% elif r.status == 'no_show' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ r.get_status_display }}</span></td>
+            <td class="text-muted">{{ r.get_source_display }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No reservations yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

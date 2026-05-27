@@ -1,0 +1,142 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}{{ doc.title }} — Docs | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'docs:doc_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span id="docTitleDisplay" style="font-size:1rem;font-weight:600;">{{ doc.title }}</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+#editor-container { background:#1e293b; border:1px solid var(--hub-border); border-radius:0 0 12px 12px; min-height:600px; color:var(--hub-text); font-size:0.95rem; }
+.ql-toolbar { background:rgba(30,41,59,0.9); border:1px solid var(--hub-border) !important; border-radius:12px 12px 0 0; }
+.ql-toolbar .ql-stroke { stroke:#94a3b8 !important; }
+.ql-toolbar .ql-fill { fill:#94a3b8 !important; }
+.ql-toolbar button:hover .ql-stroke { stroke:#c084fc !important; }
+.ql-editor { min-height:580px; }
+#saveStatus { font-size:0.78rem; color:var(--hub-muted); transition:color 0.3s; }
+#saveStatus.saving { color:#fbbf24; }
+#saveStatus.saved { color:#22c55e; }
+</style>
+{% endblock %}
+
+{% block content %}
+<form id="docForm" method="post">
+{% csrf_token %}
+<input type="hidden" name="content" id="hiddenContent">
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <input type="text" name="title" id="titleInput" value="{{ doc.title }}" class="form-control"
+               style="background:transparent;border:none;border-bottom:1px solid var(--hub-border);border-radius:0;color:var(--hub-text);font-size:1rem;font-weight:600;max-width:360px;padding:4px 0;"
+               placeholder="Document title...">
+        <span id="saveStatus">All changes saved</span>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <label class="d-flex align-items-center gap-2 small text-white-50">
+            <input type="checkbox" name="is_template" value="1" {% if doc.is_template %}checked{% endif %}> Template
+        </label>
+        <button type="submit" class="btn btn-hub-primary btn-sm">
+            <i class="bi bi-floppy me-1"></i>Save
+        </button>
+        <a href="{% url 'docs:doc_share' slug=biz.slug pk=doc.pk %}" class="btn btn-hub-outline btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal">
+            <i class="bi bi-share me-1"></i>Share
+        </a>
+    </div>
+</div>
+
+<div id="editor-container">{{ doc.content|safe }}</div>
+</form>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);">
+            <div class="modal-header" style="border-bottom:1px solid var(--hub-border);">
+                <h6 class="modal-title fw-semibold">Share Document</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'docs:doc_share' slug=biz.slug pk=doc.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Email address</label>
+                        <input type="email" name="email" class="form-control" placeholder="colleague@example.com"
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-white-50 small">Access level</label>
+                        <select name="access" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                            <option value="view">View only</option>
+                            <option value="edit">Can edit</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--hub-border);">
+                    <button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-hub-primary btn-sm">Share</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+const quill = new Quill('#editor-container', {
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            [{'header': [1, 2, 3, false]}],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{'color': []}, {'background': []}],
+            [{'list': 'ordered'}, {'list': 'bullet'}],
+            [{'align': []}],
+            ['link', 'image', 'blockquote', 'code-block'],
+            ['clean']
+        ]
+    }
+});
+
+// Auto-save every 30 seconds
+let saveTimeout;
+const statusEl = document.getElementById('saveStatus');
+
+function autoSave() {
+    statusEl.textContent = 'Saving…';
+    statusEl.className = 'saving';
+    document.getElementById('hiddenContent').value = quill.root.innerHTML;
+    const fd = new FormData(document.getElementById('docForm'));
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': fd.get('csrfmiddlewaretoken')},
+        body: fd
+    }).then(r => r.json()).then(d => {
+        statusEl.textContent = 'All changes saved';
+        statusEl.className = 'saved';
+        if (d.title) document.getElementById('docTitleDisplay').textContent = d.title;
+    }).catch(() => { statusEl.textContent = 'Save failed'; statusEl.className = ''; });
+}
+
+quill.on('text-change', () => {
+    clearTimeout(saveTimeout);
+    statusEl.textContent = 'Unsaved changes';
+    statusEl.className = '';
+    saveTimeout = setTimeout(autoSave, 3000);
+});
+
+document.getElementById('titleInput').addEventListener('input', () => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(autoSave, 2000);
+});
+
+// On manual submit, populate hidden field
+document.getElementById('docForm').addEventListener('submit', e => {
+    document.getElementById('hiddenContent').value = quill.root.innerHTML;
+});
+</script>
+{% endblock %}

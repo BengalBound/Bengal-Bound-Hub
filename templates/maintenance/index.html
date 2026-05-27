@@ -1,0 +1,57 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Equipment Maintenance — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-tools me-2" style="color:var(--hub-accent);"></i>Equipment Maintenance{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_assets|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Assets</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ open_work_orders|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Open Work Orders</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#f87171;">{{ overdue_schedules|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Overdue</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ completed_today|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Completed Today</div></div></div>
+</div>
+<div class="glass-panel p-4 mb-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Quick Actions</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'maintenance:assets' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-hdd me-1"></i>Assets</a>
+    <a href="{% url 'maintenance:work_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-clipboard-check me-1"></i>Work Orders</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;">Recent Work Orders</h6>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover">
+          <thead><tr><th>WO #</th><th>Title</th><th>Asset</th><th>Priority</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for wo in recent_work_orders %}
+            <tr>
+              <td style="color:var(--hub-accent);font-size:.8rem;">{{ wo.wo_number }}</td>
+              <td style="color:var(--hub-text);">{{ wo.title|truncatechars:30 }}</td>
+              <td style="color:var(--hub-muted);">{{ wo.asset.name|default:"—" }}</td>
+              <td><span class="badge" style="background:{% if wo.priority == 'urgent' %}#f8717120{% elif wo.priority == 'high' %}#fbbf2420{% else %}#38bdf820{% endif %};color:{% if wo.priority == 'urgent' %}#f87171{% elif wo.priority == 'high' %}#fbbf24{% else %}#38bdf8{% endif %};">{{ wo.priority|title }}</span></td>
+              <td><span class="badge" style="background:{% if wo.status == 'completed' %}#22c55e20{% elif wo.status == 'in_progress' %}#38bdf820{% else %}#fbbf2420{% endif %};color:{% if wo.status == 'completed' %}#22c55e{% elif wo.status == 'in_progress' %}#38bdf8{% else %}#fbbf24{% endif %};">{{ wo.status|title }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center" style="color:var(--hub-muted);padding:1.5rem;">No work orders yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;"><i class="bi bi-exclamation-triangle me-1" style="color:#f87171;"></i>Overdue Schedules</h6>
+      {% for sched in overdue %}
+      <div class="mb-2 p-2" style="background:rgba(248,113,113,0.06);border-radius:8px;border:1px solid rgba(248,113,113,0.15);">
+        <div style="color:var(--hub-text);font-size:.85rem;">{{ sched.title }}</div>
+        <div style="color:var(--hub-muted);font-size:.75rem;">{{ sched.asset.name }} — due {{ sched.next_due }}</div>
+      </div>
+      {% empty %}
+      <div style="color:var(--hub-muted);font-size:.85rem;">All schedules up to date.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

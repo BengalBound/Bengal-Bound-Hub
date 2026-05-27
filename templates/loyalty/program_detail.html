@@ -1,0 +1,30 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ program.name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-star me-2" style="color:var(--hub-accent);"></i>{{ program.name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Points Rate</div><div style="color:var(--hub-accent);font-weight:600;">{{ program.points_per_spend }} pts per {{ program.currency_unit }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Members</div><div style="color:#38bdf8;font-size:1.4rem;font-weight:700;">{{ program.member_count }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Total Points Issued</div><div style="color:#fbbf24;font-weight:600;">{{ program.total_points_issued|default:0 }}</div></div>
+      <a href="{% url 'loyalty:members' slug=biz.slug %}?program={{ program.pk }}" class="btn btn-hub-outline btn-sm w-100 mt-3">View Members</a>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Top Members</h5>
+      <div class="table-responsive">
+        <table class="table table-dark">
+          <thead><tr><th>Member</th><th>Points</th><th>Tier</th></tr></thead>
+          <tbody>
+            {% for member in top_members %}
+            <tr><td style="color:var(--hub-text);">{{ member.customer_name }}</td><td style="color:#fbbf24;">{{ member.points }}</td><td style="color:var(--hub-accent);">{{ member.tier|title }}</td></tr>
+            {% empty %}<tr><td colspan="3" class="text-center" style="color:var(--hub-muted);">No members yet.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

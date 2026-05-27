@@ -1,0 +1,189 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ prop.title }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'property_listings:property_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Listings</a></div>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-house-door me-2 text-info"></i>{{ prop.title }}</h4>
+    <div class="small text-muted mt-1">{{ prop.address }}{% if prop.city %}, {{ prop.city }}{% endif %}{% if prop.region %}, {{ prop.region }}{% endif %}</div>
+  </div>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <span class="badge {% if prop.status == 'active' %}bg-success{% elif prop.status == 'under_contract' %}bg-warning text-dark{% elif prop.status == 'sold' %}bg-secondary{% else %}bg-dark border border-secondary{% endif %} fs-6">{{ prop.get_status_display }}</span>
+    {% if access_level >= 2 %}
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addShowingModal">+ Showing</button>
+    {% endif %}
+    {% if access_level >= 3 %}
+    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#updateStatusModal">Update Status</button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-info-circle me-1"></i>Details</div>
+      <div class="card-body small">
+        <div class="row g-2">
+          <div class="col-6 text-muted">Type</div><div class="col-6">{{ prop.get_property_type_display }}</div>
+          <div class="col-6 text-muted">Listing</div><div class="col-6">{{ prop.get_listing_type_display }}</div>
+          {% if prop.bedrooms %}<div class="col-6 text-muted">Bedrooms</div><div class="col-6">{{ prop.bedrooms }}</div>{% endif %}
+          {% if prop.bathrooms %}<div class="col-6 text-muted">Bathrooms</div><div class="col-6">{{ prop.bathrooms }}</div>{% endif %}
+          {% if prop.area_sqft %}<div class="col-6 text-muted">Area</div><div class="col-6">{{ prop.area_sqft }} sqft</div>{% endif %}
+          {% if prop.price %}<div class="col-6 text-muted">Sale Price</div><div class="col-6 fw-bold text-info">{{ prop.currency }} {{ prop.price|floatformat:0 }}</div>{% endif %}
+          {% if prop.rent_per_month %}<div class="col-6 text-muted">Rent/Mo</div><div class="col-6 fw-bold text-success">{{ prop.currency }} {{ prop.rent_per_month|floatformat:0 }}</div>{% endif %}
+          {% if prop.mls_number %}<div class="col-6 text-muted">MLS #</div><div class="col-6 font-monospace">{{ prop.mls_number }}</div>{% endif %}
+          {% if prop.listing_date %}<div class="col-6 text-muted">Listed</div><div class="col-6">{{ prop.listing_date|date:"d M Y" }}</div>{% endif %}
+          <div class="col-6 text-muted">Agent</div><div class="col-6">{{ prop.listed_by.user.get_full_name|default:"—" }}</div>
+        </div>
+        {% if prop.feature_list %}
+        <div class="mt-3 pt-2 border-top border-secondary">
+          <div class="text-muted small mb-1">Features</div>
+          <div class="d-flex flex-wrap gap-1">
+            {% for f in prop.feature_list %}<span class="badge bg-dark border border-secondary">{{ f }}</span>{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if prop.listing_url or prop.virtual_tour_url %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-link-45deg me-1"></i>Links</div>
+      <div class="card-body small d-flex flex-column gap-2">
+        {% if prop.listing_url %}<a href="{{ prop.listing_url }}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-box-arrow-up-right me-1"></i>View on Portal / MLS</a>{% endif %}
+        {% if prop.virtual_tour_url %}<a href="{{ prop.virtual_tour_url }}" target="_blank" class="btn btn-sm btn-outline-success"><i class="bi bi-badge-3d me-1"></i>Virtual Tour / 3D Walkthrough</a>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if prop.description %}
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small">Description</div>
+      <div class="card-body small" style="white-space:pre-line">{{ prop.description }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar-event me-1"></i>Showings ({{ showings.count }})</span>
+        {% if access_level >= 2 %}<button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addShowingModal">+ Schedule</button>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Contact</th><th>Date / Time</th><th>Agent</th><th>Status</th><th>Feedback</th>{% if access_level >= 2 %}<th></th>{% endif %}</tr></thead>
+            <tbody>
+              {% for s in showings %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ s.contact_name }}</div>
+                  {% if s.contact_phone %}<div class="text-muted" style="font-size:0.7rem">{{ s.contact_phone }}</div>{% endif %}
+                </td>
+                <td>{{ s.scheduled_at|date:"d M Y" }}<br><span class="text-muted">{{ s.scheduled_at|time:"H:i" }}</span></td>
+                <td class="text-muted">{{ s.agent.user.get_full_name|default:"—" }}</td>
+                <td>
+                  <span class="badge {% if s.status == 'completed' %}bg-success{% elif s.status == 'cancelled' %}bg-danger{% elif s.status == 'no_show' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ s.get_status_display }}</span>
+                </td>
+                <td class="text-muted">{{ s.feedback|truncatechars:40|default:"—" }}</td>
+                {% if access_level >= 2 %}
+                <td>
+                  <button class="btn btn-sm btn-link text-info p-0" data-bs-toggle="modal" data-bs-target="#updateShowing{{ s.pk }}"><i class="bi bi-pencil"></i></button>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No showings yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for s in showings %}
+{% if access_level >= 2 %}
+<div class="modal fade" id="updateShowing{{ s.pk }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Update Showing — {{ s.contact_name }}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_showing">
+        <input type="hidden" name="showing_id" value="{{ s.pk }}">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Status</label>
+            <select name="status" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in showing_statuses %}<option value="{{ code }}" {% if s.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label small">Feedback / Notes</label><textarea name="feedback" rows="3" class="form-control bg-dark text-white border-secondary">{{ s.feedback }}</textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addShowingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Schedule Showing</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_showing">
+        <div class="modal-body row g-2">
+          <div class="col-6"><label class="form-label small">Contact Name <span class="text-danger">*</span></label><input type="text" name="contact_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-6"><label class="form-label small">Phone</label><input type="text" name="contact_phone" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Email</label><input type="email" name="contact_email" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Date & Time <span class="text-danger">*</span></label><input type="datetime-local" name="scheduled_at" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Agent</label>
+            <select name="agent_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— Self —</option>
+              {% for a in agents %}<option value="{{ a.pk }}">{{ a.user.get_full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Update Listing Status</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_status">
+        <div class="modal-body">
+          <select name="status" class="form-select bg-dark text-white border-secondary">
+            {% for code, label in statuses %}<option value="{{ code }}" {% if prop.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-dark">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Bookings — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'travel_crm:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Travel CRM</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-ticket-detailed me-2 text-info"></i>Bookings</h4>
+</div>
+
+<div class="mb-3">
+  <form method="get" class="d-flex gap-2 flex-wrap">
+    <select name="type" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:auto" onchange="this.form.submit()">
+      <option value="">All Types</option>
+      {% for code, label in booking_types %}<option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:auto" onchange="this.form.submit()">
+      <option value="">All Statuses</option>
+      {% for code, label in booking_statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Reference</th><th>Client</th><th>Type</th><th>Supplier</th><th>Travel Date</th><th>Amount</th><th>Commission</th><th>Status</th>{% if access_level >= 2 %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td class="fw-semibold font-monospace">{{ b.booking_reference }}</td>
+            <td><a href="{% url 'travel_crm:client_detail' slug=biz.slug client_id=b.client.pk %}" class="text-muted text-decoration-none">{{ b.client.full_name }}</a></td>
+            <td><span class="badge bg-dark border border-secondary">{{ b.get_booking_type_display }}</span></td>
+            <td class="text-muted">{{ b.supplier|default:"—" }}</td>
+            <td class="text-muted">{{ b.travel_date|date:"d M Y" }}</td>
+            <td class="text-info">{{ b.currency }} {{ b.amount|floatformat:0 }}</td>
+            <td class="text-success">{% if b.commission_amount %}{{ b.commission_amount|floatformat:0 }}{% else %}—{% endif %}</td>
+            <td>
+              <span class="badge
+                {% if b.status == 'confirmed' or b.status == 'ticketed' %}bg-success
+                {% elif b.status == 'cancelled' %}bg-danger
+                {% elif b.status == 'pending' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ b.get_status_display }}
+              </span>
+            </td>
+            {% if access_level >= 2 %}
+            <td>
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_booking_status">
+                <input type="hidden" name="booking_id" value="{{ b.pk }}">
+                <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:auto" onchange="this.form.submit()">
+                  {% for code, label in booking_statuses %}<option value="{{ code }}" {% if b.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">No bookings found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

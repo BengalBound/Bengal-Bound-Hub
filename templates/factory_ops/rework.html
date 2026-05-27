@@ -1,0 +1,82 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Rework & Defects — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-tools me-2" style="color:var(--hub-accent);"></i>Rework & Defects{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ open_count }}</div><div class="text-white-50 small">Open Reworks</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ total_affected }}</div><div class="text-white-50 small">Pairs Affected</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ total_rejected }}</div><div class="text-white-50 small">Total Rejected</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ total_cost|floatformat:0 }}</div><div class="text-white-50 small">Rework Cost</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Rework Records</h6>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Add Rework</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Rework ID</th><th>Date</th><th>Style</th><th>Stage</th><th>Defect Type</th><th>Severity</th><th>Affected</th><th>Recovered</th><th>Rejected</th><th>Recovery %</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for r in records %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="color:var(--hub-accent);font-weight:600;">{{ r.rework_id }}</td>
+          <td>{{ r.rework_date }}</td>
+          <td>{{ r.style|truncatechars:18 }}</td>
+          <td>{{ r.stage }}</td>
+          <td>{{ r.defect_type|truncatechars:20 }}</td>
+          <td>{% if r.defect_severity %}<span class="badge" style="background:{% if r.defect_severity == 'critical' %}rgba(248,113,113,0.2){% elif r.defect_severity == 'major' %}rgba(251,191,36,0.2){% else %}rgba(34,197,94,0.2){% endif %};color:{% if r.defect_severity == 'critical' %}#f87171{% elif r.defect_severity == 'major' %}#fbbf24{% else %}#22c55e{% endif %};font-size:.7rem;">{{ r.defect_severity }}</span>{% else %}—{% endif %}</td>
+          <td>{{ r.qty_affected }}</td>
+          <td>{{ r.qty_recovered }}</td>
+          <td style="color:#f87171;">{{ r.qty_rejected }}</td>
+          <td style="color:#22c55e;">{{ r.recovery_rate_pct|floatformat:0 }}%</td>
+          <td><span class="badge" style="background:{% if r.status == 'closed' %}rgba(34,197,94,0.15){% elif r.status == 'in_progress' %}rgba(56,189,248,0.15){% else %}rgba(248,113,113,0.15){% endif %};color:{% if r.status == 'closed' %}#22c55e{% elif r.status == 'in_progress' %}#38bdf8{% else %}#f87171{% endif %};">{{ r.status }}</span></td>
+          <td class="d-flex gap-1">
+            {% if r.status != 'closed' %}
+            <form method="post" style="display:inline;">{% csrf_token %}<input type="hidden" name="action" value="close"><input type="hidden" name="pk" value="{{ r.pk }}"><button class="btn btn-sm" style="background:rgba(34,197,94,0.1);color:#22c55e;border:none;padding:2px 8px;"><i class="bi bi-check2"></i></button></form>
+            {% endif %}
+            <form method="post" style="display:inline;" onsubmit="return confirm('Delete?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ r.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="12" class="text-center text-white-50 py-4">No rework records.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Rework Record</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label text-white-50 small">Date</label><input type="date" name="rework_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">PO Reference</label><input type="text" name="production_order_ref" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Style</label><input type="text" name="style" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Stage</label><input type="text" name="stage" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Defect Type *</label><input type="text" name="defect_type" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Defect Severity</label>
+          <select name="defect_severity" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="major" selected>Major</option>
+            <option value="critical">Critical</option>
+            <option value="minor">Minor</option>
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Qty Affected</label><input type="number" name="qty_affected" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Qty Recovered</label><input type="number" name="qty_recovered" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Qty Rejected</label><input type="number" name="qty_rejected" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Labor Cost</label><input type="number" name="labor_cost" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Root Cause</label><input type="text" name="root_cause" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Rework</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

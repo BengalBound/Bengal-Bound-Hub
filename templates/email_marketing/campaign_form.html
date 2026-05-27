@@ -1,0 +1,23 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if campaign %}Edit Campaign{% else %}New Campaign{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-envelope-plus me-2" style="color:var(--hub-accent);"></i>{% if campaign %}Edit Campaign{% else %}New Campaign{% endif %}{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:800px;">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-8"><label class="form-label" style="color:var(--hub-muted);">Campaign Name</label><input name="name" value="{{ campaign.name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-4"><label class="form-label" style="color:var(--hub-muted);">Email List</label><select name="email_list" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{% for lst in email_lists %}<option value="{{ lst.pk }}">{{ lst.name }}</option>{% endfor %}</select></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Subject Line</label><input name="subject" value="{{ campaign.subject|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Sender Name</label><input name="sender_name" value="{{ campaign.sender_name|default:biz.name }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Sender Email</label><input type="email" name="sender_email" value="{{ campaign.sender_email|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Email Body (HTML)</label><textarea name="body" rows="14" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);font-family:monospace;" required>{{ campaign.body|default:'' }}</textarea></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Schedule (optional)</label><input type="datetime-local" name="scheduled_at" value="{{ campaign.scheduled_at|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+      <button type="submit" name="action" value="save" class="btn btn-hub-outline btn-sm">Save Draft</button>
+      <button type="submit" name="action" value="send" class="btn btn-hub-primary btn-sm">Send Now</button>
+      <a href="{% url 'email_marketing:campaign_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm ms-auto">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

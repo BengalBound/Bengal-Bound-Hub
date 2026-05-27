@@ -1,0 +1,105 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Inspection Templates — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-layout-text-sidebar me-2 text-info"></i>Inspection Templates</h4>
+  <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#createTplModal">
+    <i class="bi bi-plus-lg me-1"></i>New Template
+  </button>
+</div>
+
+<div class="row g-3">
+  {% for tpl in templates %}
+  <div class="col-md-6">
+    <div class="card bg-dark border-{% if tpl.is_active %}info{% else %}secondary{% endif %}">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ tpl.name }}</span>
+        <div class="d-flex gap-2">
+          <span class="badge {% if tpl.is_active %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+            {% if tpl.is_active %}Active{% else %}Inactive{% endif %}
+          </span>
+          <form method="post" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle">
+            <input type="hidden" name="template_id" value="{{ tpl.pk }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
+              {% if tpl.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if tpl.description %}<p class="small text-muted mb-2">{{ tpl.description }}</p>{% endif %}
+        <div class="small"><span class="badge bg-secondary">{{ tpl.checkpoints|length }} checkpoints</span></div>
+        <div class="mt-2">
+          {% for cp in tpl.checkpoints %}
+          <span class="badge bg-dark border border-secondary me-1 mb-1 small">{{ cp }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-layout-text-sidebar display-3 mb-3 d-block"></i>
+        No custom templates — create one or use the 39-point standard default.
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Default checkpoints preview -->
+<div class="card bg-dark border-secondary mt-4">
+  <div class="card-header"><i class="bi bi-list-check me-1"></i>Standard Default ({{ default_checkpoints|length }} checkpoints)</div>
+  <div class="card-body">
+    <div class="row g-1">
+      {% for cp in default_checkpoints %}
+      <div class="col-md-4 col-lg-3">
+        <span class="small text-muted">{{ forloop.counter }}.</span>
+        <span class="small">{{ cp }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Create Template Modal -->
+<div class="modal fade" id="createTplModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">Create Inspection Template</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small">Template Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Pre-Purchase Inspection" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Description</label>
+            <input type="text" name="description" class="form-control bg-dark text-white border-secondary">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Checkpoints (one per line)</label>
+            <textarea name="checkpoints" rows="10" class="form-control bg-dark text-white border-secondary font-monospace"
+              placeholder="Leave blank to use the 39-point standard default&#10;Or enter custom checkpoints, one per line:&#10;Engine Oil Level&#10;Brake Pads — Front&#10;…"></textarea>
+            <div class="form-text text-muted">Leave blank to use the standard {{ default_checkpoints|length }}-point checklist.</div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Create Template</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

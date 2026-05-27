@@ -1,0 +1,31 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ contact.get_full_name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person me-2" style="color:var(--hub-accent);"></i>{{ contact.get_full_name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="text-center mb-3"><div style="width:64px;height:64px;border-radius:50%;background:var(--hub-accent);display:inline-flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;font-weight:700;">{{ contact.first_name.0 }}{{ contact.last_name.0 }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Company</div><div style="color:var(--hub-text);">{{ contact.company|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Email</div><div style="color:var(--hub-text);">{{ contact.email }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Phone</div><div style="color:var(--hub-text);">{{ contact.phone|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Stage</div><span class="badge" style="background:var(--hub-surface);color:var(--hub-accent);">{{ contact.stage|title }}</span></div>
+      <div class="d-flex gap-2 mt-3"><a href="{% url 'crm:contact_create' slug=biz.slug %}?edit={{ contact.pk }}" class="btn btn-hub-outline btn-sm w-100">Edit</a></div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4 mb-3">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;">Notes</h6>
+      <div style="color:var(--hub-muted);">{{ contact.notes|linebreaks|default:"No notes." }}</div>
+    </div>
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;">Deals</h6>
+      {% for deal in contact.deals.all %}
+      <a href="{% url 'crm:deal_detail' slug=biz.slug pk=deal.pk %}" class="d-block text-decoration-none mb-2">
+        <div class="glass-panel p-2" style="border-radius:8px;"><span style="color:var(--hub-text);">{{ deal.title }}</span><span class="float-end" style="color:#38bdf8;">{{ deal.value }}</span></div>
+      </a>
+      {% empty %}<div style="color:var(--hub-muted);">No deals yet.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

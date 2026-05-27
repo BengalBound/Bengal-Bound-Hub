@@ -1,0 +1,113 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}DMS Dashboard — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-car-front-fill me-2 text-primary"></i>Dealer Management</h4>
+    <small class="text-muted">{{ biz.name }}</small>
+  </div>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <a href="{% url 'dms:vehicle_add' slug=biz.slug %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Add Stock
+    </a>
+    <a href="{% url 'dms:deal_create' slug=biz.slug %}" class="btn btn-outline-success">
+      <i class="bi bi-handshake me-1"></i>New Deal
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Stock status -->
+<div class="row g-3 mb-4">
+  {% for code, label in stock_counts.items %}
+  {% with count=stock_counts|dictsort:code %}
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="card bg-dark border-secondary text-center py-3">
+      <div class="fs-2 fw-bold {% if code == 'available' %}text-success{% elif code == 'reserved' %}text-warning{% elif code == 'sold' %}text-info{% else %}text-muted{% endif %}">
+        {{ stock_counts|dictsort:code }}
+      </div>
+      <div class="small text-muted">{{ label }}</div>
+    </div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <!-- Recent Stock -->
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-collection me-1"></i>Recent Stock</span>
+        <a href="{% url 'dms:vehicle_list' slug=biz.slug %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0 align-middle small">
+            <thead class="table-secondary">
+              <tr><th>Stock #</th><th>Vehicle</th><th>Year</th><th>Price</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for v in recent_stock %}
+              <tr style="cursor:pointer" onclick="location.href='{% url 'dms:vehicle_detail' slug=biz.slug stock_id=v.pk %}'">
+                <td class="font-monospace">{{ v.stock_number }}</td>
+                <td>{{ v.make }} {{ v.model }}</td>
+                <td>{{ v.year }}</td>
+                <td class="text-success">{% if v.asking_price %}R{{ v.asking_price|floatformat:0 }}{% else %}—{% endif %}</td>
+                <td>
+                  {% if v.status == 'available' %}<span class="badge bg-success">Available</span>
+                  {% elif v.status == 'reserved' %}<span class="badge bg-warning text-dark">Reserved</span>
+                  {% elif v.status == 'sold' %}<span class="badge bg-info">Sold</span>
+                  {% else %}<span class="badge bg-secondary">{{ v.get_status_display }}</span>{% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No stock yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Deals -->
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-handshake me-1"></i>Active Deals</span>
+        <a href="{% url 'dms:deal_list' slug=biz.slug %}" class="btn btn-sm btn-outline-success">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0 align-middle small">
+            <thead class="table-secondary">
+              <tr><th>Deal #</th><th>Vehicle</th><th>Customer</th><th>Stage</th></tr>
+            </thead>
+            <tbody>
+              {% for deal in active_deals %}
+              <tr style="cursor:pointer" onclick="location.href='{% url 'dms:deal_detail' slug=biz.slug deal_id=deal.pk %}'">
+                <td class="font-monospace">DEAL-{{ deal.deal_number }}</td>
+                <td>{{ deal.vehicle.make }} {{ deal.vehicle.model }}</td>
+                <td>{{ deal.customer_name }}</td>
+                <td>
+                  {% if deal.stage == 'agreed' %}<span class="badge bg-success">Agreed</span>
+                  {% elif deal.stage == 'negotiation' %}<span class="badge bg-warning text-dark">Negotiating</span>
+                  {% elif deal.stage == 'finance' %}<span class="badge bg-info">Finance</span>
+                  {% elif deal.stage == 'documentation' %}<span class="badge bg-primary">Docs</span>
+                  {% else %}<span class="badge bg-secondary">{{ deal.get_stage_display }}</span>{% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-3">No active deals</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Digital Vehicle Inspection — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-clipboard2-check me-2 text-info"></i>Digital Vehicle Inspection</h4>
+    <small class="text-muted">{{ biz.name }}</small>
+  </div>
+  <div class="d-flex gap-2">
+    {% if access_level >= 4 %}
+    <a href="{% url 'dvi:templates' slug=biz.slug %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-layout-text-sidebar me-1"></i>Templates
+    </a>
+    {% endif %}
+    {% if access_level >= 3 %}
+    <a href="{% url 'dvi:inspection_create' slug=biz.slug %}" class="btn btn-info text-dark">
+      <i class="bi bi-plus-lg me-1"></i>New Inspection
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Result Summary -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center py-3">
+      <div class="fs-2 fw-bold text-success">{{ result_counts.pass|default:0 }}</div>
+      <div class="small text-muted">Pass</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center py-3">
+      <div class="fs-2 fw-bold text-warning">{{ result_counts.advisory|default:0 }}</div>
+      <div class="small text-muted">Pass with Advisories</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-danger text-center py-3">
+      <div class="fs-2 fw-bold text-danger">{{ result_counts.fail|default:0 }}</div>
+      <div class="small text-muted">Fail</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center py-3">
+      <div class="fs-2 fw-bold text-muted">{{ result_counts.incomplete|default:0 }}</div>
+      <div class="small text-muted">Incomplete</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent Inspections -->
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-list-ul me-1"></i>Recent Inspections</div>
+      <div class="card-body p-0">
+        {% if recent %}
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0 align-middle small">
+            <thead class="table-secondary">
+              <tr><th>DVI #</th><th>Vehicle</th><th>Reg</th><th>Date</th><th>Result</th><th>Technician</th></tr>
+            </thead>
+            <tbody>
+              {% for insp in recent %}
+              <tr style="cursor:pointer" onclick="location.href='{% url 'dvi:inspection_detail' slug=biz.slug inspection_id=insp.pk %}'">
+                <td class="font-monospace">DVI-{{ insp.inspection_number }}</td>
+                <td>{{ insp.vehicle_make }} {{ insp.vehicle_model }}</td>
+                <td class="font-monospace">{{ insp.vehicle_reg }}</td>
+                <td class="text-muted">{{ insp.inspected_at|date:"d M Y" }}</td>
+                <td>
+                  {% if insp.overall_result == 'pass' %}<span class="badge bg-success">Pass</span>
+                  {% elif insp.overall_result == 'advisory' %}<span class="badge bg-warning text-dark">Advisory</span>
+                  {% elif insp.overall_result == 'fail' %}<span class="badge bg-danger">Fail</span>
+                  {% else %}<span class="badge bg-secondary">Incomplete</span>{% endif %}
+                </td>
+                <td>{{ insp.performed_by.user.get_full_name|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-clipboard2 display-3 mb-3 d-block"></i>
+          No inspections yet
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Templates -->
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-layout-text-sidebar me-1"></i>Inspection Templates</div>
+      <div class="card-body">
+        {% if templates %}
+        <ul class="list-unstyled mb-0">
+          {% for tpl in templates %}
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <div>
+              <div class="fw-semibold small">{{ tpl.name }}</div>
+              <div class="text-muted" style="font-size:0.75rem">{{ tpl.checkpoints|length }} checkpoints</div>
+            </div>
+            <span class="badge bg-info text-dark">Active</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted small py-3">No templates — using 39-point default</div>
+        {% endif %}
+        {% if access_level >= 4 %}
+        <a href="{% url 'dvi:templates' slug=biz.slug %}" class="btn btn-sm btn-outline-info w-100 mt-3">Manage Templates</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}Workspace{% endblock %}
+{% block page_subtitle %}Feed Serea your business knowledge — she'll use it to write posts, reply to comments, and handle DMs.{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- ── LEFT: Upload Form ───────────────────────────────────────────────── -->
+  <div class="col-lg-5">
+    <div class="glass-panel p-4">
+      <h6 class="fw-bold font-outfit mb-1"><i class="bi bi-folder2-open me-2 text-primary"></i>Add Content</h6>
+      <p class="text-white-50 small mb-4">Upload a CSV, paste text, or link a Google Drive folder. Serea reads this to write accurate, on-brand content.</p>
+
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="alert alert-{% if 'success' in msg.tags %}success bg-success{% elif 'error' in msg.tags %}danger bg-danger{% else %}warning bg-warning{% endif %} bg-opacity-20 border-0 small mb-3">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+
+        <div class="mb-3">
+          <label class="form-label text-white-50 small fw-medium">Title</label>
+          <input type="text" name="title" class="form-control bg-dark text-white border-secondary shadow-none"
+                 placeholder="e.g. Product FAQ, Brand Voice Guide" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-white-50 small fw-medium">Content Type</label>
+          <select name="content_type" class="form-select bg-dark text-white border-secondary">
+            {% for val, label in content_type_choices %}
+              <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text text-muted small mt-1">Helps Serea know when to use this content.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-white-50 small fw-medium">Description <span class="text-muted">(optional)</span></label>
+          <input type="text" name="description" class="form-control bg-dark text-white border-secondary shadow-none"
+                 placeholder="Brief note about what this is for">
+        </div>
+
+        <!-- Source type tabs -->
+        <div class="mb-3">
+          <label class="form-label text-white-50 small fw-medium">How to provide content</label>
+          <div class="btn-group w-100 mb-3" role="group">
+            <input type="radio" class="btn-check" name="source_type" id="src_manual" value="manual_text" checked onchange="switchSource('manual_text')">
+            <label class="btn btn-outline-secondary btn-sm" for="src_manual"><i class="bi bi-pencil me-1"></i>Type it</label>
+
+            <input type="radio" class="btn-check" name="source_type" id="src_csv" value="csv_upload" onchange="switchSource('csv_upload')">
+            <label class="btn btn-outline-secondary btn-sm" for="src_csv"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV Upload</label>
+
+            <input type="radio" class="btn-check" name="source_type" id="src_drive" value="google_drive" onchange="switchSource('google_drive')">
+            <label class="btn btn-outline-secondary btn-sm" for="src_drive"><i class="bi bi-google me-1"></i>Google Drive</label>
+          </div>
+
+          <!-- Manual text -->
+          <div id="panel_manual_text">
+            <textarea name="manual_text" class="form-control bg-dark text-white border-secondary shadow-none" rows="8"
+              placeholder="Paste your content here — product descriptions, FAQ answers, brand guidelines, response templates, anything Serea should know..."></textarea>
+            <div class="form-text text-muted small mt-1">Markdown is supported. Max recommended: ~5,000 characters per file.</div>
+          </div>
+
+          <!-- CSV Upload -->
+          <div id="panel_csv_upload" class="d-none">
+            <div class="border border-dashed border-secondary rounded-3 p-4 text-center">
+              <i class="bi bi-file-earmark-spreadsheet display-5 text-white-25 d-block mb-2"></i>
+              <label for="csvFile" class="btn btn-outline-primary btn-sm rounded-pill mb-2">
+                <i class="bi bi-upload me-1"></i>Choose CSV file
+              </label>
+              <input type="file" name="file" id="csvFile" accept=".csv,.txt" class="d-none" onchange="showFileName(this)">
+              <div id="fileName" class="text-white-50 small mt-2">No file chosen</div>
+            </div>
+            <div class="alert alert-info bg-primary bg-opacity-10 border-primary border-opacity-25 small mt-3 mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              CSV columns are read as key-value pairs. Include columns like Question, Answer, Product, Description, etc.
+              Serea reads up to 200 rows.
+            </div>
+          </div>
+
+          <!-- Google Drive -->
+          <div id="panel_google_drive" class="d-none">
+            <input type="url" name="drive_url" class="form-control bg-dark text-white border-secondary shadow-none mb-2"
+                   placeholder="https://drive.google.com/drive/folders/...">
+            <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 small mb-0">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Serea accesses Drive via her Google Service Account. Make sure the folder is shared with the service account email set by your workspace admin.
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill fw-semibold shadow-glow mt-2">
+          <i class="bi bi-plus-lg me-2"></i>Add to Knowledge Base
+        </button>
+      </form>
+    </div>
+
+    <!-- Tips -->
+    <div class="glass-panel p-4 mt-4">
+      <h6 class="fw-bold font-outfit mb-3"><i class="bi bi-lightbulb me-2 text-warning"></i>What to upload</h6>
+      <div class="row g-2 text-white-50 small">
+        <div class="col-12"><i class="bi bi-check2 text-success me-2"></i><strong class="text-white">FAQ</strong> — common customer questions and answers</div>
+        <div class="col-12"><i class="bi bi-check2 text-success me-2"></i><strong class="text-white">Product info</strong> — descriptions, prices, features</div>
+        <div class="col-12"><i class="bi bi-check2 text-success me-2"></i><strong class="text-white">Tone guide</strong> — how you want Serea to talk</div>
+        <div class="col-12"><i class="bi bi-check2 text-success me-2"></i><strong class="text-white">Response templates</strong> — ready-made replies for common situations</div>
+        <div class="col-12"><i class="bi bi-check2 text-success me-2"></i><strong class="text-white">Post content</strong> — captions and posts for Serea to schedule</div>
+        <div class="col-12"><i class="bi bi-check2 text-success me-2"></i><strong class="text-white">Brand guidelines</strong> — what to say and what to avoid</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: Knowledge Base ───────────────────────────────────────────── -->
+  <div class="col-lg-7">
+
+    <div class="glass-panel p-4">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <h6 class="fw-bold font-outfit mb-0"><i class="bi bi-database me-2 text-primary"></i>Knowledge Base</h6>
+        <span class="badge bg-success bg-opacity-20 text-success rounded-pill">{{ active_count }} active</span>
+      </div>
+
+      {% if content_files %}
+        {% for cf in content_files %}
+          <div class="rounded-3 border border-secondary border-opacity-25 p-3 mb-3 {% if not cf.is_active %}opacity-50{% endif %}"
+               style="background:rgba(255,255,255,0.03)">
+            <div class="d-flex align-items-start justify-content-between gap-3">
+              <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <!-- Source icon -->
+                  <i class="bi bi-{% if cf.source_type == 'csv_upload' %}file-earmark-spreadsheet{% elif cf.source_type == 'google_drive' %}google{% else %}pencil{% endif %} text-primary small"></i>
+                  <span class="fw-semibold text-white text-truncate">{{ cf.title }}</span>
+                  {% if not cf.is_active %}<span class="badge bg-secondary bg-opacity-40 small">disabled</span>{% endif %}
+                </div>
+                <div class="d-flex gap-2 flex-wrap mb-1">
+                  <span class="badge bg-primary bg-opacity-15 text-primary small rounded-pill">{{ cf.get_content_type_display }}</span>
+                  <span class="badge bg-secondary bg-opacity-30 text-white-50 small rounded-pill">{{ cf.get_source_type_display }}</span>
+                </div>
+                {% if cf.description %}
+                  <div class="text-white-50 small">{{ cf.description }}</div>
+                {% endif %}
+                {% if cf.drive_url %}
+                  <div class="text-white-25 small font-monospace text-truncate">{{ cf.drive_url|truncatechars:50 }}</div>
+                {% endif %}
+                {% if cf.parsed_content or cf.manual_text %}
+                  {% with content=cf.parsed_content|default:cf.manual_text %}
+                    <div class="text-white-25 small mt-1 fst-italic">{{ content|truncatechars:90 }}</div>
+                  {% endwith %}
+                {% endif %}
+              </div>
+
+              <div class="d-flex flex-column gap-1 flex-shrink-0">
+                <!-- Toggle active -->
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="toggle">
+                  <input type="hidden" name="file_id" value="{{ cf.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-{% if cf.is_active %}warning{% else %}success{% endif %} rounded-pill px-2 py-1"
+                          style="font-size:.7rem">
+                    {% if cf.is_active %}<i class="bi bi-pause-fill"></i>{% else %}<i class="bi bi-play-fill"></i>{% endif %}
+                  </button>
+                </form>
+                <!-- Delete -->
+                <form method="post" onsubmit="return confirm('Delete \'{{ cf.title }}\'? This cannot be undone.')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="file_id" value="{{ cf.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1"
+                          style="font-size:.7rem"><i class="bi bi-trash3"></i></button>
+                </form>
+              </div>
+            </div>
+            <div class="text-white-25 small mt-2">Added {{ cf.created_at|date:"M d, Y" }}</div>
+          </div>
+        {% endfor %}
+
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-database-slash display-4 text-white-25 d-block mb-3"></i>
+          <p class="text-white-50 mb-1">No content uploaded yet.</p>
+          <p class="text-white-25 small">Upload your FAQs, product info, and brand guidelines so Serea knows your business.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Next step -->
+    {% if active_count > 0 and serea_agent and not serea_agent.onboarding_complete %}
+    <div class="glass-panel p-4 mt-4 border border-success border-opacity-25">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-check2-all text-success display-6"></i>
+        <div>
+          <div class="fw-semibold text-white">Looking good!</div>
+          <div class="text-white-50 small">You've uploaded business content. Head to the chat and tell Serea you're ready — she'll confirm setup and start working.</div>
+          <a href="/ai-chat/" class="btn btn-sm btn-success rounded-pill mt-2"><i class="bi bi-chat-dots me-2"></i>Chat with Serea →</a>
+        </div>
+      </div>
+    </div>
+    {% elif serea_agent and serea_agent.onboarding_complete %}
+    <div class="glass-panel p-4 mt-4 border border-primary border-opacity-25">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-stars text-primary display-6"></i>
+        <div>
+          <div class="fw-semibold text-white">Serea is fully set up</div>
+          <div class="text-white-50 small">She's actively using your knowledge base to manage your platforms.</div>
+          <a href="/ai-chat/" class="btn btn-sm btn-outline-primary rounded-pill mt-2"><i class="bi bi-chat-dots me-2"></i>Open chat</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+function switchSource(type) {
+  ['manual_text', 'csv_upload', 'google_drive'].forEach(t => {
+    document.getElementById('panel_' + t).classList.toggle('d-none', t !== type);
+  });
+}
+
+function showFileName(input) {
+  const name = input.files.length ? input.files[0].name : 'No file chosen';
+  document.getElementById('fileName').textContent = name;
+}
+</script>
+{% endblock %}

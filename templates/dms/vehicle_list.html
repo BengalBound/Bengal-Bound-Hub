@@ -1,0 +1,92 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Vehicle Stock — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-collection me-2 text-primary"></i>Vehicle Stock</h4>
+  {% if access_level >= 3 %}
+  <a href="{% url 'dms:vehicle_add' slug=biz.slug %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Add Vehicle
+  </a>
+  {% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-4">
+      <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Search make, model, reg, stock #…">
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Statuses</option>
+        {% for code, label in statuses %}
+        <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="stock_type" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Types</option>
+        {% for code, label in stock_types %}
+        <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+    </div>
+    <div class="col-md-1">
+      <a href="{% url 'dms:vehicle_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a>
+    </div>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for v in vehicles %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary h-100" style="cursor:pointer" onclick="location.href='{% url 'dms:vehicle_detail' slug=biz.slug stock_id=v.pk %}'">
+      {% if v.main_photo %}
+      <img src="{{ v.main_photo.url }}" class="card-img-top" style="height:160px;object-fit:cover">
+      {% else %}
+      <div class="d-flex align-items-center justify-content-center bg-secondary" style="height:160px">
+        <i class="bi bi-car-front display-3 text-dark"></i>
+      </div>
+      {% endif %}
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h6 class="fw-bold mb-0">{{ v.year }} {{ v.make }} {{ v.model }}</h6>
+            {% if v.variant %}<div class="small text-muted">{{ v.variant }}</div>{% endif %}
+          </div>
+          {% if v.status == 'available' %}<span class="badge bg-success">Available</span>
+          {% elif v.status == 'reserved' %}<span class="badge bg-warning text-dark">Reserved</span>
+          {% elif v.status == 'sold' %}<span class="badge bg-info">Sold</span>
+          {% else %}<span class="badge bg-secondary">{{ v.get_status_display }}</span>{% endif %}
+        </div>
+        <div class="mt-2 small text-muted">
+          <span class="font-monospace">{{ v.stock_number }}</span>
+          {% if v.reg_number %} · <span class="font-monospace">{{ v.reg_number }}</span>{% endif %}
+          {% if v.mileage %} · {{ v.mileage|floatformat:0 }} km{% endif %}
+        </div>
+        <div class="mt-1 small">
+          <span class="text-muted">{{ v.get_fuel_type_display }}</span> ·
+          <span class="text-muted">{{ v.get_transmission_display }}</span>
+        </div>
+        {% if v.asking_price %}
+        <div class="mt-2 fw-bold text-success">R{{ v.asking_price|floatformat:0 }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-car-front display-3 mb-3 d-block"></i>
+        No vehicles in stock
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

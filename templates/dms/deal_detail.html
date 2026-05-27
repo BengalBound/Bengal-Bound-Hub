@@ -1,0 +1,223 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}DEAL-{{ deal.deal_number }} — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="mb-3">
+  <a href="{% url 'dms:deal_list' slug=biz.slug %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i>Deals
+  </a>
+</div>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0">
+      <span class="badge bg-secondary me-2">DEAL-{{ deal.deal_number }}</span>
+      {{ deal.vehicle.year }} {{ deal.vehicle.make }} {{ deal.vehicle.model }}
+    </h4>
+    <div class="small text-muted mt-1">
+      <i class="bi bi-person me-1"></i>{{ deal.customer_name }}
+      {% if deal.customer_phone %} · {{ deal.customer_phone }}{% endif %}
+      {% if deal.salesperson %} · Salesperson: {{ deal.salesperson.user.get_full_name }}{% endif %}
+    </div>
+  </div>
+  <div>
+    {% if deal.stage == 'delivered' %}<span class="badge bg-success fs-6">Delivered</span>
+    {% elif deal.stage == 'agreed' %}<span class="badge bg-success fs-6">Price Agreed</span>
+    {% elif deal.stage == 'negotiation' %}<span class="badge bg-warning text-dark fs-6">Negotiating</span>
+    {% elif deal.stage == 'finance' %}<span class="badge bg-info fs-6">Finance Processing</span>
+    {% elif deal.stage == 'documentation' %}<span class="badge bg-primary fs-6">Documentation</span>
+    {% elif deal.stage == 'lost' %}<span class="badge bg-danger fs-6">Lost</span>
+    {% elif deal.stage == 'cancelled' %}<span class="badge bg-danger fs-6">Cancelled</span>
+    {% else %}<span class="badge bg-secondary fs-6">{{ deal.get_stage_display }}</span>{% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <!-- Vehicle -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-car-front me-1"></i>Vehicle</div>
+      <div class="card-body small">
+        {% if deal.vehicle.main_photo %}
+        <img src="{{ deal.vehicle.main_photo.url }}" class="img-fluid rounded mb-2">
+        {% endif %}
+        <div class="fw-semibold">{{ deal.vehicle.display_name }}</div>
+        <div class="text-muted">{{ deal.vehicle.stock_number }} · {{ deal.vehicle.reg_number }}</div>
+        <div class="mt-1">{{ deal.vehicle.get_fuel_type_display }} · {{ deal.vehicle.get_transmission_display }}</div>
+        {% if deal.vehicle.mileage %}<div class="text-muted">{{ deal.vehicle.mileage|floatformat:0 }} km</div>{% endif %}
+        <a href="{% url 'dms:vehicle_detail' slug=biz.slug stock_id=deal.vehicle.pk %}" class="btn btn-sm btn-outline-secondary mt-2">View Vehicle</a>
+      </div>
+    </div>
+
+    <!-- Customer -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-person me-1"></i>Customer</div>
+      <div class="card-body small">
+        <div class="fw-semibold fs-6">{{ deal.customer_name }}</div>
+        {% if deal.customer_phone %}<div><i class="bi bi-phone me-1 text-muted"></i>{{ deal.customer_phone }}</div>{% endif %}
+        {% if deal.customer_email %}<div><i class="bi bi-envelope me-1 text-muted"></i>{{ deal.customer_email }}</div>{% endif %}
+        {% if deal.customer_address %}<div class="mt-1 text-muted">{{ deal.customer_address }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- Trade-in -->
+    {% if trade_in %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-arrow-left-right me-1"></i>Trade-In</div>
+      <div class="card-body small">
+        <div class="fw-semibold">{{ trade_in.year }} {{ trade_in.make }} {{ trade_in.model }}</div>
+        <div class="text-muted font-monospace">{{ trade_in.reg_number }}</div>
+        <div>Condition: {{ trade_in.get_condition_display }}</div>
+        {% if trade_in.mileage %}<div>{{ trade_in.mileage|floatformat:0 }} km</div>{% endif %}
+        {% if trade_in.offered_price %}<div>Offered: <span class="text-warning">R{{ trade_in.offered_price|floatformat:0 }}</span></div>{% endif %}
+        {% if trade_in.accepted_price %}<div>Accepted: <span class="text-success fw-bold">R{{ trade_in.accepted_price|floatformat:0 }}</span></div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    <!-- Stage -->
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-arrow-repeat me-1"></i>Update Stage</div>
+      <div class="card-body">
+        <form method="post" class="d-flex gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="stage">
+          <select name="stage" class="form-select bg-dark text-white border-secondary" style="max-width:250px">
+            {% for code, label in stages %}
+            <option value="{{ code }}" {% if deal.stage == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-success">Update</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Finance -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-bank me-1"></i>Finance Details</span>
+        {% if deal.gross_profit %}
+        <span class="text-success fw-bold">GP: R{{ deal.gross_profit|floatformat:0 }}</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="row g-2 small mb-3">
+          <div class="col-4"><span class="text-muted">Sale Price:</span> <span class="text-success fw-bold">{% if deal.sale_price %}R{{ deal.sale_price|floatformat:0 }}{% else %}—{% endif %}</span></div>
+          <div class="col-4"><span class="text-muted">Deposit:</span> R{{ deal.deposit_amount|floatformat:0 }}</div>
+          <div class="col-4"><span class="text-muted">Finance Type:</span> {{ deal.get_finance_type_display }}</div>
+          {% if deal.finance_provider %}
+          <div class="col-4"><span class="text-muted">Provider:</span> {{ deal.finance_provider }}</div>
+          {% endif %}
+          {% if deal.finance_amount %}
+          <div class="col-4"><span class="text-muted">Loan Amount:</span> R{{ deal.finance_amount|floatformat:0 }}</div>
+          {% endif %}
+          {% if deal.monthly_repayment %}
+          <div class="col-4"><span class="text-muted">Monthly:</span> R{{ deal.monthly_repayment|floatformat:0 }}/mo × {{ deal.loan_term_months }}mo</div>
+          {% endif %}
+        </div>
+
+        {% if access_level >= 3 %}
+        <form method="post" class="row g-2 pt-2 border-top border-secondary">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="finance">
+          <div class="col-md-3">
+            <label class="form-label small">Sale Price</label>
+            <input type="number" name="sale_price" step="0.01" value="{{ deal.sale_price|default:'' }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Finance Type</label>
+            <select name="finance_type" class="form-select form-select-sm bg-dark text-white border-secondary">
+              {% for code, label in finance_types %}
+              <option value="{{ code }}" {% if deal.finance_type == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Provider</label>
+            <input type="text" name="finance_provider" value="{{ deal.finance_provider }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-sm btn-outline-warning w-100">Update Finance</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Trade-in update -->
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-arrow-left-right me-1"></i>{% if trade_in %}Update{% else %}Add{% endif %} Trade-In</div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="tradein">
+          <div class="col-md-3">
+            <input type="text" name="ti_make" value="{% if trade_in %}{{ trade_in.make }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Make">
+          </div>
+          <div class="col-md-3">
+            <input type="text" name="ti_model" value="{% if trade_in %}{{ trade_in.model }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Model">
+          </div>
+          <div class="col-md-2">
+            <input type="number" name="ti_year" value="{% if trade_in %}{{ trade_in.year }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Year">
+          </div>
+          <div class="col-md-2">
+            <input type="text" name="ti_reg" value="{% if trade_in %}{{ trade_in.reg_number }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary font-monospace" placeholder="Reg">
+          </div>
+          <div class="col-md-2">
+            <input type="number" name="ti_mileage" value="{% if trade_in %}{{ trade_in.mileage }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="km">
+          </div>
+          <div class="col-md-3">
+            <select name="ti_condition" class="form-select form-select-sm bg-dark text-white border-secondary">
+              {% for code, label in conditions %}
+              <option value="{{ code }}" {% if trade_in and trade_in.condition == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input type="number" name="ti_offered" step="0.01" value="{% if trade_in %}{{ trade_in.offered_price|default:'' }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Offered R">
+          </div>
+          <div class="col-md-3">
+            <input type="number" name="ti_accepted" step="0.01" value="{% if trade_in %}{{ trade_in.accepted_price|default:'' }}{% endif %}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Accepted R">
+          </div>
+          <div class="col-md-3 d-flex align-items-center">
+            <button type="submit" class="btn btn-sm btn-outline-info w-100">Save Trade-In</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Notes -->
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-chat-left-text me-1"></i>Notes</div>
+      <div class="card-body">
+        {% if access_level >= 2 %}
+        <form method="post" class="d-flex gap-2 mb-3">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="note">
+          <input type="text" name="note" class="form-control bg-dark text-white border-secondary" placeholder="Add a note…" required>
+          <button type="submit" class="btn btn-outline-secondary">Add</button>
+        </form>
+        {% endif %}
+        {% if notes %}
+        <div class="list-group list-group-flush">
+          {% for note in notes %}
+          <div class="list-group-item bg-dark border-secondary py-2">
+            <div class="small text-muted">{{ note.author.get_full_name }} · {{ note.created_at|date:"d M Y H:i" }}</div>
+            <div>{{ note.note }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-muted small text-center py-2">No notes yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

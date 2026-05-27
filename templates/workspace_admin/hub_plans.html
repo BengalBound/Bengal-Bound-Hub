@@ -1,0 +1,85 @@
+{% extends "workspace_admin/base_admin.html" %}
+{% block title %}Hub Plan Config | WorkspaceAdmin{% endblock %}
+{% block page_title %}<i class="bi bi-layers me-2 text-primary"></i>Hub Plan Configuration{% endblock %}
+
+{% block content %}
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}{% endif %}
+
+<div class="row g-4">
+{% for plan in plans %}
+<div class="col-md-6 col-xl-3">
+<div class="glass-panel p-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h6 class="fw-bold mb-0">{{ plan.display_name }}</h6>
+            <small class="text-white-50">{{ plan.plan_type }}</small>
+        </div>
+        <span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.7rem;">
+            {% if plan.monthly_price_usd == 0 %}Free{% else %}${{ plan.monthly_price_usd }}/mo{% endif %}
+        </span>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="plan_type" value="{{ plan.plan_type }}">
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Display Name</label>
+            <input type="text" name="display_name" value="{{ plan.display_name }}" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Tagline</label>
+            <input type="text" name="tagline" value="{{ plan.tagline }}" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Monthly Price (USD)</label>
+            <input type="number" name="monthly_price_usd" value="{{ plan.monthly_price_usd }}" step="0.01" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Storage (GB)</label>
+            <input type="number" name="storage_gb" value="{{ plan.storage_gb }}" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <hr style="border-color:rgba(255,255,255,0.08);">
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">IP-Locked Addon (USD/mo)</label>
+            <input type="number" name="ip_locked_addon_usd" value="{{ plan.ip_locked_addon_usd }}" step="0.01" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Self-Hosted Addon (USD/mo)</label>
+            <input type="number" name="self_hosted_addon_usd" value="{{ plan.self_hosted_addon_usd }}" step="0.01" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Advance Bundle Discount (%)</label>
+            <input type="number" name="advance_discount_percent" value="{{ plan.advance_discount_percent }}" step="1" min="0" max="100" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small text-white-50 mb-1">Extra Storage Price ($/GB)</label>
+            <input type="number" name="extra_storage_price_per_gb" value="{{ plan.extra_storage_price_per_gb }}" step="0.01" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+        </div>
+        <hr style="border-color:rgba(255,255,255,0.08);">
+        <div class="d-flex flex-column gap-1 mb-3">
+            <label class="d-flex align-items-center gap-2 small">
+                <input type="checkbox" name="allows_cloud" {% if plan.allows_cloud %}checked{% endif %}> Cloud hosting
+            </label>
+            <label class="d-flex align-items-center gap-2 small">
+                <input type="checkbox" name="allows_ip_locked" {% if plan.allows_ip_locked %}checked{% endif %}> IP-Locked hosting
+            </label>
+            <label class="d-flex align-items-center gap-2 small">
+                <input type="checkbox" name="allows_self_hosted" {% if plan.allows_self_hosted %}checked{% endif %}> Self-Hosted
+            </label>
+            <label class="d-flex align-items-center gap-2 small">
+                <input type="checkbox" name="includes_full_industry_set" {% if plan.includes_full_industry_set %}checked{% endif %}> Full industry set
+            </label>
+            <label class="d-flex align-items-center gap-2 small">
+                <input type="checkbox" name="is_fully_customizable" {% if plan.is_fully_customizable %}checked{% endif %}> Fully customizable
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm w-100">Save {{ plan.display_name }}</button>
+    </form>
+</div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Loyalty — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-star me-2" style="color:var(--hub-accent);"></i>Loyalty Programs{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_programs|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Programs</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ total_members|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Members</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ points_issued|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Points Issued</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Loyalty Suite</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'loyalty:programs' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-star me-1"></i>Programs</a>
+    <a href="{% url 'loyalty:members' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-people me-1"></i>Members</a>
+  </div>
+</div>
+{% endblock %}

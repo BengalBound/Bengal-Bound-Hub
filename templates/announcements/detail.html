@@ -1,0 +1,15 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ announcement.title }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-megaphone me-2" style="color:var(--hub-accent);"></i>{{ announcement.title }}{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:800px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <span class="badge me-2" style="background:{% if announcement.priority == 'high' %}#f8717120{% elif announcement.priority == 'medium' %}#fbbf2420{% else %}var(--hub-surface){% endif %};color:{% if announcement.priority == 'high' %}#f87171{% elif announcement.priority == 'medium' %}#fbbf24{% else %}var(--hub-accent){% endif %};">{{ announcement.priority|title }}</span>
+      <span style="color:var(--hub-muted);font-size:.85rem;">{{ announcement.created_at|date:"F j, Y" }} — {{ announcement.created_by.get_full_name }}</span>
+    </div>
+    <a href="{% url 'announcements:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+  </div>
+  <div style="color:var(--hub-text);line-height:1.8;font-size:1rem;">{{ announcement.body|linebreaks }}</div>
+</div>
+{% endblock %}

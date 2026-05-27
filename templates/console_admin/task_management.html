@@ -1,0 +1,72 @@
+{% extends 'console_admin/base_console.html' %}
+{% load console_tags %}
+{% block page_title %}Task Management{% endblock %}
+{% block page_subtitle %}Assign tasks to your AI agents, set workload limits, and view history.{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'console_admin:task_create' %}" class="btn btn-primary btn-sm px-3 shadow-sm"><i class="bi bi-plus-lg me-1"></i> New Task</a>
+{% endblock %}
+
+{% block content %}
+<!-- AI Limits Section -->
+{% if hired_ais %}
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold font-outfit mb-3">AI Workload Limits</h6>
+    <div class="row g-3">
+        {% for ai in hired_ais %}
+        {% with limit=ai_limits|get_item:ai.id %}
+        <div class="col-md-4">
+            <div class="glass-panel p-3 rounded-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;">
+                    <i class="bi bi-robot text-primary"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-white small">{{ ai.ai_name }}</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">Max: {% if limit %}{{ limit.max_tasks_per_day }}{% else %}50{% endif %} tasks/day</div>
+                </div>
+                {% if limit and limit.is_paused %}
+                <span class="badge bg-warning bg-opacity-25 text-warning small">Paused</span>
+                {% else %}
+                <span class="badge bg-success bg-opacity-25 text-success small">Active</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Tasks Table -->
+<div class="glass-panel p-4">
+    <h6 class="fw-bold font-outfit mb-3">All Tasks</h6>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover table-borderless align-middle">
+            <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary">
+                <th>Task</th><th>AI Agent</th><th>Project</th><th>Status</th><th>Created</th>
+            </tr></thead>
+            <tbody>
+                {% for task in all_tasks %}
+                <tr>
+                    <td><span class="fw-semibold text-white">{{ task.title }}</span><br><small class="text-white-50">{{ task.instructions|truncatechars:60 }}</small></td>
+                    <td><span class="badge bg-primary bg-opacity-25 text-primary">{{ task.assigned_ai.ai_name }}</span></td>
+                    <td class="text-white-50 small">{{ task.project.name }}</td>
+                    <td>
+                        {% if task.status == 'completed' %}<span class="badge bg-success bg-opacity-25 text-success">Completed</span>
+                        {% elif task.status == 'in_progress' %}<span class="badge bg-warning bg-opacity-25 text-warning">In Progress</span>
+                        {% elif task.status == 'failed' %}<span class="badge bg-danger bg-opacity-25 text-danger">Failed</span>
+                        {% else %}<span class="badge bg-secondary bg-opacity-25 text-white-50">Pending</span>{% endif %}
+                    </td>
+                    <td class="text-white-50 small">{{ task.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-white-50 py-5">
+                    <i class="bi bi-list-task d-block fs-2 mb-3 text-muted"></i>
+                    No tasks assigned yet. <a href="{% url 'console_admin:task_create' %}" class="text-primary">Create your first task →</a>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

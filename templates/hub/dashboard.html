@@ -1,0 +1,53 @@
+{% extends 'hub/base_hub_os.html' %}
+
+{% block page_title %}BredBound System OS{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12 border-bottom border-white border-opacity-10 pb-4">
+        <h3 class="font-outfit fw-bold text-white mb-2">Internal Sub-Modules</h3>
+        <p class="text-white-50">Customize your BredBound Backoffice by enabling the tools you need.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for module in sub_modules_catalog %}
+    <div class="col-md-6 col-xl-4">
+        <div class="glass-panel h-100 p-4 position-relative overflow-hidden">
+            {% if module.id in active_bb_modules %}
+            <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);"></div>
+            {% endif %}
+            
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="{% if module.id in active_bb_modules %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-25 text-white rounded-3 d-flex align-items-center justify-content-center" style="width:50px;height:50px;">
+                    <i class="bi {{ module.icon }} fs-3"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-white mb-1">{{ module.name }}</h5>
+                    {% if module.id in active_bb_modules %}
+                    <span class="badge bg-success bg-opacity-25 text-success small">Installed</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="text-white-50 small mb-4" style="line-height: 1.6;">{{ module.desc }}</p>
+            
+            {% if module.id in active_bb_modules %}
+                <button class="btn btn-outline-success w-100 disabled" disabled>
+                    <i class="bi bi-check2 me-1"></i> Active
+                </button>
+            {% else %}
+                <form method="POST" action="{% url 'hub:activate_module' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sub_module_id" value="{{ module.id }}">
+                    <input type="hidden" name="tenant_id" value="{{ tenant.id }}">
+                    <button type="submit" class="btn border-0 text-white w-100 fw-bold shadow-sm" style="background: linear-gradient(135deg, rgba(168,85,247,0.4), rgba(236,72,153,0.4)); border: 1px solid rgba(168,85,247,0.4)!important;">
+                        <i class="bi bi-download me-1"></i> Enable Module (Free)
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

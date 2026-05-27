@@ -1,0 +1,102 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}ERP Dashboard — {{ biz.name }}{% endblock %}
+{% block page_title %}Enterprise Resource Planning{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#38bdf8;">{{ ledger_count }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Ledger Accounts</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#c084fc;">{{ vendor_count }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Active Vendors</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#fbbf24;">{{ open_pos }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Open Purchase Orders</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <a href="{% url 'erp:journal_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+                <i class="bi bi-plus me-1"></i>New Journal Entry
+            </a>
+            <div style="color:var(--hub-muted);font-size:0.8rem;margin-top:0.4rem;">Quick Action</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Nav -->
+<div class="row g-3 mb-4">
+    {% for label, url_name, icon, color in nav_items %}
+    {% endfor %}
+    <div class="col-md-4 col-lg-2">
+        <a href="{% url 'erp:ledger' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(56,189,248,0.2);">
+            <i class="bi bi-journals" style="font-size:1.5rem;color:#38bdf8;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Chart of Accounts</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <a href="{% url 'erp:journal' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(192,132,252,0.2);">
+            <i class="bi bi-book" style="font-size:1.5rem;color:#c084fc;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Journal Entries</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <a href="{% url 'erp:vendors' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(251,191,36,0.2);">
+            <i class="bi bi-building" style="font-size:1.5rem;color:#fbbf24;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Vendors</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <a href="{% url 'erp:purchase_orders' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(34,197,94,0.2);">
+            <i class="bi bi-cart3" style="font-size:1.5rem;color:#22c55e;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Purchase Orders</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <a href="{% url 'erp:cost_centers' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(236,72,153,0.2);">
+            <i class="bi bi-diagram-3" style="font-size:1.5rem;color:#ec4899;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Cost Centers</div>
+        </a>
+    </div>
+</div>
+
+<!-- Recent Journal Entries -->
+<div class="glass-panel p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Recent Journal Entries</h6>
+        <a href="{% url 'erp:journal' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">View All</a>
+    </div>
+    {% if recent_entries %}
+    <div class="table-responsive">
+        <table class="table table-dark table-borderless mb-0" style="font-size:0.85rem;">
+            <thead><tr style="color:var(--hub-muted);"><th>Reference</th><th>Description</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for entry in recent_entries %}
+            <tr style="border-bottom:1px solid var(--hub-border);">
+                <td class="fw-semibold">JE-{{ entry.pk }}</td>
+                <td class="text-white-50">{{ entry.description|default:"—"|truncatechars:60 }}</td>
+                <td style="color:var(--hub-muted);">{{ entry.entry_date }}</td>
+                <td>
+                    <span class="badge" style="font-size:0.65rem;background:{% if entry.status == 'posted' %}rgba(34,197,94,0.15);color:#22c55e;{% elif entry.status == 'reversed' %}rgba(239,68,68,0.15);color:#ef4444;{% else %}rgba(148,163,184,0.15);color:#94a3b8;{% endif %}">
+                        {{ entry.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-white-50 text-center py-4 mb-0">No journal entries yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

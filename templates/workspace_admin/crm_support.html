@@ -1,0 +1,91 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% block page_title %}CRM & Support{% endblock %}
+
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success mb-4">{{ msg }}</div>{% endfor %}{% endif %}
+
+<!-- Tab Nav -->
+<ul class="nav nav-tabs border-secondary mb-4" id="crmTab">
+    <li class="nav-item"><a class="nav-link active text-white border-secondary" data-bs-toggle="tab" href="#tickets-tab">Tickets <span class="badge bg-danger ms-1">{{ tickets.count }}</span></a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#inquiries-tab">Inquiries <span class="badge bg-warning ms-1">{{ inquiries.count }}</span></a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#consult-tab">Consultation Calendar <span class="badge bg-primary ms-1">{{ consultations.count }}</span></a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- Tickets -->
+    <div class="tab-pane fade show active" id="tickets-tab">
+        <div class="glass-panel p-4">
+            {% for ticket in tickets %}
+            <div class="glass-panel p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="fw-semibold text-white">Ticket #{{ ticket.id }}: {{ ticket.subject }}</span>
+                        <small class="text-white-50 ms-2">from {{ ticket.client.email }}</small>
+                    </div>
+                    {% if ticket.status == 'resolved' %}<span class="badge bg-success bg-opacity-25 text-success">Resolved</span>
+                    {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning bg-opacity-25 text-warning">In Progress</span>
+                    {% else %}<span class="badge bg-danger bg-opacity-25 text-danger">Open</span>{% endif %}
+                </div>
+                <p class="text-white-50 small mb-2">{{ ticket.description }}</p>
+                <form method="post" class="d-flex gap-2 align-items-center mt-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reply_ticket">
+                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                    <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:180px;">
+                        <option value="open">Open</option>
+                        <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Update & Notify Client</button>
+                </form>
+            </div>
+            {% empty %}<div class="text-center text-white-50 py-4"><i class="bi bi-emoji-smile d-block fs-2 mb-2 text-success"></i>No open tickets!</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Inquiries -->
+    <div class="tab-pane fade" id="inquiries-tab">
+        <div class="glass-panel p-4">
+            {% for inq in inquiries %}
+            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-semibold text-white small">{{ inq.subject }}</div>
+                    <div class="text-white-50 small">{{ inq.email }} · {{ inq.created_at|date:"M d, Y" }}</div>
+                    <p class="text-white-50 small mt-1 mb-0">{{ inq.message|truncatechars:120 }}</p>
+                </div>
+                {% if not inq.is_resolved %}
+                <form method="post" class="ms-3 flex-shrink-0">{% csrf_token %}
+                    <input type="hidden" name="action" value="resolve_inquiry">
+                    <input type="hidden" name="inquiry_id" value="{{ inq.id }}">
+                    <button class="btn btn-sm btn-outline-success rounded-pill px-3">Mark Resolved</button>
+                </form>
+                {% else %}<span class="badge bg-success bg-opacity-25 text-success flex-shrink-0">Resolved</span>{% endif %}
+            </div>
+            {% empty %}<div class="text-center text-white-50 py-4">No contact inquiries yet.</div>{% endfor %}
+        </div>
+    </div>
+
+    <!-- Consultation Calendar -->
+    <div class="tab-pane fade" id="consult-tab">
+        <div class="glass-panel p-4">
+            {% for c in consultations %}
+            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-semibold text-white">{{ c.name }} <span class="text-white-50 fw-normal small">— {{ c.company_name }}</span></div>
+                    <div class="text-primary small"><i class="bi bi-calendar me-1"></i>{{ c.preferred_date }} at {{ c.preferred_time }}</div>
+                    {% if c.notes %}<div class="text-white-50 small mt-1">{{ c.notes|truncatechars:80 }}</div>{% endif %}
+                </div>
+                {% if not c.is_confirmed %}
+                <form method="post" class="ms-3">{% csrf_token %}
+                    <input type="hidden" name="action" value="confirm_consult">
+                    <input type="hidden" name="consult_id" value="{{ c.id }}">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Confirm</button>
+                </form>
+                {% else %}<span class="badge bg-success bg-opacity-25 text-success">Confirmed</span>{% endif %}
+            </div>
+            {% empty %}<div class="text-center text-white-50 py-4">No consultation bookings yet.</div>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'workspace_admin/base_admin.html' %}
+
+{% block title %}Dashboard | Workspace Admin{% endblock %}
+{% block page_title %}Overview Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Active AI Employees Stats -->
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Active AI Agents</h6>
+            <h2 class="display-5 fw-bold text-primary-gradient mb-0">{{ active_agents|default:"0" }}</h2>
+            <p class="small text-success mt-2 mb-0"><i class="bi bi-arrow-up-short"></i> Deployed for clients</p>
+        </div>
+    </div>
+    
+    <!-- WaaS Sites Stats -->
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Hosted WaaS Sites</h6>
+            <h2 class="display-5 fw-bold text-info mb-0">{{ active_sites|default:"0" }}</h2>
+            <p class="small text-success mt-2 mb-0"><i class="bi bi-arrow-up-short"></i> Active domains</p>
+        </div>
+    </div>
+
+    <!-- Pending Inquiries Stats -->
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-white-50 text-uppercase small fw-bold mb-2">New Inquiries</h6>
+            <h2 class="display-5 fw-bold text-warning mb-0">{{ pending_inquiries|default:"0" }}</h2>
+            <p class="small text-warning mt-2 mb-0"><i class="bi bi-clock-history"></i> Awaiting response</p>
+        </div>
+    </div>
+    
+    <!-- Total Users -->
+    <div class="col-md-3">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-white-50 text-uppercase small fw-bold mb-2">Total Users</h6>
+            <h2 class="display-5 fw-bold text-white mb-0">{{ total_users|default:"0" }}</h2>
+            <p class="small text-white-50 mt-2 mb-0">
+                <a href="{% url 'workspace_admin:data_traffic' %}" class="text-info text-decoration-none hover-text-white transition-all">
+                    Manage Accounts <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Orders MVP View -->
+    <div class="col-lg-8">
+        <div class="glass-panel p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 font-outfit fw-bold">Recent Client Orders</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless align-middle">
+                    <thead>
+                        <tr class="text-white-50 border-bottom border-secondary">
+                            <th>Order ID</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.description }}</td>
+                            <td>${{ order.amount }}</td>
+                            <td>
+                                <span class="badge rounded-pill {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                    {{ order.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-white-50 py-4">No recent orders found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Notifications MVP -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4 h-100">
+            <h5 class="mb-4 font-outfit fw-bold">Recent Activity</h5>
+            <div class="d-flex flex-column gap-3">
+                {% for log in traffic_logs %}
+                <div class="d-flex gap-3 align-items-start border-bottom border-secondary pb-3">
+                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded">
+                        <i class="bi bi-globe"></i>
+                    </div>
+                    <div>
+                        <p class="mb-1 fw-medium text-white small">New Visitor: {{ log.ip_address }}</p>
+                        <p class="mb-0 text-white-50" style="font-size: 0.75rem;">{{ log.timestamp|timesince }} ago</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-white-50 text-center py-3">No recent traffic logged.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Add Deal — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'deal_flow:deal_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Deals</a></div>
+<h4 class="fw-bold mb-4"><i class="bi bi-plus-circle me-2 text-info"></i>Add Deal</h4>
+
+<form method="post" class="card bg-dark border-secondary">
+  {% csrf_token %}
+  <div class="card-body row g-3">
+    <div class="col-12"><label class="form-label small">Deal Title <span class="text-danger">*</span></label><input type="text" name="title" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Smith Family Purchase — 123 Oak Ave" required></div>
+
+    <div class="col-md-6"><label class="form-label small">Deal Type</label>
+      <select name="deal_type" class="form-select bg-dark text-white border-secondary">
+        {% for code, label in deal_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6"><label class="form-label small">Stage</label>
+      <select name="stage" class="form-select bg-dark text-white border-secondary">
+        {% for code, label in stages %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12"><label class="form-label small">Property Address <span class="text-danger">*</span></label><input type="text" name="property_address" class="form-control bg-dark text-white border-secondary" required></div>
+
+    <div class="col-md-4"><label class="form-label small">Client Name <span class="text-danger">*</span></label><input type="text" name="client_name" class="form-control bg-dark text-white border-secondary" required></div>
+    <div class="col-md-4"><label class="form-label small">Client Email</label><input type="email" name="client_email" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">Client Phone</label><input type="text" name="client_phone" class="form-control bg-dark text-white border-secondary"></div>
+
+    <div class="col-md-3"><label class="form-label small">Listing Price</label><input type="number" name="listing_price" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-3"><label class="form-label small">Offer Price</label><input type="number" name="offer_price" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-3"><label class="form-label small">Commission %</label><input type="number" name="commission_pct" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-3"><label class="form-label small">Expected Close Date</label><input type="date" name="expected_close_date" class="form-control bg-dark text-white border-secondary"></div>
+
+    <div class="col-md-6"><label class="form-label small">Assigned Agent</label>
+      <select name="assigned_agent_id" class="form-select bg-dark text-white border-secondary">
+        <option value="">— Self —</option>
+        {% for a in agents %}<option value="{{ a.pk }}">{{ a.user.get_full_name }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="3" class="form-control bg-dark text-white border-secondary"></textarea></div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary d-flex gap-2">
+    <button type="submit" class="btn btn-info text-dark">Create Deal</button>
+    <a href="{% url 'deal_flow:deal_list' slug=biz.slug %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

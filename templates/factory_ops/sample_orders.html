@@ -1,0 +1,388 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Sample Orders — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-palette me-2" style="color:#c084fc;"></i>Sample Development{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div class="d-flex gap-2 flex-wrap">
+    {% for val, label in status_choices %}
+    <a href="?status={{ val }}" class="btn btn-sm {% if status_filter == val %}btn-hub-primary{% else %}btn-hub-outline{% endif %}" style="font-size:.75rem;">{{ label }}</a>
+    {% endfor %}
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}" style="font-size:.75rem;">All</a>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addForm"><i class="bi bi-plus-lg me-1"></i>New Sample Order</button>
+    <a href="{% url 'factory_ops:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+<!-- Add Form (9-section form based on footwear sample order standard) -->
+<div class="collapse mb-4" id="addForm">
+  <div class="glass-panel p-4">
+    <h6 class="mb-4" style="color:#c084fc;">New Sample Development Request</h6>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+
+      <!-- Section 1: Basic Info -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">1. Basic Information</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-3"><label class="form-label text-white-50 small">Order Ref</label>
+          <input type="text" name="order_ref" class="form-control" required placeholder="SO-2026-001" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Style Name</label>
+          <input type="text" name="style_name" class="form-control" required style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Style Ref</label>
+          <input type="text" name="style_ref" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Buyer / Brand</label>
+          <input type="text" name="buyer_name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Requested By (Merchandiser)</label>
+          <input type="text" name="requested_by" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Assigned To (Designer)</label>
+          <input type="text" name="assigned_to" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Sample Type</label>
+          <select name="sample_type" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="proto">Proto</option><option value="fit">Fit</option>
+            <option value="pre_production">Pre-Production</option>
+            <option value="production">Production</option><option value="marketing">Marketing</option>
+          </select></div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Priority</label>
+          <select name="priority" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="standard">Standard</option>
+            <option value="urgent">Urgent</option>
+            <option value="critical">Critical</option>
+          </select></div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Target Date</label>
+          <input type="date" name="target_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+      </div>
+
+      <!-- Section 2: Last / Mould Info -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">2. Last / Mould Information</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-3"><label class="form-label text-white-50 small">Last Number</label>
+          <input type="text" name="last_number" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Last Type</label>
+          <select name="last_type" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="">— Select —</option>
+            <option value="flat">Flat</option><option value="heeled">Heeled</option>
+            <option value="platform">Platform</option><option value="custom">Custom</option>
+          </select></div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Heel Height (mm)</label>
+          <input type="number" name="heel_height_mm" min="0" max="200" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Toe Allowance (mm)</label>
+          <input type="number" name="toe_allowance_mm" min="0" max="50" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Ball Allowance (mm)</label>
+          <input type="number" name="ball_allowance_mm" min="0" max="50" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+      </div>
+
+      <!-- Section 3: Materials -->
+      <div class="mb-1 d-flex justify-content-between align-items-center" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">
+        <span>3. Material Specifications</span>
+        <button type="button" class="btn btn-hub-outline btn-sm" id="addMat"><i class="bi bi-plus me-1"></i>Add Row</button>
+      </div>
+      <div class="table-responsive mb-4">
+        <table class="table table-dark table-sm" style="font-size:.78rem;">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+            <th>Part</th><th>Material Name</th><th>Color</th><th>Thickness</th><th>Unit</th><th>Qty/Pair</th><th></th>
+          </tr></thead>
+          <tbody id="matRows">
+            <tr class="mat-row">
+              <td><input type="text" name="mat_part" class="form-control form-control-sm" placeholder="Upper, Lining…" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="mat_name" class="form-control form-control-sm" placeholder="Material name" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="mat_color" class="form-control form-control-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="mat_thickness" class="form-control form-control-sm" placeholder="e.g. 1.2mm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="mat_unit" class="form-control form-control-sm" placeholder="Sqft/Pcs" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="mat_qty" class="form-control form-control-sm" placeholder="0.0" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><button type="button" class="btn btn-sm remove-mat" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3);color:#f87171;">×</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Section 4: Thread & Adhesive -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">4. Thread &amp; Adhesive</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-3"><label class="form-label text-white-50 small">Thread Color</label>
+          <input type="text" name="thread_color" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Thread Count / Ticket</label>
+          <input type="text" name="thread_count" class="form-control" placeholder="e.g. 40/2 Nylon" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Adhesive Type</label>
+          <input type="text" name="adhesive_type" class="form-control" placeholder="e.g. Neoprene, PU" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3 d-flex align-items-end">
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="primer_required" id="primerCk">
+          <label class="form-check-label text-white-50 small" for="primerCk">Primer Required</label></div>
+        </div>
+      </div>
+
+      <!-- Section 5: Construction -->
+      <div class="mb-1 d-flex justify-content-between align-items-center" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">
+        <span>5. Construction Process</span>
+        <button type="button" class="btn btn-hub-outline btn-sm" id="addStep"><i class="bi bi-plus me-1"></i>Add Step</button>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Construction Type</label>
+          <select name="construction_type" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="cement">Cement / Stuck-on</option>
+            <option value="goodyear">Goodyear Welt</option>
+            <option value="blake">Blake Stitch</option>
+            <option value="injection">Direct Injection</option>
+            <option value="vulcanize">Vulcanize</option>
+            <option value="string">String Lasting</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive mb-4">
+        <table class="table table-dark table-sm" style="font-size:.78rem;">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+            <th style="width:60px;">Step</th><th>Operation</th><th>Machine / Tool</th><th>Notes</th><th></th>
+          </tr></thead>
+          <tbody id="stepRows">
+            <tr class="step-row">
+              <td><input type="text" name="step_no" value="1" class="form-control form-control-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:50px;"></td>
+              <td><input type="text" name="step_operation" class="form-control form-control-sm" placeholder="e.g. Upper Skiving" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="step_machine" class="form-control form-control-sm" placeholder="Machine / hand" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><input type="text" name="step_notes" class="form-control form-control-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></td>
+              <td><button type="button" class="btn btn-sm remove-step" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3);color:#f87171;">×</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Section 6: Problems -->
+      <div class="mb-1 d-flex justify-content-between align-items-center" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">
+        <span>6. Known Issues / Problems to Solve</span>
+        <button type="button" class="btn btn-hub-outline btn-sm" id="addProb"><i class="bi bi-plus me-1"></i>Add Issue</button>
+      </div>
+      <div id="probRows" class="mb-4">
+        <div class="row g-2 mb-2 prob-row">
+          <div class="col-md-3"><input type="text" name="prob_area" class="form-control form-control-sm" placeholder="Area (e.g. Lasting)" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-md-8"><input type="text" name="prob_desc" class="form-control form-control-sm" placeholder="Problem description" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-md-1"><button type="button" class="btn btn-sm remove-prob w-100" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3);color:#f87171;">×</button></div>
+        </div>
+      </div>
+
+      <!-- Section 7: Special Instructions -->
+      <div class="mb-1 d-flex justify-content-between align-items-center" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">
+        <span>7. Special Instructions</span>
+        <button type="button" class="btn btn-hub-outline btn-sm" id="addInstr"><i class="bi bi-plus me-1"></i>Add</button>
+      </div>
+      <div id="instrRows" class="mb-4">
+        <div class="row g-2 mb-2 instr-row">
+          <div class="col-11"><input type="text" name="instruction" class="form-control form-control-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-1"><button type="button" class="btn btn-sm remove-instr w-100" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3);color:#f87171;">×</button></div>
+        </div>
+      </div>
+
+      <!-- Section 8: Remarks / Document -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">8. Remarks &amp; Attachments</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-8"><label class="form-label text-white-50 small">Remarks</label>
+          <textarea name="remarks" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Attach Document</label>
+          <input type="file" name="document" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+      </div>
+
+      <button type="submit" class="btn btn-hub-primary"><i class="bi bi-send me-1"></i>Submit Sample Order</button>
+    </form>
+  </div>
+</div>
+
+<!-- Orders List -->
+{% if orders %}
+<div class="glass-panel p-0">
+  <table class="table table-dark table-hover mb-0" style="font-size:.82rem;">
+    <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+      <th>Ref</th><th>Style</th><th>Buyer</th><th>Type</th><th>Priority</th><th>Target</th><th>Assigned To</th><th>Status</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for so in orders %}
+      <tr style="border-color:var(--border);{% if so.is_overdue %}background:rgba(248,113,113,0.04);{% endif %}">
+        <td style="font-weight:600;color:var(--hub-accent);">{{ so.order_ref }}</td>
+        <td style="color:var(--hub-text);">{{ so.style_name|truncatechars:30 }}</td>
+        <td class="text-white-50">{{ so.buyer_name|default:"—" }}</td>
+        <td><span class="badge" style="background:rgba(192,132,252,0.12);color:#c084fc;font-size:.68rem;">{{ so.get_sample_type_display }}</span></td>
+        <td>
+          <span style="font-size:.75rem;color:{% if so.priority == 'critical' %}#f87171{% elif so.priority == 'urgent' %}#fbbf24{% else %}var(--hub-muted){% endif %};">{{ so.get_priority_display }}</span>
+        </td>
+        <td class="text-white-50">{{ so.target_date|default:"—" }}{% if so.is_overdue %} <span style="color:#f87171;font-size:.7rem;">OVERDUE</span>{% endif %}</td>
+        <td class="text-white-50">{{ so.assigned_to|default:"—" }}</td>
+        <td>
+          <span class="badge" style="font-size:.68rem;background:{% if so.status == 'approved' %}rgba(34,197,94,0.15);color:#22c55e{% elif so.status == 'in_progress' %}rgba(56,189,248,0.15);color:#38bdf8{% elif so.status == 'ready_for_approval' %}rgba(251,191,36,0.15);color:#fbbf24{% elif so.status == 'rejected' %}rgba(248,113,113,0.15);color:#f87171{% else %}rgba(255,255,255,0.08);color:var(--hub-muted){% endif %};">{{ so.get_status_display }}</span>
+        </td>
+        <td>
+          <div class="d-flex gap-1 flex-wrap">
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.05);border-color:var(--border);color:var(--hub-muted);font-size:.7rem;" data-bs-toggle="modal" data-bs-target="#detailModal{{ so.pk }}">View</button>
+            {% if so.document %}<a href="{{ so.document.url }}" class="btn btn-sm" style="background:rgba(56,189,248,0.08);border-color:rgba(56,189,248,0.25);color:#38bdf8;font-size:.7rem;" target="_blank"><i class="bi bi-file-earmark-arrow-down"></i></a>{% endif %}
+            <form method="post" class="d-inline" onsubmit="return confirm('Delete?')">{% csrf_token %}
+              <input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ so.pk }}">
+              <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.25);color:#f87171;font-size:.7rem;"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Detail Modals -->
+{% for so in orders %}
+<div class="modal fade" id="detailModal{{ so.pk }}" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content" style="background:var(--surface-1);border-color:var(--border);">
+      <div class="modal-header" style="border-color:var(--border);">
+        <h5 class="modal-title" style="color:var(--hub-text);">{{ so.order_ref }} — {{ so.style_name }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="font-size:.83rem;">
+        <div class="row g-3 mb-3">
+          <div class="col-md-3"><span class="text-white-50 small">Buyer</span><div style="color:var(--hub-text);">{{ so.buyer_name|default:"—" }}</div></div>
+          <div class="col-md-3"><span class="text-white-50 small">Requested By</span><div style="color:var(--hub-text);">{{ so.requested_by|default:"—" }}</div></div>
+          <div class="col-md-3"><span class="text-white-50 small">Assigned To</span><div style="color:var(--hub-text);">{{ so.assigned_to|default:"—" }}</div></div>
+          <div class="col-md-3"><span class="text-white-50 small">Target</span><div style="color:var(--hub-text);">{{ so.target_date|default:"—" }}</div></div>
+        </div>
+
+        {% if so.last_number or so.last_type %}
+        <h6 style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Last / Mould</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-auto"><span class="text-white-50 small">Last #:</span> {{ so.last_number|default:"—" }}</div>
+          <div class="col-auto"><span class="text-white-50 small">Type:</span> {{ so.get_last_type_display|default:"—" }}</div>
+          <div class="col-auto"><span class="text-white-50 small">Heel:</span> {{ so.heel_height_mm|default:"—" }}mm</div>
+          <div class="col-auto"><span class="text-white-50 small">Toe allow:</span> {{ so.toe_allowance_mm|default:"—" }}mm</div>
+          <div class="col-auto"><span class="text-white-50 small">Ball allow:</span> {{ so.ball_allowance_mm|default:"—" }}mm</div>
+        </div>
+        {% endif %}
+
+        {% if so.materials %}
+        <h6 style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Materials</h6>
+        <table class="table table-dark table-sm mb-3" style="font-size:.78rem;">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--border);"><th>Part</th><th>Material</th><th>Color</th><th>Thickness</th><th>Unit</th><th>Qty/Pair</th></tr></thead>
+          <tbody>{% for m in so.materials %}<tr style="border-color:var(--border);"><td>{{ m.part }}</td><td>{{ m.material_name }}</td><td>{{ m.color }}</td><td>{{ m.thickness }}</td><td>{{ m.unit }}</td><td>{{ m.qty_per_pair }}</td></tr>{% endfor %}</tbody>
+        </table>
+        {% endif %}
+
+        <div class="row g-3 mb-3">
+          {% if so.thread_color %}<div class="col-auto"><span class="text-white-50 small">Thread:</span> {{ so.thread_color }} {{ so.thread_count }}</div>{% endif %}
+          {% if so.adhesive_type %}<div class="col-auto"><span class="text-white-50 small">Adhesive:</span> {{ so.adhesive_type }}</div>{% endif %}
+          {% if so.primer_required %}<div class="col-auto" style="color:#fbbf24;">Primer required</div>{% endif %}
+          <div class="col-auto"><span class="text-white-50 small">Construction:</span> {{ so.get_construction_type_display }}</div>
+        </div>
+
+        {% if so.process_steps %}
+        <h6 style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Process Steps</h6>
+        <table class="table table-dark table-sm mb-3" style="font-size:.78rem;">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--border);"><th>#</th><th>Operation</th><th>Machine</th><th>Notes</th></tr></thead>
+          <tbody>{% for s in so.process_steps %}<tr style="border-color:var(--border);"><td>{{ s.step_no }}</td><td>{{ s.operation }}</td><td class="text-white-50">{{ s.machine }}</td><td class="text-white-50">{{ s.notes }}</td></tr>{% endfor %}</tbody>
+        </table>
+        {% endif %}
+
+        {% if so.problems %}
+        <h6 style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Problems to Solve</h6>
+        <ul class="mb-3" style="color:var(--hub-text);">{% for p in so.problems %}<li><strong class="text-white-50">{{ p.area }}:</strong> {{ p.description }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        {% if so.special_instructions %}
+        <h6 style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Special Instructions</h6>
+        <ul class="mb-3" style="color:var(--hub-text);">{% for i in so.special_instructions %}<li>{{ i }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        {% if so.remarks %}<p class="text-white-50"><strong>Remarks:</strong> {{ so.remarks }}</p>{% endif %}
+
+        <!-- Status Update -->
+        <hr style="border-color:var(--border);">
+        <form method="post" class="row g-2 align-items-end">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="status">
+          <input type="hidden" name="pk" value="{{ so.pk }}">
+          <div class="col-md-4">
+            <label class="form-label text-white-50 small">Update Status</label>
+            <select name="new_status" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+              <option value="pending" {% if so.status == 'pending' %}selected{% endif %}>Pending</option>
+              <option value="in_progress" {% if so.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+              <option value="ready_for_approval" {% if so.status == 'ready_for_approval' %}selected{% endif %}>Ready for Approval</option>
+              <option value="approved" {% if so.status == 'approved' %}selected{% endif %}>Approved</option>
+              <option value="rejected" {% if so.status == 'rejected' %}selected{% endif %}>Rejected</option>
+              <option value="shipped" {% if so.status == 'shipped' %}selected{% endif %}>Shipped</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label text-white-50 small">Approved By (if approving)</label>
+            <input type="text" name="approved_by" class="form-control form-control-sm" value="{{ so.approved_by }}" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-hub-primary btn-sm">Update Status</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="glass-panel p-5 text-center text-white-50">
+  <i class="bi bi-palette" style="font-size:2rem;opacity:.3;color:#c084fc;"></i>
+  <p class="mt-2 mb-0">No sample orders{% if status_filter %} with status "{{ status_filter }}"{% endif %}.</p>
+</div>
+{% endif %}
+
+<script>
+function addRow(containerId, templateSelector, inputClear) {
+  const container = document.getElementById(containerId);
+  const row = container.querySelector(templateSelector).cloneNode(true);
+  if (inputClear) row.querySelectorAll('input').forEach(i => { i.value = ''; });
+  container.appendChild(row);
+}
+
+document.getElementById('addMat').addEventListener('click', () => {
+  const row = document.querySelector('.mat-row').cloneNode(true);
+  row.querySelectorAll('input').forEach(i => { i.value = ''; });
+  document.getElementById('matRows').appendChild(row);
+});
+document.getElementById('matRows').addEventListener('click', e => {
+  if (e.target.classList.contains('remove-mat')) {
+    const rows = document.querySelectorAll('.mat-row');
+    if (rows.length > 1) e.target.closest('.mat-row').remove();
+  }
+});
+
+document.getElementById('addStep').addEventListener('click', () => {
+  const tbody = document.getElementById('stepRows');
+  const row = tbody.querySelector('.step-row').cloneNode(true);
+  const stepNo = tbody.querySelectorAll('.step-row').length + 1;
+  row.querySelectorAll('input').forEach((i, idx) => { if (idx === 0) i.value = stepNo; else i.value = ''; });
+  tbody.appendChild(row);
+});
+document.getElementById('stepRows').addEventListener('click', e => {
+  if (e.target.classList.contains('remove-step')) {
+    const rows = document.querySelectorAll('.step-row');
+    if (rows.length > 1) e.target.closest('.step-row').remove();
+  }
+});
+
+document.getElementById('addProb').addEventListener('click', () => {
+  const row = document.querySelector('.prob-row').cloneNode(true);
+  row.querySelectorAll('input').forEach(i => { i.value = ''; });
+  document.getElementById('probRows').appendChild(row);
+});
+document.getElementById('probRows').addEventListener('click', e => {
+  if (e.target.classList.contains('remove-prob')) {
+    const rows = document.querySelectorAll('.prob-row');
+    if (rows.length > 1) e.target.closest('.prob-row').remove();
+  }
+});
+
+document.getElementById('addInstr').addEventListener('click', () => {
+  const row = document.querySelector('.instr-row').cloneNode(true);
+  row.querySelectorAll('input').forEach(i => { i.value = ''; });
+  document.getElementById('instrRows').appendChild(row);
+});
+document.getElementById('instrRows').addEventListener('click', e => {
+  if (e.target.classList.contains('remove-instr')) {
+    const rows = document.querySelectorAll('.instr-row');
+    if (rows.length > 1) e.target.closest('.instr-row').remove();
+  }
+});
+</script>
+{% endblock %}

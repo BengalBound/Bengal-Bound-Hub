@@ -1,0 +1,77 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}Tools & Integrations{% endblock %}
+{% block page_subtitle %}Manage API credentials for your AI agents and view your affiliate status.{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Add Credential Form -->
+    <div class="col-lg-5">
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold font-outfit mb-4"><i class="bi bi-key me-2 text-primary"></i>Add API Credential</h6>
+            {% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success">{{ msg }}</div>{% endfor %}{% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-medium">AI Agent</label>
+                    <select name="ai_employee" class="form-select bg-dark text-white border-secondary" required>
+                        <option value="">Select Agent</option>
+                        {% for ai in hired_ais %}<option value="{{ ai.id }}">{{ ai.ai_name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-medium">Service / Tool Name</label>
+                    <input type="text" name="service_name" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="e.g. Instagram API, OpenAI, Slack" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-medium">API Key / Token</label>
+                    <input type="password" name="api_key_or_token" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="••••••••••••••••" required>
+                    <div class="form-text text-muted small mt-1"><i class="bi bi-shield-lock me-1"></i>Your credentials are stored securely.</div>
+                </div>
+                <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill fw-semibold shadow-glow"><i class="bi bi-plus-lg me-2"></i>Add Credential</button>
+            </form>
+        </div>
+
+        <!-- Affiliate Section -->
+        {% if affiliate_profile %}
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold font-outfit mb-3"><i class="bi bi-people me-2 text-success"></i>Affiliate Status</h6>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-white-50">Referral Code</span>
+                <span class="fw-bold text-primary">{{ affiliate_profile.affiliate_code }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-white-50">Available Balance</span>
+                <span class="fw-bold text-success">${{ affiliate_profile.commission_balance|floatformat:2 }}</span>
+            </div>
+            <div class="d-flex justify-content-between small">
+                <span class="text-white-50">Total Earned</span>
+                <span class="fw-bold text-white">${{ affiliate_profile.total_earned|floatformat:2 }}</span>
+            </div>
+            <a href="http://localhost:1234/affiliates/" class="btn btn-outline-success w-100 mt-3 btn-sm rounded-pill">View Full Portal →</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Saved Credentials -->
+    <div class="col-lg-7">
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold font-outfit mb-4"><i class="bi bi-shield-check me-2 text-primary"></i>Stored Credentials</h6>
+            {% for cred in credentials %}
+            <div class="glass-panel p-3 mb-3 d-flex gap-3 align-items-center">
+                <div class="rounded-2 bg-warning bg-opacity-25 p-2 flex-shrink-0"><i class="bi bi-key text-warning"></i></div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-white small">{{ cred.service_name }}</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">For {{ cred.ai_employee.ai_name }} · Added {{ cred.created_at|date:"M d, Y" }}</div>
+                </div>
+                <span class="badge bg-success bg-opacity-25 text-success small">Active</span>
+            </div>
+            {% empty %}
+            <div class="text-center text-white-50 py-5">
+                <i class="bi bi-plug d-block fs-2 mb-2 text-muted"></i>
+                No credentials stored yet. Add tools your AI agent can use.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

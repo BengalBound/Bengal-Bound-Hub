@@ -1,0 +1,131 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Warehouse Management — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-building me-2 text-warning"></i>Warehouse Management</h4>
+    <small class="text-muted">{{ biz.name }}</small>
+  </div>
+  <div class="d-flex gap-2">
+    {% if access_level >= 3 %}
+    <a href="{% url 'wms:inbound_list' slug=biz.slug %}" class="btn btn-outline-info btn-sm"><i class="bi bi-box-arrow-in-down me-1"></i>Receive</a>
+    <a href="{% url 'wms:picklist_list' slug=biz.slug %}" class="btn btn-warning text-dark"><i class="bi bi-list-check me-1"></i>Pick Lists</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center py-3">
+      <div class="fs-2 fw-bold text-white">{{ total_bins }}</div>
+      <div class="small text-muted">Total Bins</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center py-3">
+      <div class="fs-2 fw-bold text-warning">{{ occupied_bins }}</div>
+      <div class="small text-muted">Occupied</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center py-3">
+      <div class="fs-2 fw-bold text-success">{{ free_bins }}</div>
+      <div class="small text-muted">Available</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center py-3">
+      <div class="fs-2 fw-bold text-info">{{ occupancy_pct }}%</div>
+      <div class="small text-muted">Occupancy</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-grid me-1"></i>Zones</span>
+        {% if access_level >= 4 %}<a href="{% url 'wms:zones' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Manage</a>{% endif %}
+      </div>
+      <div class="card-body">
+        {% for zone in zones %}
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
+          <div>
+            <div class="fw-semibold small">{{ zone.name }}</div>
+            <div class="text-muted" style="font-size:0.75rem">{{ zone.get_zone_type_display }}</div>
+          </div>
+          <div class="text-end small">
+            <span class="text-success">{{ zone.available_bins }}</span>/<span class="text-muted">{{ zone.bins.count }}</span> free
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-muted small text-center py-2">No zones configured</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="row g-2">
+      <div class="col-6">
+        <div class="card bg-dark border-info text-center py-3">
+          <div class="fs-3 fw-bold text-info">{{ pending_receipts }}</div>
+          <div class="small text-muted">Pending GRNs</div>
+          <a href="{% url 'wms:inbound_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info mt-2">View</a>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="card bg-dark border-warning text-center py-3">
+          <div class="fs-3 fw-bold text-warning">{{ active_picks }}</div>
+          <div class="small text-muted">Active Picks</div>
+          <a href="{% url 'wms:picklist_list' slug=biz.slug %}" class="btn btn-sm btn-outline-warning mt-2">View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-list-check me-1"></i>Recent Pick Lists</span>
+        <a href="{% url 'wms:picklist_list' slug=biz.slug %}" class="btn btn-sm btn-outline-warning">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_picks %}
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>PL #</th><th>Order Ref</th><th>Customer</th><th>Status</th><th>Due</th><th>Assigned</th><th>Progress</th></tr></thead>
+            <tbody>
+              {% for pl in recent_picks %}
+              <tr style="cursor:pointer" onclick="location.href='{% url 'wms:picklist_detail' slug=biz.slug pick_id=pl.pk %}'">
+                <td class="font-monospace fw-bold">PL-{{ pl.pick_number }}</td>
+                <td>{{ pl.order_reference|default:"—" }}</td>
+                <td>{{ pl.customer_name|default:"—" }}</td>
+                <td>
+                  {% if pl.status == 'dispatched' %}<span class="badge bg-success">Dispatched</span>
+                  {% elif pl.status == 'picking' %}<span class="badge bg-warning text-dark">Picking</span>
+                  {% elif pl.status == 'picked' %}<span class="badge bg-info">Picked</span>
+                  {% elif pl.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>
+                  {% else %}<span class="badge bg-secondary">Pending</span>{% endif %}
+                </td>
+                <td class="text-muted">{{ pl.due_date|date:"d M"|default:"—" }}</td>
+                <td>{{ pl.assigned_to.user.get_full_name|default:"—" }}</td>
+                <td>
+                  <div class="progress" style="height:6px;min-width:60px">
+                    <div class="progress-bar bg-success" style="width:{{ pl.completion_pct }}%"></div>
+                  </div>
+                  <div class="text-muted" style="font-size:0.7rem">{{ pl.completion_pct }}%</div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">No pick lists yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

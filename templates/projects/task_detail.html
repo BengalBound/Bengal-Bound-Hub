@@ -1,0 +1,129 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ task.title }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-check2-square me-2" style="color:var(--hub-accent);"></i>Task Detail{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'projects:project_detail' slug=biz.slug pk=task.project.pk %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ task.project.name }}</a>
+</div>
+<div class="row g-4">
+  <!-- Task info & controls -->
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-muted);margin-bottom:1rem;">Task Details</h6>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Status</div>
+        <span class="badge" style="background:{% if task.status == 'done' %}#22c55e20{% elif task.status == 'in_progress' %}#38bdf820{% elif task.status == 'review' %}#fbbf2420{% else %}#64748b20{% endif %};color:{% if task.status == 'done' %}#22c55e{% elif task.status == 'in_progress' %}#38bdf8{% elif task.status == 'review' %}#fbbf24{% else %}#64748b{% endif %};">{{ task.get_status_display }}</span>
+      </div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Priority</div>
+        <span style="color:{% if task.priority == 'critical' %}#f87171{% elif task.priority == 'high' %}#fbbf24{% elif task.priority == 'medium' %}#38bdf8{% else %}#64748b{% endif %};">{{ task.get_priority_display }}</span>
+      </div>
+      {% if task.assignee %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Assigned To</div><div style="color:var(--hub-text);">{{ task.assignee.get_full_name|default:task.assignee.email }}</div></div>{% endif %}
+      {% if task.milestone %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Milestone</div><div style="color:var(--hub-text);">{{ task.milestone.title }}</div></div>{% endif %}
+      {% if task.due_date %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Due Date</div><div style="color:{% if task.is_overdue %}#f87171{% else %}var(--hub-text){% endif %};">{{ task.due_date }}</div></div>{% endif %}
+      <hr style="border-color:var(--hub-border);">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Estimated</div><div style="color:var(--hub-text);">{{ task.estimated_hours }}h</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Logged</div><div style="color:#fbbf24;">{{ task.actual_hours }}h</div></div>
+    </div>
+
+    <!-- Edit task -->
+    <div class="glass-panel p-4 mt-3">
+      <h6 style="color:var(--hub-muted);margin-bottom:.75rem;">Edit Task</h6>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="update_task">
+        <div class="mb-2"><input name="title" value="{{ task.title }}" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="mb-2">
+          <select name="status" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>To Do</option>
+            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="review" {% if task.status == 'review' %}selected{% endif %}>Review</option>
+            <option value="done" {% if task.status == 'done' %}selected{% endif %}>Done</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <select name="priority" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+            <option value="critical" {% if task.priority == 'critical' %}selected{% endif %}>Critical</option>
+          </select>
+        </div>
+        <div class="mb-2"><input type="date" name="due_date" value="{{ task.due_date|default:'' }}" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="mb-2"><input type="number" name="estimated_hours" step="0.5" value="{{ task.estimated_hours }}" class="form-control form-control-sm" placeholder="Est. hours" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <button type="submit" class="btn btn-hub-primary btn-sm w-100">Save Changes</button>
+      </form>
+    </div>
+
+    <!-- Delete task -->
+    <div class="glass-panel p-4 mt-3">
+      <form method="post" onsubmit="return confirm('Delete this task?')">{% csrf_token %}
+        <input type="hidden" name="action" value="delete_task">
+        <button type="submit" class="btn btn-sm w-100" style="color:#f87171;border:1px solid #f87171;border-radius:8px;background:transparent;">Delete Task</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="col-md-8">
+    {% if task.description %}
+    <div class="glass-panel p-4 mb-3">
+      <div style="color:var(--hub-muted);font-size:.8rem;margin-bottom:.5rem;">Description</div>
+      <div style="color:var(--hub-text);">{{ task.description }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Time Tracking -->
+    <div class="glass-panel p-4 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-text);margin:0;"><i class="bi bi-clock me-1" style="color:var(--hub-accent);"></i>Time Entries</h6>
+        <button class="btn btn-hub-outline btn-sm" data-bs-toggle="modal" data-bs-target="#logTimeModal"><i class="bi bi-plus-lg me-1"></i>Log Time</button>
+      </div>
+      {% if time_entries %}
+      <div class="table-responsive">
+        <table class="table table-dark table-hover table-sm">
+          <thead><tr><th>Date</th><th>Description</th><th>Hours</th><th>By</th><th></th></tr></thead>
+          <tbody>
+            {% for entry in time_entries %}
+            <tr>
+              <td style="color:var(--hub-muted);">{{ entry.date }}</td>
+              <td style="color:var(--hub-text);">{{ entry.description|default:"—" }}</td>
+              <td style="color:#fbbf24;">{{ entry.hours }}h</td>
+              <td style="color:var(--hub-muted);font-size:.78rem;">{{ entry.user.get_full_name|default:entry.user.email }}</td>
+              <td>
+                <form method="post" class="d-inline">{% csrf_token %}
+                  <input type="hidden" name="action" value="delete_entry">
+                  <input type="hidden" name="entry_id" value="{{ entry.pk }}">
+                  <button type="submit" class="btn btn-sm" style="color:#f87171;background:transparent;border:none;padding:.1rem .3rem;" onclick="return confirm('Remove entry?')"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="color:var(--hub-muted);font-size:.85rem;text-align:center;padding:1rem;">No time logged yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Log Time Modal -->
+<div class="modal fade" id="logTimeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">Log Time</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="log_time">
+        <div class="modal-body">
+          <div class="row g-2 mb-3">
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Hours</label><input type="number" name="hours" step="0.5" min="0.5" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Date</label><input type="date" name="date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+          </div>
+          <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Description</label><input name="description" class="form-control" placeholder="What did you work on?" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Log Time</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

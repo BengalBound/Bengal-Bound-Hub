@@ -1,0 +1,98 @@
+{% extends "workspace_admin/base_admin.html" %}
+{% block title %}Storage Requests | WorkspaceAdmin{% endblock %}
+{% block page_title %}<i class="bi bi-hdd me-2 text-primary"></i>Storage Increase Requests{% endblock %}
+
+{% block content %}
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}{% endif %}
+
+<!-- Filter Tabs -->
+<div class="d-flex gap-2 mb-4">
+    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Pending
+    </a>
+    <a href="?status=approved" class="btn btn-sm {% if status_filter == 'approved' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Approved
+    </a>
+    <a href="?status=rejected" class="btn btn-sm {% if status_filter == 'rejected' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Rejected
+    </a>
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        All
+    </a>
+</div>
+
+{% if requests %}
+<div class="glass-panel p-0" style="overflow:hidden;">
+<table class="table table-dark table-hover mb-0" style="font-size:0.85rem;">
+<thead>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+        <th class="px-4 py-3 text-white-50 fw-normal">Business</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Requested</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Current Storage</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Message</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Date</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Status</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Action</th>
+    </tr>
+</thead>
+<tbody>
+{% for req in requests %}
+<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+    <td class="px-4 py-3">
+        <div class="fw-semibold">{{ req.business.name }}</div>
+        <div class="text-white-50" style="font-size:0.75rem;">{{ req.business.get_business_type_display }}</div>
+    </td>
+    <td class="px-4 py-3 fw-bold" style="color:#38bdf8;">+{{ req.requested_gb|floatformat:0 }} GB</td>
+    <td class="px-4 py-3 text-white-50">{{ req.business.subscription.total_storage_gb|floatformat:0 }} GB</td>
+    <td class="px-4 py-3 text-white-50" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        {{ req.message|default:"—" }}
+    </td>
+    <td class="px-4 py-3 text-white-50">{{ req.created_at|date:"M d, Y" }}</td>
+    <td class="px-4 py-3">
+        <span class="badge" style="font-size:0.7rem;
+            {% if req.status == 'approved' %}background:rgba(34,197,94,0.15);color:#22c55e;
+            {% elif req.status == 'rejected' %}background:rgba(248,113,113,0.15);color:#f87171;
+            {% else %}background:rgba(251,191,36,0.15);color:#fbbf24;{% endif %}">
+            {{ req.get_status_display }}
+        </span>
+    </td>
+    <td class="px-4 py-3">
+        {% if req.status == 'pending' %}
+        <div class="d-flex gap-1">
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <input type="hidden" name="request_id" value="{{ req.pk }}">
+                <button type="submit" class="btn btn-sm" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);" onclick="return confirm('Approve +{{ req.requested_gb }}GB for {{ req.business.name }}?')">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            </form>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <input type="hidden" name="request_id" value="{{ req.pk }}">
+                <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <span class="text-white-50" style="font-size:0.75rem;">{{ req.reviewed_at|date:"M d" }}</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-hdd" style="font-size:2.5rem;color:rgba(255,255,255,0.15);"></i>
+    <p class="text-white-50 mt-3 mb-0">No storage requests{% if status_filter %} with status "{{ status_filter }}"{% endif %}.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Deal — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="mb-4">
+  <a href="{% url 'dms:deal_list' slug=biz.slug %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i>Deals
+  </a>
+  <h4 class="fw-bold mt-1"><i class="bi bi-plus-circle me-2 text-success"></i>New Deal</h4>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="row g-4">
+    <!-- Vehicle Selection -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-car-front me-1"></i>Vehicle</div>
+        <div class="card-body">
+          <label class="form-label small">Select Vehicle <span class="text-danger">*</span></label>
+          <select name="vehicle_id" class="form-select bg-dark text-white border-secondary" required>
+            <option value="">— Choose vehicle —</option>
+            {% for v in vehicles %}
+            <option value="{{ v.pk }}" {% if request.GET.vehicle_id == v.pk|stringformat:"i" %}selected{% endif %}>
+              {{ v.stock_number }} — {{ v.year }} {{ v.make }} {{ v.model }}
+              {% if v.asking_price %} (R{{ v.asking_price|floatformat:0 }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-person me-1"></i>Customer</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small">Name <span class="text-danger">*</span></label>
+            <input type="text" name="customer_name" class="form-control bg-dark text-white border-secondary" required>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">Phone</label>
+              <input type="text" name="customer_phone" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Email</label>
+              <input type="email" name="customer_email" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+          <div class="mt-2">
+            <label class="form-label small">Address</label>
+            <textarea name="customer_address" rows="2" class="form-control bg-dark text-white border-secondary"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Finance -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-bank me-1"></i>Finance Details</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">Sale Price</label>
+              <input type="number" name="sale_price" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Deposit</label>
+              <input type="number" name="deposit_amount" step="0.01" value="0" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Finance Type</label>
+              <select name="finance_type" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in finance_types %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Finance Provider</label>
+              <input type="text" name="finance_provider" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Loan Amount</label>
+              <input type="number" name="finance_amount" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Monthly Repay</label>
+              <input type="number" name="monthly_repayment" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Term (months)</label>
+              <input type="number" name="loan_term_months" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trade-in & Salesperson -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-header"><i class="bi bi-arrow-left-right me-1"></i>Trade-In (Optional)</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">Make</label>
+              <input type="text" name="ti_make" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Model</label>
+              <input type="text" name="ti_model" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Year</label>
+              <input type="number" name="ti_year" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Reg</label>
+              <input type="text" name="ti_reg" class="form-control bg-dark text-white border-secondary font-monospace">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Mileage</label>
+              <input type="number" name="ti_mileage" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Condition</label>
+              <select name="ti_condition" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in conditions %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Offered Value</label>
+              <input type="number" name="ti_offered" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-dark border-secondary">
+        <div class="card-header small"><i class="bi bi-person-badge me-1"></i>Salesperson & Notes</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small">Salesperson</label>
+            <select name="salesperson_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">Unassigned</option>
+              {% for emp in employees %}
+              <option value="{{ emp.pk }}">{{ emp.user.get_full_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label small">Notes</label>
+            <textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 text-end">
+      <a href="{% url 'dms:deal_list' slug=biz.slug %}" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button type="submit" class="btn btn-success px-4">
+        <i class="bi bi-check-lg me-1"></i>Create Deal
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}

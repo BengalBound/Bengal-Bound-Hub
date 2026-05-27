@@ -1,0 +1,49 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Quiz Result — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'assessments:quiz_detail' slug=biz.slug quiz_id=attempt.quiz.pk %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to Quiz</a></div>
+
+<div class="text-center mb-4">
+  {% if attempt.is_passed %}
+  <div class="display-3 mb-2">🎉</div>
+  <h3 class="fw-bold text-success">Passed!</h3>
+  {% else %}
+  <div class="display-3 mb-2">📋</div>
+  <h3 class="fw-bold text-danger">Not Passed</h3>
+  {% endif %}
+  <div class="display-4 fw-bold mt-2 {% if attempt.is_passed %}text-success{% else %}text-warning{% endif %}">{{ attempt.score_pct }}%</div>
+  <div class="text-muted mt-1">Pass score: {{ attempt.quiz.pass_score_pct }}% · Attempt #{{ attempt.attempt_number }}</div>
+  <div class="text-muted small mt-1">{{ attempt.quiz.title }} · Submitted {{ attempt.submitted_at|date:"d M Y H:i" }}</div>
+</div>
+
+{% if attempt.quiz.show_answers_after %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h5 class="fw-bold mb-3">Answer Review</h5>
+    {% for ans in answers %}
+    <div class="card bg-dark mb-3 border-{% if ans.is_correct %}success{% elif ans.is_correct == False %}danger{% else %}secondary{% endif %}">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="small fw-semibold">{{ forloop.counter }}. {{ ans.question.question_text }}</span>
+          <span class="badge {% if ans.is_correct %}bg-success{% elif ans.is_correct == False %}bg-danger{% else %}bg-secondary{% endif %}">
+            {% if ans.is_correct %}+{{ ans.score_earned }} pt{% elif ans.is_correct == False %}0 pt{% else %}Manual{% endif %}
+          </span>
+        </div>
+        <div class="small text-muted">Your answer:
+          <span class="text-white">{% if ans.selected_choice %}{{ ans.selected_choice.choice_text }}{% elif ans.answer_text %}{{ ans.answer_text }}{% else %}—{% endif %}</span>
+        </div>
+        {% if ans.question.explanation %}<div class="small text-info mt-2"><i class="bi bi-info-circle me-1"></i>{{ ans.question.explanation }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="d-flex gap-2 justify-content-center mt-4">
+      {% if attempt.quiz.allow_retakes %}
+      <a href="{% url 'assessments:take_quiz' slug=biz.slug quiz_id=attempt.quiz.pk %}" class="btn btn-outline-warning">Try Again</a>
+      {% endif %}
+      <a href="{% url 'assessments:home' slug=biz.slug %}" class="btn btn-warning text-dark">Back to Assessments</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

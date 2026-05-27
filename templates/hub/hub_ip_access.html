@@ -1,0 +1,83 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}IP Access | {{ biz.name }}{% endblock %}
+{% block page_title %}IP Access Control{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="glass-panel p-4 mb-4" style="border-color:rgba(251,191,36,0.2);">
+            <div class="d-flex gap-3 align-items-start">
+                <i class="bi bi-shield-lock text-warning fs-4 mt-1"></i>
+                <div>
+                    <h6 class="fw-bold mb-1">IP-Locked Access</h6>
+                    <p class="mb-0" style="color:var(--hub-muted);font-size:0.85rem;">Only the IP addresses in the allowlist below can access your business dashboard. Employees on other networks must use the <strong>BengalBound Connector App</strong> or be added as a connector session.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold mb-4">Allowed IP Addresses</h6>
+
+            {% if biz.allowed_ips %}
+            <div class="mb-4">
+                {% for ip in biz.allowed_ips %}
+                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--hub-border);">
+                    <code style="color:var(--hub-accent);">{{ ip }}</code>
+                    <form method="POST" action="{% url 'hub:hub_remove_ip' slug=biz.slug %}">
+                        {% csrf_token %}<input type="hidden" name="ip_address" value="{{ ip }}">
+                        <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);border-radius:8px;" onclick="return confirm('Remove {{ ip }}?')"><i class="bi bi-trash3"></i></button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 mb-4" style="border:1px dashed var(--hub-border);border-radius:10px;">
+                <p style="color:var(--hub-muted);margin:0;font-size:0.85rem;">No IPs in allowlist. Nobody can access the dashboard until you add at least one IP.</p>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'hub:hub_add_ip' slug=biz.slug %}" class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="text" name="ip_address" class="form-control" placeholder="e.g. 192.168.1.1 or 10.0.0.0/24" style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">
+                <button type="submit" class="btn btn-hub-primary px-4" style="white-space:nowrap;"><i class="bi bi-plus-lg me-1"></i>Add IP</button>
+            </form>
+            <small style="color:var(--hub-muted);font-size:0.75rem;">Supports CIDR notation (e.g. 10.0.0.0/24) and single IPs.</small>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold mb-3">How It Works</h6>
+            <ol style="color:var(--hub-muted);font-size:0.85rem;line-height:1.8;padding-left:1.2rem;">
+                <li>Add your office/network IP(s) to the allowlist.</li>
+                <li>Anyone on those IPs can access the dashboard normally.</li>
+                <li>Remote employees download the <strong>Connector App</strong>, which tunnels their access through an approved session.</li>
+                <li>Generate connector tokens from the <a href="{% url 'hub:hub_connector' slug=biz.slug %}" style="color:var(--hub-accent);">Connector App</a> page.</li>
+            </ol>
+        </div>
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold mb-2">Your Current IP</h6>
+            <code style="color:var(--hub-accent);" id="yourIp">Fetching...</code>
+            <button class="btn btn-hub-outline btn-sm w-100 mt-3" id="addMyIp">
+                <i class="bi bi-plus me-1"></i>Add This IP
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{
+    document.getElementById('yourIp').textContent = d.ip;
+    document.getElementById('addMyIp').onclick = function() {
+        const f = document.createElement('form');
+        f.method = 'POST';
+        f.action = '{% url "hub:hub_add_ip" slug=biz.slug %}';
+        f.innerHTML = '<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"><input type="hidden" name="ip_address" value="'+d.ip+'">';
+        document.body.appendChild(f);
+        f.submit();
+    };
+}).catch(()=>{ document.getElementById('yourIp').textContent = 'Unable to detect'; });
+</script>
+{% endblock %}

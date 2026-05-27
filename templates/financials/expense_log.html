@@ -1,0 +1,81 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Log Expense — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-receipt me-2" style="color:var(--hub-accent);"></i>Log Expense{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'financials:my_expenses' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>My Expenses
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="glass-panel p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label text-white-50 small">Expense Title *</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Client Lunch, Fuel, Office Supplies" required
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small">Amount *</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-muted);">$</span>
+                            <input type="number" name="amount" step="0.01" min="0" class="form-control" placeholder="0.00" required
+                                   style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small">Date *</label>
+                        <input type="date" name="expense_date" value="{{ today }}" class="form-control" required
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small">Category *</label>
+                        <input type="text" name="category_name" list="cat-list" class="form-control" placeholder="e.g. Travel, Meals, Utilities" required
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                        <datalist id="cat-list">
+                            {% for cat in existing_categories %}
+                            <option value="{{ cat }}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small">Department <span class="text-white-50">(optional)</span></label>
+                        <input type="text" name="department" class="form-control" placeholder="e.g. Sales, Operations"
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-white-50 small">Description <span class="text-white-50">(optional)</span></label>
+                        <textarea name="description" rows="3" class="form-control" placeholder="Additional details..."
+                                  style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-white-50 small">Receipt <span class="text-white-50">(optional)</span></label>
+                        <input type="file" name="receipt" accept="image/*,.pdf" class="form-control"
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-12 d-flex gap-2 justify-content-end">
+                        <button type="submit" name="action" value="draft" class="btn btn-hub-outline">
+                            <i class="bi bi-floppy me-1"></i>Save Draft
+                        </button>
+                        <button type="submit" name="action" value="submit" class="btn btn-hub-primary">
+                            <i class="bi bi-send me-1"></i>Submit for Approval
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

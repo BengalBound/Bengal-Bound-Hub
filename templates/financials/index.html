@@ -1,0 +1,139 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Financials — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up-arrow me-2" style="color:var(--hub-accent);"></i>Financials{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <p class="text-white-50 mb-0">Reports, expenses, and financial oversight for {{ biz.name }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'financials:report_submit' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+            <i class="bi bi-file-earmark-plus me-1"></i>Submit Report
+        </a>
+        <a href="{% url 'financials:log_expense' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+            <i class="bi bi-receipt me-1"></i>Log Expense
+        </a>
+        {% if access_level >= 7 %}
+        <a href="{% url 'financials:financial_dashboard' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(192,132,252,0.2);color:#c084fc;border:1px solid rgba(192,132,252,0.3);border-radius:10px;">
+            <i class="bi bi-bar-chart-line me-1"></i>P&amp;L Dashboard
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ my_reports }}</div>
+            <div class="text-white-50 small">My Reports</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.8rem;font-weight:700;color:#38bdf8;">{{ my_expenses }}</div>
+            <div class="text-white-50 small">My Expenses</div>
+        </div>
+    </div>
+    {% if access_level >= 6 %}
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ pending_reports }}</div>
+            <div class="text-white-50 small">Pending Reports</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ pending_expenses }}</div>
+            <div class="text-white-50 small">Pending Expenses</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Module Cards -->
+<div class="row g-3">
+    <!-- Reports -->
+    <div class="col-md-6">
+        <div class="glass-panel p-4 h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="module-icon-sm" style="width:44px;height:44px;font-size:1.1rem;">
+                    <i class="bi bi-file-text"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold">Operational Reports</div>
+                    <div class="text-white-50 small">Daily ops, sales summaries, incident reports</div>
+                </div>
+            </div>
+            <p class="text-white-50 small mb-3">
+                Employees submit operational reports. Managers and Audit Managers review and approve them.
+                {% if access_level >= 7 %}CEOs can view all approved reports on the P&amp;L dashboard.{% endif %}
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'financials:report_submit' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>New Report
+                </a>
+                <a href="{% url 'financials:report_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+                    <i class="bi bi-list-ul me-1"></i>View Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses -->
+    <div class="col-md-6">
+        <div class="glass-panel p-4 h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="module-icon-sm" style="width:44px;height:44px;font-size:1.1rem;">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold">Expense Tracking</div>
+                    <div class="text-white-50 small">Log, categorize and approve staff expenses</div>
+                </div>
+            </div>
+            <p class="text-white-50 small mb-3">
+                Any employee can log expenses. Managers approve and categorize them.
+                {% if access_level >= 7 %}Audit Managers and CEOs see full P&amp;L breakdowns by category and department.{% endif %}
+            </p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'financials:log_expense' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>Log Expense
+                </a>
+                <a href="{% url 'financials:my_expenses' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+                    <i class="bi bi-receipt me-1"></i>My Expenses
+                </a>
+                {% if access_level >= 6 %}
+                <a href="{% url 'financials:expense_overview' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+                    <i class="bi bi-pie-chart me-1"></i>Overview
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if access_level >= 7 %}
+    <!-- P&L Dashboard -->
+    <div class="col-12">
+        <div class="glass-panel p-4" style="border-color:rgba(192,132,252,0.2);">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="module-icon-sm" style="width:44px;height:44px;font-size:1.1rem;background:linear-gradient(135deg,rgba(192,132,252,0.3),rgba(236,72,153,0.3));">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold">Profit &amp; Loss Dashboard</div>
+                    <div class="text-white-50 small">Full financial overview — revenue, expenses, payroll, net profit</div>
+                </div>
+            </div>
+            <p class="text-white-50 small mb-3">
+                Aggregates data from Invoicing, Expense Claims, Payroll, and Staff Expenses to give a complete picture of business health.
+            </p>
+            <a href="{% url 'financials:financial_dashboard' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+                <i class="bi bi-graph-up-arrow me-1"></i>Open P&amp;L Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Book a Consultation | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center justify-content-center py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7 fade-up">
+                <div class="bento-card glow-hover-cyan p-5">
+                    <div class="text-center mb-4">
+                        <span class="badge-premium mb-3 d-inline-block">Free Consultation</span>
+                        <h2 class="h3 fw-bold font-outfit">Book a <span class="text-gradient-purple-cyan">Consultation</span></h2>
+                        <p class="text-white-50 small">Tell us about your business and preferred time — our team will confirm your session within 24 hours.</p>
+                    </div>
+
+                    {% if messages %}
+                    {% for msg in messages %}
+                    <div class="alert alert-{{ msg.tags }} border-0 small bg-opacity-25">{{ msg }}</div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-medium">Full Name</label>
+                                <input type="text" name="name" class="form-control-premium w-100" placeholder="Your full name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-medium">Business Email</label>
+                                <input type="email" name="email" class="form-control-premium w-100" placeholder="you@company.com" required>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-medium">Phone Number <span class="text-muted">(optional)</span></label>
+                                <input type="text" name="phone" class="form-control-premium w-100" placeholder="+1 234 567 8900">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-medium">Service Type</label>
+                                <select name="service_type" class="form-control-premium w-100" required>
+                                    <option value="custom_website">Custom Website Build</option>
+                                    <option value="custom_webapp">Custom Web Application</option>
+                                    <option value="bredbound_demo">BredBound Demo</option>
+                                    <option value="ai_employee">AI Employee Consultation (Aelin/Kael)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-medium">Preferred Date</label>
+                                <input type="date" name="preferred_date" class="form-control-premium w-100" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-medium">Preferred Time</label>
+                                <input type="time" name="preferred_time" class="form-control-premium w-100" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-white-50 small fw-medium">Additional Notes <span class="text-muted">(optional)</span></label>
+                            <textarea name="notes" class="form-control-premium w-100" rows="3" placeholder="Tell us about your goals or any specific topics you'd like to discuss..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-premium w-100 py-3 mt-2">
+                            <i class="bi bi-calendar2-check me-2"></i> Book My Consultation
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-4 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <p class="text-white-50 small">Have a quick question? <a href="{% url 'public_site:contact' %}" class="text-gradient-purple-cyan text-decoration-none fw-medium">Contact us instead</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Commission Entries — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'commission:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Commission</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-cash-coin me-2 text-info"></i>Commission Entries</h4>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addEntryModal">+ Entry</button>
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addRuleModal">+ Rule</button>
+  </div>
+  {% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-3">
+      <select name="agent" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Agents</option>
+        {% for a in agents %}<option value="{{ a.pk }}" {% if agent_filter == a.pk|stringformat:'s' %}selected{% endif %}>{{ a.user.get_full_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="paid" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All</option>
+        <option value="unpaid" {% if paid_filter == 'unpaid' %}selected{% endif %}>Unpaid</option>
+        <option value="paid" {% if paid_filter == 'paid' %}selected{% endif %}>Paid</option>
+      </select>
+    </div>
+    <div class="col-md-1"><button type="submit" class="btn btn-sm btn-info text-dark w-100">Go</button></div>
+    <div class="col-md-2"><a href="{% url 'commission:list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary mb-4">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Deal Reference</th><th>Client</th><th>Agent</th><th>GCI</th><th>Split %</th><th>Agent Amt</th><th>Broker Amt</th><th>Close Date</th><th>Status</th>{% if access_level >= 3 %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for e in entries %}
+          <tr>
+            <td class="fw-semibold font-monospace">{{ e.deal_reference }}</td>
+            <td class="text-muted">{{ e.client_name|default:"—" }}</td>
+            <td class="text-muted">{{ e.agent.user.get_full_name|default:"—" }}</td>
+            <td class="text-info">${{ e.gross_commission|floatformat:0 }}</td>
+            <td class="text-muted">{{ e.agent_split_pct }}%</td>
+            <td class="text-success fw-bold">${{ e.agent_amount|floatformat:0 }}</td>
+            <td class="text-muted">${{ e.broker_amount|floatformat:0 }}</td>
+            <td class="text-muted">{{ e.close_date|date:"d M Y"|default:"—" }}</td>
+            <td>
+              <span class="badge {% if e.is_paid %}bg-success{% else %}bg-warning text-dark{% endif %}">{% if e.is_paid %}Paid{% else %}Unpaid{% endif %}</span>
+              {% if e.is_paid and e.paid_date %}<div class="text-muted" style="font-size:0.65rem">{{ e.paid_date|date:"d M Y" }}</div>{% endif %}
+            </td>
+            {% if access_level >= 3 %}
+            <td>
+              {% if not e.is_paid %}
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_paid">
+                <input type="hidden" name="entry_id" value="{{ e.pk }}">
+                <button type="submit" class="btn btn-sm btn-link text-success p-0" title="Mark Paid"><i class="bi bi-check2-circle"></i></button>
+              </form>
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="10" class="text-center text-muted py-4">No entries found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Commission Rules -->
+{% if rules %}
+<div class="card bg-dark border-secondary">
+  <div class="card-header small"><i class="bi bi-sliders me-1"></i>Active Commission Rules</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Rule Name</th><th>Agent</th><th>Agent %</th><th>Broker %</th><th>Annual Cap</th></tr></thead>
+        <tbody>
+          {% for r in rules %}
+          <tr>
+            <td class="fw-semibold">{{ r.name }}</td>
+            <td class="text-muted">{{ r.agent.user.get_full_name|default:"All Agents" }}</td>
+            <td class="text-success">{{ r.agent_split_pct }}%</td>
+            <td class="text-muted">{{ r.broker_split_pct }}%</td>
+            <td class="text-muted">{% if r.annual_cap %}${{ r.annual_cap|floatformat:0 }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if access_level >= 3 %}
+<!-- Add Entry Modal -->
+<div class="modal fade" id="addEntryModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Commission Entry</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_entry">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Deal Reference <span class="text-danger">*</span></label><input type="text" name="deal_reference" class="form-control bg-dark text-white border-secondary font-monospace" required placeholder="e.g. DEAL-2024-001"></div>
+          <div class="col-md-6"><label class="form-label small">Client Name</label><input type="text" name="client_name" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Agent</label>
+            <select name="agent_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— Self —</option>
+              {% for a in agents %}<option value="{{ a.pk }}">{{ a.user.get_full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Close Date</label><input type="date" name="close_date" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Gross Commission ($) <span class="text-danger">*</span></label><input type="number" name="gross_commission" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Agent Split %</label><input type="number" name="agent_split_pct" value="70" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Referral Amount ($)</label><input type="number" name="referral_amount" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Rule Modal -->
+<div class="modal fade" id="addRuleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Commission Rule</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_rule">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Rule Name <span class="text-danger">*</span></label><input type="text" name="rule_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Agent (leave blank for all)</label>
+            <select name="rule_agent_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— All Agents —</option>
+              {% for a in agents %}<option value="{{ a.pk }}">{{ a.user.get_full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3"><label class="form-label small">Agent %</label><input type="number" name="agent_split_pct" value="70" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Broker %</label><input type="number" name="broker_split_pct" value="30" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Referral Fee %</label><input type="number" name="referral_fee_pct" value="0" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Annual Cap ($)</label><input type="number" name="annual_cap" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="rule_notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Rule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

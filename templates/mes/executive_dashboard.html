@@ -1,0 +1,85 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Executive Dashboard — MES | {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up-arrow me-2" style="color:var(--hub-accent);"></i>Executive Operations View{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p style="color:var(--hub-muted);margin-bottom:0;">360° Manufacturing Ecosystem Overview</p>
+    <a href="{% url 'mes:dashboard' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Floor Operations
+    </a>
+</div>
+
+<!-- KPI Metrics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="glass-panel p-4" style="border-color:rgba(192,132,252,0.25);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div style="color:var(--hub-accent);font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Active Production Orders</div>
+                    <div style="font-size:2.5rem;font-weight:700;line-height:1.1;">{{ total_wip_orders }}</div>
+                    <div style="color:var(--hub-muted);font-size:0.78rem;margin-top:0.25rem;"><i class="bi bi-graph-up me-1"></i>Real-time tracking active</div>
+                </div>
+                <div style="width:56px;height:56px;border-radius:14px;background:rgba(192,132,252,0.12);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#c084fc;">
+                    <i class="bi bi-boxes"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-panel p-4" style="border-color:rgba(34,197,94,0.25);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div style="color:#22c55e;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Global OEE Average</div>
+                    <div style="font-size:2.5rem;font-weight:700;line-height:1.1;">{{ avg_oee }}<span style="font-size:1.2rem;color:var(--hub-muted);">%</span></div>
+                    <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;margin-top:0.5rem;">
+                        <div style="height:4px;border-radius:4px;width:{{ avg_oee }}%;background:#22c55e;"></div>
+                    </div>
+                </div>
+                <div style="width:56px;height:56px;border-radius:14px;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#22c55e;">
+                    <i class="bi bi-activity"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-panel p-4" style="border-color:rgba(56,189,248,0.25);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div style="color:#38bdf8;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;">AQL Pass Rate</div>
+                    <div style="font-size:2.5rem;font-weight:700;line-height:1.1;">{{ aql_pass_rate }}<span style="font-size:1.2rem;color:var(--hub-muted);">%</span></div>
+                    <div style="color:var(--hub-muted);font-size:0.78rem;margin-top:0.25rem;"><i class="bi bi-check-circle me-1 text-info"></i>Based on custom sampling</div>
+                </div>
+                <div style="width:56px;height:56px;border-radius:14px;background:rgba(56,189,248,0.12);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#38bdf8;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wear Alerts -->
+<div class="glass-panel p-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle me-2" style="color:#fbbf24;"></i>Tooling & Asset Wear Alerts</h6>
+    {% if wear_alerts %}
+    {% for asset in wear_alerts %}
+    <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;">
+        <div>
+            <div class="fw-semibold" style="color:#ef4444;">{{ asset.name }} <span style="font-size:0.78rem;color:var(--hub-muted);">({{ asset.asset_tag }})</span></div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Nearing end of useful life</div>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold" style="color:#ef4444;">{{ asset.lifespan_consumed|floatformat:0 }} / {{ asset.lifespan_capacity|floatformat:0 }}</div>
+            <div style="color:var(--hub-muted);font-size:0.72rem;">Consumption</div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-check-lg" style="font-size:2.5rem;color:#22c55e;opacity:0.6;"></i>
+        <h6 class="fw-semibold mt-3">All Tooling Healthy</h6>
+        <p style="color:var(--hub-muted);font-size:0.85rem;">No assets have exceeded their 90% wear threshold.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

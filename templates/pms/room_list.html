@@ -1,0 +1,44 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Rooms — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'pms:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>PMS</a></div>
+<h4 class="fw-bold mb-4"><i class="bi bi-door-open me-2 text-info"></i>Rooms</h4>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Room #</th><th>Type</th><th>Floor</th><th>Status</th><th>Notes</th>{% if access_level >= 2 %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for r in rooms %}
+          <tr>
+            <td class="fw-semibold font-monospace">{{ r.room_number }}</td>
+            <td class="text-muted">{{ r.room_type.name|default:"—" }}</td>
+            <td class="text-muted">{{ r.floor|default:"—" }}</td>
+            <td>
+              <span class="badge {% if r.status == 'available' %}bg-success{% elif r.status == 'occupied' %}bg-danger{% elif r.status == 'dirty' %}bg-warning text-dark{% elif r.status == 'maintenance' %}bg-secondary{% else %}bg-dark border border-secondary{% endif %}">{{ r.get_status_display }}</span>
+            </td>
+            <td class="text-muted">{{ r.notes|truncatechars:30|default:"—" }}</td>
+            {% if access_level >= 2 %}
+            <td>
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="room_id" value="{{ r.pk }}">
+                <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary d-inline-block w-auto" onchange="this.form.submit()" style="font-size:0.75rem;">
+                  <option value="">Change…</option>
+                  {% for code, label in status_choices %}<option value="{{ code }}" {% if r.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No rooms configured</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

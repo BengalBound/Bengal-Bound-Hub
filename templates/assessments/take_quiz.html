@@ -1,0 +1,68 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ quiz.title }} — Take Quiz{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'assessments:quiz_detail' slug=biz.slug quiz_id=quiz.pk %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to Quiz</a></div>
+
+<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2 text-warning"></i>{{ quiz.title }}</h4>
+    <div class="small text-muted mt-1">{{ questions|length }} questions{% if quiz.time_limit_minutes %} · {{ quiz.time_limit_minutes }} min time limit{% endif %} · Pass score: {{ quiz.pass_score_pct }}%</div>
+  </div>
+  {% if quiz.time_limit_minutes %}
+  <div class="card bg-dark border-warning px-3 py-2 text-warning fw-bold" id="timer">{{ quiz.time_limit_minutes }}:00</div>
+  {% endif %}
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <form method="post" id="quizForm">
+      {% csrf_token %}
+      {% for q in questions %}
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-header d-flex justify-content-between small">
+          <span><span class="badge bg-secondary me-2">{{ forloop.counter }}</span>{{ q.get_question_type_display }}</span>
+          <span class="text-muted">{{ q.points }} pt{{ q.points|floatformat:0|pluralize }}</span>
+        </div>
+        <div class="card-body">
+          <p class="fw-semibold mb-3">{{ q.question_text }}</p>
+
+          {% if q.question_type == 'mc' or q.question_type == 'tf' %}
+          <div class="d-flex flex-column gap-2">
+            {% for choice in q.choices.all %}
+            <label class="d-flex align-items-center gap-2 p-2 rounded border border-secondary" style="cursor:pointer">
+              <input type="radio" name="q_{{ q.pk }}_choice" value="{{ choice.pk }}" class="form-check-input mt-0">
+              <span class="small">{{ choice.choice_text }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {% elif q.question_type == 'short' %}
+          <input type="text" name="q_{{ q.pk }}" class="form-control bg-dark text-white border-secondary" placeholder="Your answer…">
+          {% else %}
+          <textarea name="q_{{ q.pk }}" rows="4" class="form-control bg-dark text-white border-secondary" placeholder="Your answer…"></textarea>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="{% url 'assessments:quiz_detail' slug=biz.slug quiz_id=quiz.pk %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-warning text-dark btn-lg" onclick="return confirm('Submit your answers?')"><i class="bi bi-check-lg me-1"></i>Submit Quiz</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if quiz.time_limit_minutes %}
+<script>
+let seconds = {{ quiz.time_limit_minutes }} * 60;
+const timerEl = document.getElementById('timer');
+const interval = setInterval(() => {
+  seconds--;
+  const m = Math.floor(seconds / 60), s = seconds % 60;
+  timerEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if (seconds <= 0) { clearInterval(interval); document.getElementById('quizForm').submit(); }
+  if (seconds <= 60) timerEl.classList.add('text-danger');
+}, 1000);
+</script>
+{% endif %}
+{% endblock %}

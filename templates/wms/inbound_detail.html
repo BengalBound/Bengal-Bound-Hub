@@ -1,0 +1,114 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}GRN-{{ receipt.receipt_number }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'wms:inbound_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Inbound Receipts</a></div>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><span class="badge bg-secondary me-2">GRN-{{ receipt.receipt_number }}</span>{{ receipt.supplier_name }}</h4>
+    <div class="small text-muted mt-1">
+      {% if receipt.purchase_order_ref %}PO: {{ receipt.purchase_order_ref }} · {% endif %}
+      {% if receipt.carrier_name %}Carrier: {{ receipt.carrier_name }} · {% endif %}
+      Expected: {{ receipt.expected_date|date:"d M Y"|default:"—" }}
+    </div>
+  </div>
+  <div>
+    {% if receipt.status == 'complete' %}<span class="badge bg-success fs-6">Complete</span>
+    {% elif receipt.status == 'partial' %}<span class="badge bg-warning text-dark fs-6">Partial</span>
+    {% elif receipt.status == 'over' %}<span class="badge bg-info fs-6">Over-received</span>
+    {% else %}<span class="badge bg-secondary fs-6">Expected</span>{% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-info-circle me-1"></i>Summary</div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-5 text-muted">Expected</div><div class="col-7 fw-bold">{{ receipt.total_expected|floatformat:2 }}</div>
+          <div class="col-5 text-muted">Received</div><div class="col-7 fw-bold text-success">{{ receipt.total_received|floatformat:2 }}</div>
+          <div class="col-5 text-muted">Lines</div><div class="col-7">{{ lines.count }}</div>
+          <div class="col-5 text-muted">Received By</div><div class="col-7">{{ receipt.received_by.user.get_full_name|default:"—" }}</div>
+          <div class="col-5 text-muted">Received Date</div><div class="col-7">{{ receipt.received_date|date:"d M Y"|default:"—" }}</div>
+        </div>
+        {% if receipt.notes %}<div class="mt-2 pt-2 border-top border-secondary text-muted">{{ receipt.notes }}</div>{% endif %}
+      </div>
+    </div>
+
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-plus-circle me-1"></i>Add Line</div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_line">
+          <div class="col-12"><input type="text" name="item_description" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Item description" required></div>
+          <div class="col-6"><input type="text" name="sku" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="SKU / Part #"></div>
+          <div class="col-3"><input type="number" name="expected_qty" value="1" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Qty"></div>
+          <div class="col-3"><input type="text" name="unit" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Unit"></div>
+          <div class="col-12">
+            <select name="bin_id" class="form-select form-select-sm bg-dark text-white border-secondary">
+              <option value="">No bin assigned</option>
+              {% for bin in bins %}<option value="{{ bin.pk }}">{{ bin.zone.name }} / {{ bin.bin_code }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12"><button type="submit" class="btn btn-sm btn-outline-info w-100">Add Line</button></div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-list-check me-1"></i>Receipt Lines</div>
+      {% if access_level >= 3 %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="receive">
+      {% endif %}
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle">
+            <thead class="table-secondary"><tr><th>Item</th><th>SKU</th><th>Expected</th><th>Received</th><th>Bin</th><th>Variance</th></tr></thead>
+            <tbody>
+              {% for line in lines %}
+              <tr class="{% if line.variance > 0 %}table-warning{% elif line.variance < 0 %}table-danger{% endif %}" style="--bs-table-bg-type:transparent">
+                <td class="small">{{ line.item_description }}</td>
+                <td class="font-monospace small">{{ line.sku|default:"—" }}</td>
+                <td>{{ line.expected_qty }} {{ line.unit }}</td>
+                <td>
+                  {% if access_level >= 3 %}
+                  <input type="number" name="received_qty_{{ line.pk }}" value="{{ line.received_qty }}" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary" style="width:80px">
+                  {% else %}{{ line.received_qty }} {{ line.unit }}{% endif %}
+                </td>
+                <td>
+                  {% if access_level >= 3 %}
+                  <select name="bin_{{ line.pk }}" class="form-select form-select-sm bg-dark text-white border-secondary" style="min-width:120px">
+                    <option value="">—</option>
+                    {% for bin in bins %}<option value="{{ bin.pk }}" {% if line.bin_id == bin.pk %}selected{% endif %}>{{ bin.zone.name }}/{{ bin.bin_code }}</option>{% endfor %}
+                  </select>
+                  {% else %}{{ line.bin|default:"—" }}{% endif %}
+                </td>
+                <td class="{% if line.variance > 0 %}text-warning{% elif line.variance < 0 %}text-danger{% else %}text-success{% endif %} fw-bold">
+                  {% if line.variance > 0 %}+{% endif %}{{ line.variance|floatformat:2 }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No lines — add lines above</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% if access_level >= 3 %}
+      <div class="card-footer">
+        <button type="submit" class="btn btn-info text-dark"><i class="bi bi-save me-1"></i>Save Receipt</button>
+      </div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+
+    <!-- ── AI Employee Pricing ── -->
+    <div class="text-center mb-5 fade-up">
+        <h1 class="display-4 fw-bold mb-3">AI Employee <span class="text-gradient-purple-cyan">Pricing</span></h1>
+        <p class="text-white-50">Hire digital talent tailored to your budget and capabilities. Prices vary by the specific specialized agent.</p>
+    </div>
+
+    <div class="row justify-content-center g-5 mb-5">
+        <div class="col-md-6 col-lg-5 fade-up delay-100">
+            <div class="bento-card glow-hover-cyan h-100 d-flex flex-column text-center p-5">
+                <h3 class="display-6 fw-bold mb-2 text-white">Intern Series</h3>
+                <h4 class="display-4 fw-bold mb-4 text-gradient-purple-cyan">Free</h4>
+                <p class="text-white-50 mb-4 px-3">Start building your digital workforce risk-free. Perfect for testing simple automations.</p>
+                <ul class="list-unstyled text-white-50 text-start mx-auto mb-5 flex-grow-1" style="max-width: 300px;">
+                    <li class="mb-3"><i class="bi bi-robot text-gradient-purple-cyan me-3"></i> Basic Model Capabilities</li>
+                    <li class="mb-3"><i class="bi bi-robot text-gradient-purple-cyan me-3"></i> Limited API Tokens</li>
+                    <li class="mb-3"><i class="bi bi-robot text-gradient-purple-cyan me-3"></i> Standard Response Time</li>
+                </ul>
+                <a href="{% url 'public_site:ai_job_portal' %}?level=intern" class="btn btn-outline-premium fs-5 py-3 w-100 mt-auto">Browse Free AI</a>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-5 fade-up delay-200">
+            <div class="bento-card glow-hover-orange h-100 d-flex flex-column text-center p-5 position-relative" style="border-color: rgba(251, 86, 7, 0.4); transform: scale(1.05); z-index: 2;">
+                <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-gradient-purple-cyan px-4 py-2 fs-6 fw-semibold text-white shadow-glow">
+                    Unbound Scale
+                </div>
+                <h3 class="display-6 fw-bold mb-2 mt-3 text-white">Pro Series</h3>
+                <div class="d-flex justify-content-center align-items-baseline mb-4 text-gradient-orange-gold">
+                    <span class="display-5 fw-bold">$99</span>
+                    <span class="fw-bold mx-2 pb-2">-</span>
+                    <span class="display-5 fw-bold">$999</span>
+                    <span class="fs-5 text-white-50 fw-normal ms-2">/mo</span>
+                </div>
+                <p class="text-white-50 mb-4 px-3">Professional-grade AI agents for every major role in your startup.</p>
+                <ul class="list-unstyled text-white-50 text-start mx-auto mb-5 flex-grow-1" style="max-width: 300px;">
+                    <li class="mb-3"><i class="bi bi-lightning-charge-fill text-gradient-orange-gold me-3"></i> Specialized Industry Roles</li>
+                    <li class="mb-3"><i class="bi bi-lightning-charge-fill text-gradient-orange-gold me-3"></i> Uncapped Tokens</li>
+                    <li class="mb-3"><i class="bi bi-lightning-charge-fill text-gradient-orange-gold me-3"></i> Deep System Integrations</li>
+                </ul>
+                <a href="{% url 'public_site:ai_job_portal' %}" class="btn btn-premium fs-5 py-3 w-100 mt-auto" style="background: linear-gradient(135deg, var(--bb-accent-orange), var(--bb-accent-gold));">Browse AI Marketplace</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Business 360 Platform Plans ── -->
+    <div class="text-center mb-5 mt-5 pt-4 fade-up" style="border-top:1px solid rgba(255,255,255,0.06);">
+        <h2 class="display-5 fw-bold mb-3">Business <span class="text-gradient-purple-cyan">360 Platform</span></h2>
+        <p class="text-white-50">Your complete business operating system — modules, storage, and installation tailored to your industry.</p>
+    </div>
+
+    {% if plans %}
+    <div class="row g-4 mb-5 justify-content-center">
+    {% for plan in plans %}
+    <div class="col-md-6 col-xl-3 fade-up">
+        <div class="bento-card h-100 d-flex flex-column p-4
+            {% if plan.plan_type == 'standard' %}glow-hover-cyan{% elif plan.plan_type == 'premium' %}glow-hover-purple{% elif plan.plan_type == 'advance' %}glow-hover-orange{% endif %}"
+            style="{% if plan.plan_type == 'premium' %}border-color:rgba(192,132,252,0.35);{% elif plan.plan_type == 'advance' %}border:2px solid rgba(236,72,153,0.35);{% endif %}">
+
+            {% if plan.plan_type == 'premium' %}
+            <div class="badge rounded-pill mb-3 align-self-start" style="background:linear-gradient(135deg,#c084fc,#38bdf8);font-size:0.72rem;padding:4px 12px;">Most Popular</div>
+            {% elif plan.plan_type == 'advance' %}
+            <div class="badge rounded-pill mb-3 align-self-start" style="background:linear-gradient(135deg,#ec4899,#fbbf24);font-size:0.72rem;padding:4px 12px;">Fully Custom</div>
+            {% endif %}
+
+            <h4 class="fw-bold mb-1">{{ plan.display_name }}</h4>
+            <p class="text-white-50 small mb-3">{{ plan.tagline }}</p>
+
+            <div class="mb-4">
+                {% if plan.monthly_price_usd == 0 %}
+                <span class="fw-bold" style="font-size:2.2rem;color:#22c55e;">Free</span>
+                {% elif plan.plan_type == 'advance' %}
+                <span class="fw-bold" style="font-size:1.5rem;color:#c084fc;">Custom Quote</span>
+                {% else %}
+                <span class="fw-bold" style="font-size:2.2rem;color:#38bdf8;">${{ plan.monthly_price_usd }}</span>
+                <span class="text-white-50">/mo</span>
+                {% endif %}
+            </div>
+
+            <ul class="list-unstyled text-white-50 small flex-grow-1 mb-4">
+                <li class="mb-2"><i class="bi bi-hdd me-2" style="color:#c084fc;"></i>{{ plan.storage_gb|floatformat:0 }}{% if plan.plan_type == 'advance' %}+{% endif %} GB storage</li>
+                <li class="mb-2"><i class="bi bi-cloud-check me-2" style="color:#38bdf8;"></i>Cloud hosted instance</li>
+                {% if plan.allows_ip_locked %}<li class="mb-2"><i class="bi bi-shield-lock me-2" style="color:#38bdf8;"></i>IP-Locked deployment{% if plan.ip_locked_addon_usd > 0 %} (+${{ plan.ip_locked_addon_usd }}/mo){% endif %}</li>{% endif %}
+                {% if plan.allows_self_hosted %}<li class="mb-2"><i class="bi bi-server me-2" style="color:#22c55e;"></i>Self-hosted option{% if plan.self_hosted_addon_usd > 0 %} (+${{ plan.self_hosted_addon_usd }}/mo){% endif %}</li>{% endif %}
+                {% if plan.includes_full_industry_set %}<li class="mb-2"><i class="bi bi-collection me-2" style="color:#fbbf24;"></i>Full industry module pack</li>{% endif %}
+                {% if plan.is_fully_customizable %}<li class="mb-2"><i class="bi bi-sliders me-2" style="color:#ec4899;"></i>Pick your own modules</li>
+                <li class="mb-2"><i class="bi bi-tag me-2" style="color:#22c55e;"></i>Bundle discount applied</li>{% endif %}
+                <li class="mb-2"><i class="bi bi-arrow-up-circle me-2" style="color:#94a3b8;"></i>Storage increase on request</li>
+            </ul>
+
+            {% if plan.plan_type == 'advance' %}
+            <a href="{% url 'public_site:contact' %}" class="btn btn-premium py-2 w-100 mt-auto" style="background:linear-gradient(135deg,#ec4899,#fbbf24);">Get Custom Quote</a>
+            {% else %}
+            <a href="{% url 'public_site:trial_request' %}" class="btn {% if plan.plan_type == 'premium' %}btn-premium{% else %}btn-outline-premium{% endif %} py-2 w-100 mt-auto">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+    {% else %}
+    <!-- Fallback static plans if DB not seeded -->
+    <div class="row g-4 mb-5 justify-content-center">
+        {% for plan_label in "Freemium,Standard,Premium,Advance" %}{% endfor %}
+        <div class="col-md-6 col-xl-3"><div class="bento-card p-4 text-center h-100"><h4 class="fw-bold mb-2">Freemium</h4><p class="text-white-50 small">Free — 5 GB storage</p></div></div>
+        <div class="col-md-6 col-xl-3"><div class="bento-card p-4 text-center h-100"><h4 class="fw-bold mb-2">Standard</h4><p class="text-white-50 small">From $29/mo — 20 GB</p></div></div>
+        <div class="col-md-6 col-xl-3"><div class="bento-card p-4 text-center h-100"><h4 class="fw-bold mb-2">Premium</h4><p class="text-white-50 small">From $79/mo — 50 GB</p></div></div>
+        <div class="col-md-6 col-xl-3"><div class="bento-card p-4 text-center h-100"><h4 class="fw-bold mb-2">Advance</h4><p class="text-white-50 small">Custom Quote</p></div></div>
+    </div>
+    {% endif %}
+
+    <!-- Industry Map -->
+    <div class="text-center mb-4 fade-up">
+        <h5 class="fw-semibold mb-1">Industry-Specific Module Packs</h5>
+        <p class="text-white-50 small">Premium and Advance plans unlock priority modules tailored to your business type.</p>
+    </div>
+    <div class="row g-3 mb-5">
+        {% for industry, mods in industry_map.items %}
+        <div class="col-md-4 col-lg-3">
+            <div class="bento-card p-3">
+                <div class="fw-semibold mb-2 text-capitalize" style="font-size:0.9rem;">{{ industry }}</div>
+                <div class="d-flex flex-wrap gap-1">
+                    {% for mod in mods|slice:":5" %}
+                    <span class="badge" style="background:rgba(192,132,252,0.12);color:#c084fc;font-size:0.65rem;">{{ mod }}</span>
+                    {% endfor %}
+                    {% if mods|length > 5 %}<span class="badge" style="background:rgba(255,255,255,0.06);color:#94a3b8;font-size:0.65rem;">+more</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

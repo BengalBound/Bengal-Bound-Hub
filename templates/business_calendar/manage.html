@@ -1,0 +1,65 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Manage Calendars | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'business_calendar:calendar_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>Manage Calendars</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Create Calendar</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Name</label>
+                    <input type="text" name="name" required class="form-control" placeholder="e.g. Marketing Team"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Color</label>
+                    <input type="color" name="color" value="#c084fc" class="form-control" style="background:#1e293b;border-color:var(--hub-border);height:42px;">
+                </div>
+                <button type="submit" class="btn btn-hub-primary btn-sm w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Create Calendar
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Your Calendars</div>
+            <div class="d-flex flex-column gap-2">
+            {% for cal in calendars %}
+            <div class="d-flex align-items-center justify-content-between p-3" style="border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);">
+                <div class="d-flex align-items-center gap-3">
+                    <span style="width:14px;height:14px;border-radius:50%;background:{{ cal.color }};display:inline-block;"></span>
+                    <div>
+                        <div class="fw-semibold small">{{ cal.name }}</div>
+                        <div class="text-white-50" style="font-size:0.72rem;">{{ cal.events.count }} event{{ cal.events.count|pluralize }}{% if cal.is_default %} · Default{% endif %}</div>
+                    </div>
+                </div>
+                {% if not cal.is_default %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="cal_id" value="{{ cal.pk }}">
+                    <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;"
+                            onclick="return confirm('Delete calendar and all its events?')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% else %}
+                <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;font-size:0.65rem;">Default</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

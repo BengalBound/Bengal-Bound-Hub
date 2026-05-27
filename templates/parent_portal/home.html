@@ -1,0 +1,106 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Parent & Student Portal — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-house-heart me-2 text-info"></i>Parent & Student Portal</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'parent_portal:report_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info">Reports</a>
+    <a href="{% url 'parent_portal:message_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Messages</a>
+    <a href="{% url 'parent_portal:announcement_list' slug=biz.slug %}" class="btn btn-sm btn-outline-warning">Announcements</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.reports }}</div>
+      <div class="small text-muted mt-1">Reports</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.shared }}</div>
+      <div class="small text-muted mt-1">Shared Reports</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.messages }}</div>
+      <div class="small text-muted mt-1">Messages Sent</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-light">{{ stats.announcements }}</div>
+      <div class="small text-muted mt-1">Announcements</div>
+    </div>
+  </div>
+</div>
+
+{% if pinned_announcements %}
+<div class="mb-4">
+  {% for ann in pinned_announcements %}
+  <div class="alert py-2 px-3 mb-2" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);color:var(--hub-text)">
+    <div class="d-flex justify-content-between align-items-center">
+      <span class="fw-semibold"><i class="bi bi-pin-fill me-2 text-warning"></i>{{ ann.title }}</span>
+      <span class="text-muted small">{{ ann.posted_at|date:"d M Y" }}</span>
+    </div>
+    <div class="small text-muted mt-1">{{ ann.body|truncatechars:200 }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-earmark-bar-graph me-1"></i>Recent Reports</span>
+        <a href="{% url 'parent_portal:report_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info">All</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for r in recent_reports %}
+        <a href="{% url 'parent_portal:report_detail' slug=biz.slug report_id=r.pk %}" class="list-group-item list-group-item-action bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ r.student_name }}</div>
+              <div class="text-muted">{{ r.period }} {% if r.class_group %}· {{ r.class_group }}{% endif %}</div>
+            </div>
+            <div class="text-end">
+              {% if r.gpa %}<div class="fw-bold text-success">GPA {{ r.gpa }}</div>{% endif %}
+              {% if r.is_shared %}<span class="badge bg-success" style="font-size:0.6rem">Shared</span>{% endif %}
+            </div>
+          </div>
+        </a>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No reports yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-envelope me-1"></i>Recent Messages</span>
+        <a href="{% url 'parent_portal:message_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">All</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for m in recent_msgs %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">{{ m.subject }} {% if m.is_urgent %}<span class="badge bg-danger" style="font-size:0.6rem">Urgent</span>{% endif %}</div>
+              <div class="text-muted">To: {{ m.parent_name }} · re: {{ m.student_name }}</div>
+            </div>
+            <span class="text-muted">{{ m.sent_at|date:"d M" }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No messages logged</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

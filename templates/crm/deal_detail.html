@@ -1,0 +1,22 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ deal.title }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-briefcase me-2" style="color:var(--hub-accent);"></i>{{ deal.title }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Stage</div><span class="badge" style="background:var(--hub-surface);color:var(--hub-accent);">{{ deal.stage|title }}</span></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Value</div><div style="color:#38bdf8;font-size:1.4rem;font-weight:700;">{{ deal.value }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Contact</div><a href="{% url 'crm:contact_detail' slug=biz.slug pk=deal.contact.pk %}" style="color:var(--hub-accent);">{{ deal.contact.get_full_name }}</a></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Expected Close</div><div style="color:var(--hub-text);">{{ deal.expected_close|default:"—" }}</div></div>
+      <a href="{% url 'crm:deal_create' slug=biz.slug %}?edit={{ deal.pk }}" class="btn btn-hub-outline btn-sm w-100 mt-3">Edit Deal</a>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Notes</h5>
+      <div style="color:var(--hub-muted);">{{ deal.notes|linebreaks|default:"No notes." }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

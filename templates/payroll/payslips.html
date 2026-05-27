@@ -1,0 +1,36 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Payslips — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-receipt me-2" style="color:var(--hub-accent);"></i>Payslips{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Payslips</h5>
+    <form method="get" class="d-flex gap-2">
+      <select name="period" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        <option value="">All Periods</option>{% for p in pay_periods %}<option value="{{ p.pk }}" {% if filter_period == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-hub-outline btn-sm">Filter</button>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Employee</th><th>Period</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for payslip in payslips %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ payslip.employee.get_full_name }}</td>
+          <td style="color:var(--hub-muted);">{{ payslip.pay_period.name }}</td>
+          <td style="color:#38bdf8;">{{ payslip.gross }}</td>
+          <td style="color:#f87171;">{{ payslip.deductions }}</td>
+          <td style="color:#22c55e;font-weight:600;">{{ payslip.net_pay }}</td>
+          <td><span class="badge" style="background:{% if payslip.status == 'paid' %}#22c55e20{% else %}#fbbf2420{% endif %};color:{% if payslip.status == 'paid' %}#22c55e{% else %}#fbbf24{% endif %};">{{ payslip.status|title }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center" style="color:var(--hub-muted);padding:2rem;">No payslips.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

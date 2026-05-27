@@ -1,0 +1,131 @@
+# Generated manually 2026-03-12
+
+import django.db.models.deletion
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('serea', '0002_add_ai_model_token_fields'),
+    ]
+
+    operations = [
+        # 1. Add openrouter_api_key to SereaAgent
+        migrations.AddField(
+            model_name='sereaagent',
+            name='openrouter_api_key',
+            field=models.CharField(
+                blank=True,
+                help_text='Optional per-client OpenRouter API key. Falls back to OPENROUTER_API_KEY env var.',
+                max_length=255,
+                null=True,
+            ),
+        ),
+
+        # 2. Update ai_model choices (alter field to include OpenRouter models)
+        migrations.AlterField(
+            model_name='sereaagent',
+            name='ai_model',
+            field=models.CharField(
+                choices=[
+                    ('llama3-70b-8192', 'Llama 3 70B (Groq)'),
+                    ('llama3-8b-8192', 'Llama 3 8B (Groq)'),
+                    ('llama-3.1-70b-versatile', 'Llama 3.1 70B Versatile (Groq)'),
+                    ('llama-3.1-8b-instant', 'Llama 3.1 8B Instant (Groq)'),
+                    ('mixtral-8x7b-32768', 'Mixtral 8×7B (Groq)'),
+                    ('gemma2-9b-it', 'Gemma 2 9B (Groq)'),
+                    ('meta-llama/llama-3.3-70b-instruct:free', 'Llama 3.3 70B (OpenRouter FREE)'),
+                    ('meta-llama/llama-3.1-8b-instruct:free', 'Llama 3.1 8B (OpenRouter FREE)'),
+                    ('google/gemma-3-27b-it:free', 'Gemma 3 27B (OpenRouter FREE)'),
+                    ('google/gemma-3-12b-it:free', 'Gemma 3 12B (OpenRouter FREE)'),
+                    ('mistralai/mistral-7b-instruct:free', 'Mistral 7B (OpenRouter FREE)'),
+                    ('deepseek/deepseek-r1:free', 'DeepSeek R1 (OpenRouter FREE)'),
+                    ('deepseek/deepseek-v3-0324:free', 'DeepSeek V3 (OpenRouter FREE)'),
+                    ('microsoft/phi-4:free', 'Phi-4 (OpenRouter FREE)'),
+                    ('qwen/qwen3-8b:free', 'Qwen3 8B (OpenRouter FREE)'),
+                    ('meta-llama/llama-3.3-70b-instruct', 'Llama 3.3 70B (OpenRouter)'),
+                    ('anthropic/claude-3.5-haiku', 'Claude 3.5 Haiku (OpenRouter)'),
+                    ('google/gemini-flash-1.5', 'Gemini Flash 1.5 (OpenRouter)'),
+                    ('gpt-4o', 'GPT-4o (OpenAI)'),
+                    ('gpt-4o-mini', 'GPT-4o Mini (OpenAI)'),
+                    ('gpt-3.5-turbo', 'GPT-3.5 Turbo (OpenAI)'),
+                ],
+                default='llama3-70b-8192',
+                help_text='The LLM model Serea will use for this agent.',
+                max_length=60,
+            ),
+        ),
+
+        # 3. Add platform, caption, hashtags to ContentQueue
+        migrations.AddField(
+            model_name='contentqueue',
+            name='platform',
+            field=models.CharField(
+                choices=[
+                    ('Instagram', 'Instagram'),
+                    ('Facebook', 'Facebook'),
+                    ('Twitter', 'X (Twitter)'),
+                    ('LinkedIn', 'LinkedIn'),
+                    ('TikTok', 'TikTok'),
+                    ('YouTube', 'YouTube'),
+                    ('Other', 'Other'),
+                ],
+                default='Instagram',
+                help_text='Target social media platform.',
+                max_length=50,
+            ),
+        ),
+        migrations.AddField(
+            model_name='contentqueue',
+            name='caption',
+            field=models.TextField(
+                blank=True,
+                default='',
+                help_text='Post caption / body text written by Serea or the client.',
+            ),
+        ),
+        migrations.AddField(
+            model_name='contentqueue',
+            name='hashtags',
+            field=models.CharField(
+                blank=True,
+                default='',
+                help_text='Space or comma-separated hashtags (e.g. #brand #sale).',
+                max_length=500,
+            ),
+        ),
+
+        # 4. Create SereaReport table
+        migrations.CreateModel(
+            name='SereaReport',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('report_type', models.CharField(
+                    choices=[
+                        ('daily', 'Daily Briefing'),
+                        ('weekly', 'Weekly Summary'),
+                        ('moderation', 'Moderation Report'),
+                        ('content', 'Content Report'),
+                        ('custom', 'Custom Report'),
+                    ],
+                    default='custom',
+                    max_length=20,
+                )),
+                ('title', models.CharField(max_length=255)),
+                ('body', models.TextField(help_text='Full report content generated by Serea.')),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('agent', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='reports',
+                    to='serea.sereaagent',
+                )),
+            ],
+            options={
+                'verbose_name': 'Serea Report',
+                'verbose_name_plural': 'Serea Reports',
+                'ordering': ['-created_at'],
+            },
+        ),
+    ]

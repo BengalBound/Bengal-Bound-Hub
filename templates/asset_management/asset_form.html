@@ -1,0 +1,60 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Register Asset — {{ biz.name }}{% endblock %}
+{% block page_title %}Register New Asset{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-9">
+<form method="post" action="{% url 'asset_management:asset_create' slug=biz.slug %}">
+{% csrf_token %}
+
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-4">Asset Details</h6>
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label text-white-50 small">Asset Tag *</label><input type="text" name="asset_tag" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. ASSET-001" required></div>
+        <div class="col-md-8"><label class="form-label text-white-50 small">Asset Name *</label><input type="text" name="name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="col-md-4">
+            <label class="form-label text-white-50 small">Category</label>
+            <select name="category_id" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">— None —</option>
+                {% for cat in categories %}<option value="{{ cat.pk }}">{{ cat.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Serial Number</label><input type="text" name="serial_number" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Manufacturer</label><input type="text" name="manufacturer" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Model Number</label><input type="text" name="model_number" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Location</label><input type="text" name="location" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-4">
+            <label class="form-label text-white-50 small">Assigned To</label>
+            <select name="assigned_to_id" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">— Unassigned —</option>
+                {% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-white-50 small">Condition</label>
+            <select name="condition" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                {% for val, label in conditions %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Description</label><textarea name="description" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea></div>
+    </div>
+</div>
+
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-4">Financial & Warranty</h6>
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label text-white-50 small">Purchase Date</label><input type="date" name="purchase_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Purchase Cost</label><input type="number" name="purchase_cost" step="0.01" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="0.00"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Warranty Expiry</label><input type="date" name="warranty_expiry" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+    </div>
+</div>
+
+<div class="d-flex gap-3">
+    <button type="submit" class="btn btn-hub-primary px-5">Register Asset</button>
+    <a href="{% url 'asset_management:asset_list' slug=biz.slug %}" class="btn btn-hub-outline px-4">Cancel</a>
+</div>
+</form>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Courses — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-book me-2" style="color:var(--hub-accent);"></i>Courses{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">All Courses</h5>
+    <a href="{% url 'training:course_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Course</a>
+  </div>
+  <div class="row g-3">
+    {% for course in courses %}
+    <div class="col-md-4">
+      <div class="glass-panel p-3" style="border-radius:12px;">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div style="color:var(--hub-text);font-weight:600;">{{ course.title }}</div>
+          <span class="badge" style="background:{% if course.is_active %}#22c55e20{% else %}#f8717120{% endif %};color:{% if course.is_active %}#22c55e{% else %}#f87171{% endif %};">{{ course.is_active|yesno:"Active,Inactive" }}</span>
+        </div>
+        <div style="color:var(--hub-muted);font-size:.85rem;margin-bottom:.75rem;">{{ course.description|truncatechars:80 }}</div>
+        <div class="d-flex justify-content-between" style="font-size:.8rem;">
+          <span style="color:var(--hub-muted);"><i class="bi bi-people me-1"></i>{{ course.enrollment_count|default:0 }} enrolled</span>
+          <span style="color:var(--hub-accent);">{{ course.duration_hours|default:0 }}h</span>
+        </div>
+        <div class="mt-2">
+          <a href="{% url 'training:course_detail' slug=biz.slug pk=course.pk %}" class="btn btn-hub-outline btn-sm">View</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center" style="color:var(--hub-muted);padding:2rem;">No courses yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

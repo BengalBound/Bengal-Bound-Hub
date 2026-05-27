@@ -1,0 +1,150 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Shipment — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-4">
+  <a href="{% url 'tms:shipment_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Shipments</a>
+  <h4 class="fw-bold mt-1"><i class="bi bi-plus-circle me-2 text-primary"></i>New Shipment</h4>
+</div>
+<form method="post">
+  {% csrf_token %}
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-geo-alt me-1"></i>Routing</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Type</label>
+              <select name="shipment_type" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in shipment_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Priority</label>
+              <select name="priority" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in priorities %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Carrier</label>
+              <select name="carrier_id" class="form-select bg-dark text-white border-secondary">
+                <option value="">No carrier</option>
+                {% for c in carriers %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Route (optional)</label>
+              <select name="route_id" class="form-select bg-dark text-white border-secondary">
+                <option value="">Custom route</option>
+                {% for r in routes %}<option value="{{ r.pk }}">{{ r.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Tracking Number</label>
+              <input type="text" name="tracking_number" class="form-control bg-dark text-white border-secondary font-monospace">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Origin Name</label>
+              <input type="text" name="origin_name" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Origin Address</label>
+              <input type="text" name="origin_address" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Destination Name</label>
+              <input type="text" name="destination_name" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Destination Address <span class="text-danger">*</span></label>
+              <input type="text" name="destination_address" class="form-control bg-dark text-white border-secondary" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Customer Name</label>
+              <input type="text" name="customer_name" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Customer Reference</label>
+              <input type="text" name="customer_reference" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">PO Reference</label>
+              <input type="text" name="purchase_order_ref" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-header"><i class="bi bi-box-seam me-1"></i>Cargo Details</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label small">Cargo Description</label>
+            <textarea name="cargo_description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea>
+          </div>
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Pieces</label>
+              <input type="number" name="pieces" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Weight (kg)</label>
+              <input type="number" name="weight_kg" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Volume (m³)</label>
+              <input type="number" name="volume_m3" step="0.001" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" name="is_hazmat" id="hazmat">
+                <label class="form-check-label small" for="hazmat">Hazardous Materials</label>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" name="requires_refrigeration" id="cold">
+                <label class="form-check-label small" for="cold">Requires Refrigeration</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-header"><i class="bi bi-calendar me-1"></i>Dates & Financials</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small">Scheduled Pickup</label>
+              <input type="datetime-local" name="scheduled_pickup" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Scheduled Delivery</label>
+              <input type="datetime-local" name="scheduled_delivery" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Freight Cost</label>
+              <input type="number" name="freight_cost" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Insurance Value</label>
+              <input type="number" name="insurance_value" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card bg-dark border-secondary">
+        <div class="card-body">
+          <label class="form-label small">Notes</label>
+          <textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 text-end">
+      <a href="{% url 'tms:shipment_list' slug=biz.slug %}" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>Create Shipment</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

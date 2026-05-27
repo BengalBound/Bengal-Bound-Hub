@@ -1,0 +1,43 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Journal Entry — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-journal-plus me-2" style="color:var(--hub-accent);"></i>New Journal Entry{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4" style="max-width:800px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label class="form-label" style="color:var(--hub-muted);">Date</label>
+        <input type="date" name="date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" style="color:var(--hub-muted);">Reference</label>
+        <input type="text" name="reference" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+      </div>
+      <div class="col-md-12">
+        <label class="form-label" style="color:var(--hub-muted);">Description</label>
+        <input type="text" name="description" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+      </div>
+    </div>
+    <h6 style="color:var(--hub-accent);margin-bottom:1rem;">Entry Lines</h6>
+    <div class="table-responsive mb-4">
+      <table class="table table-dark">
+        <thead><tr><th>Account</th><th>Description</th><th>Debit</th><th>Credit</th></tr></thead>
+        <tbody id="entry-lines">
+          <tr>
+            <td><select name="account[]" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{% for acc in accounts %}<option value="{{ acc.pk }}">{{ acc.code }} — {{ acc.name }}</option>{% endfor %}</select></td>
+            <td><input type="text" name="line_desc[]" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></td>
+            <td><input type="number" step="0.01" name="debit[]" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="0.00"></td>
+            <td><input type="number" step="0.01" name="credit[]" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="0.00"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-hub-primary btn-sm">Post Entry</button>
+      <a href="{% url 'accounting:journal_entries' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

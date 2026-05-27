@@ -1,0 +1,100 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Factory Settings — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-gear-fill me-2" style="color:var(--hub-accent);"></i>Factory Settings{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<form method="post">
+{% csrf_token %}
+<div class="row g-4">
+
+  <!-- Financial Baseline -->
+  <div class="col-12">
+    <div class="glass-panel p-4">
+      <h6 class="mb-3" style="color:var(--hub-accent);">Financial Baseline</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Fixed Assets (BDT)</label>
+          <input type="number" name="fixed_assets" value="{{ cfg.fixed_assets }}" step="1" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Long-Term Debt (BDT)</label>
+          <input type="number" name="long_term_debt" value="{{ cfg.long_term_debt }}" step="1" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Interest Rate (%)</label>
+          <input type="number" name="interest_rate_pct" value="{{ cfg.interest_rate_pct }}" step="0.01" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Corporate Tax Rate (%)</label>
+          <input type="number" name="tax_rate_pct" value="{{ cfg.tax_rate_pct }}" step="0.01" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">COGS Estimate (% of Revenue)</label>
+          <input type="number" name="cogs_estimate_pct" value="{{ cfg.cogs_estimate_pct }}" step="0.01" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Currency</label>
+          <select name="currency" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="BDT" {% if cfg.currency == 'BDT' %}selected{% endif %}>BDT</option>
+            <option value="USD" {% if cfg.currency == 'USD' %}selected{% endif %}>USD</option>
+            <option value="EUR" {% if cfg.currency == 'EUR' %}selected{% endif %}>EUR</option>
+            <option value="GBP" {% if cfg.currency == 'GBP' %}selected{% endif %}>GBP</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approval Thresholds -->
+  <div class="col-12">
+    <div class="glass-panel p-4">
+      <h6 class="mb-3" style="color:var(--hub-accent);">Approval Thresholds</h6>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-white-50 small">Petty Cash Limit — auto-approve below (BDT)</label>
+          <input type="number" name="petty_cash_limit" value="{{ cfg.petty_cash_limit }}" step="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white-50 small">Manager Approval Limit — needs CEO above (BDT)</label>
+          <input type="number" name="manager_approval_limit" value="{{ cfg.manager_approval_limit }}" step="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Working Hours Per Day</label>
+          <input type="number" name="working_hours_per_day" value="{{ cfg.working_hours_per_day }}" min="1" max="24" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Details -->
+  <div class="col-12">
+    <div class="glass-panel p-4">
+      <h6 class="mb-3" style="color:var(--hub-accent);">Business / Invoice Details</h6>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label text-white-50 small">Factory Address</label>
+          <textarea name="factory_address" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">{{ cfg.factory_address }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white-50 small">BIN / TIN / Tax ID</label>
+          <input type="text" name="tax_id" value="{{ cfg.tax_id }}" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-12">
+          <label class="form-label text-white-50 small">Bank Details (for invoices)</label>
+          <textarea name="bank_details" rows="3" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">{{ cfg.bank_details }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="mt-4 d-flex gap-2">
+  <button type="submit" class="btn btn-hub-primary">Save Settings</button>
+  <a href="{% url 'factory_ops:index' slug=biz.slug %}" class="btn btn-hub-outline">Cancel</a>
+</div>
+</form>
+
+<p class="text-white-50 small mt-3">Last updated: {{ cfg.updated_at|date:"d M Y H:i" }}</p>
+{% endblock %}

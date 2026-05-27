@@ -1,0 +1,94 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Production Orders — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-boxes me-2" style="color:var(--hub-accent);"></i>Production Orders{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ active_count }}</div><div class="text-white-50 small">Active</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ overdue_count }}</div><div class="text-white-50 small">Overdue</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#38bdf8;">{{ total_pairs }}</div><div class="text-white-50 small">Total Pairs</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ orders.count }}</div><div class="text-white-50 small">Total Orders</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'factory_ops:production' slug=biz.slug %}" class="btn btn-sm {% if not stage_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+      {% for code, label in stages %}
+      <a href="?stage={{ code }}" class="btn btn-sm {% if stage_filter == code %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>New Order</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Order ID</th><th>Style</th><th>Buyer</th><th>Line</th><th>Qty</th><th>Priority</th><th>Stage</th><th>Start</th><th>Target</th><th>Progress</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for o in orders %}
+        <tr style="border-color:var(--hub-border);">
+          <td><a href="{% url 'factory_ops:production_detail' slug=biz.slug pk=o.pk %}" style="color:var(--hub-accent);font-weight:600;">{{ o.order_id }}</a></td>
+          <td>{{ o.style|truncatechars:28 }}</td>
+          <td>{{ o.buyer|default:"—" }}</td>
+          <td>{{ o.line|default:"—" }}</td>
+          <td>{{ o.qty }}</td>
+          <td><span class="badge" style="background:{% if o.priority == 'high' %}rgba(248,113,113,0.2){% elif o.priority == 'urgent' %}rgba(239,68,68,0.3){% else %}rgba(255,255,255,0.08){% endif %};color:{% if o.priority == 'high' %}#f87171{% elif o.priority == 'urgent' %}#ef4444{% else %}var(--hub-muted){% endif %};">{{ o.priority }}</span></td>
+          <td><span class="badge" style="background:rgba(192,132,252,0.15);color:#c084fc;font-size:.7rem;">{{ o.current_stage }}</span></td>
+          <td>{{ o.start_date|default:"—" }}</td>
+          <td>{{ o.target_date|default:"—" }}</td>
+          <td>
+            <div style="background:var(--hub-border);border-radius:4px;height:5px;width:70px;">
+              <div style="width:{{ o.progress_pct }}%;background:{% if o.progress_pct == 100 %}#22c55e{% elif o.progress_pct > 60 %}#38bdf8{% else %}var(--hub-accent){% endif %};height:5px;border-radius:4px;"></div>
+            </div>
+            <div style="font-size:.65rem;color:var(--hub-muted);">{{ o.progress_pct }}%</div>
+          </td>
+          <td>
+            <form method="post" style="display:inline;" onsubmit="return confirm('Delete order?')">{% csrf_token %}
+              <input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ o.pk }}">
+              <button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="11" class="text-center text-white-50 py-4">No production orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+      <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">New Production Order</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label text-white-50 small">Style *</label><input type="text" name="style" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+          <div class="col-md-6"><label class="form-label text-white-50 small">Buyer</label><input type="text" name="buyer" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-md-4"><label class="form-label text-white-50 small">Qty</label><input type="number" name="qty" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" value="0"></div>
+          <div class="col-md-4"><label class="form-label text-white-50 small">Line</label><input type="text" name="line" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-md-4"><label class="form-label text-white-50 small">Priority</label>
+            <select name="priority" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+              <option value="low">Low</option><option value="med" selected>Med</option><option value="high">High</option><option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label text-white-50 small">Start Date</label><input type="date" name="start_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-md-4"><label class="form-label text-white-50 small">Target Date</label><input type="date" name="target_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+          <div class="col-md-4"><label class="form-label text-white-50 small">Stage</label>
+            <select name="current_stage" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+              {% for code, label in stages %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Create Order</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

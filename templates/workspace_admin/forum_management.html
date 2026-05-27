@@ -1,0 +1,80 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Forum Management | BengalBound Workspace Admin{% endblock %}
+
+{% block page_title %}Community Forum{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <p class="text-white-50">Oversee discussions, monitor user activity, and moderate content.</p>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show glass-panel border-0 mb-4" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="glass-panel p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+                <tr class="border-bottom border-secondary">
+                    <th class="text-white-50 fw-medium px-4 py-3">Topic</th>
+                    <th class="text-white-50 fw-medium text-center">Replies</th>
+                    <th class="text-white-50 fw-medium">Status</th>
+                    <th class="text-white-50 fw-medium text-end px-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topic in topics %}
+                <tr class="border-top border-secondary">
+                    <td class="px-4 py-3">
+                        <div class="fw-bold text-white mb-1">{{ topic.title }}</div>
+                        <div class="small text-white-50">
+                            <span class="badge bg-dark border border-secondary me-2">{{ topic.category.name }}</span>
+                            by <strong>{{ topic.creator.email }}</strong> &bull; {{ topic.created_at|date:"M d, Y" }}
+                        </div>
+                    </td>
+                    <td class="text-center text-white-50">
+                        <i class="bi bi-chat-dots text-primary me-1"></i>{{ topic.posts.count }}
+                    </td>
+                    <td>
+                        {% if topic.is_locked %}<span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                        {% elif topic.is_solved %}<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Solved</span>
+                        {% elif topic.is_pinned %}<span class="badge bg-warning text-dark"><i class="bi bi-pin-fill me-1"></i>Pinned</span>
+                        {% else %}<span class="badge bg-secondary">Open</span>{% endif %}
+                    </td>
+                    <td class="text-end px-4">
+                        <div class="btn-group">
+                            <a href="{% url 'workspace_admin:forum_topic_detail' topic.pk %}" class="btn btn-sm btn-outline-info rounded-start-pill px-3">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <form method="post" class="d-inline" onsubmit="return confirm('Delete this entire topic and all its replies? This is permanent.');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_topic">
+                                <input type="hidden" name="topic_id" value="{{ topic.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-end-pill px-3">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-white-50 py-5">
+                        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                        No topics have been created yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

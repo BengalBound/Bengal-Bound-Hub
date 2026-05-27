@@ -1,0 +1,54 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Vehicle History — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-warning"></i>Vehicle Service History</h4>
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-8">
+      <input type="text" name="q" value="{{ search }}" class="form-control bg-dark text-white border-secondary" placeholder="Search by registration or customer name…">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-warning w-100">Search</button>
+    </div>
+    <div class="col-md-2">
+      <a href="{% url 'workshop:vehicle_history' slug=biz.slug %}" class="btn btn-outline-secondary w-100">Clear</a>
+    </div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    {% if history %}
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0">
+        <thead class="table-secondary">
+          <tr><th>Registration</th><th>Make</th><th>Model</th><th>Year</th><th>Customer</th><th>Phone</th><th>Jobs</th></tr>
+        </thead>
+        <tbody>
+          {% for v in history %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'workshop:vehicle_history_detail' slug=biz.slug reg=v.vehicle_reg %}'">
+            <td class="font-monospace fw-bold">{{ v.vehicle_reg }}</td>
+            <td>{{ v.vehicle_make }}</td>
+            <td>{{ v.vehicle_model|default:"—" }}</td>
+            <td>{{ v.vehicle_year|default:"—" }}</td>
+            <td>{{ v.customer_name }}</td>
+            <td class="small">{{ v.customer_phone|default:"—" }}</td>
+            <td><span class="badge bg-secondary">{{ v.job_cards.count }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-car-front display-3 mb-3 d-block"></i>
+      No vehicle history found{% if search %} for "{{ search }}"{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

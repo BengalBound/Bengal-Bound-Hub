@@ -1,0 +1,141 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if position %}Edit{% else %}New{% endif %} Position — {{ biz.name }}{% endblock %}
+{% block page_title %}{% if position %}Edit Position: {{ position.name }}{% else %}Create Custom Position{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+
+{% if messages %}
+{% for m in messages %}
+<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<form method="post" action="{% if position %}{% url 'hub:hub_position_edit' slug=biz.slug pos_id=position.pk %}{% else %}{% url 'hub:hub_position_create' slug=biz.slug %}{% endif %}">
+{% csrf_token %}
+
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-4">Basic Information</h6>
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">Position Name *</label>
+        <input type="text" name="name" value="{{ position.name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. Senior Engineer, Quality Inspector" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">Description</label>
+        <input type="text" name="description" value="{{ position.description|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="Brief description of this role">
+    </div>
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">Access Level (1 = minimal, 9 = near-executive)</label>
+        <select name="access_level" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            {% for lvl in access_range %}
+            <option value="{{ lvl }}" {% if position and position.access_level == lvl %}selected{% elif not position and lvl == 3 %}selected{% endif %}>
+                Level {{ lvl }} —
+                {% if lvl == 1 %}Intern / Viewer
+                {% elif lvl == 2 %}Staff / Operator
+                {% elif lvl == 3 %}Associate / Junior
+                {% elif lvl == 4 %}Coordinator / Sales
+                {% elif lvl == 5 %}Supervisor / Team Leader
+                {% elif lvl == 6 %}Manager
+                {% elif lvl == 7 %}Senior Manager / Audit
+                {% elif lvl == 8 %}Director / C-Suite
+                {% elif lvl == 9 %}Executive (CEO/MD level)
+                {% endif %}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-4">Permissions</h6>
+    <p class="text-white-50 small mb-4">Control what this position can access. These override the default access level permissions.</p>
+
+    <div class="row g-3">
+        <!-- Financials -->
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_view_financials" class="form-check-input mt-1" {% if position and position.perm_view_financials %}checked{% endif %}>
+                <div><div class="fw-semibold small">View Financials</div><div class="text-white-50" style="font-size:0.75rem;">View profit/loss and financial reports</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_approve_expenses" class="form-check-input mt-1" {% if position and position.perm_approve_expenses %}checked{% endif %}>
+                <div><div class="fw-semibold small">Approve Expenses</div><div class="text-white-50" style="font-size:0.75rem;">Review and approve expense claims</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_employees" class="form-check-input mt-1" {% if position and position.perm_manage_employees %}checked{% endif %}>
+                <div><div class="fw-semibold small">Manage Employees</div><div class="text-white-50" style="font-size:0.75rem;">Add, edit, deactivate team members</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_modules" class="form-check-input mt-1" {% if position and position.perm_manage_modules %}checked{% endif %}>
+                <div><div class="fw-semibold small">Manage Modules</div><div class="text-white-50" style="font-size:0.75rem;">Activate and configure platform modules</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_access_reports" class="form-check-input mt-1" {% if position and position.perm_access_reports %}checked{% endif %}>
+                <div><div class="fw-semibold small">Access Reports</div><div class="text-white-50" style="font-size:0.75rem;">View analytics and reporting dashboards</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_inventory" class="form-check-input mt-1" {% if position and position.perm_manage_inventory %}checked{% endif %}>
+                <div><div class="fw-semibold small">Manage Inventory</div><div class="text-white-50" style="font-size:0.75rem;">Stock control and warehouse operations</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_production" class="form-check-input mt-1" {% if position and position.perm_manage_production %}checked{% endif %}>
+                <div><div class="fw-semibold small">Manage Production</div><div class="text-white-50" style="font-size:0.75rem;">Production orders and scheduling</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_quality" class="form-check-input mt-1" {% if position and position.perm_manage_quality %}checked{% endif %}>
+                <div><div class="fw-semibold small">Manage Quality</div><div class="text-white-50" style="font-size:0.75rem;">QC inspections and quality logs</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_assets" class="form-check-input mt-1" {% if position and position.perm_manage_assets %}checked{% endif %}>
+                <div><div class="fw-semibold small">Manage Assets</div><div class="text-white-50" style="font-size:0.75rem;">Asset tracking and maintenance</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_erp" class="form-check-input mt-1" {% if position and position.perm_manage_erp %}checked{% endif %}>
+                <div><div class="fw-semibold small">ERP Access</div><div class="text-white-50" style="font-size:0.75rem;">Full Enterprise Resource Planning access</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_mes" class="form-check-input mt-1" {% if position and position.perm_manage_mes %}checked{% endif %}>
+                <div><div class="fw-semibold small">MES Access</div><div class="text-white-50" style="font-size:0.75rem;">Manufacturing Execution System</div></div>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <label class="d-flex align-items-start gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;">
+                <input type="checkbox" name="perm_manage_plm" class="form-check-input mt-1" {% if position and position.perm_manage_plm %}checked{% endif %}>
+                <div><div class="fw-semibold small">PLM Access</div><div class="text-white-50" style="font-size:0.75rem;">Product Lifecycle Management</div></div>
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-3">
+    <button type="submit" class="btn btn-hub-primary px-5">{% if position %}Save Changes{% else %}Create Position{% endif %}</button>
+    <a href="{% url 'hub:hub_positions' slug=biz.slug %}" class="btn btn-hub-outline px-4">Cancel</a>
+</div>
+
+</form>
+</div>
+</div>
+{% endblock %}

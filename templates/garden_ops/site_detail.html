@@ -1,0 +1,100 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ site.client_name }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'garden_ops:site_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Sites</a></div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body">
+        <h5 class="fw-bold mb-1">{{ site.client_name }}</h5>
+        {% if site.site_name %}<div class="text-muted small mb-2">{{ site.site_name }}</div>{% endif %}
+        <span class="badge bg-dark border border-secondary mb-2">{{ site.get_site_type_display }}</span>
+        <div class="small mt-2">
+          {% if site.area_sqm %}<div class="text-muted mb-1"><i class="bi bi-aspect-ratio me-1"></i>{{ site.area_sqm }} m²</div>{% endif %}
+          {% if site.address %}<div class="text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>{{ site.address }}</div>{% endif %}
+          {% if site.contact_phone %}<div class="text-muted mb-1"><i class="bi bi-telephone me-1"></i>{{ site.contact_phone }}</div>{% endif %}
+          {% if site.contact_email %}<div class="text-muted mb-1"><i class="bi bi-envelope me-1"></i>{{ site.contact_email }}</div>{% endif %}
+          {% if site.assigned_to %}<div class="text-muted border-top border-secondary mt-2 pt-2"><i class="bi bi-person-circle me-1"></i>{{ site.assigned_to.user.get_full_name|default:site.assigned_to.user.email }}</div>{% endif %}
+        </div>
+        {% if site.notes %}<div class="mt-2 text-muted small border-top border-secondary pt-2">{{ site.notes }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center small">
+        <span><i class="bi bi-list-task me-1"></i>Jobs ({{ jobs.count }})</span>
+        {% if access_level >= 2 %}<button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addJobModal">+ Add Job</button>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Title</th><th>Type</th><th>Scheduled</th><th>Est. Cost</th><th>Actual Cost</th><th>Assigned</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for j in jobs %}
+              <tr>
+                <td class="fw-semibold">{{ j.title }}</td>
+                <td><span class="badge bg-dark border border-secondary">{{ j.get_job_type_display }}</span></td>
+                <td class="text-muted">{{ j.scheduled_date|date:"d M Y"|default:"—" }}</td>
+                <td class="text-muted">{% if j.estimated_cost %}{{ j.currency }} {{ j.estimated_cost|floatformat:0 }}{% else %}—{% endif %}</td>
+                <td class="{% if j.actual_cost %}text-success{% else %}text-muted{% endif %}">{% if j.actual_cost %}{{ j.currency }} {{ j.actual_cost|floatformat:0 }}{% else %}—{% endif %}</td>
+                <td class="text-muted">{% if j.assigned_to %}{{ j.assigned_to.user.get_full_name|default:j.assigned_to.user.email }}{% else %}—{% endif %}</td>
+                <td>
+                  <span class="badge
+                    {% if j.status == 'completed' %}bg-success
+                    {% elif j.status == 'in_progress' %}bg-warning text-dark
+                    {% elif j.status == 'cancelled' %}bg-danger
+                    {% elif j.status == 'scheduled' %}bg-info text-dark
+                    {% else %}bg-secondary{% endif %}">{{ j.get_status_display }}</span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No jobs for this site</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addJobModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Job</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_job">
+        <div class="modal-body row g-2">
+          <div class="col-md-8"><label class="form-label small">Job Title <span class="text-danger">*</span></label><input type="text" name="title" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Type</label>
+            <select name="job_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in job_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Scheduled Date</label><input type="date" name="scheduled_date" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Assigned To</label>
+            <select name="assigned_to_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— Unassigned —</option>
+              {% for e in employees %}<option value="{{ e.pk }}">{{ e.user.get_full_name|default:e.user.email }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Est. Hours</label><input type="number" name="estimated_hours" step="0.5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Est. Cost</label><input type="number" name="estimated_cost" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Currency</label><input type="text" name="currency" value="USD" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Job</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

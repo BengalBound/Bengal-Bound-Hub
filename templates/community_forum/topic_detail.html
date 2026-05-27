@@ -1,0 +1,135 @@
+{% extends 'community_forum/base_forum.html' %}
+
+{% block title %}{{ topic.title }} | BengalBound Community{% endblock %}
+
+{% block content %}
+<div class="mb-5 border-bottom border-secondary pb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2 small font-inter">
+            <li class="breadcrumb-item"><a href="{% url 'index' %}" class="text-white-50 text-decoration-none">Forums</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'category_detail' topic.category.slug %}" class="text-white-50 text-decoration-none">{{ topic.category.name }}</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ topic.title }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex align-items-center gap-3">
+        {% if topic.is_pinned %}<span class="badge bg-warning text-dark"><i class="bi bi-pin-fill me-1"></i> Pinned</span>{% endif %}
+        {% if topic.is_locked %}<span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i> Locked</span>{% endif %}
+        <h1 class="h2 font-outfit fw-bold text-white mb-0">{{ topic.title }}</h1>
+    </div>
+</div>
+
+<!-- Original Post -->
+<div class="glass-card mb-4 d-flex overflow-hidden">
+    <div class="bg-dark bg-opacity-50 p-4 border-end border-secondary text-center" style="width: 200px;">
+        <div class="mb-2">
+            <i class="bi bi-person-circle display-5 text-white-50"></i>
+        </div>
+        <div class="fw-bold text-white text-break">{{ topic.creator.email }}</div>
+        <div class="badge bg-primary bg-opacity-25 text-primary mt-2">Topic Starter</div>
+        <div class="small text-white-50 mt-3 d-flex flex-column gap-1">
+            <span><i class="bi bi-clock"></i> {{ topic.created_at|date:"M d, Y" }}</span>
+        </div>
+    </div>
+    <div class="p-4 flex-grow-1 text-light fs-5 font-inter lh-lg relative">
+        {{ topic.content|linebreaks }}
+    </div>
+</div>
+
+<!-- Replies Loop -->
+{% for post in posts %}
+<div class="glass-card mb-4 d-flex flex-column overflow-hidden ms-4 border-start border-4 {% if post.parent %}border-secondary ms-5{% else %}border-primary{% endif %}" id="post-{{ post.id }}">
+    <div class="d-flex w-100">
+        <div class="bg-dark bg-opacity-50 p-3 border-end border-secondary text-center" style="width: 150px;">
+            <div class="mb-2">
+                <i class="bi bi-person-circle fs-2 text-white-50"></i>
+            </div>
+            <div class="fw-bold text-white text-break" style="font-size: 0.8rem;">{{ post.author.email }}</div>
+            {% if post.author == topic.creator %}
+                <div class="badge bg-secondary mt-2" style="font-size: 0.7rem;">Author</div>
+            {% elif post.author.is_superuser or post.author.role == 'workspace_admin' %}
+                <div class="badge bg-danger mt-2" style="font-size: 0.7rem;">Staff</div>
+            {% else %}
+                <div class="badge bg-info bg-opacity-25 text-info mt-2" style="font-size: 0.7rem;">Member</div>
+            {% endif %}
+            
+            <div class="small text-white-50 mt-3 d-flex flex-column gap-1">
+                <span style="font-size: 0.7rem;"><i class="bi bi-clock"></i> {{ post.created_at|timesince }} ago</span>
+            </div>
+        </div>
+        <div class="p-3 flex-grow-1 d-flex flex-column relative">
+            <div class="text-white-50 font-inter lh-lg flex-grow-1">
+                {% if post.parent %}
+                    <div class="small text-muted mb-2 border-start border-secondary ps-2">
+                        <i class="bi bi-reply"></i> Replying to {{ post.parent.author.email }}
+                    </div>
+                {% endif %}
+                {{ post.content|linebreaks }}
+            </div>
+            {% if not topic.is_locked and can_post %}
+            <div class="text-end mt-2">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#replyForm{{ post.id }}" aria-expanded="false" aria-controls="replyForm{{ post.id }}">
+                    <i class="bi bi-reply-all-fill"></i> Reply
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Nested Reply Form -->
+    {% if not topic.is_locked and can_post %}
+    <div class="collapse bg-dark bg-opacity-25 border-top border-secondary" id="replyForm{{ post.id }}">
+        <div class="p-3 p-md-4">
+            <h6 class="font-outfit text-white mb-3"><i class="bi bi-reply text-primary me-2"></i> Reply to {{ post.author.email }}</h6>
+            <form method="post" action="{% url 'reply_to_post' post.pk %}">
+                {% csrf_token %}
+                {% if not user.is_authenticated %}
+                <div class="mb-3">
+                    <input type="email" name="email" class="form-control form-control-sm bg-dark border-secondary text-white shadow-none" placeholder="Your Email Address" required>
+                </div>
+                {% endif %}
+                <textarea name="content" class="form-control bg-dark text-white border-secondary shadow-none mb-3" rows="3" placeholder="Write your reply..." required></textarea>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="collapse" data-bs-target="#replyForm{{ post.id }}">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary-gradient px-3 rounded-pill shadow-glow fw-semibold">Submit Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+<!-- Reply Box -->
+<div class="mt-5">
+    {% if topic.is_locked %}
+        <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-center p-4 rounded-3 text-danger glass-card">
+            <i class="bi bi-lock-fill display-6 mb-2 d-block"></i>
+            <strong>This topic has been closed.</strong> Further replies are not permitted.
+        </div>
+    {% elif can_post %}
+        <div class="glass-card p-4 ms-4 position-relative">
+            <h5 class="font-outfit fw-bold mb-3"><i class="bi bi-reply-fill text-primary me-2"></i> Post a Reply</h5>
+            <form method="post" action="{% url 'create_post' topic.pk %}">
+                {% csrf_token %}
+                {% if not user.is_authenticated %}
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-medium">Your Email</label>
+                    <input type="email" name="email" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter your email to post as a viewer" required>
+                </div>
+                {% endif %}
+                <textarea name="content" class="form-control bg-dark text-white border-secondary shadow-none mb-3" rows="5" placeholder="Write your response here... Markdown supported." required></textarea>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary-gradient px-4 rounded-pill shadow-glow fw-semibold">Submit Reply</button>
+                </div>
+            </form>
+        </div>
+    {% else %}
+        <div class="alert alert-secondary bg-dark border-secondary text-center p-4 rounded-3 text-white-50 glass-card">
+            <i class="bi bi-shield-lock fs-1 text-primary mb-3 d-block"></i>
+            <h5 class="fw-bold text-white">Join the Discussion</h5>
+            <p class="mb-4">You must be logged into a Console Account to reply to topics in this community.</p>
+            <a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://community.localhost:1234/accounts/sso/consume/?next={% url 'topic_detail' topic.pk %}" class="btn btn-primary rounded-pill px-4">Log In to Reply</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

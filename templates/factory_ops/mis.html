@@ -1,0 +1,108 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}MIS Report — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up me-2" style="color:var(--hub-accent);"></i>MIS Report{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <p class="text-white-50 mb-0 small">MIS Report — {% for num, name in months %}{% if num == period_month %}{{ name }}{% endif %}{% endfor %} {{ period_year }} &nbsp;·&nbsp; {{ biz.name }}</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <select name="month" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:auto;">
+        {% for num, name in months %}<option value="{{ num }}" {% if num == period_month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <select name="year" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:auto;">
+        {% for yr in years %}<option value="{{ yr }}" {% if yr == period_year %}selected{% endif %}>{{ yr }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn btn-hub-primary btn-sm">Filter</button>
+    </form>
+    <a href="{% url 'factory_ops:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+<!-- Production Section -->
+<div class="glass-panel p-4 mb-4">
+  <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Production</h6>
+  <div class="row g-3">
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:var(--hub-accent);">{{ active_orders }}</div><div class="text-white-50 small">Active Orders</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#f87171;">{{ overdue_orders }}</div><div class="text-white-50 small">Overdue</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#38bdf8;">{{ total_pairs_wip }}</div><div class="text-white-50 small">Pairs in WIP</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#22c55e;">{{ total_packed }}</div><div class="text-white-50 small">Packed</div></div></div>
+  </div>
+</div>
+
+<!-- IE Section -->
+<div class="glass-panel p-4 mb-4">
+  <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Industrial Engineering</h6>
+  <div class="row g-3">
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#22c55e;">{{ approved_smv }}</div><div class="text-white-50 small">Approved SMV Sheets</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#38bdf8;">{{ active_lines }}</div><div class="text-white-50 small">Active Lines</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:var(--hub-accent);">{{ approved_costings }}</div><div class="text-white-50 small">Approved Costings</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;">
+      <div style="font-size:1.6rem;font-weight:700;color:{% if avg_line_efficiency >= efficiency_target %}#22c55e{% elif avg_line_efficiency >= 50 %}#fbbf24{% elif avg_line_efficiency > 0 %}#f87171{% else %}var(--hub-muted){% endif %};">{% if avg_line_efficiency > 0 %}{{ avg_line_efficiency }}%{% else %}—{% endif %}</div>
+      <div class="text-white-50 small">Avg Line Efficiency</div>
+      <div style="font-size:.68rem;color:var(--hub-muted);">Target {{ efficiency_target }}%</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Quality Section -->
+<div class="glass-panel p-4 mb-4">
+  <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Quality</h6>
+  <div class="row g-3">
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:var(--hub-accent);">{{ qc_total }}</div><div class="text-white-50 small">QC Inspections</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:{% if qc_fail_rate > 5 %}#f87171{% elif qc_fail_rate > 2 %}#fbbf24{% else %}#22c55e{% endif %};">{{ qc_fail_rate }}%</div><div class="text-white-50 small">Fail Rate</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;">
+      <div style="font-size:1.6rem;font-weight:700;color:{% if ftr_rate >= ftr_target %}#22c55e{% elif ftr_rate >= 85 %}#fbbf24{% else %}#f87171{% endif %};">{{ ftr_rate }}%</div>
+      <div class="text-white-50 small">FTR Rate</div>
+      <div style="font-size:.68rem;color:var(--hub-muted);">Target {{ ftr_target }}%</div>
+    </div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#f87171;">{{ total_rejected }}</div><div class="text-white-50 small">Total Rejected</div></div></div>
+  </div>
+</div>
+
+<!-- Sales & Finance -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="glass-panel p-4 h-100">
+      <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Sales & Delivery</h6>
+      <div class="row g-3">
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.5rem;font-weight:700;color:#38bdf8;">{{ pipeline_value|floatformat:0 }}</div><div class="text-white-50 small">Pipeline Value</div></div></div>
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.5rem;font-weight:700;color:#22c55e;">{{ won_ytd|floatformat:0 }}</div><div class="text-white-50 small">Won YTD</div></div></div>
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.5rem;font-weight:700;color:var(--hub-accent);">{{ open_orders }}</div><div class="text-white-50 small">Open Orders</div></div></div>
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;">
+          <div style="font-size:1.5rem;font-weight:700;color:{% if schedule_adherence >= 90 %}#22c55e{% elif schedule_adherence >= 75 %}#fbbf24{% else %}#f87171{% endif %};">{{ schedule_adherence }}%</div>
+          <div class="text-white-50 small">Schedule Adherence</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="glass-panel p-4 h-100">
+      <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">Finance</h6>
+      <div class="row g-3">
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.5rem;font-weight:700;color:#22c55e;">{{ cash_position|floatformat:0 }}</div><div class="text-white-50 small">Cash Position</div></div></div>
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.5rem;font-weight:700;color:#38bdf8;">{{ total_ar|floatformat:0 }}</div><div class="text-white-50 small">Total AR</div></div></div>
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.5rem;font-weight:700;color:#f87171;">{{ overdue_ar|floatformat:0 }}</div><div class="text-white-50 small">Overdue AR</div></div></div>
+        <div class="col-6"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;">
+          <div style="font-size:1.5rem;font-weight:700;color:{% if collection_efficiency >= 85 %}#22c55e{% elif collection_efficiency >= 70 %}#fbbf24{% else %}#f87171{% endif %};">{{ collection_efficiency }}%</div>
+          <div class="text-white-50 small">Collection Efficiency</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HR & Operations -->
+<div class="glass-panel p-4">
+  <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem;">HR & Operations</h6>
+  <div class="row g-3">
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#22c55e;">{{ headcount }}</div><div class="text-white-50 small">Headcount</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#38bdf8;">{{ payroll_total|floatformat:0 }}</div><div class="text-white-50 small">Monthly Payroll</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#fbbf24;">{{ low_stock_count }}</div><div class="text-white-50 small">Low Stock Alerts</div></div></div>
+    <div class="col-6 col-md-3"><div class="text-center p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;"><div style="font-size:1.6rem;font-weight:700;color:#f87171;">{{ pending_approvals }}</div><div class="text-white-50 small">Pending Approvals</div></div></div>
+  </div>
+</div>
+
+{% endblock %}

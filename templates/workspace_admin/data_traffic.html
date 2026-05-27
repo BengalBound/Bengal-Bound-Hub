@@ -1,0 +1,138 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% block page_title %}Data & Traffic{% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs border-secondary mb-4" id="dataTab">
+    <li class="nav-item"><a class="nav-link active text-white border-secondary" data-bs-toggle="tab" href="#traffic-tab">Traffic Logs</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#users-tab">Users</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#orders-tab">Orders</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#subs-tab">Subscriptions</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- Traffic Logs -->
+    <div class="tab-pane fade show active" id="traffic-tab">
+        <div class="glass-panel p-4">
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless table-hover table-sm align-middle">
+                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary">
+                        <th>IP Address</th><th>Consent</th><th>User Agent</th><th>Timestamp</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for log in traffic_logs %}
+                        <tr>
+                            <td class="text-white small font-monospace">{{ log.ip_address }}</td>
+                            <td>{% if log.is_consent_given %}<span class="badge bg-success bg-opacity-25 text-success">Given</span>{% else %}<span class="badge bg-secondary bg-opacity-25 text-muted">None</span>{% endif %}</td>
+                            <td><small class="text-white-50">{{ log.user_agent|truncatechars:60 }}</small></td>
+                            <td class="text-muted small">{{ log.timestamp|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% empty %}<tr><td colspan="4" class="text-center text-white-50 py-4">No traffic logs yet.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users -->
+    <div class="tab-pane fade" id="users-tab">
+        <div class="glass-panel p-4">
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless table-hover table-sm align-middle">
+                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary"><th>Email</th><th>Role</th><th>Status/Verified</th><th>Joined</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        {% for user in all_users %}
+                        <tr>
+                            <td class="text-white small">{{ user.email }}</td>
+                            <td><span class="badge bg-primary bg-opacity-25 text-primary">{{ user.get_role_display }}</span></td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">Inactive</span>
+                                {% endif %}
+                                {% if user.is_email_verified %}
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 ms-1">Verified</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td class="text-end">
+                                <form action="{% url 'workspace_admin:manage_user' %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="toggle_active">
+                                    <button type="submit" class="btn btn-sm {% if user.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %} py-0" style="font-size: 0.75rem;">
+                                        {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </button>
+                                </form>
+                                <form action="{% url 'workspace_admin:manage_user' %}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to PERMANENTLY DELETE {{ user.email }}? This cannot be undone.');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 ms-1" style="font-size: 0.75rem;">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}<tr><td colspan="5" class="text-center text-white-50 py-4">No users yet.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders -->
+    <div class="tab-pane fade" id="orders-tab">
+        <div class="glass-panel p-4">
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless table-hover table-sm align-middle">
+                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary"><th>Order</th><th>Client</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+                    <tbody>
+                        {% for order in all_orders %}
+                        <tr>
+                            <td class="text-white small">#{{ order.id }} — {{ order.description }}</td>
+                            <td class="text-white-50 small">{{ order.client.email }}</td>
+                            <td class="fw-semibold text-white">${{ order.amount }}</td>
+                            <td>
+                                {% if order.status == 'completed' %}<span class="badge bg-success bg-opacity-25 text-success">Completed</span>
+                                {% elif order.status == 'failed' %}<span class="badge bg-danger bg-opacity-25 text-danger">Failed</span>
+                                {% elif order.status == 'refunded' %}<span class="badge bg-warning bg-opacity-25 text-warning">Refunded</span>
+                                {% else %}<span class="badge bg-secondary bg-opacity-25 text-white-50">Pending</span>{% endif %}
+                            </td>
+                            <td class="text-muted small">{{ order.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}<tr><td colspan="5" class="text-center text-white-50 py-4">No orders yet.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscriptions -->
+    <div class="tab-pane fade" id="subs-tab">
+        <div class="glass-panel p-4">
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless table-hover table-sm align-middle">
+                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary"><th>Client</th><th>Tier</th><th>Cycle</th><th>Status</th><th>Renews</th></tr></thead>
+                    <tbody>
+                        {% for sub in subscriptions %}
+                        <tr>
+                            <td class="text-white small">{{ sub.client.email }}</td>
+                            <td><span class="badge bg-primary bg-opacity-25 text-primary">{{ sub.tier }}</span></td>
+                            <td class="text-white-50 small">{{ sub.get_billing_cycle_display }}</td>
+                            <td>
+                                {% if sub.status == 'active' %}<span class="badge bg-success bg-opacity-25 text-success">Active</span>
+                                {% elif sub.status == 'past_due' %}<span class="badge bg-danger bg-opacity-25 text-danger">Past Due</span>
+                                {% elif sub.status == 'cancelled' %}<span class="badge bg-secondary bg-opacity-25 text-white-50">Cancelled</span>
+                                {% else %}<span class="badge bg-warning bg-opacity-25 text-warning">Trialing</span>{% endif %}
+                            </td>
+                            <td class="text-muted small">{{ sub.next_renewal_at|date:"M d, Y"|default:"—" }}</td>
+                        </tr>
+                        {% empty %}<tr><td colspan="5" class="text-center text-white-50 py-4">No subscriptions yet.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

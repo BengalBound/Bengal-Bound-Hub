@@ -1,0 +1,43 @@
+{% extends 'console_admin/base_console.html' %}
+{% block title %}Deactivate {{ hired_ai.ai_name }} | BengalBound{% endblock %}
+{% block page_title %}Deactivate AI Employee{% endblock %}
+{% block page_subtitle %}This action will stop {{ hired_ai.ai_name }} from working.{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'console_admin:manage_ai' ai_id=hired_ai.id %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Cancel
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="glass-panel p-5 text-center" style="border-color:rgba(239,68,68,0.3);">
+      <div class="mb-4" style="font-size:3.5rem;">⚠️</div>
+      <h4 class="font-outfit fw-bold mb-2">Deactivate {{ hired_ai.ai_name }}?</h4>
+      <p class="text-white-50 mb-1">
+        This will immediately stop <strong>{{ hired_ai.ai_name }}</strong> from running any tasks.
+      </p>
+      <p class="text-white-50 mb-4">
+        All conversation history, moderation logs, and platform connections are preserved — nothing is deleted.
+        You can hire a new AI employee from the marketplace at any time.
+      </p>
+
+      <div class="d-flex gap-3 justify-content-center">
+        <!-- Cancel -->
+        <a href="{% url 'console_admin:manage_ai' ai_id=hired_ai.id %}" class="btn btn-outline-secondary px-4 fw-semibold">
+          Keep {{ hired_ai.ai_name }}
+        </a>
+        <!-- Confirm deactivation -->
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="confirm" value="yes">
+          <button type="submit" class="btn btn-danger px-4 fw-semibold">
+            <i class="bi bi-x-octagon me-1"></i>Yes, Deactivate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

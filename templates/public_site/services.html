@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 mt-5 position-relative z-2 overflow-hidden">
+    <!-- Background glows -->
+    <div class="position-absolute rounded-circle" style="width: 400px; height: 400px; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%); top: -100px; right: -100px; z-index: -1;"></div>
+    <div class="position-absolute rounded-circle" style="width: 300px; height: 300px; background: radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 70%); bottom: -50px; left: -50px; z-index: -1;"></div>
+    
+    <div class="container py-5 fade-in">
+        <div class="text-center mb-5 fade-up">
+            <h1 class="display-3 fw-bold mb-4" style="letter-spacing: -0.04em;">Our <span class="text-gradient-purple-cyan">Services</span></h1>
+            <p class="lead text-white-50 mx-auto mb-5" style="max-width: 600px; font-weight: 300;">
+                From high-performance custom web platforms to deep backend SaaS and multi-tenant architectures, explore everything Bengal Bound offers.
+            </p>
+        </div>
+
+        <div class="row g-4 fade-up delay-100 mt-4">
+            {% for s in services %}
+            <div class="col-md-6 col-lg-4">
+                <style>
+                    .service-card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.4) !important; border-color: rgba(255,255,255,0.15) !important; }
+                    .service-card-hover:hover .service-icon { transform: scale(1.1); color: var(--bb-accent-cyan) !important; }
+                </style>
+                <div class="service-card-hover h-100 p-5 rounded-4 position-relative overflow-hidden" 
+                     style="background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                    <div class="position-absolute" style="top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.5), transparent);"></div>
+                    <div class="mb-4 text-white-50 service-icon" style="transition: all 0.3s ease;">
+                        <i class="bi {{ s.icon_class|default:'bi-layers' }} display-5"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3 text-white">{{ s.title }}</h3>
+                    <p class="text-white-50 mb-0" style="font-size: 0.95rem; line-height: 1.8;">
+                        {{ s.description }}
+                    </p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-white-50 py-5 mt-5">
+                <i class="bi bi-box-seam display-1 opacity-25 mb-3 d-block"></i>
+                <h4 class="fw-light">More coming soon...</h4>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- CTA Section -->
+        <div class="mt-5 pt-5 pb-4 text-center fade-up delay-200">
+            <h3 class="fw-bold mb-4">Ready to start your project?</h3>
+            <a href="{% url 'public_site:consult' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill fw-bold shadow-lg">
+                Book a Meeting
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

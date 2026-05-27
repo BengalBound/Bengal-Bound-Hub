@@ -1,0 +1,32 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Products — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-box-seam me-2" style="color:var(--hub-accent);"></i>Inventory Products{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Products</h5>
+    <a href="{% url 'inventory:product_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Product</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>SKU</th><th>Name</th><th>Category</th><th>Stock</th><th>Reorder Point</th><th>Cost</th><th></th></tr></thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td style="color:var(--hub-accent);">{{ product.sku }}</td>
+          <td style="color:var(--hub-text);">{{ product.name }}</td>
+          <td style="color:var(--hub-muted);">{{ product.category|default:"—" }}</td>
+          <td style="color:{% if product.stock <= product.reorder_point %}#f87171{% elif product.stock < product.reorder_point|add:10 %}#fbbf24{% else %}#22c55e{% endif %};font-weight:600;">{{ product.stock }}</td>
+          <td style="color:var(--hub-muted);">{{ product.reorder_point|default:"—" }}</td>
+          <td style="color:#38bdf8;">{{ product.unit_cost|default:"—" }}</td>
+          <td><a href="{% url 'inventory:product_detail' slug=biz.slug pk=product.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:var(--hub-muted);padding:2rem;">No products.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

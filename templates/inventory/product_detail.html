@@ -1,0 +1,40 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ product.name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-box-seam me-2" style="color:var(--hub-accent);"></i>{{ product.name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="text-center mb-3"><div style="font-size:3rem;font-weight:700;color:{% if product.stock <= product.reorder_point %}#f87171{% else %}#22c55e{% endif %};">{{ product.stock }}</div><div style="color:var(--hub-muted);">units in stock</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">SKU</div><div style="color:var(--hub-accent);">{{ product.sku }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Category</div><div style="color:var(--hub-text);">{{ product.category|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Unit</div><div style="color:var(--hub-text);">{{ product.unit }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Unit Cost</div><div style="color:#38bdf8;font-weight:600;">{{ product.unit_cost|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Reorder Point</div><div style="color:{% if product.stock <= product.reorder_point %}#f87171{% else %}var(--hub-text){% endif %};">{{ product.reorder_point }}</div></div>
+      <a href="{% url 'inventory:product_create' slug=biz.slug %}?edit={{ product.pk }}" class="btn btn-hub-outline btn-sm w-100 mt-3">Edit</a>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Recent Movements</h5>
+      <div class="table-responsive">
+        <table class="table table-dark">
+          <thead><tr><th>Date</th><th>Type</th><th>Qty</th><th>Note</th></tr></thead>
+          <tbody>
+            {% for mv in product.movements.all|slice:":10" %}
+            <tr>
+              <td style="color:var(--hub-muted);">{{ mv.date }}</td>
+              <td><span class="badge" style="background:{% if mv.movement_type == 'in' %}#22c55e20{% else %}#f8717120{% endif %};color:{% if mv.movement_type == 'in' %}#22c55e{% else %}#f87171{% endif %};">{{ mv.movement_type|upper }}</span></td>
+              <td style="color:{% if mv.movement_type == 'in' %}#22c55e{% else %}#f87171{% endif %};">{% if mv.movement_type == 'in' %}+{% else %}-{% endif %}{{ mv.quantity }}</td>
+              <td style="color:var(--hub-muted);">{{ mv.note|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center" style="color:var(--hub-muted);">No movements yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

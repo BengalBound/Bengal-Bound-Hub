@@ -1,0 +1,209 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ project.name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-diagram-3 me-2" style="color:var(--hub-accent);"></i>{{ project.name }}{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'projects:project_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+<div class="row g-4">
+  <!-- Left sidebar -->
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-muted);margin-bottom:1rem;">Project Info</h6>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Status</div>
+        <span class="badge" style="background:{% if project.status == 'active' %}#22c55e20{% elif project.status == 'completed' %}#38bdf820{% elif project.status == 'on_hold' %}#fbbf2420{% elif project.status == 'cancelled' %}#f8717120{% else %}#64748b20{% endif %};color:{% if project.status == 'active' %}#22c55e{% elif project.status == 'completed' %}#38bdf8{% elif project.status == 'on_hold' %}#fbbf24{% elif project.status == 'cancelled' %}#f87171{% else %}#64748b{% endif %};">{{ project.get_status_display }}</span>
+      </div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Priority</div><div style="color:var(--hub-text);">{{ project.get_priority_display }}</div></div>
+      {% if project.client_name %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Client</div><div style="color:var(--hub-text);">{{ project.client_name }}</div>{% if project.client_email %}<div style="color:var(--hub-muted);font-size:.78rem;">{{ project.client_email }}</div>{% endif %}</div>{% endif %}
+      {% if project.start_date %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Start</div><div style="color:var(--hub-text);">{{ project.start_date }}</div></div>{% endif %}
+      {% if project.end_date %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Deadline</div><div style="color:var(--hub-text);">{{ project.end_date }}</div></div>{% endif %}
+      {% if project.budget %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Budget</div><div style="color:#38bdf8;">{{ project.budget }}</div></div>{% endif %}
+      <hr style="border-color:var(--hub-border);">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Progress</div>
+        <div style="background:var(--hub-border);border-radius:4px;height:8px;margin-top:.3rem;">
+          <div style="width:{{ project.progress_pct }}%;background:{% if project.progress_pct == 100 %}#22c55e{% else %}var(--hub-accent){% endif %};height:8px;border-radius:4px;"></div>
+        </div>
+        <div style="color:var(--hub-muted);font-size:.75rem;margin-top:.3rem;">{{ project.progress_pct }}% — {{ project.tasks.filter.count }} tasks</div>
+      </div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Hours Logged</div><div style="color:#fbbf24;">{{ project.total_hours_logged }}h</div></div>
+    </div>
+    <!-- Update Status -->
+    <div class="glass-panel p-4 mt-3">
+      <h6 style="color:var(--hub-muted);margin-bottom:.75rem;">Update Status</h6>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="update_status">
+        <select name="status" class="form-select form-select-sm mb-2" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+          <option value="planning" {% if project.status == 'planning' %}selected{% endif %}>Planning</option>
+          <option value="active" {% if project.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="on_hold" {% if project.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+          <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if project.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <button type="submit" class="btn btn-hub-primary btn-sm w-100">Save</button>
+      </form>
+    </div>
+    <!-- Delete -->
+    <div class="glass-panel p-4 mt-3">
+      <form method="post" onsubmit="return confirm('Delete this project and all its tasks?')">{% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" class="btn btn-sm w-100" style="color:#f87171;border:1px solid #f87171;border-radius:8px;background:transparent;">Delete Project</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="col-md-8">
+    {% if project.description %}
+    <div class="glass-panel p-4 mb-3">
+      <div style="color:var(--hub-muted);font-size:.8rem;margin-bottom:.5rem;">Description</div>
+      <div style="color:var(--hub-text);">{{ project.description }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Milestones -->
+    <div class="glass-panel p-4 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-text);margin:0;"><i class="bi bi-flag me-1" style="color:var(--hub-accent);"></i>Milestones</h6>
+        <button class="btn btn-hub-outline btn-sm" data-bs-toggle="modal" data-bs-target="#addMilestoneModal"><i class="bi bi-plus-lg me-1"></i>Add</button>
+      </div>
+      {% for ms in milestones %}
+      <div class="d-flex justify-content-between align-items-center p-2 mb-1" style="background:#1e293b;border-radius:8px;">
+        <div>
+          <div style="color:{% if ms.is_completed %}#22c55e{% elif ms.is_overdue %}#f87171{% else %}var(--hub-text){% endif %};font-size:.88rem;">
+            {% if ms.is_completed %}<i class="bi bi-check-circle-fill me-1"></i>{% elif ms.is_overdue %}<i class="bi bi-exclamation-circle me-1"></i>{% else %}<i class="bi bi-circle me-1"></i>{% endif %}{{ ms.title }}
+          </div>
+          <div style="color:var(--hub-muted);font-size:.75rem;">Due: {{ ms.due_date }}</div>
+        </div>
+        {% if not ms.is_completed %}
+        <form method="post" class="d-inline">{% csrf_token %}
+          <input type="hidden" name="action" value="complete_milestone">
+          <input type="hidden" name="milestone_id" value="{{ ms.pk }}">
+          <button type="submit" class="btn btn-sm" style="color:#22c55e;border:1px solid #22c55e;border-radius:6px;background:transparent;padding:.15rem .5rem;font-size:.78rem;">Done</button>
+        </form>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div style="color:var(--hub-muted);font-size:.85rem;text-align:center;padding:1rem;">No milestones yet.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Tasks -->
+    <div class="glass-panel p-4 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-text);margin:0;"><i class="bi bi-check2-square me-1" style="color:var(--hub-accent);"></i>Tasks ({{ tasks.count }})</h6>
+        <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal"><i class="bi bi-plus-lg me-1"></i>Add Task</button>
+      </div>
+      {% regroup tasks by status as task_groups %}
+      {% for group in task_groups %}
+      <div class="mb-3">
+        <div style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">{{ group.grouper|title }}</div>
+        {% for task in group.list %}
+        <a href="{% url 'projects:task_detail' slug=biz.slug pk=task.pk %}" class="text-decoration-none d-block">
+          <div class="d-flex justify-content-between align-items-center p-2 mb-1" style="background:#1e293b;border-radius:8px;{% if task.is_overdue %}border-left:3px solid #f87171;{% endif %}">
+            <div class="d-flex align-items-center gap-2">
+              <span style="width:8px;height:8px;border-radius:50%;background:{% if task.priority == 'critical' %}#f87171{% elif task.priority == 'high' %}#fbbf24{% elif task.priority == 'medium' %}#38bdf8{% else %}#64748b{% endif %};flex-shrink:0;"></span>
+              <div>
+                <div style="color:{% if task.status == 'done' %}var(--hub-muted){% else %}var(--hub-text){% endif %};font-size:.88rem;{% if task.status == 'done' %}text-decoration:line-through;{% endif %}">{{ task.title }}</div>
+                {% if task.assignee %}<div style="color:var(--hub-muted);font-size:.72rem;"><i class="bi bi-person me-1"></i>{{ task.assignee.get_full_name|default:task.assignee.email }}</div>{% endif %}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              {% if task.due_date %}<div style="color:{% if task.is_overdue %}#f87171{% else %}var(--hub-muted){% endif %};font-size:.72rem;">{{ task.due_date }}</div>{% endif %}
+              {% if task.estimated_hours %}<div style="color:var(--hub-muted);font-size:.72rem;">{{ task.estimated_hours }}h est.</div>{% endif %}
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% empty %}
+      <div style="color:var(--hub-muted);font-size:.85rem;text-align:center;padding:1rem;">No tasks yet.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Comments -->
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;"><i class="bi bi-chat-text me-1" style="color:var(--hub-accent);"></i>Comments</h6>
+      {% for comment in comments %}
+      <div class="mb-3 p-3" style="background:#1e293b;border-radius:8px;">
+        <div class="d-flex justify-content-between mb-1">
+          <span style="color:var(--hub-accent);font-size:.82rem;font-weight:600;">{{ comment.user.get_full_name|default:comment.user.email }}</span>
+          <span style="color:var(--hub-muted);font-size:.75rem;">{{ comment.created_at|date:"M d, Y H:i" }}</span>
+        </div>
+        <div style="color:var(--hub-text);font-size:.88rem;">{{ comment.content }}</div>
+      </div>
+      {% empty %}
+      <div style="color:var(--hub-muted);font-size:.85rem;">No comments yet.</div>
+      {% endfor %}
+      <form method="post" class="mt-3">{% csrf_token %}
+        <input type="hidden" name="action" value="add_comment">
+        <textarea name="content" rows="2" class="form-control mb-2" placeholder="Add a comment…" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+        <button type="submit" class="btn btn-hub-primary btn-sm">Post Comment</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Milestone Modal -->
+<div class="modal fade" id="addMilestoneModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Milestone</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="add_milestone">
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Title</label><input name="title" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+          <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Due Date</label><input type="date" name="due_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+          <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Description</label><textarea name="description" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea></div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Milestone</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Task</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="add_task">
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Task Title *</label><input name="title" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+          <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Description</label><textarea name="description" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea></div>
+          <div class="row g-3 mb-3">
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Status</label>
+              <select name="status" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Priority</label>
+              <select name="priority" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Milestone</label>
+              <select name="milestone" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">— None —</option>
+                {% for ms in milestones %}<option value="{{ ms.pk }}">{{ ms.title }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Due Date</label><input type="date" name="due_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Est. Hours</label><input type="number" name="estimated_hours" step="0.5" value="0" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Task</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

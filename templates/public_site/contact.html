@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BengalBound | Contact Us{% endblock %}
+
+{% block content %}
+<section class="py-5 position-relative z-1" style="padding-top: 10rem !important; padding-bottom: 6rem;">
+    <!-- Background Accents -->
+    <div class="position-absolute w-100 h-100 top-0 start-0 z-n1 overflow-hidden" style="pointer-events: none;">
+        <div class="position-absolute" style="top: -5%; left: -5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(157, 78, 221, 0.15) 0%, transparent 70%); filter: blur(60px);"></div>
+        <div class="position-absolute" style="bottom: 0; right: -5%; width: 450px; height: 450px; background: radial-gradient(circle, rgba(0, 245, 212, 0.1) 0%, transparent 70%); filter: blur(60px);"></div>
+    </div>
+
+    <div class="container position-relative z-2">
+        <!-- Header -->
+        <div class="text-center mb-5 pb-3 fade-up">
+            <div class="badge-premium d-inline-flex align-items-center mb-3">
+                <i class="bi bi-send me-2"></i> Get in Touch
+            </div>
+            <h1 class="display-3 fw-bold mb-4" style="letter-spacing: -0.04em;">
+                Let's <span class="text-gradient-purple-cyan">Talk.</span>
+            </h1>
+            <p class="lead text-white-50 mx-auto font-inter" style="max-width: 600px;">
+                Have a project in mind, a question about our platform, or just want to say hello? We'd love to hear from you.
+            </p>
+        </div>
+
+        <div class="row g-4 g-lg-5 align-items-start">
+
+            <!-- ── Left column: Contact Info ── -->
+            <div class="col-lg-5 fade-up delay-100">
+                <div class="d-flex flex-column gap-4">
+
+                    <!-- Address Card -->
+                    <div class="contact-info-card">
+                        <div class="contact-info-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-label">Our Address</div>
+                            <div class="contact-info-value">
+                                {% if company %}
+                                    {{ company.address|linebreaksbr }}
+                                {% else %}
+                                    123 AI Boulevard<br>Tech District, Innovation City 90210
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phone Card -->
+                    <div class="contact-info-card">
+                        <div class="contact-info-icon">
+                            <i class="bi bi-telephone-fill"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-label">Phone Number</div>
+                            <a class="contact-info-value text-decoration-none"
+                               href="tel:{% if company %}{{ company.phone }}{% else %}+15551234567{% endif %}">
+                                {% if company %}{{ company.phone }}{% else %}+1 (555) 123-4567{% endif %}
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Email Card -->
+                    <div class="contact-info-card">
+                        <div class="contact-info-icon contact-info-icon--cyan">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-label">Email Address</div>
+                            <a class="contact-info-value text-decoration-none"
+                               href="mailto:{% if company %}{{ company.email }}{% else %}hello@bengalbound.com{% endif %}">
+                                {% if company %}{{ company.email }}{% else %}hello@bengalbound.com{% endif %}
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Working Hours Card -->
+                    <div class="contact-info-card">
+                        <div class="contact-info-icon contact-info-icon--orange">
+                            <i class="bi bi-clock-fill"></i>
+                        </div>
+                        <div>
+                            <div class="contact-info-label">Working Hours</div>
+                            <div class="contact-info-value">
+                                {% if company %}{{ company.working_hours }}{% else %}Mon – Fri, 9am – 6pm EST{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── Right column: Contact Form ── -->
+            <div class="col-lg-7 fade-up delay-200">
+                <div class="bento-card p-4 p-md-5" style="background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(20px);">
+                    <h3 class="fw-bold text-white mb-1">Send a Message</h3>
+                    <p class="text-white-50 font-inter mb-4 small">We'll get back to you within 24 hours.</p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert rounded-3 mb-4 border-0 fw-medium" style="background: rgba(0,245,212,0.1); color: var(--bb-accent-cyan); border: 1px solid rgba(0,245,212,0.25) !important;">
+                                <i class="bi bi-check-circle me-2"></i>{{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'public_site:contact' %}">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label text-white-50 small fw-semibold">Your Name</label>
+                                <input type="text" name="name" placeholder="John Doe"
+                                       class="form-control form-control-premium" required>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label text-white-50 small fw-semibold">Email Address</label>
+                                <input type="email" name="email" placeholder="john@company.com"
+                                       class="form-control form-control-premium" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-semibold">Subject</label>
+                            <input type="text" name="subject" placeholder="What's this about?"
+                                   class="form-control form-control-premium" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-white-50 small fw-semibold">Message</label>
+                            <textarea name="message" rows="5" placeholder="Tell us how we can help..."
+                                      class="form-control form-control-premium" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-premium w-100 rounded-pill py-3 fw-bold fs-5">
+                            <i class="bi bi-send me-2"></i>Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .contact-info-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.25rem;
+        background: rgba(10, 10, 15, 0.6);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 1.25rem;
+        padding: 1.5rem 1.75rem;
+        transition: all 0.3s ease;
+    }
+    .contact-info-card:hover {
+        border-color: rgba(157, 78, 221, 0.3);
+        transform: translateX(5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    .contact-info-icon {
+        flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(157, 78, 221, 0.15);
+        border: 1px solid rgba(157, 78, 221, 0.25);
+        color: var(--bb-accent-purple);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-top: 2px;
+    }
+    .contact-info-icon--cyan {
+        background: rgba(0, 245, 212, 0.1);
+        border-color: rgba(0, 245, 212, 0.25);
+        color: var(--bb-accent-cyan);
+    }
+    .contact-info-icon--orange {
+        background: rgba(251, 86, 7, 0.1);
+        border-color: rgba(251, 86, 7, 0.25);
+        color: var(--bb-accent-orange);
+    }
+    .contact-info-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.35rem;
+        font-family: var(--font-body);
+    }
+    .contact-info-value {
+        font-size: 1rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+        font-family: var(--font-body);
+        line-height: 1.6;
+    }
+    .contact-info-value a, a.contact-info-value {
+        color: rgba(255, 255, 255, 0.85);
+        transition: color 0.2s ease;
+    }
+    .contact-info-value a:hover, a.contact-info-value:hover {
+        color: var(--bb-accent-cyan);
+    }
+</style>
+{% endblock %}

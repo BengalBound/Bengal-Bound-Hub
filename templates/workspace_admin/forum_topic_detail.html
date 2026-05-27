@@ -1,0 +1,117 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ topic.title }} | Forum Admin{% endblock %}
+
+{% block page_title %}Forum Thread{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb & Topic Info -->
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small text-white-50">
+            <li class="breadcrumb-item"><a href="{% url 'workspace_admin:forum_management' %}" class="text-white-50 text-decoration-none">Forum</a></li>
+            <li class="breadcrumb-item active text-white">{{ topic.title }}</li>
+        </ol>
+    </nav>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show glass-panel border-0 mb-4" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="glass-panel p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            {% if topic.is_pinned %}<span class="badge bg-warning text-dark"><i class="bi bi-pin-fill me-1"></i>Pinned</span>{% endif %}
+            {% if topic.is_locked %}<span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i>Locked</span>{% endif %}
+            {% if topic.is_solved %}<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Solved</span>{% endif %}
+            <span class="badge bg-dark border border-secondary">{{ topic.get_topic_type_display }}</span>
+        </div>
+        <h2 class="h3 fw-bold text-white font-outfit mb-2">{{ topic.title }}</h2>
+        <p class="text-white-50 small">Started by <strong>{{ topic.creator.email }}</strong> in <strong>{{ topic.category.name }}</strong> &bull; {{ topic.created_at|date:"M d, Y H:i" }}</p>
+        <div class="text-light lh-lg mt-3">{{ topic.content|linebreaks }}</div>
+    </div>
+</div>
+
+<!-- Replies List -->
+<h5 class="font-outfit fw-bold text-white mb-3"><i class="bi bi-chat-dots text-primary me-2"></i>{{ posts.count }} Replies</h5>
+
+{% for post in posts %}
+<div class="glass-panel mb-3 overflow-hidden" id="post-{{ post.id }}">
+    <div class="d-flex">
+        <div class="p-3 border-end border-secondary text-center" style="min-width: 160px;">
+            <i class="bi bi-person-circle fs-2 text-white-50"></i>
+            <div class="fw-bold text-white small mt-1 text-break">{{ post.author.email }}</div>
+            {% if post.author.role == 'workspace_admin' %}
+                <span class="badge bg-danger mt-1" style="font-size:0.7rem;">Admin</span>
+            {% else %}
+                <span class="badge bg-info bg-opacity-25 text-info mt-1" style="font-size:0.7rem;">Viewer</span>
+            {% endif %}
+            <div class="text-white-50 mt-2" style="font-size:0.7rem;"><i class="bi bi-clock"></i> {{ post.created_at|timesince }} ago</div>
+        </div>
+        <div class="flex-grow-1 p-3">
+            {% if post.parent %}
+            <div class="small text-muted mb-2 border-start border-secondary ps-2">
+                <i class="bi bi-reply"></i> Replying to {{ post.parent.author.email }}
+            </div>
+            {% endif %}
+            <div class="text-white-50 lh-lg">{{ post.content|linebreaks }}</div>
+            <div class="mt-3 d-flex gap-2 justify-content-end">
+                <!-- Inline reply toggle -->
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#adminReply{{ post.id }}">
+                    <i class="bi bi-reply-all-fill"></i> Reply
+                </button>
+                <!-- Delete -->
+                <form method="post" class="d-inline" onsubmit="return confirm('Delete this reply permanently?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_post">
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Admin nested reply form -->
+    <div class="collapse border-top border-secondary" id="adminReply{{ post.id }}">
+        <div class="p-3 bg-dark bg-opacity-25">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reply">
+                <input type="hidden" name="parent_id" value="{{ post.id }}">
+                <textarea name="content" class="form-control bg-dark text-white border-secondary shadow-none mb-2" rows="3" placeholder="Reply as Admin..." required></textarea>
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="collapse" data-bs-target="#adminReply{{ post.id }}">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill"><i class="bi bi-send me-1"></i>Send Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="glass-panel p-4 text-center text-white-50">
+    <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
+    No replies yet. Be the first to respond below.
+</div>
+{% endfor %}
+
+<!-- Admin Post a Top-Level Reply -->
+<div class="glass-panel p-4 mt-4">
+    <h6 class="font-outfit fw-bold text-white mb-3"><i class="bi bi-shield-fill-check text-success me-2"></i>Post as Admin</h6>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reply">
+        <textarea name="content" class="form-control bg-dark text-white border-secondary shadow-none mb-3" rows="4" placeholder="Write your message to the community..." required></textarea>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success px-4 rounded-pill fw-semibold">
+                <i class="bi bi-send-fill me-2"></i>Post Reply
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

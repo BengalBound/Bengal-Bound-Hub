@@ -1,0 +1,112 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% block page_title %}Marketing Management{% endblock %}
+
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success mb-4">{{ msg }}</div>{% endfor %}{% endif %}
+
+<ul class="nav nav-tabs border-secondary mb-4" id="mktTab">
+    <li class="nav-item"><a class="nav-link active text-white border-secondary" data-bs-toggle="tab" href="#blogs-tab">Blogs</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#comments-tab">Comments {% if pending_comments.count %}<span class="badge bg-warning ms-1">{{ pending_comments.count }}</span>{% endif %}</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#coupons-tab">Coupons</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#notifs-tab">Notifications</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- Blogs -->
+    <div class="tab-pane fade show active" id="blogs-tab">
+        <div class="glass-panel p-4">
+            {% for blog in blogs %}
+            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-semibold text-white">{{ blog.title }}</div>
+                    <div class="text-white-50 small">by {{ blog.author.email }} · {{ blog.created_at|date:"M d, Y" }}</div>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    {% if blog.is_published %}<span class="badge bg-success bg-opacity-25 text-success">Published</span>
+                    {% else %}
+                    <form method="post">{% csrf_token %}
+                        <input type="hidden" name="action" value="publish_blog">
+                        <input type="hidden" name="blog_id" value="{{ blog.id }}">
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3">Publish</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}<div class="text-center text-white-50 py-4">No blog posts yet.</div>{% endfor %}
+        </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="tab-pane fade" id="comments-tab">
+        <div class="glass-panel p-4">
+            {% for comment in pending_comments %}
+            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-semibold text-white small">{{ comment.author_name }} on "{{ comment.post.title }}"</div>
+                    <p class="text-white-50 small mb-0 mt-1">{{ comment.content|truncatechars:150 }}</p>
+                </div>
+                <form method="post" class="ms-3 flex-shrink-0">{% csrf_token %}
+                    <input type="hidden" name="action" value="approve_comment">
+                    <input type="hidden" name="comment_id" value="{{ comment.id }}">
+                    <button class="btn btn-sm btn-outline-success rounded-pill px-3">Approve</button>
+                </form>
+            </div>
+            {% empty %}<div class="text-center text-white-50 py-4"><i class="bi bi-check-circle d-block fs-2 mb-2 text-success"></i>No pending comments.</div>{% endfor %}
+        </div>
+    </div>
+
+    <!-- Coupons -->
+    <div class="tab-pane fade" id="coupons-tab">
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold font-outfit mb-3">Create Coupon</h6>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_coupon">
+                <div class="col-md-3"><input type="text" name="code" class="form-control bg-dark text-white border-secondary" placeholder="COUPON CODE" required></div>
+                <div class="col-md-2"><input type="number" name="discount" class="form-control bg-dark text-white border-secondary" placeholder="Discount %" min="1" max="100" required></div>
+                <div class="col-md-3"><input type="datetime-local" name="valid_from" class="form-control bg-dark text-white border-secondary" required></div>
+                <div class="col-md-3"><input type="datetime-local" name="valid_until" class="form-control bg-dark text-white border-secondary" required></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i></button></div>
+            </form>
+        </div>
+        <div class="glass-panel p-4">
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless table-sm align-middle">
+                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary"><th>Code</th><th>Discount</th><th>Valid From</th><th>Valid Until</th><th>Active</th></tr></thead>
+                    <tbody>
+                        {% for coupon in coupons %}
+                        <tr>
+                            <td class="fw-bold text-primary">{{ coupon.code }}</td>
+                            <td class="text-white">{{ coupon.discount_percentage }}%</td>
+                            <td class="text-muted small">{{ coupon.valid_from|date:"M d, Y" }}</td>
+                            <td class="text-muted small">{{ coupon.valid_until|date:"M d, Y" }}</td>
+                            <td>{% if coupon.is_active %}<span class="badge bg-success bg-opacity-25 text-success">Yes</span>{% else %}<span class="badge bg-secondary bg-opacity-25 text-muted">No</span>{% endif %}</td>
+                        </tr>
+                        {% empty %}<tr><td colspan="5" class="text-center text-white-50 py-4">No coupons yet.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="tab-pane fade" id="notifs-tab">
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold font-outfit mb-3">Broadcast Notification</h6>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="send_notification">
+                <div class="col-md-8"><input type="text" name="notif_title" class="form-control bg-dark text-white border-secondary" placeholder="Notification Title" required></div>
+                <div class="col-md-4">
+                    <select name="user_ids" multiple class="form-select bg-dark text-white border-secondary" size="3">
+                        {% for u in all_users %}<option value="{{ u.id }}">{{ u.email }}</option>{% endfor %}
+                    </select>
+                    <div class="form-text text-muted small">Select none to send to ALL users</div>
+                </div>
+                <div class="col-12"><textarea name="notif_message" class="form-control bg-dark text-white border-secondary" rows="2" placeholder="Message body..." required></textarea></div>
+                <div class="col-12"><button type="submit" class="btn btn-primary px-4"><i class="bi bi-send me-2"></i>Send Notification</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

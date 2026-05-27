@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ form.title }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <style>
+    body { background-color: #0d1117; }
+    .form-card { max-width: 680px; margin: 0 auto; }
+  </style>
+</head>
+<body class="py-5">
+  <div class="container">
+    <div class="form-card">
+      <div class="mb-4 text-center">
+        <h3 class="fw-bold text-white">{{ form.title }}</h3>
+        {% if form.description %}<p class="text-muted">{{ form.description }}</p>{% endif %}
+        <div class="text-muted small">{{ biz.name }}</div>
+      </div>
+
+      {% if messages %}
+      {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+      {% endfor %}
+      {% endif %}
+
+      <div class="card bg-dark border-secondary">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label small">Email <span class="text-muted">(optional)</span></label>
+              <input type="email" name="respondent_email" class="form-control bg-dark text-white border-secondary" placeholder="your@email.com">
+            </div>
+            <hr class="border-secondary">
+            {% for field in fields %}
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">
+                {{ field.label }}
+                {% if field.is_required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {% if field.help_text %}<div class="form-text text-muted mb-1">{{ field.help_text }}</div>{% endif %}
+
+              {% if field.field_type == 'text' %}
+              <input type="text" name="field_{{ field.pk }}" class="form-control bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}>
+
+              {% elif field.field_type == 'textarea' %}
+              <textarea name="field_{{ field.pk }}" rows="3" class="form-control bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}></textarea>
+
+              {% elif field.field_type == 'number' %}
+              <input type="number" name="field_{{ field.pk }}" class="form-control bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}>
+
+              {% elif field.field_type == 'date' %}
+              <input type="date" name="field_{{ field.pk }}" class="form-control bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}>
+
+              {% elif field.field_type == 'email' %}
+              <input type="email" name="field_{{ field.pk }}" class="form-control bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}>
+
+              {% elif field.field_type == 'phone' %}
+              <input type="tel" name="field_{{ field.pk }}" class="form-control bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}>
+
+              {% elif field.field_type == 'select' %}
+              <select name="field_{{ field.pk }}" class="form-select bg-dark text-white border-secondary" {% if field.is_required %}required{% endif %}>
+                <option value="">— Select —</option>
+                {% for opt in field.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+              </select>
+
+              {% elif field.field_type == 'radio' %}
+              {% for opt in field.options %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="field_{{ field.pk }}" value="{{ opt }}" id="r_{{ field.pk }}_{{ forloop.counter }}" {% if field.is_required %}required{% endif %}>
+                <label class="form-check-label small" for="r_{{ field.pk }}_{{ forloop.counter }}">{{ opt }}</label>
+              </div>
+              {% endfor %}
+
+              {% elif field.field_type == 'checkbox' %}
+              {% for opt in field.options %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="field_{{ field.pk }}_{{ forloop.counter }}" value="{{ opt }}" id="c_{{ field.pk }}_{{ forloop.counter }}">
+                <label class="form-check-label small" for="c_{{ field.pk }}_{{ forloop.counter }}">{{ opt }}</label>
+              </div>
+              {% endfor %}
+
+              {% elif field.field_type == 'rating' %}
+              <div class="d-flex gap-2">
+                {% for i in "12345" %}
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="field_{{ field.pk }}" value="{{ i }}" id="rat_{{ field.pk }}_{{ i }}" {% if field.is_required %}required{% endif %}>
+                  <label class="form-check-label" for="rat_{{ field.pk }}_{{ i }}">{{ i }}</label>
+                </div>
+                {% endfor %}
+              </div>
+
+              {% elif field.field_type == 'yesno' %}
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="field_{{ field.pk }}" value="Yes" id="yn_{{ field.pk }}_y" {% if field.is_required %}required{% endif %}>
+                  <label class="form-check-label small" for="yn_{{ field.pk }}_y">Yes</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="field_{{ field.pk }}" value="No" id="yn_{{ field.pk }}_n" {% if field.is_required %}required{% endif %}>
+                  <label class="form-check-label small" for="yn_{{ field.pk }}_n">No</label>
+                </div>
+              </div>
+
+              {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">This form has no questions yet.</div>
+            {% endfor %}
+
+            {% if fields %}
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-info text-dark fw-semibold">Submit</button>
+            </div>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+      <div class="text-center text-muted mt-4 small">Powered by BengalBound</div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

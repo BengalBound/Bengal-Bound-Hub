@@ -1,0 +1,38 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Purchase Orders — {{ biz.name }}{% endblock %}
+{% block page_title %}Purchase Orders{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'erp:purchase_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm {% if not status_filter %}active{% endif %}">All</a>
+        {% for val, label in statuses %}
+        <a href="?status={{ val }}" class="btn btn-hub-outline btn-sm {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    <a href="{% url 'erp:dashboard' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>ERP</a>
+</div>
+
+<div class="glass-panel p-0" style="overflow:hidden;">
+    <table class="table table-dark table-borderless mb-0" style="font-size:0.85rem;">
+        <thead><tr style="color:var(--hub-muted);border-bottom:1px solid var(--hub-border);">
+            <th class="px-4 py-3">PO Number</th><th>Vendor</th><th>Order Date</th><th>Expected</th><th>Status</th><th>Total</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% for po in pos %}
+        <tr style="border-bottom:1px solid var(--hub-border);">
+            <td class="px-4 fw-semibold" style="color:#38bdf8;">{{ po.po_number }}</td>
+            <td>{{ po.vendor.name }}</td>
+            <td style="color:var(--hub-muted);">{{ po.order_date }}</td>
+            <td style="color:var(--hub-muted);">{{ po.expected_date|default:"—" }}</td>
+            <td><span class="badge" style="font-size:0.7rem;background:{% if po.status == 'received' %}rgba(34,197,94,0.12);color:#22c55e;{% elif po.status == 'cancelled' %}rgba(239,68,68,0.12);color:#ef4444;{% elif po.status == 'partial' %}rgba(251,191,36,0.12);color:#fbbf24;{% else %}rgba(148,163,184,0.12);color:#94a3b8;{% endif %}">{{ po.get_status_display }}</span></td>
+            <td style="color:#22c55e;">${{ po.total|floatformat:2 }}</td>
+            <td class="pe-4"><a href="{% url 'erp:po_detail' slug=biz.slug po_id=po.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-white-50 py-5">No purchase orders found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

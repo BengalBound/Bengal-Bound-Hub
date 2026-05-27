@@ -1,0 +1,40 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New CAD Project — {{ biz.name }}{% endblock %}
+{% block page_title %}New CAD/CAM Project{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-6">
+<form method="post" action="{% url 'cadcam:project_create' slug=biz.slug %}">
+{% csrf_token %}
+<div class="glass-panel p-4 mb-4">
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">Project Name *</label>
+        <input type="text" name="name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">CAD/CAM Tool</label>
+        <select name="tool" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            {% for val, label in tools %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">Project Owner</label>
+        <select name="owner_id" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            <option value="">— None —</option>
+            {% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label text-white-50 small">Description</label>
+        <textarea name="description" rows="3" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+    </div>
+</div>
+<div class="d-flex gap-3">
+    <button type="submit" class="btn btn-hub-primary px-5">Create Project</button>
+    <a href="{% url 'cadcam:home' slug=biz.slug %}" class="btn btn-hub-outline px-4">Cancel</a>
+</div>
+</form>
+</div>
+</div>
+{% endblock %}

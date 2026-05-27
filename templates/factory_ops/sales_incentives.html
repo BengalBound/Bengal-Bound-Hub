@@ -1,0 +1,179 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Sales Incentives — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-cash-coin me-2" style="color:var(--hub-accent);"></i>Sales Incentives{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <select name="month" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:auto;">
+        {% for num, name in months %}<option value="{{ num }}" {% if num == period_month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <select name="year" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:auto;">
+        {% for yr in years %}<option value="{{ yr }}" {% if yr == period_year %}selected{% endif %}>{{ yr }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn btn-hub-primary btn-sm">Filter</button>
+    </form>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addForm"><i class="bi bi-plus-lg me-1"></i>Add Record</button>
+    <a href="{% url 'factory_ops:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+<!-- Summary Banner -->
+{% if incentives %}
+<div class="glass-panel p-3 mb-4">
+  <div class="row g-3 text-center">
+    <div class="col-6 col-md-3">
+      <div class="text-white-50 small">Records</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--hub-accent);">{{ incentives|length }}</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-white-50 small">Total Incentive Payout</div>
+      <div style="font-size:1.4rem;font-weight:700;color:#22c55e;">{{ total_incentive|floatformat:0 }} BDT</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-white-50 small">Approved</div>
+      <div style="font-size:1.4rem;font-weight:700;color:#38bdf8;">{% with incentives|length as total %}{{ incentives|length }}{% endwith %}</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="text-white-50 small">Period</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--hub-text);">{% for num, name in months %}{% if num == period_month %}{{ name }}{% endif %}{% endfor %} {{ period_year }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Add Form -->
+<div class="collapse mb-4" id="addForm">
+  <div class="glass-panel p-4">
+    <h6 class="mb-3" style="color:var(--hub-accent);">New Incentive Record</h6>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Sales Rep Name</label>
+          <input type="text" name="employee_name" class="form-control" required style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label text-white-50 small">Month</label>
+          <select name="period_month" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for num, name in months %}<option value="{{ num }}" {% if num == period_month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label text-white-50 small">Year</label>
+          <select name="period_year" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for yr in years %}<option value="{{ yr }}" {% if yr == period_year %}selected{% endif %}>{{ yr }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Notes</label>
+          <input type="text" name="notes" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+
+        <!-- Pairs sold -->
+        <div class="col-12"><div style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;padding-top:4px;">Pairs Sold Bonus</div></div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Pairs Sold</label>
+          <input type="number" name="pairs_sold" value="0" min="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Rate per Pair (BDT)</label>
+          <input type="number" name="rate_per_pair" value="0" step="0.5" min="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+
+        <!-- New accounts -->
+        <div class="col-12"><div style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;padding-top:4px;">New Accounts Bonus</div></div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">New Accounts</label>
+          <input type="number" name="new_accounts" value="0" min="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Bonus per Account (BDT)</label>
+          <input type="number" name="bonus_per_account" value="0" step="1" min="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+
+        <!-- Collection -->
+        <div class="col-12"><div style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;padding-top:4px;">Collection Bonus (paid if target met)</div></div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Collection Achieved (BDT)</label>
+          <input type="number" name="collection_achieved" value="0" step="1" min="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Collection Target (BDT)</label>
+          <input type="number" name="collection_target" value="0" step="1" min="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Bonus Rate (% of achieved)</label>
+          <input type="number" name="collection_bonus_rate" value="0" step="0.1" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-hub-primary mt-3">Save Record</button>
+    </form>
+  </div>
+</div>
+
+<!-- Records Table -->
+{% if incentives %}
+<div class="glass-panel p-0">
+  <table class="table table-dark table-hover mb-0" style="font-size:.82rem;">
+    <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+      <th>Rep</th><th>Pairs</th><th>Pairs Bonus</th><th>Accounts</th><th>Acct Bonus</th><th>Collection %</th><th>Coll. Bonus</th><th>Total</th><th>Status</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for inc in incentives %}
+      <tr style="border-color:var(--border);">
+        <td style="font-weight:600;color:var(--hub-text);">{{ inc.employee_name }}</td>
+        <td>{{ inc.pairs_sold }}</td>
+        <td style="color:#38bdf8;">{{ inc.pairs_incentive|floatformat:0 }}</td>
+        <td>{{ inc.new_accounts }}</td>
+        <td style="color:#38bdf8;">{{ inc.accounts_incentive|floatformat:0 }}</td>
+        <td>
+          <span style="color:{% if inc.collection_pct >= 100 %}#22c55e{% elif inc.collection_pct >= 80 %}#fbbf24{% else %}#f87171{% endif %};">{{ inc.collection_pct }}%</span>
+        </td>
+        <td style="color:#38bdf8;">{{ inc.collection_incentive|floatformat:0 }}</td>
+        <td><strong style="color:#22c55e;">{{ inc.total_incentive|floatformat:0 }} BDT</strong></td>
+        <td>
+          <span class="badge" style="font-size:.68rem;background:{% if inc.status == 'paid' %}rgba(34,197,94,0.15);color:#22c55e{% elif inc.status == 'approved' %}rgba(56,189,248,0.15);color:#38bdf8{% else %}rgba(255,255,255,0.08);color:var(--hub-muted){% endif %};">{{ inc.get_status_display }}</span>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            {% if inc.status == 'draft' %}
+            <form method="post" class="d-inline">{% csrf_token %}
+              <input type="hidden" name="action" value="approve"><input type="hidden" name="pk" value="{{ inc.pk }}">
+              <button type="submit" class="btn btn-sm" style="background:rgba(56,189,248,0.1);border-color:rgba(56,189,248,0.3);color:#38bdf8;font-size:.7rem;">Approve</button>
+            </form>
+            {% elif inc.status == 'approved' %}
+            <form method="post" class="d-inline">{% csrf_token %}
+              <input type="hidden" name="action" value="mark_paid"><input type="hidden" name="pk" value="{{ inc.pk }}">
+              <button type="submit" class="btn btn-sm" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:#22c55e;font-size:.7rem;">Mark Paid</button>
+            </form>
+            {% endif %}
+            <form method="post" class="d-inline" onsubmit="return confirm('Delete?')">{% csrf_token %}
+              <input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ inc.pk }}">
+              <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.25);color:#f87171;font-size:.7rem;"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr style="border-color:var(--border);border-top:2px solid var(--border);">
+        <td colspan="7" class="text-white-50 small">Period Total</td>
+        <td colspan="3"><strong style="color:#22c55e;">{{ total_incentive|floatformat:0 }} BDT</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center text-white-50">
+  <i class="bi bi-cash-coin" style="font-size:2rem;opacity:.3;"></i>
+  <p class="mt-2 mb-0">No incentive records for this period.</p>
+</div>
+{% endif %}
+{% endblock %}

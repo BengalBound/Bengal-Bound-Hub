@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Affiliate Portal | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block">Affiliate Program</span>
+            <h1 class="display-5 fw-bold font-outfit">Earn by <span class="text-gradient-orange-gold">Referring Clients</span></h1>
+            <p class="lead text-white-50 w-75 mx-auto">Join BengalBound's affiliate program and earn a commission for every client you bring on board. Automated tracking. Crypto or bank payouts.</p>
+        </div>
+
+        {% if affiliate_profile %}
+        <!-- Affiliate Dashboard Card -->
+        <div class="row justify-content-center">
+            <div class="col-md-8 fade-up delay-100">
+                <div class="bento-card glow-hover-orange p-5">
+                    <h4 class="fw-bold font-outfit mb-4"><i class="bi bi-person-check-fill text-gradient-orange-gold me-2"></i> Your Affiliate Dashboard</h4>
+                    <div class="row g-4 text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                                <div class="h3 fw-bold text-gradient-purple-cyan">${{ affiliate_profile.commission_balance|floatformat:2 }}</div>
+                                <div class="text-white-50 small">Available Balance</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                                <div class="h3 fw-bold text-success">${{ affiliate_profile.total_earned|floatformat:2 }}</div>
+                                <div class="text-white-50 small">Total Earned</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                                <div class="h3 fw-bold text-gradient-orange-gold">{{ affiliate_profile.affiliate_code }}</div>
+                                <div class="text-white-50 small">Your Code</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Your Referral Link</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control-premium" value="http://localhost:1234/?ref={{ affiliate_profile.affiliate_code }}" readonly id="refLink" style="border-top-right-radius: 0; border-bottom-right-radius: 0; flex: 1;">
+                            <button class="btn btn-premium" style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0 1.5rem;" onclick="navigator.clipboard.writeText(document.getElementById('refLink').value)"><i class="bi bi-clipboard"></i> Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Affiliate Benefits + Sign-up Prompt -->
+        <div class="row g-4 mb-5 justify-content-center">
+            <div class="col-md-4 fade-up delay-100">
+                <div class="bento-card glow-hover-orange p-4 text-center h-100">
+                    <div class="icon-box-orange mx-auto mb-4">
+                        <i class="bi bi-graph-up-arrow fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Up to 25% Commission</h5>
+                    <p class="text-white-50 small mb-0">Earn on every client subscription you bring in through your referral link.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up delay-200">
+                <div class="bento-card glow-hover-cyan p-4 text-center h-100">
+                    <div class="icon-box-cyan mx-auto mb-4">
+                        <i class="bi bi-shield-check fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Automated Tracking</h5>
+                    <p class="text-white-50 small mb-0">Our system automatically attributes signups to your affiliate code. No manual work.</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up delay-300">
+                <div class="bento-card glow-hover-purple p-4 text-center h-100">
+                    <div class="icon-box-purple mx-auto mb-4">
+                        <i class="bi bi-currency-bitcoin fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Crypto or Bank Payout</h5>
+                    <p class="text-white-50 small mb-0">Withdraw earnings via NowPayments crypto transfer or international bank transfer.</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center fade-up delay-400">
+            <p class="text-white-50 mb-4">Ready to start earning? Sign up or log into your console account and request affiliate access.</p>
+            <a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://console.localhost:1234/"
+                class="btn btn-premium px-5 py-3 fs-5 shadow-glow" style="background: linear-gradient(135deg, var(--bb-accent-orange), var(--bb-accent-gold));">
+                <i class="bi bi-rocket-takeoff me-2"></i> Join the Affiliate Program
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

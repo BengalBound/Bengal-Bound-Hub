@@ -1,0 +1,18 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Order Management — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-cart3 me-2" style="color:var(--hub-accent);"></i>Order Management{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ pending_pos|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Pending POs</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_vendors|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Vendors</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ received_this_month|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Received This Month</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Procurement Tools</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'order_mgmt:purchase_orders' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-file-text me-1"></i>Purchase Orders</a>
+    <a href="{% url 'order_mgmt:vendors' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-shop me-1"></i>Vendors</a>
+  </div>
+</div>
+{% endblock %}

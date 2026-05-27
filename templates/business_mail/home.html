@@ -1,0 +1,78 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Business Mail | {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-envelope me-2" style="color:var(--hub-accent);"></i>Business Mail{% endblock %}
+
+{% block content %}
+{% if my_account %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div class="glass-panel p-3 d-flex align-items-center gap-3" style="border-color:rgba(192,132,252,0.3);">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.3),rgba(56,189,248,0.3));display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+            <i class="bi bi-person-circle" style="color:var(--hub-accent);"></i>
+        </div>
+        <div>
+            <div class="fw-semibold">{{ my_account.display_name|default:my_account.address }}</div>
+            <div class="text-white-50 small">{{ my_account.address }}</div>
+        </div>
+        <a href="{% url 'business_mail:mail_inbox' slug=biz.slug account_id=my_account.pk %}" class="btn btn-hub-primary btn-sm ms-3">
+            <i class="bi bi-inbox me-1"></i>Open Inbox
+        </a>
+        <a href="{% url 'business_mail:mail_compose' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+            <i class="bi bi-pencil-square me-1"></i>Compose
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="glass-panel p-4 h-100">
+            <div class="fw-semibold mb-3">Quick Actions</div>
+            <div class="d-flex flex-column gap-2">
+                <a href="{% url 'business_mail:mail_compose' slug=biz.slug %}" class="btn btn-hub-primary">
+                    <i class="bi bi-pencil-square me-2"></i>Compose Email
+                </a>
+                {% if my_account %}
+                <a href="{% url 'business_mail:mail_inbox' slug=biz.slug account_id=my_account.pk %}" class="btn btn-hub-outline">
+                    <i class="bi bi-inbox me-2"></i>My Inbox
+                </a>
+                <a href="{% url 'business_mail:mail_inbox' slug=biz.slug account_id=my_account.pk %}?folder=sent" class="btn btn-hub-outline">
+                    <i class="bi bi-send me-2"></i>Sent
+                </a>
+                <a href="{% url 'business_mail:mail_inbox' slug=biz.slug account_id=my_account.pk %}?folder=drafts" class="btn btn-hub-outline">
+                    <i class="bi bi-file-earmark me-2"></i>Drafts
+                </a>
+                {% endif %}
+                <a href="{% url 'business_mail:mail_account_manage' slug=biz.slug %}" class="btn btn-hub-outline">
+                    <i class="bi bi-gear me-2"></i>Manage Accounts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Accounts -->
+    <div class="col-md-8">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Business Mail Accounts</div>
+            {% if accounts %}
+            <div class="d-flex flex-column gap-2">
+            {% for acc in accounts %}
+            <div class="d-flex align-items-center justify-content-between p-2" style="border-radius:8px;background:rgba(255,255,255,0.03);">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-envelope-at" style="color:var(--hub-accent);font-size:1.1rem;"></i>
+                    <div>
+                        <div class="fw-semibold small">{{ acc.display_name|default:acc.address }}</div>
+                        <div class="text-white-50" style="font-size:0.72rem;">{{ acc.address }}{% if acc.assigned_to %} · {{ acc.assigned_to.get_full_name|default:acc.assigned_to.email }}{% endif %}</div>
+                    </div>
+                </div>
+                <a href="{% url 'business_mail:mail_inbox' slug=biz.slug account_id=acc.pk %}" class="btn btn-hub-outline btn-sm">Open</a>
+            </div>
+            {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-white-50 small">No mail accounts set up yet. <a href="{% url 'business_mail:mail_account_manage' slug=biz.slug %}" style="color:var(--hub-accent);">Create one</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

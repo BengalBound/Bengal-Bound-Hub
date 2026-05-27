@@ -1,0 +1,95 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}{{ meeting.title }} | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'video_meet:meet_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>{{ meeting.title }}</span>
+    <span class="badge" style="background:{% if meeting.status == 'scheduled' %}rgba(56,189,248,0.15);color:#38bdf8{% elif meeting.status == 'ongoing' %}rgba(34,197,94,0.15);color:#22c55e{% else %}rgba(248,113,113,0.15);color:#f87171{% endif %};font-size:0.7rem;">{{ meeting.get_status_display }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-panel p-4 mb-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-white-50 small mb-1"><i class="bi bi-calendar me-1"></i>Start</div>
+                    <div class="fw-semibold">{{ meeting.start_time|date:"F d, Y H:i" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-white-50 small mb-1"><i class="bi bi-clock me-1"></i>End</div>
+                    <div class="fw-semibold">{{ meeting.end_time|date:"H:i" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-white-50 small mb-1"><i class="bi bi-person me-1"></i>Organizer</div>
+                    <div>{{ meeting.organizer.get_full_name|default:meeting.organizer.email }}</div>
+                </div>
+                {% if meeting.room %}
+                <div class="col-md-6">
+                    <div class="text-white-50 small mb-1"><i class="bi bi-door-open me-1"></i>Room</div>
+                    <div>{{ meeting.room.name }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% if meeting.description %}
+            <hr style="border-color:var(--hub-border);">
+            <p class="text-white-50 mb-0" style="font-size:0.88rem;">{{ meeting.description }}</p>
+            {% endif %}
+        </div>
+
+        {% with effective_url=meeting.room.meet_url|default:meeting.meeting_url %}
+        {% if effective_url and meeting.status == 'scheduled' %}
+        <div class="glass-panel p-4 mb-3" style="border-color:rgba(56,189,248,0.3);">
+            <div class="fw-semibold mb-2"><i class="bi bi-camera-video me-2" style="color:#38bdf8;"></i>Join Meeting</div>
+            <a href="{{ effective_url }}" target="_blank" class="btn btn-hub-primary">
+                <i class="bi bi-camera-video me-1"></i>Launch Video Call
+            </a>
+            <div class="text-white-50 small mt-2">{{ effective_url }}</div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if meeting.organizer == request.user and meeting.status == 'scheduled' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel">
+            <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;"
+                    onclick="return confirm('Cancel this meeting?')">
+                <i class="bi bi-x-circle me-1"></i>Cancel Meeting
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Attendees ({{ attendees.count }})</div>
+            <div class="d-flex flex-column gap-2">
+            {% for att in attendees %}
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="small">{{ att.user.get_full_name|default:att.user.email }}</div>
+                <span class="badge" style="font-size:0.65rem;
+                    {% if att.status == 'accepted' %}background:rgba(34,197,94,0.15);color:#22c55e;
+                    {% elif att.status == 'declined' %}background:rgba(248,113,113,0.15);color:#f87171;
+                    {% else %}background:rgba(251,191,36,0.15);color:#fbbf24;{% endif %}">
+                    {{ att.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+            </div>
+
+            {% if my_rsvp and meeting.status == 'scheduled' %}
+            <hr style="border-color:var(--hub-border);margin:1rem 0;">
+            <div class="fw-semibold small mb-2">Your RSVP</div>
+            <form method="post" class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="rsvp">
+                <button name="status" value="accepted" type="submit" class="btn btn-sm flex-grow-1" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">Accept</button>
+                <button name="status" value="declined" type="submit" class="btn btn-sm flex-grow-1" style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);">Decline</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

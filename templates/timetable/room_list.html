@@ -1,0 +1,82 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Rooms — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-door-open me-2 text-info"></i>Rooms & Facilities</h4>
+  {% if access_level >= 3 %}
+  <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addRoomModal"><i class="bi bi-plus-lg me-1"></i>Add Room</button>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  {% for room in rooms %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ room.name }}</span>
+        <div class="d-flex gap-1 align-items-center">
+          <span class="badge bg-secondary">{{ room.get_room_type_display }}</span>
+          {% if access_level >= 3 %}
+          <form method="post" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_room">
+            <input type="hidden" name="room_id" value="{{ room.pk }}">
+            <button type="submit" class="btn btn-sm btn-link {% if room.is_active %}text-success{% else %}text-muted{% endif %} p-0 ms-1" title="{% if room.is_active %}Active — click to deactivate{% else %}Inactive — click to activate{% endif %}">
+              <i class="bi bi-toggle-{% if room.is_active %}on{% else %}off{% endif %} fs-5"></i>
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body small">
+        <div class="row g-1">
+          {% if room.capacity %}<div class="col-6 text-muted">Capacity</div><div class="col-6">{{ room.capacity }} seats</div>{% endif %}
+          {% if room.building %}<div class="col-6 text-muted">Building</div><div class="col-6">{{ room.building }}</div>{% endif %}
+          {% if room.floor %}<div class="col-6 text-muted">Floor</div><div class="col-6">{{ room.floor }}</div>{% endif %}
+          <div class="col-6 text-muted">Status</div><div class="col-6">{% if room.is_active %}<span class="text-success">Active</span>{% else %}<span class="text-muted">Inactive</span>{% endif %}</div>
+        </div>
+        {% if room.equipment %}<div class="mt-2 text-muted pt-2 border-top border-secondary">{{ room.equipment }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-door-closed display-3 mb-3 d-block"></i>No rooms configured yet
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addRoomModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Room / Facility</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_room">
+        <div class="modal-body row g-2">
+          <div class="col-8"><label class="form-label small">Room Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-4"><label class="form-label small">Type</label>
+            <select name="room_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in room_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-4"><label class="form-label small">Capacity</label><input type="number" name="capacity" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-4"><label class="form-label small">Building</label><input type="text" name="building" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-4"><label class="form-label small">Floor</label><input type="text" name="floor" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Equipment / Notes</label><textarea name="equipment" rows="2" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Projector, Whiteboard, 30 PCs"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

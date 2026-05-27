@@ -1,0 +1,108 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Business Hub | BengalBound{% endblock %}
+{% block page_title %}Business Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+  .biz-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; text-decoration: none; color: var(--hub-text); transition: all 0.18s; display: flex; flex-direction: column; gap: 0.75rem; }
+  .biz-card:hover { border-color: rgba(192,132,252,0.35); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.3); color: var(--hub-text); }
+  .biz-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(192,132,252,0.18), rgba(56,189,248,0.12)); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .biz-badge { font-size: 0.62rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block hub_content %}
+
+<div class="text-center pt-3 pb-4 mb-2">
+  <h3 class="fw-bold mb-2" style="font-family:'Outfit',sans-serif;background:linear-gradient(135deg,#c084fc,#818cf8,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+    Your Business Hub
+  </h3>
+  <p style="color:var(--hub-muted);max-width:480px;margin:0 auto;font-size:0.88rem;">
+    Manage your entire back office — modules, team, and operations, all in one connected system.
+  </p>
+</div>
+
+{% if owned_businesses %}
+<div class="mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--hub-muted);font-weight:700;margin-bottom:0;">Your Businesses</h6>
+    <a href="{% url 'hub:hub_create' %}" class="btn btn-hub-primary btn-sm px-3" style="font-size:0.78rem;">
+      <i class="bi bi-plus me-1"></i>New Business
+    </a>
+  </div>
+  <div class="row g-3">
+    {% for biz in owned_businesses %}
+    <div class="col-sm-6 col-lg-4">
+      <a href="{% url 'hub:hub_dashboard' slug=biz.slug %}" class="biz-card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="biz-icon">
+            {% if biz.logo %}<img src="{{ biz.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="">
+            {% else %}<i class="bi {{ biz.get_icon }}"></i>{% endif %}
+          </div>
+          <div class="overflow-hidden">
+            <div class="fw-bold text-truncate" style="font-size:0.9rem;">{{ biz.name }}</div>
+            <div style="font-size:0.7rem;color:var(--hub-muted);">{{ biz.get_business_type_display }}</div>
+          </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          {% if biz.installation_type == 'cloud' %}
+          <span class="biz-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2);"><i class="bi bi-cloud-fill me-1"></i>Cloud</span>
+          {% elif biz.installation_type == 'ip_locked' %}
+          <span class="biz-badge" style="background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.2);"><i class="bi bi-shield-lock-fill me-1"></i>IP Locked</span>
+          {% else %}
+          <span class="biz-badge" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-server me-1"></i>Self-Hosted</span>
+          {% endif %}
+          <span class="biz-badge" style="background:rgba(255,255,255,0.05);color:var(--hub-muted);border:1px solid var(--border);">Owner</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-end">
+          <span style="font-size:0.72rem;color:var(--hub-muted);">Enter workspace <i class="bi bi-arrow-right ms-1"></i></span>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if employed_businesses %}
+<div class="mb-4">
+  <h6 class="mb-3" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--hub-muted);font-weight:700;">Member Of</h6>
+  <div class="row g-3">
+    {% for biz in employed_businesses %}
+    <div class="col-sm-6 col-lg-4">
+      <a href="{% url 'hub:hub_dashboard' slug=biz.slug %}" class="biz-card" style="border-color:rgba(56,189,248,0.15);">
+        <div class="d-flex align-items-center gap-3">
+          <div class="biz-icon" style="background:linear-gradient(135deg,rgba(56,189,248,0.15),rgba(16,185,129,0.1));">
+            {% if biz.logo %}<img src="{{ biz.logo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="">
+            {% else %}<i class="bi {{ biz.get_icon }}"></i>{% endif %}
+          </div>
+          <div class="overflow-hidden">
+            <div class="fw-bold text-truncate" style="font-size:0.9rem;">{{ biz.name }}</div>
+            <div style="font-size:0.7rem;color:var(--hub-muted);">{{ biz.get_business_type_display }}</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="biz-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2);"><i class="bi bi-person-badge me-1"></i>Employee</span>
+          <span style="font-size:0.72rem;color:var(--hub-muted);">Open portal <i class="bi bi-arrow-right ms-1"></i></span>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if not owned_businesses and not employed_businesses %}
+<div class="text-center py-5">
+  <div style="font-size:3rem;margin-bottom:1.25rem;opacity:0.25;"><i class="bi bi-building"></i></div>
+  <h5 class="fw-bold mb-2">No businesses yet</h5>
+  <p style="color:var(--hub-muted);font-size:0.88rem;max-width:360px;margin:0 auto 1.5rem;">
+    Create your first business hub and build your connected backoffice — operations, finance, HR and more.
+  </p>
+  <a href="{% url 'hub:hub_create' %}" class="btn btn-hub-primary px-5">
+    <i class="bi bi-plus-circle me-2"></i>Create Your Business
+  </a>
+</div>
+{% endif %}
+
+{% endblock hub_content %}

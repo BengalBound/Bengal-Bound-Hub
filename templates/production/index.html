@@ -1,0 +1,19 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Production — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-cpu me-2" style="color:var(--hub-accent);"></i>Production{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_orders|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Mfg Orders</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ in_progress|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">In Progress</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ completed|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Completed</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ planned|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Planned</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Production Operations</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'production:manufacturing_orders' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-cpu me-1"></i>Manufacturing Orders</a>
+    <a href="{% url 'production:kpi_dashboard' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-graph-up me-1"></i>KPI Dashboard</a>
+  </div>
+</div>
+{% endblock %}

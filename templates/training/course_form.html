@@ -1,0 +1,24 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if course %}Edit Course{% else %}New Course{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-book me-2" style="color:var(--hub-accent);"></i>{% if course %}Edit Course{% else %}New Course{% endif %}{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4" style="max-width:680px;">
+  <form method="post">{% csrf_token %}
+    <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Course Title</label><input name="title" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="{{ course.title|default:'' }}" required></div>
+    <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Description</label><textarea name="description" rows="4" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ course.description|default:'' }}</textarea></div>
+    <div class="row g-3 mb-3">
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Duration (hours)</label><input type="number" name="duration_hours" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="{{ course.duration_hours|default:'' }}"></div>
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Category</label><input name="category" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="{{ course.category|default:'' }}"></div>
+    </div>
+    <div class="mb-4 form-check">
+      <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if course.is_active %}checked{% endif %}>
+      <label class="form-check-label" for="isActive" style="color:var(--hub-muted);">Active</label>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-hub-primary btn-sm">{% if course %}Update{% else %}Create{% endif %} Course</button>
+      <a href="{% url 'training:course_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Planogram & Space Planning — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-grid-3x2-gap me-2 text-info"></i>Planogram & Space Planning</h4>
+  {% if access_level >= 3 %}
+  <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#createLayoutModal"><i class="bi bi-plus-lg me-1"></i>New Layout</button>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ layouts.count }}</div>
+      <div class="small text-muted mt-1">Store Layouts</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ total_slots }}</div>
+      <div class="small text-muted mt-1">Product Slots</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-danger text-center p-3">
+      <div class="display-6 fw-bold {% if reorder_count > 0 %}text-danger{% else %}text-muted{% endif %}">{{ reorder_count }}</div>
+      <div class="small text-muted mt-1">Reorder Alerts</div>
+    </div>
+  </div>
+</div>
+
+{% if reorder_count > 0 %}
+<div class="alert py-2 px-3 mb-4" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3)">
+  <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+  <span class="text-danger fw-semibold">{{ reorder_count }} product slot{{ reorder_count|pluralize }} need reordering.</span>
+  <span class="text-muted small ms-1">Check individual layouts for details.</span>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  {% for layout in layouts %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ layout.name }}</span>
+        {% if not layout.is_active %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+      </div>
+      <div class="card-body small">
+        {% if layout.store_location %}<div class="text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>{{ layout.store_location }}</div>{% endif %}
+        <div class="row g-1 mt-1">
+          <div class="col-6 text-muted">Sections</div><div class="col-6">{{ layout.section_count }}</div>
+          <div class="col-6 text-muted">Product Slots</div><div class="col-6">{{ layout.slot_count }}</div>
+        </div>
+        {% if layout.description %}<div class="mt-2 text-muted pt-2 border-top border-secondary">{{ layout.description }}</div>{% endif %}
+      </div>
+      <div class="card-footer bg-transparent border-secondary d-flex gap-2">
+        <a href="{% url 'planogram:layout_detail' slug=biz.slug layout_id=layout.pk %}" class="btn btn-sm btn-outline-info flex-grow-1">Open Layout</a>
+        {% if access_level >= 3 %}
+        <form method="post" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="toggle_layout">
+          <input type="hidden" name="layout_id" value="{{ layout.pk }}">
+          <button type="submit" class="btn btn-sm btn-link {% if layout.is_active %}text-success{% else %}text-muted{% endif %} p-0">
+            <i class="bi bi-toggle-{% if layout.is_active %}on{% else %}off{% endif %} fs-5"></i>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-grid-3x2-gap display-3 mb-3 d-block"></i>No store layouts yet. Create one to map your shelf space.
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="createLayoutModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Create Store Layout</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_layout">
+        <div class="modal-body row g-2">
+          <div class="col-8"><label class="form-label small">Layout Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Main Floor, Warehouse A" required></div>
+          <div class="col-4"><label class="form-label small">Store / Location</label><input type="text" name="store_location" class="form-control bg-dark text-white border-secondary" placeholder="Branch name"></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

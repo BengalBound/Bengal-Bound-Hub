@@ -1,0 +1,328 @@
+{% extends 'console_admin/base_console.html' %}
+{% block title %}Connect Your Social Accounts | BengalBound{% endblock %}
+{% block page_title %}Connect Your Social Accounts{% endblock %}
+{% block page_subtitle %}Connect your accounts below and Serea will start working on them right away — no technical setup needed.{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+<div class="mb-4">
+  {% for msg in messages %}
+  <div class="alert alert-{% if 'success' in msg.tags %}success bg-success{% elif 'error' in msg.tags %}danger bg-danger{% else %}warning bg-warning{% endif %} bg-opacity-15 border-0 rounded-3 small py-2 px-3">
+    {% if 'success' in msg.tags %}<i class="bi bi-check-circle me-2"></i>
+    {% elif 'error' in msg.tags %}<i class="bi bi-exclamation-circle me-2"></i>
+    {% else %}<i class="bi bi-info-circle me-2"></i>{% endif %}
+    {{ msg }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FACEBOOK + INSTAGRAM  (connected together via one Facebook login)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="glass-panel p-4 mb-4">
+  <div class="row align-items-center g-4">
+
+    <!-- Icons -->
+    <div class="col-auto d-none d-sm-block">
+      <div class="position-relative" style="width:56px;height:56px;">
+        <div class="rounded-circle d-flex align-items-center justify-content-center position-absolute top-0 start-0"
+             style="width:44px;height:44px;background:#1877f2;z-index:2;box-shadow:0 0 0 2px #0f172a;">
+          <i class="bi bi-facebook text-white" style="font-size:1.2rem;"></i>
+        </div>
+        <div class="rounded-circle d-flex align-items-center justify-content-center position-absolute bottom-0 end-0"
+             style="width:36px;height:36px;background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af);z-index:1;box-shadow:0 0 0 2px #0f172a;">
+          <i class="bi bi-instagram text-white" style="font-size:0.9rem;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="col">
+      <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+        <span class="fw-bold text-white">Facebook &amp; Instagram</span>
+        {% if facebook_account %}
+          <span class="badge rounded-pill bg-success bg-opacity-15 text-success small">
+            <i class="bi bi-circle-fill me-1" style="font-size:.4rem;vertical-align:middle;"></i>Connected
+          </span>
+        {% endif %}
+      </div>
+      {% if facebook_account %}
+        <div class="d-flex align-items-center gap-3 flex-wrap" style="font-size:.82rem;">
+          <span style="color:rgba(255,255,255,0.6);">
+            <i class="bi bi-facebook me-1" style="color:#1877f2;"></i>
+            <strong class="text-white">{{ facebook_account.account_name }}</strong>
+          </span>
+          {% if instagram_account %}
+          <span style="color:rgba(255,255,255,0.6);">
+            <i class="bi bi-instagram me-1" style="color:#dd2a7b;"></i>
+            <strong class="text-white">@{{ instagram_account.account_name }}</strong>
+            <span class="badge rounded-pill ms-1" style="background:rgba(221,42,123,0.15);color:#dd2a7b;font-size:.65rem;">auto-detected</span>
+          </span>
+          {% else %}
+          <span class="text-white-50 small">
+            <i class="bi bi-info-circle me-1"></i>No linked Instagram found on this Page
+          </span>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="text-white-50 small mb-0">
+          One click connects both. Serea will moderate comments, reply to DMs, and post on your behalf.
+          If your Facebook Page has a linked Instagram Business account it gets connected too — automatically.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- Action -->
+    <div class="col-12 col-sm-auto d-flex flex-column gap-2">
+      {% if facebook_account %}
+        <a href="{% url 'console_admin:serea_fb_connect' %}"
+           class="btn btn-sm rounded-pill fw-semibold px-4"
+           style="background:#1877f2;color:#fff;min-width:160px;">
+          <i class="bi bi-arrow-clockwise me-1"></i>Reconnect
+        </a>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="disconnect">
+          <input type="hidden" name="platform" value="facebook">
+          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill w-100"
+                  onclick="return confirm('Disconnect Facebook and Instagram? Serea will lose access.')">
+            <i class="bi bi-x-circle me-1"></i>Disconnect
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'console_admin:serea_fb_connect' %}"
+           class="btn rounded-pill fw-semibold px-5 py-2"
+           style="background:#1877f2;color:#fff;font-size:.95rem;box-shadow:0 4px 20px rgba(24,119,242,0.4);">
+          <i class="bi bi-facebook me-2"></i>Connect with Facebook
+        </a>
+        <div class="text-center">
+          <button class="btn btn-link p-0" style="color:rgba(255,255,255,0.25);font-size:.7rem;"
+                  data-bs-toggle="collapse" data-bs-target="#fbManualCollapse">
+            Enter credentials manually
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Instagram disconnect (shown separately only when connected without Facebook) -->
+  {% if instagram_account and not facebook_account %}
+  <hr style="border-color:rgba(255,255,255,0.08);" class="my-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <span class="small text-white-50"><i class="bi bi-instagram me-1" style="color:#dd2a7b;"></i>@{{ instagram_account.account_name }} still connected</span>
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="disconnect">
+      <input type="hidden" name="platform" value="instagram">
+      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size:.75rem;">Disconnect Instagram</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Manual fallback (collapsed, for power users) -->
+  <div class="collapse mt-3" id="fbManualCollapse">
+    <div class="p-3 rounded-3" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
+      <p class="text-white-50 small mb-3"><i class="bi bi-wrench me-1"></i>Manual setup — only if you have an existing access token.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="connect">
+        <input type="hidden" name="platform" value="facebook">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <input type="text" name="account_name" class="form-control form-control-sm" placeholder="Page name" required
+                   style="background:#1e293b;border-color:rgba(255,255,255,0.12);color:#f1f5f9;">
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="account_id" class="form-control form-control-sm" placeholder="Page ID" required
+                   style="background:#1e293b;border-color:rgba(255,255,255,0.12);color:#f1f5f9;">
+          </div>
+          <div class="col-12">
+            <input type="password" name="access_token" class="form-control form-control-sm" placeholder="Page access token" required
+                   style="background:#1e293b;border-color:rgba(255,255,255,0.12);color:#f1f5f9;">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-4">Save manually</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     LINKEDIN
+═══════════════════════════════════════════════════════════════════ -->
+<div class="glass-panel p-4 mb-4">
+  <div class="row align-items-center g-4">
+
+    <!-- Icon -->
+    <div class="col-auto d-none d-sm-block">
+      <div class="rounded-circle d-flex align-items-center justify-content-center"
+           style="width:52px;height:52px;background:#0a66c2;">
+        <i class="bi bi-linkedin text-white" style="font-size:1.4rem;"></i>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="col">
+      <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+        <span class="fw-bold text-white">LinkedIn</span>
+        {% if linkedin_account %}
+          <span class="badge rounded-pill bg-success bg-opacity-15 text-success small">
+            <i class="bi bi-circle-fill me-1" style="font-size:.4rem;vertical-align:middle;"></i>Connected
+          </span>
+        {% endif %}
+      </div>
+      {% if linkedin_account %}
+        <div style="font-size:.82rem;color:rgba(255,255,255,0.6);">
+          <i class="bi bi-building me-1" style="color:#0a66c2;"></i>
+          <strong class="text-white">{{ linkedin_account.account_name }}</strong>
+        </div>
+      {% else %}
+        <p class="text-white-50 small mb-0">
+          Connect your LinkedIn Company Page so Serea can manage posts, moderate comments, and handle professional engagement.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- Action -->
+    <div class="col-12 col-sm-auto d-flex flex-column gap-2">
+      {% if linkedin_account %}
+        <button class="btn btn-sm rounded-pill fw-semibold px-4"
+                style="background:#0a66c2;color:#fff;min-width:160px;"
+                data-bs-toggle="modal" data-bs-target="#linkedinModal">
+          <i class="bi bi-pencil me-1"></i>Update Connection
+        </button>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="disconnect">
+          <input type="hidden" name="platform" value="linkedin">
+          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill w-100"
+                  onclick="return confirm('Disconnect LinkedIn? Serea will lose access.')">
+            <i class="bi bi-x-circle me-1"></i>Disconnect
+          </button>
+        </form>
+      {% else %}
+        <button class="btn rounded-pill fw-semibold px-5 py-2"
+                style="background:#0a66c2;color:#fff;font-size:.95rem;box-shadow:0 4px 20px rgba(10,102,194,0.4);"
+                data-bs-toggle="modal" data-bs-target="#linkedinModal">
+          <i class="bi bi-linkedin me-2"></i>Connect LinkedIn
+        </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     HOW IT WORKS (3 steps)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="glass-panel p-4">
+  <div class="fw-semibold mb-3 small text-white-50 text-uppercase" style="letter-spacing:.05em;">Once connected, Serea will</div>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="d-flex gap-3 align-items-start">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:36px;height:36px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);">
+          <i class="bi bi-shield-check" style="color:#10b981;"></i>
+        </div>
+        <div>
+          <div class="fw-semibold small text-white mb-1">Moderate in real time</div>
+          <div class="text-white-50" style="font-size:.78rem;">Delete spam, hide abuse, and reply to genuine comments — automatically, 24/7.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="d-flex gap-3 align-items-start">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:36px;height:36px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);">
+          <i class="bi bi-chat-dots" style="color:#3b82f6;"></i>
+        </div>
+        <div>
+          <div class="fw-semibold small text-white mb-1">Handle DMs &amp; enquiries</div>
+          <div class="text-white-50" style="font-size:.78rem;">Answer customer questions, handle complaints, and follow up on leads using your business knowledge.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="d-flex gap-3 align-items-start">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:36px;height:36px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);">
+          <i class="bi bi-graph-up" style="color:#f59e0b;"></i>
+        </div>
+        <div>
+          <div class="fw-semibold small text-white mb-1">Report &amp; brief you daily</div>
+          <div class="text-white-50" style="font-size:.78rem;">Send you a daily summary of what happened, what she did, and anything that needs your attention.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════
+     LINKEDIN CONNECT MODAL  (simplified — plain English)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="linkedinModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4" style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);">
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:36px;height:36px;background:#0a66c2;">
+            <i class="bi bi-linkedin text-white small"></i>
+          </div>
+          <h5 class="modal-title fw-bold mb-0">Connect LinkedIn</h5>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <p class="text-white-50 small mb-4">
+          You'll need a LinkedIn access token for your Company Page.
+          <a href="https://www.linkedin.com/developers/apps" target="_blank" class="text-info">Get one from the LinkedIn Developer Portal →</a>
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="connect">
+          <input type="hidden" name="platform" value="linkedin">
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-white-50">Company Page Name</label>
+            <input type="text" name="account_name" class="form-control"
+                   placeholder="e.g. BengalBound" required
+                   style="background:#1e293b;border-color:rgba(255,255,255,0.12);color:#f1f5f9;">
+            <div class="form-text text-white-50" style="font-size:.72rem;">The name of your LinkedIn Company Page.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-white-50">Company Page ID</label>
+            <input type="text" name="account_id" class="form-control"
+                   placeholder="e.g. 12345678" required
+                   style="background:#1e293b;border-color:rgba(255,255,255,0.12);color:#f1f5f9;">
+            <div class="form-text text-white-50" style="font-size:.72rem;">
+              Find this in your LinkedIn Company Page URL: linkedin.com/company/<strong style="color:#38bdf8;">12345678</strong>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold text-white-50">Access Token</label>
+            <input type="password" name="access_token" class="form-control"
+                   placeholder="••••••••••••••••••••" required
+                   style="background:#1e293b;border-color:rgba(255,255,255,0.12);color:#f1f5f9;">
+            <div class="form-text text-white-50" style="font-size:.72rem;"><i class="bi bi-shield-lock me-1"></i>Stored securely. Never shared.</div>
+          </div>
+
+          <button type="submit" class="btn w-100 rounded-pill fw-semibold py-2"
+                  style="background:#0a66c2;color:#fff;">
+            <i class="bi bi-check2-circle me-2"></i>Connect LinkedIn
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

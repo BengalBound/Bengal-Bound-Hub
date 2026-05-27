@@ -1,0 +1,72 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Delivery Orders — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-truck me-2" style="color:var(--hub-accent);"></i>Delivery Orders{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex gap-2">
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Pending</a>
+    <a href="?status=in_transit" class="btn btn-sm {% if status_filter == 'in_transit' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">In Transit</a>
+    <a href="?status=delivered" class="btn btn-sm {% if status_filter == 'delivered' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Delivered</a>
+  </div>
+  <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newOrderModal"><i class="bi bi-plus-lg me-1"></i>New Order</button>
+</div>
+<div class="glass-panel p-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Order #</th><th>Deliver To</th><th>Address</th><th>Driver</th><th>Scheduled</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td style="color:var(--hub-accent);font-size:.8rem;">DEL-{{ order.order_number }}</td>
+          <td style="color:var(--hub-text);">{{ order.delivery_contact|default:"—" }}</td>
+          <td style="color:var(--hub-muted);">{{ order.delivery_address|truncatechars:30 }}</td>
+          <td style="color:var(--hub-muted);">{{ order.driver.name|default:"Unassigned" }}</td>
+          <td style="color:var(--hub-muted);">{{ order.scheduled_date }}</td>
+          <td><span class="badge" style="background:{% if order.priority == 'express' %}#f8717120{% elif order.priority == 'high' %}#fbbf2420{% else %}#64748b20{% endif %};color:{% if order.priority == 'express' %}#f87171{% elif order.priority == 'high' %}#fbbf24{% else %}#64748b{% endif %};">{{ order.get_priority_display }}</span></td>
+          <td><span class="badge" style="background:{% if order.status == 'delivered' %}#22c55e20{% elif order.status == 'in_transit' %}#38bdf820{% elif order.status == 'failed' %}#f8717120{% elif order.status == 'pending' %}#fbbf2420{% else %}#64748b20{% endif %};color:{% if order.status == 'delivered' %}#22c55e{% elif order.status == 'in_transit' %}#38bdf8{% elif order.status == 'failed' %}#f87171{% elif order.status == 'pending' %}#fbbf24{% else %}#64748b{% endif %};">{{ order.get_status_display }}</span></td>
+          <td><a href="{% url 'delivery:order_detail' slug=biz.slug pk=order.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center" style="color:var(--hub-muted);padding:2rem;">No delivery orders.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal fade" id="newOrderModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">New Delivery Order</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 style="color:var(--hub-accent);margin-bottom:.75rem;">Pickup</h6>
+              <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);">Pickup Address</label><textarea name="pickup_address" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></textarea></div>
+              <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);">Contact Name</label><input name="pickup_contact" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+              <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);">Phone</label><input name="pickup_phone" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+            </div>
+            <div class="col-md-6">
+              <h6 style="color:var(--hub-accent);margin-bottom:.75rem;">Delivery</h6>
+              <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);">Delivery Address</label><textarea name="delivery_address" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></textarea></div>
+              <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);">Contact Name</label><input name="delivery_contact" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+              <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);">Phone</label><input name="delivery_phone" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+            </div>
+          </div>
+          <div class="row g-3 mt-1">
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Scheduled Date</label><input type="date" name="scheduled_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Priority</label><select name="priority" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="normal">Normal</option><option value="high">High</option><option value="express">Express</option><option value="low">Low</option></select></div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Driver</label><select name="driver" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="">— Unassigned —</option>{% for d in drivers %}<option value="{{ d.pk }}">{{ d.name }}</option>{% endfor %}</select></div>
+            <div class="col"><label class="form-label" style="color:var(--hub-muted);">Zone</label><select name="zone" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="">— None —</option>{% for z in zones %}<option value="{{ z.pk }}">{{ z.name }}</option>{% endfor %}</select></div>
+          </div>
+          <div class="mt-3"><label class="form-label" style="color:var(--hub-muted);">Description / Contents</label><textarea name="description" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea></div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Create Order</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

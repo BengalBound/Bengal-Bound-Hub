@@ -1,0 +1,125 @@
+{% extends "workspace_admin/base_admin.html" %}
+{% block title %}Hub Subscriptions | WorkspaceAdmin{% endblock %}
+{% block page_title %}<i class="bi bi-credit-card me-2 text-primary"></i>Hub Subscriptions{% endblock %}
+
+{% block content %}
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}{% endif %}
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="glass-panel p-3 text-center">
+            <div class="fw-bold" style="font-size:1.8rem;color:#38bdf8;">{{ subs|length }}</div>
+            <div class="text-white-50 small">Total Businesses</div>
+        </div>
+    </div>
+    {% for plan in plan_counts %}
+    <div class="col-md-3">
+        <div class="glass-panel p-3 text-center">
+            <div class="fw-bold" style="font-size:1.8rem;color:#c084fc;">{{ plan.count }}</div>
+            <div class="text-white-50 small">{{ plan.plan_type|title }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="glass-panel p-0" style="overflow:hidden;">
+<table class="table table-dark table-hover mb-0" style="font-size:0.84rem;">
+<thead>
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+        <th class="px-4 py-3 text-white-50 fw-normal">Business</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Plan</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Status</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Storage</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Install Types</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Actions</th>
+    </tr>
+</thead>
+<tbody>
+{% for sub in subs %}
+<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+    <td class="px-4 py-3">
+        <div class="fw-semibold">{{ sub.business.name }}</div>
+        <div class="text-white-50" style="font-size:0.75rem;">{{ sub.business.get_business_type_display }}</div>
+    </td>
+    <td class="px-4 py-3">
+        <span class="badge" style="
+            {% if sub.plan_type == 'freemium' %}background:rgba(255,255,255,0.08);color:#94a3b8;
+            {% elif sub.plan_type == 'standard' %}background:rgba(56,189,248,0.15);color:#38bdf8;
+            {% elif sub.plan_type == 'premium' %}background:rgba(192,132,252,0.15);color:#c084fc;
+            {% else %}background:rgba(236,72,153,0.15);color:#ec4899;{% endif %}
+            font-size:0.7rem;">{{ sub.get_plan_type_display }}</span>
+    </td>
+    <td class="px-4 py-3">
+        <span class="badge {% if sub.status == 'active' %}bg-success{% elif sub.status == 'trial' %}bg-warning text-dark{% else %}bg-danger{% endif %}" style="font-size:0.7rem;">
+            {{ sub.get_status_display }}
+        </span>
+    </td>
+    <td class="px-4 py-3 text-white-50">
+        {{ sub.total_storage_gb|floatformat:0 }} GB
+        {% if sub.extra_storage_gb > 0 %}<span class="badge bg-secondary ms-1" style="font-size:0.65rem;">+{{ sub.extra_storage_gb }}GB extra</span>{% endif %}
+    </td>
+    <td class="px-4 py-3 text-white-50" style="font-size:0.75rem;">
+        {% if sub.allows_cloud %}<span class="badge me-1" style="background:rgba(34,197,94,0.15);color:#22c55e;font-size:0.65rem;">Cloud</span>{% endif %}
+        {% if sub.allows_ip_locked %}<span class="badge me-1" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.65rem;">IP-Locked</span>{% endif %}
+        {% if sub.allows_self_hosted %}<span class="badge" style="background:rgba(251,191,36,0.15);color:#fbbf24;font-size:0.65rem;">Self-Hosted</span>{% endif %}
+    </td>
+    <td class="px-4 py-3">
+        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#subModal{{ sub.pk }}">
+            <i class="bi bi-pencil"></i>
+        </button>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+{% for sub in subs %}
+<!-- Edit Modal -->
+<div class="modal fade" id="subModal{{ sub.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <h6 class="modal-title fw-semibold">{{ sub.business.name }} — Subscription</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Change Plan -->
+                <div class="mb-4">
+                    <div class="fw-semibold small mb-2">Change Plan</div>
+                    <form method="post" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_plan">
+                        <input type="hidden" name="sub_id" value="{{ sub.pk }}">
+                        <select name="plan_type" class="form-select form-select-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
+                            <option value="freemium" {% if sub.plan_type == 'freemium' %}selected{% endif %}>Freemium</option>
+                            <option value="standard" {% if sub.plan_type == 'standard' %}selected{% endif %}>Standard</option>
+                            <option value="premium" {% if sub.plan_type == 'premium' %}selected{% endif %}>Premium</option>
+                            <option value="advance" {% if sub.plan_type == 'advance' %}selected{% endif %}>Advance</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                    </form>
+                </div>
+                <!-- Add Storage -->
+                <div>
+                    <div class="fw-semibold small mb-2">Add Extra Storage</div>
+                    <form method="post" class="d-flex gap-2 align-items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_storage">
+                        <input type="hidden" name="sub_id" value="{{ sub.pk }}">
+                        <input type="number" name="extra_gb" min="1" step="10" value="50" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;max-width:100px;">
+                        <span class="small text-white-50">GB</span>
+                        <button type="submit" class="btn btn-success btn-sm">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

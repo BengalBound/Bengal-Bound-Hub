@@ -1,0 +1,42 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Milestones — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-flag me-2" style="color:var(--hub-accent);"></i>Milestones{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex gap-2">
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Pending</a>
+    <a href="?status=overdue" class="btn btn-sm {% if status_filter == 'overdue' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Overdue</a>
+    <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Completed</a>
+  </div>
+  <a href="{% url 'projects:project_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-diagram-3 me-1"></i>Projects</a>
+</div>
+<div class="glass-panel p-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Milestone</th><th>Project</th><th>Due Date</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for ms in milestones %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ ms.title }}</td>
+          <td><a href="{% url 'projects:project_detail' slug=biz.slug pk=ms.project.pk %}" style="color:var(--hub-accent);text-decoration:none;">{{ ms.project.name }}</a></td>
+          <td style="color:{% if ms.is_overdue %}#f87171{% else %}var(--hub-muted){% endif %};">{{ ms.due_date }}</td>
+          <td>
+            {% if ms.is_completed %}
+              <span class="badge" style="background:#22c55e20;color:#22c55e;"><i class="bi bi-check2 me-1"></i>Completed</span>
+            {% elif ms.is_overdue %}
+              <span class="badge" style="background:#f8717120;color:#f87171;"><i class="bi bi-exclamation-triangle me-1"></i>Overdue</span>
+            {% else %}
+              <span class="badge" style="background:#38bdf820;color:#38bdf8;">Pending</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center" style="color:var(--hub-muted);padding:2rem;">No milestones found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

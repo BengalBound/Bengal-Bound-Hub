@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}BengalBound Console{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  {% load static %}
+  <style>
+    :root {
+      --bg:         #060c18;
+      --surface:    rgba(13, 21, 38, 0.9);
+      --surface-2:  rgba(20, 32, 56, 0.7);
+      --border:     rgba(255,255,255,0.07);
+      --border-2:   rgba(255,255,255,0.04);
+      --text:       #e2e8f0;
+      --muted:      rgba(226,232,240,0.4);
+      --accent:     #c084fc;
+      --accent-b:   #38bdf8;
+      --sidebar-w:  272px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .bb-wrap   { display: flex; min-height: 100vh; }
+    .bb-sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; bottom: 0; left: 0;
+      overflow-y: auto; overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.08) transparent;
+      z-index: 200;
+    }
+    .bb-main {
+      margin-left: var(--sidebar-w);
+      flex: 1; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .bb-topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6,12,24,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.75rem;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .bb-content { flex: 1; padding: 1.75rem; }
+
+    /* ── Sidebar internals ──────────────────────────────────── */
+    .sb-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 1.25rem 1rem 0.75rem;
+      flex-shrink: 0;
+    }
+    .sb-logo img { width: 34px; height: 34px; object-fit: contain; }
+    .sb-logo-text {
+      font-family: 'Outfit', sans-serif; font-weight: 800;
+      font-size: 1.1rem; letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #c084fc 0%, #818cf8 50%, #38bdf8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .sb-logo-sub { font-size: 0.65rem; color: var(--muted); font-weight: 500; }
+
+    /* Business switcher */
+    .sb-biz {
+      margin: 0.5rem 0.75rem 0.25rem;
+      padding: 0.6rem 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .sb-biz:hover { border-color: rgba(255,255,255,0.15); }
+    .sb-biz-icon {
+      width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(192,132,252,0.25), rgba(236,72,153,0.25));
+      display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+    }
+
+    /* Nav sections */
+    .sb-nav { padding: 0 0.5rem; flex: 1; }
+    .sb-section { margin-top: 1.25rem; }
+    .sb-section-label {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+      padding: 0 0.6rem; margin-bottom: 0.25rem;
+    }
+    .sb-link {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.42rem 0.6rem; border-radius: 8px;
+      color: var(--muted); font-size: 0.825rem;
+      text-decoration: none; transition: all 0.15s;
+      white-space: nowrap; overflow: hidden;
+    }
+    .sb-link i { font-size: 0.9rem; flex-shrink: 0; width: 16px; text-align: center; }
+    .sb-link:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .sb-link.active {
+      background: linear-gradient(135deg, rgba(192,132,252,0.12), rgba(56,189,248,0.08));
+      color: #c084fc;
+      border-left: 2px solid #c084fc;
+      padding-left: calc(0.6rem - 2px);
+    }
+    .sb-link.active i { color: #c084fc; }
+
+    /* Module link in sidebar */
+    .sb-mod-icon {
+      width: 20px; height: 20px; border-radius: 5px; flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+    }
+
+    /* AI status pill in sidebar */
+    .sb-ai-pill {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.5rem 0.6rem; border-radius: 8px;
+      background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(139,92,246,0.08));
+      border: 1px solid rgba(56,189,248,0.15);
+      margin-bottom: 0.25rem;
+    }
+    .sb-ai-avatar {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+    }
+
+    /* Sidebar footer */
+    .sb-footer {
+      padding: 0.75rem;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sb-user {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.5rem 0.5rem;
+      border-radius: 9px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .sb-user:hover { background: rgba(255,255,255,0.04); }
+    .sb-avatar {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(139,92,246,0.4));
+      display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+      color: #e2e8f0;
+    }
+
+    /* ── Glass panels ───────────────────────────────────────── */
+    .glass {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .glass-sm { border-radius: 10px; }
+
+    /* ── Topbar elements ────────────────────────────────────── */
+    .topbar-breadcrumb { font-size: 0.8rem; color: var(--muted); }
+    .topbar-breadcrumb .page-name { color: var(--text); font-weight: 600; }
+
+    /* ── Messages ───────────────────────────────────────────── */
+    .bb-messages { padding: 0 1.75rem; padding-top: 1rem; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="bb-wrap">
+
+  <!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+  <aside class="bb-sidebar">
+
+    <!-- Logo -->
+    <div class="sb-logo">
+      <img src="{% static 'img/logo.png' %}" alt="BengalBound">
+      <div>
+        <div class="sb-logo-text">BengalBound</div>
+        <div class="sb-logo-sub">Console</div>
+      </div>
+    </div>
+
+    <!-- Business Switcher -->
+    {% if console_biz %}
+    <div class="sb-biz dropdown" data-bs-toggle="dropdown">
+      <div class="d-flex align-items-center gap-2">
+        <div class="sb-biz-icon">
+          <i class="bi {{ console_biz.get_icon }}"></i>
+        </div>
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="fw-semibold text-truncate" style="font-size:0.78rem;color:var(--text);">{{ console_biz.name }}</div>
+          <div style="font-size:0.65rem;color:var(--muted);">{{ console_biz.get_business_type_display }}</div>
+        </div>
+        <i class="bi bi-chevron-expand" style="font-size:0.7rem;color:var(--muted);flex-shrink:0;"></i>
+      </div>
+      <ul class="dropdown-menu dropdown-menu-dark w-100 mt-1" style="background:#111827;border:1px solid var(--border);border-radius:10px;">
+        <li class="px-3 py-2" style="font-size:0.72rem;color:var(--muted);">Your Businesses</li>
+        <li><hr class="dropdown-divider border-secondary my-1"></li>
+        <li><a class="dropdown-item small active" href="{% url 'console_admin:dashboard' %}"><i class="bi {{ console_biz.get_icon }} me-2"></i>{{ console_biz.name }}</a></li>
+        <li><hr class="dropdown-divider border-secondary my-1"></li>
+        <li><a class="dropdown-item small text-success" href="{% url 'hub:hub_create' %}"><i class="bi bi-plus-circle me-2"></i>Add Business</a></li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- ── Nav ─────────────────────────────────────────────── -->
+    <nav class="sb-nav">
+
+      <!-- Main -->
+      <div class="sb-section">
+        <a href="{% url 'console_admin:dashboard' %}" class="sb-link {% if request.path == '/' %}active{% endif %}">
+          <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+      </div>
+
+      <!-- Workspace (business) -->
+      {% if console_biz %}
+      <div class="sb-section">
+        <div class="sb-section-label">Workspace</div>
+        <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="sb-link {% if 'module_store' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-grid-3x3-gap"></i> Module Store
+        </a>
+        <a href="{% url 'hub:hub_employees' slug=console_biz.slug %}" class="sb-link {% if 'employee' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-people"></i> Employees
+        </a>
+        <a href="{% url 'hub:hub_members' slug=console_biz.slug %}" class="sb-link {% if 'members' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-person-badge"></i> Team Members
+        </a>
+        <a href="{% url 'hub:hub_positions' slug=console_biz.slug %}" class="sb-link {% if 'position' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-shield-lock"></i> Positions
+        </a>
+        <a href="{% url 'hub:hub_subscription' slug=console_biz.slug %}" class="sb-link {% if 'subscription' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-credit-card"></i> Subscription
+        </a>
+        <a href="{% url 'hub:hub_settings' slug=console_biz.slug %}" class="sb-link {% if 'settings' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-gear"></i> Business Settings
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Active Modules -->
+      {% if console_modules %}
+      <div class="sb-section">
+        <div class="sb-section-label">Active Modules</div>
+        {% for item in console_modules %}
+        <a href="{{ item.url }}" class="sb-link {% if item.tm.module.url_namespace and item.tm.module.url_namespace in request.resolver_match.namespace|default:'' %}active{% endif %}">
+          <span class="sb-mod-icon"><i class="bi {{ item.tm.module.icon }}"></i></span>
+          <span class="text-truncate">{{ item.tm.module.name }}</span>
+          {% if not item.tm.module.url_namespace %}<span class="ms-auto badge" style="font-size:0.55rem;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);border-radius:4px;padding:1px 5px;">Soon</span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- AI Workforce -->
+      <div class="sb-section">
+        <div class="sb-section-label">AI Workforce</div>
+        {% if 'ai_workforce' in active_modules %}
+          {% if hired_ai and serea_agent %}
+          <div class="sb-ai-pill mb-1">
+            <div class="sb-ai-avatar"><i class="bi bi-robot text-white" style="font-size:0.7rem;"></i></div>
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="fw-semibold text-truncate" style="font-size:0.75rem;color:#38bdf8;">{{ hired_ai.ai_name }}</div>
+              <div style="font-size:0.62rem;color:var(--muted);">{{ serea_agent.get_status_display }}</div>
+            </div>
+            <span class="rounded-circle flex-shrink-0" style="width:8px;height:8px;{% if serea_agent.status == 'working' %}background:#10b981;{% elif serea_agent.status == 'waiting' %}background:#f59e0b;{% else %}background:#6b7280;{% endif %}"></span>
+          </div>
+          {% endif %}
+          <a href="/ai-chat/" class="sb-link {% if '/ai-chat' in request.path %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i> Chat Interfaces
+          </a>
+          <a href="/platforms/" class="sb-link {% if '/platforms' in request.path %}active{% endif %}">
+            <i class="bi bi-share"></i> Platform Connections
+          </a>
+          <a href="/workspace/" class="sb-link {% if '/workspace' in request.path %}active{% endif %}">
+            <i class="bi bi-folder2-open"></i> Knowledge Base
+          </a>
+          <a href="/tasks/" class="sb-link {% if '/tasks' in request.path %}active{% endif %}">
+            <i class="bi bi-check2-square"></i> Task Assignments
+          </a>
+          <a href="/reports/" class="sb-link {% if '/reports' in request.path %}active{% endif %}">
+            <i class="bi bi-clipboard2-data"></i> AI Reports
+          </a>
+        {% else %}
+          <a href="{% url 'console_admin:hire_ai' %}" class="sb-link" style="color:rgba(56,189,248,0.7);">
+            <i class="bi bi-robot"></i> Hire AI Employee
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Tools & Support -->
+      <div class="sb-section">
+        <div class="sb-section-label">Tools & Support</div>
+        <a href="{% url 'console_admin:notifications_list' %}" class="sb-link {% if 'notifications' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-bell"></i> Notifications
+          {% if unread_notification_count %}<span class="ms-auto badge rounded-pill" style="background:rgba(239,68,68,0.2);color:#f87171;font-size:0.6rem;">{{ unread_notification_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'console_admin:billing_overview' %}" class="sb-link {% if 'billing' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-receipt"></i> Billing & Payments
+        </a>
+        <a href="{% url 'console_admin:totp_verify' %}" class="sb-link {% if 'totp' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+          <i class="bi bi-shield-check"></i> Security (2FA)
+        </a>
+        <a href="/tools/" class="sb-link {% if '/tools' in request.path %}active{% endif %}">
+          <i class="bi bi-key"></i> API Keys & Webhooks
+        </a>
+        <a href="/tickets/" class="sb-link {% if '/tickets' in request.path %}active{% endif %}">
+          <i class="bi bi-ticket-detailed"></i> Help Tickets
+          {% if open_tickets_count %}<span class="ms-auto badge rounded-pill" style="background:rgba(251,191,36,0.2);color:#fbbf24;font-size:0.6rem;">{{ open_tickets_count }}</span>{% endif %}
+        </a>
+      </div>
+
+    </nav>
+
+    <!-- Footer / User -->
+    <div class="sb-footer">
+      <div class="dropdown">
+        <div class="sb-user" data-bs-toggle="dropdown">
+          <div class="sb-avatar"><i class="bi bi-person-fill"></i></div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold text-truncate" style="font-size:0.75rem;">{{ request.user.email }}</div>
+            <div style="font-size:0.62rem;color:var(--muted);">Console Account</div>
+          </div>
+          <i class="bi bi-chevron-expand" style="font-size:0.7rem;color:var(--muted);flex-shrink:0;"></i>
+        </div>
+        <ul class="dropdown-menu dropdown-menu-dark w-100 mb-1" style="background:#111827;border:1px solid var(--border);border-radius:10px;" data-bs-placement="top">
+          <li><a class="dropdown-item small" href="{% url 'console_admin:billing_overview' %}"><i class="bi bi-receipt me-2"></i>Billing & Payments</a></li>
+          <li><a class="dropdown-item small" href="{% url 'console_admin:totp_verify' %}"><i class="bi bi-shield-check me-2"></i>Security (2FA)</a></li>
+          <li><a class="dropdown-item small" href="{% url 'console_admin:notifications_list' %}">
+            <i class="bi bi-bell me-2"></i>Notifications
+            {% if unread_notification_count %}<span class="ms-2 badge rounded-pill" style="background:rgba(239,68,68,0.2);color:#f87171;font-size:0.6rem;">{{ unread_notification_count }}</span>{% endif %}
+          </a></li>
+          <li><hr class="dropdown-divider border-secondary my-1"></li>
+          <li><a class="dropdown-item small text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-left me-2"></i>Sign Out</a></li>
+        </ul>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══ MAIN ═══════════════════════════════════════════════════════════════ -->
+  <div class="bb-main">
+
+    <!-- Topbar -->
+    <header class="bb-topbar">
+      <div class="d-flex align-items-center gap-3">
+        <span class="topbar-breadcrumb">
+          Console &rsaquo; <span class="page-name">{% block page_title %}Dashboard{% endblock %}</span>
+        </span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        {% block header_actions %}
+          <a href="{% url 'console_admin:hire_ai' %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:0.78rem;">
+            <i class="bi bi-robot me-1"></i>Hire AI
+          </a>
+        {% endblock %}
+
+        <!-- Notification Bell -->
+        <a href="{% url 'console_admin:notifications_list' %}" class="position-relative d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--muted);text-decoration:none;" title="Notifications">
+          <i class="bi bi-bell" style="font-size:0.9rem;"></i>
+          {% if unread_notification_count %}
+          <span class="position-absolute top-0 end-0 translate-middle-y rounded-circle d-flex align-items-center justify-content-center" style="width:16px;height:16px;background:#ef4444;font-size:0.55rem;font-weight:700;color:#fff;border:2px solid var(--bg);transform:translate(30%,-30%);">
+            {{ unread_notification_count|default:"" }}
+          </span>
+          {% endif %}
+        </a>
+
+        <!-- Billing shortcut -->
+        <a href="{% url 'console_admin:billing_overview' %}" class="d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--muted);text-decoration:none;" title="Billing">
+          <i class="bi bi-credit-card" style="font-size:0.9rem;"></i>
+        </a>
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% if messages %}
+    <div class="bb-messages">
+      {% for m in messages %}
+      <div class="alert alert-{% if m.tags == 'error' %}danger{% elif m.tags == 'warning' %}warning{% elif m.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show py-2 small" role="alert" style="background:var(--surface-2);border-color:var(--border);">
+        {{ m }}<button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <div class="bb-content">
+      {% block content %}{% endblock %}
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

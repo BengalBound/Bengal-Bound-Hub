@@ -1,0 +1,297 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}Report — {{ report.report_date|date:"D, M d Y" }}{% endblock %}
+{% block page_subtitle %}Review each item. Flag anything wrong, choose what to do with it, then send it all to Serea at once.{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- ── LEFT: Report items ──────────────────────────────────────────────── -->
+  <div class="col-lg-8">
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{% if 'success' in msg.tags %}success bg-success{% elif 'error' in msg.tags %}danger bg-danger{% else %}warning bg-warning{% endif %} bg-opacity-20 border-0 small mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Status bar -->
+    <div class="glass-panel p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <a href="/reports/" class="text-white-50 small text-decoration-none"><i class="bi bi-arrow-left me-1"></i>All Reports</a>
+        <span class="text-white-25">|</span>
+        <span class="fw-semibold text-white">{{ report.report_date|date:"D, M d Y" }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        {% if flagged_count > 0 %}
+          <span class="badge bg-danger bg-opacity-20 text-danger rounded-pill">{{ flagged_count }} flagged</span>
+        {% endif %}
+        {% if report.status == 'pending' %}
+          <span class="badge bg-warning bg-opacity-20 text-warning rounded-pill">Pending Review</span>
+        {% elif report.status == 'approved' %}
+          <span class="badge bg-success bg-opacity-20 text-success rounded-pill">Approved</span>
+        {% elif report.status == 'has_issues' %}
+          <span class="badge bg-danger bg-opacity-20 text-danger rounded-pill">Has Issues — Serea is fixing</span>
+        {% else %}
+          <span class="badge bg-secondary bg-opacity-30 text-white-50 rounded-pill">Reviewed</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Serea's summary -->
+    {% if report.summary %}
+    <div class="glass-panel p-4 mb-3 border border-primary border-opacity-25">
+      <div class="d-flex gap-3">
+        <div class="flex-shrink-0">
+          <div class="rounded-circle bg-primary bg-opacity-20 d-flex align-items-center justify-content-center" style="width:36px;height:36px">
+            <i class="bi bi-stars text-primary small"></i>
+          </div>
+        </div>
+        <div>
+          <div class="fw-semibold text-white small mb-1">Serea's summary</div>
+          <div class="text-white-75 small" style="white-space:pre-wrap;line-height:1.7">{{ report.summary }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Items list -->
+    {% if items %}
+      {% for item in items %}
+      <div class="glass-panel p-3 mb-2 {% if item.is_flagged %}border border-danger border-opacity-40{% endif %}" id="item-{{ item.id }}">
+        <div class="d-flex align-items-start gap-3">
+
+          <!-- Type icon -->
+          <div class="flex-shrink-0 mt-1">
+            <div class="rounded-2 d-flex align-items-center justify-content-center"
+                 style="width:32px;height:32px;background:rgba(255,255,255,0.05)">
+              {% if item.item_type == 'task' %}
+                <i class="bi bi-check2-square text-primary small"></i>
+              {% elif item.item_type == 'post' %}
+                <i class="bi bi-send text-success small"></i>
+              {% elif item.item_type == 'moderation' %}
+                <i class="bi bi-shield-check text-warning small"></i>
+              {% elif item.item_type == 'dm' %}
+                <i class="bi bi-chat-dots text-info small"></i>
+              {% else %}
+                <i class="bi bi-info-circle text-white-50 small"></i>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+              <span class="fw-semibold text-white">{{ item.title }}</span>
+              <!-- Outcome badge -->
+              {% if item.outcome == 'completed' %}
+                <span class="badge bg-success bg-opacity-15 text-success rounded-pill" style="font-size:.65rem">Done</span>
+              {% elif item.outcome == 'in_progress' %}
+                <span class="badge bg-primary bg-opacity-15 text-primary rounded-pill" style="font-size:.65rem">In Progress</span>
+              {% elif item.outcome == 'waiting_approval' %}
+                <span class="badge bg-warning bg-opacity-15 text-warning rounded-pill" style="font-size:.65rem">Waiting Approval</span>
+              {% elif item.outcome == 'failed' %}
+                <span class="badge bg-danger bg-opacity-15 text-danger rounded-pill" style="font-size:.65rem">Failed</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-20 text-white-50 rounded-pill" style="font-size:.65rem">{{ item.get_outcome_display }}</span>
+              {% endif %}
+              <!-- Flagged indicator -->
+              {% if item.is_flagged %}
+                <span class="badge bg-danger bg-opacity-20 text-danger rounded-pill" style="font-size:.65rem">
+                  <i class="bi bi-flag-fill me-1"></i>Flagged
+                </span>
+              {% endif %}
+            </div>
+
+            {% if item.detail %}
+              <div class="text-white-50 small mb-2">{{ item.detail }}</div>
+            {% endif %}
+
+            <!-- Linked task info -->
+            {% if item.linked_task %}
+              <div class="text-white-25 small">
+                Task: {{ item.linked_task.title }}
+                {% if item.client_action == 'reassign' %}
+                  <span class="text-warning ms-2"><i class="bi bi-arrow-repeat me-1"></i>Reassigned to Serea</span>
+                {% elif item.client_action == 'fixed_manually' %}
+                  <span class="text-success ms-2"><i class="bi bi-wrench me-1"></i>Fixed manually</span>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <!-- Flag reason (shown when flagged) -->
+            {% if item.is_flagged and item.flag_reason %}
+              <div class="mt-2 p-2 rounded-2 border border-danger border-opacity-20" style="background:rgba(220,53,69,.07)">
+                <div class="text-danger small"><i class="bi bi-flag me-1"></i>{{ item.flag_reason }}</div>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Actions -->
+          <div class="flex-shrink-0 d-flex flex-column gap-1">
+            {% if not item.is_flagged %}
+              <!-- Flag button → expands inline form -->
+              <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1"
+                      style="font-size:.7rem"
+                      onclick="showFlagForm({{ item.id }})">
+                <i class="bi bi-flag me-1"></i>Flag
+              </button>
+            {% else %}
+              <!-- Unflag -->
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="unflag_item">
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1"
+                        style="font-size:.7rem">
+                  <i class="bi bi-x-lg me-1"></i>Unflag
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Inline flag form (hidden by default) -->
+        {% if not item.is_flagged %}
+        <div id="flagForm-{{ item.id }}" class="d-none mt-3 p-3 rounded-2 border border-danger border-opacity-20" style="background:rgba(220,53,69,.07)">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="flag_item">
+            <input type="hidden" name="item_id" value="{{ item.id }}">
+
+            <div class="mb-2">
+              <label class="form-label text-white-50 small fw-medium mb-1">What's wrong?</label>
+              <textarea name="flag_reason" rows="2"
+                        class="form-control bg-dark text-white border-secondary shadow-none small"
+                        placeholder="e.g. This post went out with the wrong caption..."></textarea>
+            </div>
+
+            {% if item.linked_task %}
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-medium mb-1">What should happen with this task?</label>
+              <select name="client_action" class="form-select bg-dark text-white border-secondary small">
+                <option value="none">Just flag it — let Serea decide</option>
+                <option value="reassign">Reassign to Serea — have her redo it</option>
+                <option value="fixed_manually">I already fixed it myself</option>
+              </select>
+            </div>
+            {% else %}
+            <input type="hidden" name="client_action" value="none">
+            {% endif %}
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3" style="font-size:.75rem">
+                <i class="bi bi-flag-fill me-1"></i>Flag this item
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                      style="font-size:.75rem" onclick="hideFlagForm({{ item.id }})">Cancel</button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="glass-panel p-5 text-center">
+        <p class="text-white-50">No items in this report.</p>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- ── RIGHT: Review panel ─────────────────────────────────────────────── -->
+  <div class="col-lg-4">
+
+    <!-- Overall feedback + actions -->
+    <div class="glass-panel p-4 sticky-top" style="top:80px">
+      <h6 class="fw-bold font-outfit mb-1">
+        <i class="bi bi-chat-square-text me-2 text-primary"></i>Review & Send
+      </h6>
+      <p class="text-white-50 small mb-4">
+        Flag any issues above, add overall notes below, then send it all to Serea.
+        Or approve if everything looks good.
+      </p>
+
+      {% if report.status == 'approved' %}
+        <div class="alert bg-success bg-opacity-10 border-success border-opacity-25 text-success small mb-3">
+          <i class="bi bi-check2-circle me-1"></i> You approved this report.
+          {% if report.reviewed_at %}on {{ report.reviewed_at|date:"M d, Y" }}{% endif %}
+        </div>
+
+      {% elif report.status == 'has_issues' %}
+        <div class="alert bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger small mb-3">
+          <i class="bi bi-tools me-1"></i> Feedback sent — Serea is working on it.
+        </div>
+        {% if report.client_feedback %}
+          <div class="text-white-50 small mb-3">
+            <div class="text-white-25 small mb-1">Your notes:</div>
+            {{ report.client_feedback }}
+          </div>
+        {% endif %}
+
+      {% else %}
+        <!-- Send feedback form -->
+        <form method="post" id="feedbackForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="send_feedback">
+          <div class="mb-3">
+            <label class="form-label text-white-50 small fw-medium">Overall notes for Serea <span class="text-muted">(optional)</span></label>
+            <textarea name="client_feedback" rows="4"
+                      class="form-control bg-dark text-white border-secondary shadow-none small"
+                      placeholder="Anything else you want to tell her about today..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-danger w-100 rounded-pill fw-semibold mb-2"
+                  {% if flagged_count == 0 %}id="sendFeedbackBtn"{% endif %}>
+            <i class="bi bi-send me-2"></i>
+            Send feedback to Serea
+            {% if flagged_count > 0 %}({{ flagged_count }} flagged){% endif %}
+          </button>
+        </form>
+
+        <!-- Approve form -->
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="approve">
+          <button type="submit" class="btn btn-outline-success w-100 rounded-pill fw-semibold"
+                  onclick="return confirm('Mark this report as approved?')">
+            <i class="bi bi-check2-all me-2"></i>Approve — everything looks good
+          </button>
+        </form>
+      {% endif %}
+
+      <!-- Quick stats -->
+      <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+        <div class="text-white-50 small mb-2 fw-medium">Report breakdown</div>
+        <div class="d-flex flex-column gap-1">
+          <div class="d-flex justify-content-between text-white-50 small">
+            <span>Total items</span><span class="text-white">{{ items|length }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-white-50 small">
+            <span>Flagged</span>
+            <span class="{% if flagged_count > 0 %}text-danger{% else %}text-white{% endif %}">{{ flagged_count }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-white-50 small">
+            <span>Generated</span><span class="text-white">{{ report.generated_at|date:"g:i A" }}</span>
+          </div>
+          {% if report.reviewed_at %}
+          <div class="d-flex justify-content-between text-white-50 small">
+            <span>Reviewed</span><span class="text-white">{{ report.reviewed_at|date:"M d, g:i A" }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showFlagForm(id) {
+  document.getElementById('flagForm-' + id).classList.remove('d-none');
+}
+function hideFlagForm(id) {
+  document.getElementById('flagForm-' + id).classList.add('d-none');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Vendors — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-truck me-2" style="color:var(--hub-accent);"></i>Vendors & Purchase Orders{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ active_vendors }}</div><div class="text-white-50 small">Active Vendors</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ open_pos }}</div><div class="text-white-50 small">Open POs</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#38bdf8;">{{ open_po_value|floatformat:0 }}</div><div class="text-white-50 small">Open PO Value</div></div></div>
+</div>
+
+<div class="row g-4">
+  <!-- Vendors -->
+  <div class="col-lg-5">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Vendors</h6>
+        <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addVendorModal"><i class="bi bi-plus-lg me-1"></i>Add Vendor</button>
+      </div>
+      {% for v in vendors %}
+      <div class="d-flex justify-content-between align-items-center p-2 mb-1" style="background:rgba(255,255,255,0.03);border-radius:8px;">
+        <div>
+          <div style="font-weight:600;font-size:.85rem;">{{ v.name }}</div>
+          <div style="color:var(--hub-muted);font-size:.72rem;">{{ v.category }} &nbsp;·&nbsp; {{ v.payment_terms|default:"—" }}</div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge" style="background:{% if v.status == 'active' %}rgba(34,197,94,0.15){% else %}rgba(255,255,255,0.06){% endif %};color:{% if v.status == 'active' %}#22c55e{% else %}var(--hub-muted){% endif %};">{{ v.status }}</span>
+          <form method="post" style="display:inline;" onsubmit="return confirm('Delete vendor?')">{% csrf_token %}<input type="hidden" name="action" value="delete_vendor"><input type="hidden" name="pk" value="{{ v.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 6px;"><i class="bi bi-trash3"></i></button></form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center text-white-50 py-3 small">No vendors yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Purchase Orders -->
+  <div class="col-lg-7">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Purchase Orders</h6>
+        <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addPOModal"><i class="bi bi-plus-lg me-1"></i>Add PO</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0" style="font-size:.82rem;border-color:var(--hub-border);">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+            <th>PO ID</th><th>Vendor</th><th>Value</th><th>Received %</th><th>Expected</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody>
+            {% for po in pos %}
+            <tr style="border-color:var(--hub-border);">
+              <td style="color:var(--hub-accent);font-weight:600;">{{ po.po_id }}</td>
+              <td>{{ po.vendor_name|truncatechars:20 }}</td>
+              <td>{{ po.value|floatformat:0 }}</td>
+              <td>
+                <div style="background:var(--hub-border);border-radius:4px;height:5px;width:60px;display:inline-block;vertical-align:middle;">
+                  <div style="width:{{ po.received_pct }}%;background:#22c55e;height:5px;border-radius:4px;"></div>
+                </div>
+                <span class="ms-1 text-white-50 small">{{ po.received_pct }}%</span>
+              </td>
+              <td>{{ po.expected_date|default:"—" }}</td>
+              <td><span class="badge" style="background:{% if po.status == 'received' %}rgba(34,197,94,0.15){% elif po.status == 'open' %}rgba(56,189,248,0.15){% else %}rgba(251,191,36,0.15){% endif %};color:{% if po.status == 'received' %}#22c55e{% elif po.status == 'open' %}#38bdf8{% else %}#fbbf24{% endif %};">{{ po.status }}</span></td>
+              <td><form method="post" style="display:inline;" onsubmit="return confirm('Delete PO?')">{% csrf_token %}<input type="hidden" name="action" value="delete_po"><input type="hidden" name="pk" value="{{ po.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-white-50 py-4">No purchase orders.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Vendor Modal -->
+<div class="modal fade" id="addVendorModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Vendor</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create_vendor">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label text-white-50 small">Name *</label><input type="text" name="name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Category</label><input type="text" name="category" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Contact</label><input type="text" name="contact" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Email</label><input type="email" name="email" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Phone</label><input type="text" name="phone" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Payment Terms</label><input type="text" name="payment_terms" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="vendor_status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="active">Active</option><option value="inactive">Inactive</option><option value="blacklisted">Blacklisted</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Vendor</button></div>
+    </form>
+  </div></div>
+</div>
+
+<!-- Add PO Modal -->
+<div class="modal fade" id="addPOModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Purchase Order</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create_po">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label text-white-50 small">Vendor Name *</label><input type="text" name="vendor_name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Items Description</label><input type="text" name="items_description" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Value</label><input type="number" name="value" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Order Date</label><input type="date" name="order_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Expected Date</label><input type="date" name="expected_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Received %</label><input type="number" name="received_pct" value="0" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="po_status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="open">Open</option><option value="partial">Partial</option><option value="received">Received</option><option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add PO</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

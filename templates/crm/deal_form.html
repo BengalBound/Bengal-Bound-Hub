@@ -1,0 +1,18 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if deal %}Edit Deal{% else %}New Deal{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-briefcase me-2" style="color:var(--hub-accent);"></i>{% if deal %}Edit Deal{% else %}New Deal{% endif %}{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:600px;">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Deal Title</label><input name="title" value="{{ deal.title|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Contact</label><select name="contact" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{% for c in contacts %}<option value="{{ c.pk }}" {% if deal.contact_id == c.pk %}selected{% endif %}>{{ c.get_full_name }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Value</label><input name="value" type="number" step="0.01" value="{{ deal.value|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Stage</label><select name="stage" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="prospecting">Prospecting</option><option value="proposal">Proposal</option><option value="negotiation">Negotiation</option><option value="won">Won</option><option value="lost">Lost</option></select></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Expected Close</label><input type="date" name="expected_close" value="{{ deal.expected_close|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Notes</label><textarea name="notes" rows="4" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ deal.notes|default:'' }}</textarea></div>
+    </div>
+    <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-hub-primary btn-sm">Save Deal</button><a href="{% url 'crm:deals' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a></div>
+  </form>
+</div>
+{% endblock %}

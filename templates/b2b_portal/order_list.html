@@ -1,0 +1,44 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}B2B Orders — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'b2b_portal:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>B2B Portal</a></div>
+<h4 class="fw-bold mb-4"><i class="bi bi-receipt me-2 text-info"></i>All B2B Orders</h4>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-4">
+      <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Statuses</option>
+        {% for code, label in statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-info text-dark w-100">Filter</button></div>
+    <div class="col-md-2"><a href="{% url 'b2b_portal:order_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Order #</th><th>Customer</th><th>Ref</th><th>Status</th><th>Items</th><th>Total</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for order in orders %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'b2b_portal:order_detail' slug=biz.slug order_id=order.pk %}'">
+            <td class="font-monospace text-muted">#{{ order.pk }}</td>
+            <td class="fw-semibold">{{ order.customer.company_name }}</td>
+            <td class="text-muted">{{ order.reference_no|default:"—" }}</td>
+            <td><span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% elif order.status == 'shipped' %}bg-info text-dark{% elif order.status == 'confirmed' %}bg-primary{% else %}bg-secondary{% endif %}">{{ order.get_status_display }}</span></td>
+            <td>{{ order.line_count }}</td>
+            <td class="fw-semibold">{{ order.total_amount }}</td>
+            <td class="text-muted">{{ order.ordered_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No orders found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

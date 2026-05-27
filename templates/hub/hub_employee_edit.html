@@ -1,0 +1,77 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Edit Employee — {{ employee.name }}{% endblock %}
+{% block page_title %}Edit Employee: {{ employee.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+<form method="post" action="{% url 'hub:hub_employee_edit' slug=biz.slug emp_id=employee.pk %}">
+{% csrf_token %}
+
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-4">Personal Details</h6>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Full Name *</label>
+            <input type="text" name="name" value="{{ employee.name }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Employee ID</label>
+            <input type="text" name="employee_id" value="{{ employee.employee_id|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. EMP-001">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Email</label>
+            <input type="email" name="email" value="{{ employee.email|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Phone</label>
+            <input type="text" name="phone" value="{{ employee.phone|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Department</label>
+            <input type="text" name="department" value="{{ employee.department|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. Engineering, HR, Finance">
+        </div>
+    </div>
+</div>
+
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-4">Role & Position</h6>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Standard Role</label>
+            <select name="role" id="roleSelect" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                {% for val, label in roles %}
+                <option value="{{ val }}" {% if employee.role == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if custom_positions %}
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Custom Position <span class="text-white-50">(overrides role if set)</span></label>
+            <select name="custom_position_id" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">— None —</option>
+                {% for pos in custom_positions %}
+                <option value="{{ pos.pk }}" {% if employee.custom_position_id == pos.pk %}selected{% endif %}>
+                    {{ pos.name }} (Level {{ pos.access_level }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+    <p class="text-white-50 small mt-3 mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        If a custom position is selected, its access level and permissions take precedence over the standard role.
+    </p>
+</div>
+
+<div class="d-flex gap-3">
+    <button type="submit" class="btn btn-hub-primary px-5">Save Changes</button>
+    <a href="{% url 'hub:hub_employees' slug=biz.slug %}" class="btn btn-hub-outline px-4">Cancel</a>
+</div>
+
+</form>
+</div>
+</div>
+{% endblock %}

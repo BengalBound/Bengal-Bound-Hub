@@ -1,0 +1,75 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Meeting Rooms | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'video_meet:meet_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>Meeting Rooms</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Create Room</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Room Name</label>
+                    <input type="text" name="name" required class="form-control" placeholder="e.g. Board Room"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Description</label>
+                    <input type="text" name="description" class="form-control" placeholder="Optional"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Capacity</label>
+                    <input type="number" name="capacity" value="20" min="2" class="form-control"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <button type="submit" class="btn btn-hub-primary btn-sm w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Create Room
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        {% if rooms %}
+        <div class="row g-3">
+        {% for room in rooms %}
+        <div class="col-md-6">
+            <div class="glass-panel p-4 h-100 d-flex flex-column">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <i class="bi bi-door-open" style="font-size:1.5rem;color:var(--hub-accent);"></i>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="room_id" value="{{ room.pk }}">
+                        <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.2);border-radius:6px;" onclick="return confirm('Delete room?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+                <h6 class="fw-semibold mb-1">{{ room.name }}</h6>
+                <div class="text-white-50 small mb-1">Capacity: {{ room.capacity }}</div>
+                {% if room.description %}<div class="text-white-50 small mb-3 flex-grow-1">{{ room.description }}</div>{% endif %}
+                <a href="{{ room.meet_url }}" target="_blank" class="btn btn-hub-primary btn-sm mt-auto">
+                    <i class="bi bi-camera-video me-1"></i>Join Room
+                </a>
+                <div class="text-white-50 mt-2" style="font-size:0.68rem;word-break:break-all;">{{ room.meet_url }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <div class="glass-panel p-5 text-center">
+            <i class="bi bi-door-open" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+            <p class="text-white-50 mt-3 mb-0">No meeting rooms yet. Create one to get a permanent Jitsi link.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

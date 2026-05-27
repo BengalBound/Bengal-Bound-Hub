@@ -1,0 +1,20 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Inventory — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-boxes me-2" style="color:var(--hub-accent);"></i>Inventory{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_products|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Products</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#f87171;">{{ low_stock|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Low Stock</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ total_warehouses|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Warehouses</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ inventory_value|default:"0" }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Total Value</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Inventory Tools</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'inventory:products' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-box-seam me-1"></i>Products</a>
+    <a href="{% url 'inventory:warehouses' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-building me-1"></i>Warehouses</a>
+    <a href="{% url 'inventory:movements' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left-right me-1"></i>Movements</a>
+  </div>
+</div>
+{% endblock %}

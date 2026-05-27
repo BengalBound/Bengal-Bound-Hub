@@ -1,0 +1,57 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}CAD/CAM — {{ biz.name }}{% endblock %}
+{% block page_title %}CAD/CAM Projects{% endblock %}
+
+{% block content %}
+<!-- Coming Soon Banner -->
+<div class="glass-panel p-4 mb-4" style="border-color:rgba(251,191,36,0.25);background:rgba(251,191,36,0.04);">
+    <div class="d-flex align-items-center gap-3">
+        <div style="font-size:2rem;">🔧</div>
+        <div>
+            <div class="fw-bold mb-1">CAD/CAM Integration — Coming Soon</div>
+            <div class="text-white-50 small">Full integration with Autodesk Fusion 360, FreeCAD, and CAMotics is planned for a future release. For now you can manage projects and upload CAD files manually.</div>
+        </div>
+        <span class="badge ms-auto flex-shrink-0" style="background:rgba(251,191,36,0.15);color:#fbbf24;font-size:0.75rem;">Beta</span>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-white-50 mb-0">{{ projects.count }} project{{ projects.count|pluralize }}</p>
+    {% if access_level >= 4 %}
+    <a href="{% url 'cadcam:project_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus me-1"></i>New Project</a>
+    {% endif %}
+</div>
+
+<div class="row g-3">
+{% for project in projects %}
+<div class="col-md-6 col-lg-4">
+    <a href="{% url 'cadcam:project_detail' slug=biz.slug project_id=project.pk %}" class="text-decoration-none d-block h-100">
+    <div class="glass-panel p-4 h-100">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h6 class="fw-bold mb-1">{{ project.name }}</h6>
+                <span class="badge" style="font-size:0.65rem;background:rgba(56,189,248,0.12);color:#38bdf8;">{{ project.get_tool_display }}</span>
+            </div>
+            <span class="badge" style="font-size:0.65rem;background:{% if project.status == 'active' %}rgba(34,197,94,0.12);color:#22c55e;{% elif project.status == 'archived' %}rgba(148,163,184,0.12);color:#94a3b8;{% else %}rgba(251,191,36,0.12);color:#fbbf24;{% endif %}">{{ project.get_status_display }}</span>
+        </div>
+        {% if project.description %}<p class="text-white-50 small mb-3">{{ project.description|truncatechars:80 }}</p>{% endif %}
+        <div class="text-white-50 small">
+            <i class="bi bi-file-earmark-code me-1"></i>{{ project.files.count }} file{{ project.files.count|pluralize }}
+            {% if project.owner %} · <i class="bi bi-person me-1"></i>{{ project.owner.name }}{% endif %}
+        </div>
+    </div>
+    </a>
+</div>
+{% empty %}
+<div class="col-12">
+    <div class="glass-panel p-5 text-center">
+        <div style="font-size:2.5rem;opacity:0.3;margin-bottom:1rem;">📐</div>
+        <p class="text-white-50 mb-3">No CAD/CAM projects yet.</p>
+        {% if access_level >= 4 %}
+        <a href="{% url 'cadcam:project_create' slug=biz.slug %}" class="btn btn-hub-primary">Create First Project</a>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

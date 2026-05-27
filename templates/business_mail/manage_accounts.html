@@ -1,0 +1,82 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Manage Mail Accounts | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'business_mail:mail_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>Manage Mail Accounts</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Create Account -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Create Mail Account</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Email Address</label>
+                    <input type="email" name="address" required placeholder="name@yourdomain.com" class="form-control"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    <div class="form-text text-white-50" style="font-size:0.72rem;">Use your business domain email address.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Display Name</label>
+                    <input type="text" name="display_name" placeholder="e.g. Support" class="form-control"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Assign To Employee</label>
+                    <select name="assigned_to" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                        <option value="">— Shared / Unassigned —</option>
+                        {% for emp in employees %}
+                        <option value="{{ emp.user.pk }}">{{ emp.user.get_full_name|default:emp.user.email }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-hub-primary btn-sm w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing Accounts -->
+    <div class="col-lg-8">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Existing Accounts</div>
+            {% if accounts %}
+            <div class="d-flex flex-column gap-2">
+            {% for acc in accounts %}
+            <div class="d-flex align-items-center justify-content-between p-3" style="border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-envelope-at" style="color:var(--hub-accent);font-size:1.2rem;"></i>
+                    <div>
+                        <div class="fw-semibold small">{{ acc.display_name|default:acc.address }}</div>
+                        <div class="text-white-50" style="font-size:0.72rem;">{{ acc.address }}</div>
+                        <div class="text-white-50" style="font-size:0.72rem;">
+                            {% if acc.assigned_to %}Assigned to {{ acc.assigned_to.get_full_name|default:acc.assigned_to.email }}{% else %}Shared{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="account_id" value="{{ acc.pk }}">
+                    <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;"
+                            onclick="return confirm('Delete {{ acc.address }}? This will delete all messages.')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-white-50 small">No mail accounts yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Warehouse Zones — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-grid me-2 text-warning"></i>Warehouse Zones & Bins</h4>
+  <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#addZoneModal"><i class="bi bi-plus-lg me-1"></i>Add Zone</button>
+</div>
+
+{% for zone in zones %}
+<div class="card bg-dark border-secondary mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold">{{ zone.name }}</span>
+      <span class="badge bg-secondary ms-2">{{ zone.get_zone_type_display }}</span>
+      <span class="badge bg-success ms-1">{{ zone.available_bins }} free</span>
+      <span class="badge bg-warning text-dark ms-1">{{ zone.used_bins }} occupied</span>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addBinsModal{{ zone.pk }}">Add Bins</button>
+  </div>
+  <div class="card-body">
+    {% if zone.bins.all %}
+    <div class="d-flex flex-wrap gap-1">
+      {% for bin in zone.bins.all %}
+      <span class="badge {% if bin.is_occupied %}bg-warning text-dark{% else %}bg-success{% endif %} font-monospace" title="{% if bin.is_occupied %}{{ bin.current_sku }} × {{ bin.current_qty }}{% else %}Empty{% endif %}">
+        {{ bin.bin_code }}
+      </span>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-muted small">No bins in this zone — add bins to start tracking inventory locations.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Bins Modal per zone -->
+<div class="modal fade" id="addBinsModal{{ zone.pk }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Bins to {{ zone.name }}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_bins">
+        <input type="hidden" name="zone_id" value="{{ zone.pk }}">
+        <div class="modal-body row g-2">
+          <div class="col-4"><label class="form-label small">Prefix</label><input type="text" name="prefix" class="form-control bg-dark text-white border-secondary" placeholder="e.g. A-01-"></div>
+          <div class="col-4"><label class="form-label small">Count</label><input type="number" name="count" value="10" min="1" max="200" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-4"><label class="form-label small">Start #</label><input type="number" name="start" value="1" min="1" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12 text-muted small">Bins will be created as: Prefix + 001, 002, … e.g. A-01-001</div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-dark">Create Bins</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="card bg-dark border-secondary"><div class="card-body text-center py-5 text-muted"><i class="bi bi-grid display-3 mb-3 d-block"></i>No zones configured. Create your first warehouse zone.</div></div>
+{% endfor %}
+
+<div class="modal fade" id="addZoneModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Warehouse Zone</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_zone">
+        <div class="modal-body row g-2">
+          <div class="col-8"><label class="form-label small">Zone Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Zone A, Receiving Bay" required></div>
+          <div class="col-4"><label class="form-label small">Type</label><select name="zone_type" class="form-select bg-dark text-white border-secondary">{% for code, label in zone_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select></div>
+          <div class="col-8"><label class="form-label small">Description</label><input type="text" name="description" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-4"><label class="form-label small">Capacity (bins)</label><input type="number" name="capacity_bins" class="form-control bg-dark text-white border-secondary"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-dark">Create Zone</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

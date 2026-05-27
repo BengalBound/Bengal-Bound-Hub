@@ -1,0 +1,134 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Cloud Drive | {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-cloud me-2" style="color:var(--hub-accent);"></i>Cloud Drive{% endblock %}
+
+{% block extra_head %}
+<style>
+.file-item { transition:background 0.1s; border-radius:8px; }
+.file-item:hover { background:rgba(255,255,255,0.04); }
+.folder-card { cursor:pointer; transition:border-color 0.15s; }
+.folder-card:hover { border-color:rgba(192,132,252,0.5); }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Storage bar -->
+{% with sub=biz.subscription %}
+<div class="glass-panel p-3 mb-4">
+    <div class="d-flex justify-content-between small mb-2">
+        <span><i class="bi bi-hdd me-1" style="color:var(--hub-accent);"></i>Storage</span>
+        <span class="text-white-50">{{ total_mb|floatformat:1 }} MB / {{ sub.total_storage_gb|floatformat:0 }} GB</span>
+    </div>
+    {% with pct=biz.storage_percent %}
+    <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;">
+        <div style="height:8px;border-radius:6px;background:{% if pct > 80 %}#f87171{% elif pct > 60 %}#fbbf24{% else %}linear-gradient(90deg,#c084fc,#38bdf8){% endif %};width:{{ pct }}%;transition:width 0.4s;"></div>
+    </div>
+    {% endwith %}
+</div>
+{% endwith %}
+
+<!-- Actions bar -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <form method="post" action="{% url 'cloud_drive:drive_upload' slug=biz.slug %}" enctype="multipart/form-data" class="d-flex gap-2">
+        {% csrf_token %}
+        <input type="file" name="files" multiple id="fileInput" style="display:none;" onchange="this.form.submit()">
+        <button type="button" onclick="document.getElementById('fileInput').click()" class="btn btn-hub-primary btn-sm">
+            <i class="bi bi-upload me-1"></i>Upload Files
+        </button>
+    </form>
+    <button class="btn btn-hub-outline btn-sm" data-bs-toggle="modal" data-bs-target="#newFolderModal">
+        <i class="bi bi-folder-plus me-1"></i>New Folder
+    </button>
+</div>
+
+<!-- Folders -->
+{% if root_folders %}
+<div class="mb-4">
+    <div class="row g-2">
+    {% for folder in root_folders %}
+    <div class="col-md-3 col-sm-4 col-6">
+        <a href="{% url 'cloud_drive:drive_folder' slug=biz.slug folder_id=folder.pk %}" class="text-decoration-none">
+            <div class="glass-panel p-3 folder-card d-flex align-items-center gap-2">
+                <i class="bi bi-folder-fill" style="font-size:1.3rem;color:{% if folder.color %}{{ folder.color }}{% else %}#fbbf24{% endif %};"></i>
+                <span class="small fw-semibold text-truncate">{{ folder.name }}</span>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Files -->
+{% if root_files %}
+<div class="glass-panel p-0" style="overflow:hidden;">
+<table class="table table-dark table-hover mb-0" style="font-size:0.83rem;">
+<thead>
+    <tr style="border-bottom:1px solid var(--hub-border);">
+        <th class="px-4 py-2 text-white-50 fw-normal">Name</th>
+        <th class="px-4 py-2 text-white-50 fw-normal">Size</th>
+        <th class="px-4 py-2 text-white-50 fw-normal">Uploaded</th>
+        <th class="px-4 py-2 text-white-50 fw-normal">Actions</th>
+    </tr>
+</thead>
+<tbody>
+{% for f in root_files %}
+<tr class="file-item">
+    <td class="px-4 py-2">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi {{ f.icon_class }}" style="font-size:1.1rem;color:var(--hub-accent);"></i>
+            <a href="{{ f.file.url }}" target="_blank" class="text-white text-decoration-none">{{ f.name }}</a>
+            {% if f.is_starred %}<i class="bi bi-star-fill text-warning" style="font-size:0.75rem;"></i>{% endif %}
+        </div>
+    </td>
+    <td class="px-4 py-2 text-white-50">{{ f.size_display }}</td>
+    <td class="px-4 py-2 text-white-50">{{ f.uploaded_at|date:"M d, Y" }}</td>
+    <td class="px-4 py-2">
+        <div class="d-flex gap-1">
+            <a href="{{ f.file.url }}" download class="btn btn-hub-outline btn-sm"><i class="bi bi-download"></i></a>
+            <a href="{% url 'cloud_drive:drive_file_star' slug=biz.slug file_id=f.pk %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-star{% if f.is_starred %}-fill{% endif %}"></i></a>
+            <form method="post" action="{% url 'cloud_drive:drive_file_delete' slug=biz.slug file_id=f.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:6px;" onclick="return confirm('Delete {{ f.name }}?')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+{% if not root_folders and not root_files %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-cloud" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+    <p class="text-white-50 mt-3 mb-2">Your drive is empty. Upload files or create a folder.</p>
+</div>
+{% endif %}
+
+<!-- New Folder Modal -->
+<div class="modal fade" id="newFolderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);">
+            <div class="modal-header" style="border-bottom:1px solid var(--hub-border);">
+                <h6 class="modal-title fw-semibold">New Folder</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'cloud_drive:drive_new_folder' slug=biz.slug %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="text" name="name" class="form-control" placeholder="Folder name" required
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--hub-border);">
+                    <button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-hub-primary btn-sm">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

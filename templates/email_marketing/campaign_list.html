@@ -1,0 +1,32 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Campaigns — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-send me-2" style="color:var(--hub-accent);"></i>Email Campaigns{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Campaigns</h5>
+    <a href="{% url 'email_marketing:campaign_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Campaign</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Campaign</th><th>List</th><th>Sent</th><th>Opens</th><th>Clicks</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for campaign in campaigns %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ campaign.name }}</td>
+          <td style="color:var(--hub-muted);">{{ campaign.email_list.name }}</td>
+          <td style="color:var(--hub-muted);">{{ campaign.sent_count|default:"—" }}</td>
+          <td style="color:#22c55e;">{{ campaign.open_rate|default:"—" }}</td>
+          <td style="color:#38bdf8;">{{ campaign.click_rate|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if campaign.status == 'sent' %}#22c55e20{% elif campaign.status == 'draft' %}#64748b20{% else %}#fbbf2420{% endif %};color:{% if campaign.status == 'sent' %}#22c55e{% elif campaign.status == 'draft' %}#64748b{% else %}#fbbf24{% endif %};">{{ campaign.status|title }}</span></td>
+          <td><a href="{% url 'email_marketing:campaign_detail' slug=biz.slug pk=campaign.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:var(--hub-muted);padding:2rem;">No campaigns yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

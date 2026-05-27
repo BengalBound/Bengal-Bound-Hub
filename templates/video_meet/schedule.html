@@ -1,0 +1,68 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Schedule Meeting | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'video_meet:meet_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>Schedule Meeting</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="glass-panel p-4" style="max-width:680px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Meeting Title</label>
+            <input type="text" name="title" required class="form-control" placeholder="e.g. Weekly Sync"
+                   style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Description (optional)</label>
+            <textarea name="description" rows="2" class="form-control" placeholder="Agenda or notes…"
+                      style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label text-white-50 small">Start Time</label>
+                <input type="datetime-local" name="start_time" required class="form-control"
+                       style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-white-50 small">End Time</label>
+                <input type="datetime-local" name="end_time" required class="form-control"
+                       style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            </div>
+        </div>
+        {% if rooms %}
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Room (optional)</label>
+            <select name="room_id" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">— No room / External link —</option>
+                {% for room in rooms %}
+                <option value="{{ room.pk }}">{{ room.name }} (cap. {{ room.capacity }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">External Meeting URL (optional)</label>
+            <input type="url" name="meeting_url" class="form-control" placeholder="https://meet.google.com/… or Zoom link"
+                   style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="mb-4">
+            <label class="form-label text-white-50 small">Invite Employees</label>
+            <div class="d-flex flex-wrap gap-2">
+            {% for emp in employees %}
+            <label class="d-flex align-items-center gap-2 p-2" style="border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;font-size:0.83rem;">
+                <input type="checkbox" name="attendee_ids" value="{{ emp.pk }}">
+                {{ emp.user.get_full_name|default:emp.user.email }}
+            </label>
+            {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-hub-primary">
+            <i class="bi bi-calendar-check me-1"></i>Schedule Meeting
+        </button>
+    </form>
+</div>
+{% endblock %}

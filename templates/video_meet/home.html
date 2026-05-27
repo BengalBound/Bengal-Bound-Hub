@@ -1,0 +1,94 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Video Meet | {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-camera-video me-2" style="color:var(--hub-accent);"></i>Video Meet{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <p class="text-white-50 mb-0 small">Schedule and join video meetings with your team.</p>
+    <div class="d-flex gap-2">
+        <a href="{% url 'video_meet:meet_schedule' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Schedule Meeting
+        </a>
+        <a href="{% url 'video_meet:room_manage' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+            <i class="bi bi-door-open me-1"></i>Rooms
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Quick join rooms -->
+    {% if rooms %}
+    <div class="col-lg-4">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Quick Join — Rooms</div>
+            <div class="d-flex flex-column gap-2">
+            {% for room in rooms %}
+            <div class="d-flex align-items-center justify-content-between p-3" style="border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);">
+                <div>
+                    <div class="fw-semibold small">{{ room.name }}</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">Capacity: {{ room.capacity }}</div>
+                </div>
+                <a href="{{ room.meet_url }}" target="_blank" class="btn btn-hub-primary btn-sm">
+                    <i class="bi bi-camera-video me-1"></i>Join
+                </a>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- My upcoming -->
+    <div class="col-lg-{% if rooms %}8{% else %}12{% endif %}">
+        {% if my_meetings %}
+        <div class="glass-panel p-4 mb-4">
+            <div class="fw-semibold mb-3">My Upcoming Meetings</div>
+            <div class="d-flex flex-column gap-2">
+            {% for mtg in my_meetings %}
+            <div class="d-flex align-items-center justify-content-between p-3" style="border-radius:10px;background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);">
+                <div>
+                    <div class="fw-semibold small">{{ mtg.title }}</div>
+                    <div class="text-white-50" style="font-size:0.75rem;">{{ mtg.start_time|date:"M d, Y H:i" }} — {{ mtg.end_time|date:"H:i" }}</div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if mtg.effective_url %}
+                    <a href="{{ mtg.effective_url }}" target="_blank" class="btn btn-hub-primary btn-sm">Join</a>
+                    {% endif %}
+                    <a href="{% url 'video_meet:meet_detail' slug=biz.slug pk=mtg.pk %}" class="btn btn-hub-outline btn-sm">Details</a>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All upcoming -->
+        {% if upcoming %}
+        <div class="glass-panel p-4 mb-3">
+            <div class="fw-semibold mb-3">All Upcoming</div>
+            <div class="d-flex flex-column gap-2">
+            {% for mtg in upcoming %}
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small fw-semibold">{{ mtg.title }}</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">{{ mtg.start_time|date:"M d, Y H:i" }} · {{ mtg.attendees.count }} attendee{{ mtg.attendees.count|pluralize }}</div>
+                </div>
+                <a href="{% url 'video_meet:meet_detail' slug=biz.slug pk=mtg.pk %}" class="btn btn-hub-outline btn-sm">View</a>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not upcoming and not my_meetings %}
+        <div class="glass-panel p-5 text-center">
+            <i class="bi bi-camera-video" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+            <p class="text-white-50 mt-3 mb-3">No upcoming meetings.</p>
+            <a href="{% url 'video_meet:meet_schedule' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Schedule One
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

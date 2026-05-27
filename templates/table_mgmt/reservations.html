@@ -1,0 +1,47 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Reservations — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-calendar-check me-2" style="color:var(--hub-accent);"></i>Reservations{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Reservations</h5>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newResModal"><i class="bi bi-plus-lg me-1"></i>New Reservation</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Guest</th><th>Table</th><th>Date & Time</th><th>Party Size</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for res in reservations %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ res.guest_name }}</td>
+          <td style="color:var(--hub-muted);">Table {{ res.table.number }}</td>
+          <td style="color:var(--hub-muted);">{{ res.datetime }}</td>
+          <td style="color:#38bdf8;">{{ res.party_size }}</td>
+          <td><span class="badge" style="background:{% if res.status == 'confirmed' %}#22c55e20{% elif res.status == 'cancelled' %}#f8717120{% else %}#fbbf2420{% endif %};color:{% if res.status == 'confirmed' %}#22c55e{% elif res.status == 'cancelled' %}#f87171{% else %}#fbbf24{% endif %};">{{ res.status|title }}</span></td>
+          <td>
+            {% if res.status == 'pending' %}<form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="res_id" value="{{ res.pk }}"><button name="action" value="confirm" class="btn btn-hub-primary btn-sm me-1">Confirm</button></form>{% endif %}
+            {% if res.status != 'cancelled' %}<form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="res_id" value="{{ res.pk }}"><button name="action" value="cancel" class="btn btn-sm" style="color:#f87171;border:1px solid #f87171;border-radius:6px;background:transparent;padding:.2rem .5rem;">Cancel</button></form>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center" style="color:var(--hub-muted);padding:2rem;">No reservations.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal fade" id="newResModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">New Reservation</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}<div class="modal-body">
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Guest Name</label><input name="guest_name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Phone</label><input name="guest_phone" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Table</label><select name="table" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{% for t in tables %}<option value="{{ t.pk }}">Table {{ t.number }} ({{ t.capacity }}p)</option>{% endfor %}</select></div>
+        <div class="row g-2 mb-3"><div class="col"><label class="form-label" style="color:var(--hub-muted);">Date & Time</label><input type="datetime-local" name="datetime" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div><div class="col"><label class="form-label" style="color:var(--hub-muted);">Party Size</label><input type="number" name="party_size" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="2" required></div></div>
+      </div><div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Save</button></div></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

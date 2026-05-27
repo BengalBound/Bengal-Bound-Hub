@@ -1,0 +1,137 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Production KPI Dashboard — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'production:index' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Production</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart-line me-2 text-info"></i>Production KPI Dashboard</h4>
+  <div class="d-flex gap-2">
+    <form method="get" class="d-inline">
+      <select name="period" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="this.form.submit()">
+        {% for code, label in periods %}<option value="{{ code }}" {% if period_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </form>
+    <button class="btn btn-info text-dark btn-sm" data-bs-toggle="modal" data-bs-target="#logKPIModal"><i class="bi bi-plus-lg me-1"></i>Log KPI</button>
+  </div>
+</div>
+
+<!-- Latest KPI Cards -->
+{% if latest %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3 {% if latest.otd_pct >= 98 %}border-success{% elif latest.otd_pct >= 90 %}border-warning{% else %}border-danger{% endif %}">
+      <div class="display-6 fw-bold {% if latest.otd_pct >= 98 %}text-success{% elif latest.otd_pct >= 90 %}text-warning{% else %}text-danger{% endif %}">{{ latest.otd_pct }}%</div>
+      <div class="small text-muted mt-1">OTD <span class="text-muted opacity-50">(target ≥ 98%)</span></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3 {% if latest.rft_pct >= 95 %}border-success{% elif latest.rft_pct >= 90 %}border-warning{% else %}border-danger{% endif %}">
+      <div class="display-6 fw-bold {% if latest.rft_pct >= 95 %}text-success{% elif latest.rft_pct >= 90 %}text-warning{% else %}text-danger{% endif %}">{{ latest.rft_pct }}%</div>
+      <div class="small text-muted mt-1">RFT <span class="text-muted opacity-50">(target ≥ 95%)</span></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3 {% if latest.defect_rate_per_100 <= 3 %}border-success{% elif latest.defect_rate_per_100 <= 6 %}border-warning{% else %}border-danger{% endif %}">
+      <div class="display-6 fw-bold {% if latest.defect_rate_per_100 <= 3 %}text-success{% elif latest.defect_rate_per_100 <= 6 %}text-warning{% else %}text-danger{% endif %}">{{ latest.defect_rate_per_100 }}</div>
+      <div class="small text-muted mt-1">Defects/100 <span class="text-muted opacity-50">(target ≤ 3.0)</span></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ latest.pairs_per_labour_hour }}</div>
+      <div class="small text-muted mt-1">Pairs / Labour Hour</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3 {% if latest.wip_pairs_at_lasting > 0 %}border-warning{% endif %}">
+      <div class="display-6 fw-bold {% if latest.wip_pairs_at_lasting > 0 %}text-warning{% else %}text-white{% endif %}">{{ latest.wip_pairs_at_lasting }}</div>
+      <div class="small text-muted mt-1">WIP at Lasting <span class="text-muted opacity-50">(target ≤ 2 days)</span></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-white">{{ latest.pairs_produced }}</div>
+      <div class="small text-muted mt-1">Pairs Produced</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-success">{% if latest.cost_per_pair %}{{ latest.cost_per_pair }}{% else %}—{% endif %}</div>
+      <div class="small text-muted mt-1">Cost / Pair</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="small text-muted">Latest snapshot</div>
+      <div class="fw-semibold text-white mt-1">{{ latest.snapshot_date|date:"d M Y" }}</div>
+      <div class="text-muted small">{{ latest.get_period_display }}</div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-secondary small mb-4"><i class="bi bi-info-circle me-1"></i>No KPI snapshots yet. Log your first snapshot to start tracking performance.</div>
+{% endif %}
+
+<!-- KPI History Table -->
+<div class="card bg-dark border-secondary">
+  <div class="card-header border-secondary small"><i class="bi bi-table me-1"></i>KPI History</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary">
+          <tr><th>Date</th><th>OTD %</th><th>RFT %</th><th>Defects/100</th><th>Pairs/Hr</th><th>Pairs Produced</th><th>WIP Lasting</th><th>Cost/Pair</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          {% for s in snapshots %}
+          <tr>
+            <td class="text-muted">{{ s.snapshot_date|date:"d M Y" }}</td>
+            <td class="fw-bold {% if s.otd_pct >= 98 %}text-success{% elif s.otd_pct >= 90 %}text-warning{% else %}text-danger{% endif %}">{{ s.otd_pct }}%</td>
+            <td class="fw-bold {% if s.rft_pct >= 95 %}text-success{% elif s.rft_pct >= 90 %}text-warning{% else %}text-danger{% endif %}">{{ s.rft_pct }}%</td>
+            <td class="fw-bold {% if s.defect_rate_per_100 <= 3 %}text-success{% elif s.defect_rate_per_100 <= 6 %}text-warning{% else %}text-danger{% endif %}">{{ s.defect_rate_per_100 }}</td>
+            <td class="text-muted">{{ s.pairs_per_labour_hour }}</td>
+            <td class="text-muted">{{ s.pairs_produced }}</td>
+            <td class="{% if s.wip_pairs_at_lasting > 0 %}text-warning{% else %}text-muted{% endif %}">{{ s.wip_pairs_at_lasting }}</td>
+            <td class="text-muted">{% if s.cost_per_pair %}{{ s.cost_per_pair }}{% else %}—{% endif %}</td>
+            <td class="text-muted">{{ s.notes|truncatechars:40|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">No records yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Log KPI Modal -->
+<div class="modal fade" id="logKPIModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Log KPI Snapshot</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body row g-2">
+          <div class="col-md-4"><label class="form-label small">Date <span class="text-danger">*</span></label><input type="date" name="snapshot_date" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Period</label>
+            <select name="period" class="form-select bg-dark text-white border-secondary">{% for code, label in periods %}<option value="{{ code }}" {% if period_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          </div>
+          <div class="col-12"><hr class="border-secondary my-1"></div>
+          <div class="col-md-3"><label class="form-label small">Orders Due</label><input type="number" name="orders_due" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Orders On Time</label><input type="number" name="orders_on_time" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Pairs to Final QC</label><input type="number" name="pairs_to_final_qc" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Pairs Passed 1st</label><input type="number" name="pairs_passed_first" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Pairs Produced</label><input type="number" name="pairs_produced" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Pairs Rejected / Rework</label><input type="number" name="pairs_rejected_reworked" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Total Labour Hours</label><input type="number" name="total_labour_hours" step="0.5" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">WIP Pairs at Lasting</label><input type="number" name="wip_pairs_at_lasting" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Total Production Cost</label><input type="number" name="total_production_cost" step="0.01" class="form-control bg-dark text-white border-secondary" placeholder="Leave blank if unknown"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Save Snapshot</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,417 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}{{ card.title }} | {{ board.name }} | BengalBound{% endblock %}
+{% block page_title %}
+<a href="{% url 'task_board:board_list' slug=biz.slug %}" class="text-white-50 text-decoration-none small">Boards</a>
+<span class="text-white-50 mx-2">/</span>
+<a href="{% url 'task_board:board_detail' slug=biz.slug board_id=board.id %}" class="text-white-50 text-decoration-none small">{{ board.name }}</a>
+<span class="text-white-50 mx-2">/</span>
+<span class="fw-semibold small">{{ card.title|truncatechars:40 }}</span>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.detail-section { background: rgba(15,23,42,0.6); border: 1px solid var(--hub-border); border-radius: 14px; padding: 1.25rem; }
+.detail-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--hub-muted); font-weight: 700; margin-bottom: 0.5rem; }
+.checklist-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0; }
+.checklist-item input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #c084fc; }
+.checklist-item .item-title { font-size: 0.875rem; flex-grow: 1; }
+.checklist-item.done .item-title { text-decoration: line-through; opacity: 0.5; }
+.progress { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+.progress-bar { background: linear-gradient(90deg, #c084fc, #ec4899); border-radius: 3px; transition: width 0.3s; }
+.comment-bubble { background: rgba(30,41,59,0.8); border: 1px solid var(--hub-border); border-radius: 10px; padding: 0.65rem 0.85rem; }
+.color-chip { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s, transform 0.15s; }
+.color-chip:hover { transform: scale(1.15); }
+.color-chip.selected { border-color: #fff; }
+.assignee-btn { border: 1px solid var(--hub-border); border-radius: 8px; padding: 0.35rem 0.7rem; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; background: transparent; color: var(--hub-muted); }
+.assignee-btn:hover { border-color: var(--hub-accent); color: var(--hub-text); }
+.assignee-btn.active { background: rgba(192,132,252,0.15); border-color: #c084fc; color: #c084fc; }
+.label-pill { border-radius: 6px; padding: 3px 10px; font-size: 0.75rem; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+.label-pill:hover { filter: brightness(1.2); }
+.label-pill.active { border-color: rgba(255,255,255,0.5); }
+.side-meta { gap: 0.65rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+<!-- Left: Main Card Content -->
+<div class="col-lg-8">
+
+    <!-- Title & Color -->
+    <div class="detail-section mb-3">
+        {% if card.color %}
+        <div class="rounded-3 mb-3" style="height:6px; background: var(--cc-{{ card.color }}, #6b7280);"></div>
+        {% endif %}
+        <h4 class="fw-bold mb-0" id="cardTitle" contenteditable="true" spellcheck="false"
+            style="outline:none; border-bottom:1px solid transparent; transition:border-color 0.15s; padding-bottom:2px;"
+            onfocus="this.style.borderColor='rgba(192,132,252,0.4)'"
+            onblur="saveTitle(this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">{{ card.title }}</h4>
+
+        <div class="d-flex align-items-center gap-2 mt-3 flex-wrap">
+            <span class="detail-label mb-0 me-1">Color:</span>
+            <div class="color-chip {% if not card.color %}selected{% endif %}" style="background:rgba(255,255,255,0.08);" onclick="setColor('')" title="None"></div>
+            {% for val, lbl in card_colors %}
+            {% if val %}
+            <div class="color-chip color-chip-{{ val }} {% if card.color == val %}selected{% endif %}" onclick="setColor('{{ val }}')" title="{{ lbl }}"></div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="detail-section mb-3">
+        <div class="detail-label"><i class="bi bi-justify-left me-2"></i>Description</div>
+        <textarea id="cardDesc" class="form-control bg-transparent text-white border-0 shadow-none p-0" rows="4"
+            placeholder="Add a description..."
+            style="resize:vertical; font-size:0.875rem; line-height:1.6;"
+            onblur="saveDesc(this)">{{ card.description }}</textarea>
+    </div>
+
+    <!-- Checklists -->
+    {% for cl in checklists %}
+    <div class="detail-section mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="detail-label mb-0"><i class="bi bi-check2-square me-2"></i>{{ cl.name }}</div>
+            <span class="text-white-50" style="font-size:0.75rem;">{{ cl.progress_pct }}%</span>
+        </div>
+        <div class="progress mb-3">
+            <div class="progress-bar" id="cl-prog-{{ cl.id }}" style="width:{{ cl.progress_pct }}%"></div>
+        </div>
+        <div id="cl-items-{{ cl.id }}">
+            {% for item in cl.items.all %}
+            <div class="checklist-item {% if item.is_done %}done{% endif %}" id="item-row-{{ item.id }}">
+                <input type="checkbox" {% if item.is_done %}checked{% endif %} onchange="toggleItem({{ item.id }}, {{ cl.id }})">
+                <span class="item-title">{{ item.title }}</span>
+                <button class="btn p-0 border-0 text-white-25 ms-auto" style="font-size:0.75rem; background:transparent;" onclick="deleteItem({{ item.id }}, {{ cl.id }})"><i class="bi bi-x"></i></button>
+            </div>
+            {% empty %}
+            <div class="text-white-50 small py-1" id="empty-cl-{{ cl.id }}">No items yet.</div>
+            {% endfor %}
+        </div>
+        <div class="d-flex gap-2 mt-2">
+            <input type="text" id="new-item-{{ cl.id }}" class="form-control form-control-sm bg-dark text-white border-secondary shadow-none" placeholder="Add item..."
+                onkeydown="if(event.key==='Enter')addItem({{ cl.id }})">
+            <button class="btn btn-hub-outline btn-sm px-3" onclick="addItem({{ cl.id }})"><i class="bi bi-plus"></i></button>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Add Checklist -->
+    <div class="mb-3">
+        <button class="btn btn-hub-outline btn-sm" id="addClBtn" onclick="document.getElementById('addClForm').classList.toggle('d-none');document.getElementById('addClBtn').classList.toggle('d-none')">
+            <i class="bi bi-plus me-1"></i>Add Checklist
+        </button>
+        <div class="d-none" id="addClForm">
+            <div class="d-flex gap-2 mt-1">
+                <input type="text" id="newClName" class="form-control form-control-sm bg-dark text-white border-secondary shadow-none" placeholder="Checklist name"
+                    onkeydown="if(event.key==='Enter')submitChecklist()">
+                <button class="btn btn-hub-primary btn-sm px-3" onclick="submitChecklist()">Add</button>
+                <button class="btn btn-hub-outline btn-sm" onclick="document.getElementById('addClForm').classList.add('d-none');document.getElementById('addClBtn').classList.remove('d-none')"><i class="bi bi-x"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="detail-section">
+        <div class="detail-label"><i class="bi bi-chat-left-text me-2"></i>Comments</div>
+
+        <div id="commentsList">
+            {% for c in comments %}
+            <div class="mb-3" id="comment-{{ c.id }}">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fw-semibold" style="font-size:0.8rem;">{{ c.author.get_full_name|default:c.author.email }}</span>
+                    <span class="text-white-50" style="font-size:0.72rem;">{{ c.created_at|timesince }} ago{% if c.is_edited %} (edited){% endif %}</span>
+                    {% if c.author == request.user %}
+                    <button class="btn p-0 border-0 text-white-25 ms-auto" style="font-size:0.72rem; background:transparent;" onclick="deleteComment({{ c.id }})"><i class="bi bi-trash"></i></button>
+                    {% endif %}
+                </div>
+                <div class="comment-bubble">{{ c.content }}</div>
+            </div>
+            {% empty %}
+            <p class="text-white-50 small mb-3" id="noComments">No comments yet.</p>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex gap-2 mt-2">
+            <textarea id="commentInput" class="form-control bg-dark text-white border-secondary shadow-none" rows="2"
+                placeholder="Write a comment..."
+                style="border-radius:10px; font-size:0.875rem; resize:none;"></textarea>
+            <button class="btn btn-hub-primary btn-sm px-3" onclick="submitComment()"><i class="bi bi-send"></i></button>
+        </div>
+    </div>
+
+</div><!-- /left col -->
+
+<!-- Right: Sidebar Meta -->
+<div class="col-lg-4">
+    <div class="d-flex flex-column side-meta">
+
+        <!-- Due Date -->
+        <div class="detail-section">
+            <div class="detail-label"><i class="bi bi-calendar2-event me-2"></i>Due Date</div>
+            <input type="date" id="dueDate" class="form-control bg-dark text-white border-secondary shadow-none" value="{{ card.due_date|date:'Y-m-d'|default:'' }}" onchange="saveMeta()">
+        </div>
+
+        <!-- Story Points -->
+        <div class="detail-section">
+            <div class="detail-label"><i class="bi bi-diamond me-2"></i>Story Points</div>
+            <input type="number" id="storyPoints" class="form-control bg-dark text-white border-secondary shadow-none" value="{{ card.story_points|default:'' }}" min="0" max="999" placeholder="—" onchange="saveMeta()">
+        </div>
+
+        <!-- Assignees -->
+        <div class="detail-section">
+            <div class="detail-label"><i class="bi bi-person-check me-2"></i>Assignees</div>
+            <div class="d-flex flex-wrap gap-2">
+                {% for emp in employees %}
+                <button class="assignee-btn {% if emp in card.assignees.all %}active{% endif %}"
+                    id="assignee-{{ emp.id }}"
+                    onclick="toggleAssignee({{ emp.id }})">
+                    {{ emp.name|truncatechars:16 }}
+                </button>
+                {% empty %}
+                <span class="text-white-50 small">No employees yet.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Labels -->
+        <div class="detail-section">
+            <div class="detail-label"><i class="bi bi-tags me-2"></i>Labels</div>
+            <div class="d-flex flex-wrap gap-2">
+                {% for lbl in labels %}
+                <span class="label-pill {% if lbl.id in active_labels %}active{% endif %}"
+                    id="label-{{ lbl.id }}"
+                    style="background:{{ lbl.color }}22; border-color:{% if lbl.id in active_labels %}{{ lbl.color }}{% else %}transparent{% endif %}; color:{{ lbl.color }};"
+                    onclick="toggleLabel({{ lbl.id }}, '{{ lbl.color }}')">
+                    {{ lbl.name }}
+                </span>
+                {% empty %}
+                <span class="text-white-50 small">No labels. Create them from the board view.</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Archive -->
+        <div class="detail-section">
+            <div class="detail-label"><i class="bi bi-archive me-2"></i>Actions</div>
+            <button class="btn btn-hub-outline btn-sm w-100 text-danger-emphasis" onclick="archiveCard()"><i class="bi bi-archive me-2"></i>Archive Card</button>
+        </div>
+
+    </div>
+</div>
+
+</div><!-- /row -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SLUG = "{{ biz.slug }}";
+const CARD_ID = {{ card.id }};
+const BOARD_ID = {{ board.id }};
+const CSRF = "{{ csrf_token }}";
+
+// Color CSS vars
+const COLOR_MAP = {
+    red:'#ef4444', orange:'#f97316', yellow:'#eab308', green:'#22c55e',
+    teal:'#14b8a6', blue:'#3b82f6', indigo:'#6366f1', purple:'#a855f7',
+    pink:'#ec4899', gray:'#6b7280'
+};
+
+function post(url, data) {
+    const fd = new FormData();
+    for (const k in data) fd.append(k, data[k]);
+    return fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+        body: fd,
+    }).then(r => r.json());
+}
+
+function cardPost(action, extra) {
+    return post(`/hub/${SLUG}/board/cards/${CARD_ID}/`, {action, ...extra});
+}
+
+// ── Title Save ────────────────────────────────────────────────────────────────
+
+function saveTitle(el) {
+    const title = el.textContent.trim();
+    if (!title) { el.textContent = el.dataset.original || el.textContent; return; }
+    cardPost('update', {title, description: document.getElementById('cardDesc').value,
+        color: document.getElementById('currentColor').value || '',
+        due_date: document.getElementById('dueDate').value,
+        story_points: document.getElementById('storyPoints').value,
+    });
+}
+
+// ── Description Save ──────────────────────────────────────────────────────────
+
+function saveDesc(el) { saveMeta(); }
+
+function saveMeta() {
+    cardPost('update', {
+        title: document.getElementById('cardTitle').textContent.trim(),
+        description: document.getElementById('cardDesc').value,
+        color: document.getElementById('currentColor') ? document.getElementById('currentColor').value : '',
+        due_date: document.getElementById('dueDate').value,
+        story_points: document.getElementById('storyPoints').value,
+    });
+}
+
+// ── Color ─────────────────────────────────────────────────────────────────────
+
+let currentColor = "{{ card.color }}";
+function setColor(val) {
+    currentColor = val;
+    document.querySelectorAll('.color-chip').forEach(c => c.classList.remove('selected'));
+    const target = val
+        ? document.querySelector(`.color-chip-${val}`)
+        : document.querySelectorAll('.color-chip')[0];
+    if (target) target.classList.add('selected');
+    cardPost('update', {
+        title: document.getElementById('cardTitle').textContent.trim(),
+        description: document.getElementById('cardDesc').value,
+        color: val,
+        due_date: document.getElementById('dueDate').value,
+        story_points: document.getElementById('storyPoints').value,
+    });
+}
+
+// ── Assignees ─────────────────────────────────────────────────────────────────
+
+function toggleAssignee(empId) {
+    cardPost('toggle_assignee', {employee_id: empId}).then(data => {
+        const btn = document.getElementById(`assignee-${empId}`);
+        btn.classList.toggle('active', data.assigned);
+    });
+}
+
+// ── Labels ────────────────────────────────────────────────────────────────────
+
+function toggleLabel(labelId, color) {
+    cardPost('toggle_label', {label_id: labelId}).then(data => {
+        const pill = document.getElementById(`label-${labelId}`);
+        pill.classList.toggle('active', data.active);
+        pill.style.borderColor = data.active ? color : 'transparent';
+    });
+}
+
+// ── Checklist Items ───────────────────────────────────────────────────────────
+
+function toggleItem(itemId, clId) {
+    fetch(`/hub/${SLUG}/board/checklist-items/${itemId}/toggle/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+    }).then(r => r.json()).then(data => {
+        const row = document.getElementById(`item-row-${itemId}`);
+        row.classList.toggle('done', data.is_done);
+        const bar = document.getElementById(`cl-prog-${clId}`);
+        if (bar) bar.style.width = data.progress + '%';
+        // update the % label
+        const pct = bar ? bar.closest('.detail-section').querySelector('.text-white-50') : null;
+        if (pct) pct.textContent = data.progress + '%';
+    });
+}
+
+function addItem(clId) {
+    const inp = document.getElementById(`new-item-${clId}`);
+    const title = inp.value.trim();
+    if (!title) return;
+    fetch(`/hub/${SLUG}/board/checklists/${clId}/items/add/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+        body: (() => { const fd = new FormData(); fd.append('title', title); return fd; })(),
+    }).then(r => r.json()).then(data => {
+        if (data.error) { alert(data.error); return; }
+        inp.value = '';
+        const empty = document.getElementById(`empty-cl-${clId}`);
+        if (empty) empty.remove();
+        const container = document.getElementById(`cl-items-${clId}`);
+        const div = document.createElement('div');
+        div.className = 'checklist-item';
+        div.id = `item-row-${data.id}`;
+        div.innerHTML = `
+            <input type="checkbox" onchange="toggleItem(${data.id}, ${clId})" ${data.is_done ? 'checked' : ''}>
+            <span class="item-title">${data.title}</span>
+            <button class="btn p-0 border-0 text-white-25 ms-auto" style="font-size:0.75rem; background:transparent;" onclick="deleteItem(${data.id}, ${clId})"><i class="bi bi-x"></i></button>`;
+        container.appendChild(div);
+    });
+}
+
+function deleteItem(itemId, clId) {
+    fetch(`/hub/${SLUG}/board/checklist-items/${itemId}/delete/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+    }).then(r => r.json()).then(data => {
+        if (data.ok) document.getElementById(`item-row-${itemId}`).remove();
+    });
+}
+
+// ── Checklists ────────────────────────────────────────────────────────────────
+
+function submitChecklist() {
+    const name = document.getElementById('newClName').value.trim() || 'Checklist';
+    cardPost('add_checklist', {checklist_name: name}).then(data => {
+        if (data.id) window.location.reload();
+    });
+}
+
+// ── Comments ──────────────────────────────────────────────────────────────────
+
+function submitComment() {
+    const content = document.getElementById('commentInput').value.trim();
+    if (!content) return;
+    fetch(`/hub/${SLUG}/board/cards/${CARD_ID}/comments/add/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+        body: (() => { const fd = new FormData(); fd.append('content', content); return fd; })(),
+    }).then(r => r.json()).then(data => {
+        if (data.error) { alert(data.error); return; }
+        document.getElementById('commentInput').value = '';
+        const noComments = document.getElementById('noComments');
+        if (noComments) noComments.remove();
+        const div = document.createElement('div');
+        div.className = 'mb-3';
+        div.id = `comment-${data.id}`;
+        div.innerHTML = `
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="fw-semibold" style="font-size:0.8rem;">${data.author}</span>
+                <span class="text-white-50" style="font-size:0.72rem;">just now</span>
+                <button class="btn p-0 border-0 text-white-25 ms-auto" style="font-size:0.72rem; background:transparent;" onclick="deleteComment(${data.id})"><i class="bi bi-trash"></i></button>
+            </div>
+            <div class="comment-bubble">${data.content}</div>`;
+        document.getElementById('commentsList').appendChild(div);
+    });
+}
+
+function deleteComment(commentId) {
+    if (!confirm('Delete this comment?')) return;
+    fetch(`/hub/${SLUG}/board/comments/${commentId}/delete/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+    }).then(r => r.json()).then(data => {
+        if (data.ok) document.getElementById(`comment-${commentId}`).remove();
+    });
+}
+
+// ── Archive Card ──────────────────────────────────────────────────────────────
+
+function archiveCard() {
+    if (!confirm('Archive this card?')) return;
+    fetch(`/hub/${SLUG}/board/cards/${CARD_ID}/archive/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+    }).then(r => r.json()).then(data => {
+        if (data.ok) window.location.href = `/hub/${SLUG}/board/${BOARD_ID}/`;
+    });
+}
+
+// Inject color backgrounds for color chips
+document.querySelectorAll('.color-chip[class*="color-chip-"]').forEach(el => {
+    const colorKey = [...el.classList].find(c => c.startsWith('color-chip-') && c !== 'color-chip')?.replace('color-chip-', '');
+    if (colorKey && COLOR_MAP[colorKey]) el.style.background = COLOR_MAP[colorKey];
+});
+</script>
+{% endblock %}

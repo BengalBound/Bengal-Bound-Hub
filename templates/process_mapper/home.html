@@ -1,0 +1,68 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Process Mapper — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2 text-success"></i>Process Mapper</h4>
+  {% if access_level >= 3 %}
+  <a href="{% url 'process_mapper:process_create' slug=biz.slug %}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>New Process</a>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.total }}</div>
+      <div class="small text-muted mt-1">Total Processes</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.draft }}</div>
+      <div class="small text-muted mt-1">Drafts</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.approved }}</div>
+      <div class="small text-muted mt-1">Approved</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-light">{{ stats.simulations }}</div>
+      <div class="small text-muted mt-1">Simulations Run</div>
+    </div>
+  </div>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-header"><i class="bi bi-list me-1"></i>Process Maps</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Name</th><th>Category</th><th>Version</th><th>Status</th><th>Steps</th><th>Owner</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for pm in processes %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'process_mapper:process_detail' slug=biz.slug process_id=pm.pk %}'">
+            <td class="fw-semibold">{{ pm.name }}</td>
+            <td class="text-muted">{{ pm.category|default:"—" }}</td>
+            <td class="font-monospace text-muted">v{{ pm.version }}</td>
+            <td>
+              {% if pm.status == 'approved' %}<span class="badge bg-success">Approved</span>
+              {% elif pm.status == 'review' %}<span class="badge bg-info">In Review</span>
+              {% elif pm.status == 'archived' %}<span class="badge bg-secondary">Archived</span>
+              {% else %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+            </td>
+            <td>{{ pm.steps.count }}</td>
+            <td>{{ pm.owner.user.get_full_name|default:"—" }}</td>
+            <td class="text-muted">{{ pm.updated_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No processes yet — create your first process map</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

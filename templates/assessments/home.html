@@ -1,0 +1,98 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Assessments — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-patch-question me-2 text-warning"></i>Assessments & Quizzes</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'assessments:quiz_list' slug=biz.slug %}" class="btn btn-sm btn-outline-warning">All Quizzes</a>
+    {% if access_level >= 3 %}
+    <a href="{% url 'assessments:quiz_create' slug=biz.slug %}" class="btn btn-warning text-dark"><i class="bi bi-plus-lg me-1"></i>New Quiz</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.total }}</div>
+      <div class="small text-muted mt-1">Total Quizzes</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.published }}</div>
+      <div class="small text-muted mt-1">Published</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.attempts }}</div>
+      <div class="small text-muted mt-1">Attempts</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-light">{{ stats.passed }}</div>
+      <div class="small text-muted mt-1">Passed</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-collection me-1"></i>Available Quizzes</div>
+      {% if quizzes %}
+      <div class="list-group list-group-flush">
+        {% for quiz in quizzes %}
+        <div class="list-group-item bg-dark border-secondary py-3 px-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">{{ quiz.title }}</div>
+              {% if quiz.course_ref %}<div class="text-muted small"><i class="bi bi-book me-1"></i>{{ quiz.course_ref }}</div>{% endif %}
+              <div class="d-flex gap-3 mt-1 small text-muted">
+                <span><i class="bi bi-question-circle me-1"></i>{{ quiz.question_count }} questions</span>
+                {% if quiz.time_limit_minutes %}<span><i class="bi bi-clock me-1"></i>{{ quiz.time_limit_minutes }} min</span>{% endif %}
+                <span><i class="bi bi-check-circle me-1"></i>Pass: {{ quiz.pass_score_pct }}%</span>
+              </div>
+            </div>
+            <a href="{% url 'assessments:take_quiz' slug=biz.slug quiz_id=quiz.pk %}" class="btn btn-sm btn-warning text-dark">Take Quiz</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="card-body text-center text-muted py-4">No published quizzes yet</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-clock-history me-1"></i>My Recent Attempts</div>
+      <div class="list-group list-group-flush">
+        {% for attempt in my_attempts %}
+        <a href="{% url 'assessments:quiz_result' slug=biz.slug attempt_id=attempt.pk %}" class="list-group-item list-group-item-action bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ attempt.quiz.title }}</div>
+              <div class="text-muted">{{ attempt.started_at|date:"d M Y" }}</div>
+            </div>
+            <div class="text-end">
+              {% if attempt.score_pct is not None %}
+              <div class="fw-bold {% if attempt.is_passed %}text-success{% else %}text-danger{% endif %}">{{ attempt.score_pct }}%</div>
+              <div class="badge {% if attempt.is_passed %}bg-success{% else %}bg-danger{% endif %}" style="font-size:0.6rem">{% if attempt.is_passed %}Passed{% else %}Failed{% endif %}</div>
+              {% else %}
+              <span class="badge bg-secondary">In progress</span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No attempts yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

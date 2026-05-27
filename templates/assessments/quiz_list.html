@@ -1,0 +1,52 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Quizzes — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-patch-question me-2 text-warning"></i>Quizzes</h4>
+  {% if access_level >= 3 %}
+  <a href="{% url 'assessments:quiz_create' slug=biz.slug %}" class="btn btn-warning text-dark"><i class="bi bi-plus-lg me-1"></i>New Quiz</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-3">
+      <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Statuses</option>
+        {% for code, label in statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-warning text-dark w-100">Filter</button></div>
+    <div class="col-md-2"><a href="{% url 'assessments:quiz_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Title</th><th>Course / Subject</th><th>Questions</th><th>Time Limit</th><th>Pass Score</th><th>Status</th><th>Attempts</th></tr></thead>
+        <tbody>
+          {% for quiz in quizzes %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'assessments:quiz_detail' slug=biz.slug quiz_id=quiz.pk %}'">
+            <td class="fw-semibold">{{ quiz.title }}</td>
+            <td class="text-muted">{{ quiz.course_ref|default:"—" }}</td>
+            <td>{{ quiz.question_count }}</td>
+            <td class="text-muted">{% if quiz.time_limit_minutes %}{{ quiz.time_limit_minutes }} min{% else %}Untimed{% endif %}</td>
+            <td>{{ quiz.pass_score_pct }}%</td>
+            <td>
+              {% if quiz.status == 'published' %}<span class="badge bg-success">Published</span>
+              {% elif quiz.status == 'closed' %}<span class="badge bg-secondary">Closed</span>
+              {% else %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+            </td>
+            <td>{{ quiz.attempts.count }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No quizzes — create your first assessment</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

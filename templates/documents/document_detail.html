@@ -1,0 +1,18 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ document.name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-file-earmark me-2" style="color:var(--hub-accent);"></i>{{ document.name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Folder</div><div style="color:var(--hub-text);">{{ document.folder.name }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">File Type</div><div style="color:var(--hub-text);">{{ document.file_type|upper }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Size</div><div style="color:var(--hub-text);">{{ document.file_size }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Uploaded By</div><div style="color:var(--hub-text);">{{ document.uploaded_by.get_full_name }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Date</div><div style="color:var(--hub-text);">{{ document.created_at|date:"F j, Y" }}</div></div>
+      <a href="{{ document.file.url }}" class="btn btn-hub-primary btn-sm w-100 mt-3" download><i class="bi bi-download me-1"></i>Download</a>
+      <a href="{% url 'documents:folder_view' slug=biz.slug pk=document.folder.pk %}" class="btn btn-hub-outline btn-sm w-100 mt-2">Back to Folder</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

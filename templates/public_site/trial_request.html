@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Start Your Free Trial | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center justify-content-center py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-6 fade-up">
+                <div class="bento-card glow-hover-orange p-5">
+                    <div class="text-center mb-4">
+                        <span class="badge-cyan mb-3 d-inline-block">Free Trial</span>
+                        <h2 class="h3 fw-bold font-outfit">Start Your <span class="text-gradient-orange-gold">Free Trial</span></h2>
+                        <p class="text-white-50 small">Fill in your details and our team will set up your trial console account within 24 hours.</p>
+                    </div>
+
+                    {% if messages %}
+                    {% for msg in messages %}
+                    <div class="alert alert-{{ msg.tags }} border-0 small bg-opacity-25">{{ msg }}</div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-medium">Full Name</label>
+                            <input type="text" name="name" class="form-control-premium w-100" placeholder="Your full name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-medium">Business Email</label>
+                            <input type="email" name="email" class="form-control-premium w-100" placeholder="you@company.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-medium">Company Name <span class="text-muted">(optional)</span></label>
+                            <input type="text" name="company_name" class="form-control-premium w-100" placeholder="Your company">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-white-50 small fw-medium">What will you use BengalBound for?</label>
+                            <textarea name="use_case" class="form-control-premium w-100" rows="3" placeholder="E.g. Automate social media moderation for my e-commerce store..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-premium w-100 py-3 mt-2" style="background: linear-gradient(135deg, var(--bb-accent-orange), var(--bb-accent-gold));">
+                            <i class="bi bi-rocket-takeoff me-2"></i> Request Free Trial
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4 pt-4 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <p class="text-white-50 small">Already have an account? <a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://console.localhost:1234/" class="text-gradient-purple-cyan text-decoration-none fw-medium">Go to Console</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

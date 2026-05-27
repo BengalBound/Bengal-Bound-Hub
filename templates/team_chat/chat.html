@@ -1,0 +1,369 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}Team Chat — {{ biz.name }} | BengalBound{% endblock %}
+{% block page_title %}<i class="bi bi-chat-dots me-2" style="color:var(--hub-accent)"></i>Team Chat{% endblock %}
+
+{% block content_class %}p-0{% endblock %}
+
+{% block extra_head %}
+<style>
+.chat-layout { display: flex; height: calc(100vh - 112px); overflow: hidden; }
+
+/* Channel Sidebar */
+.chat-sidebar {
+    width: 240px; min-width: 240px;
+    background: rgba(10,15,30,0.6);
+    border-right: 1px solid var(--hub-border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.chat-sidebar-section { padding: 0.75rem 0.85rem 0.25rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--hub-muted); }
+.channel-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.35rem 0.85rem; font-size: 0.85rem; color: var(--hub-muted);
+    cursor: pointer; text-decoration: none; transition: all 0.15s; border-radius: 6px; margin: 1px 6px;
+}
+.channel-item:hover { background: rgba(255,255,255,0.05); color: var(--hub-text); }
+.channel-item.active { background: rgba(192,132,252,0.1); color: #c084fc; }
+.channel-item .unread-dot { width:8px; height:8px; border-radius:50%; background:#ef4444; margin-left:auto; flex-shrink:0; }
+
+/* Message Area */
+.chat-main { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--hub-border);
+    background: rgba(15,23,42,0.5);
+    display: flex; align-items: center; gap: 0.75rem;
+}
+.messages-area {
+    flex-grow: 1; overflow-y: auto; padding: 1rem 1.25rem;
+    display: flex; flex-direction: column; gap: 0.1rem;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.message-row { display: flex; gap: 0.65rem; padding: 0.2rem 0; }
+.message-row:hover .msg-actions { opacity: 1; }
+.message-row.mine { flex-direction: row-reverse; }
+.avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(192,132,252,0.3), rgba(236,72,153,0.3));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; color: var(--hub-accent);
+    align-self: flex-end;
+}
+.msg-bubble {
+    max-width: 72%; background: rgba(30,41,59,0.9);
+    border: 1px solid var(--hub-border); border-radius: 12px;
+    padding: 0.5rem 0.85rem; font-size: 0.875rem; line-height: 1.5; position: relative;
+}
+.message-row.mine .msg-bubble { background: rgba(192,132,252,0.12); border-color: rgba(192,132,252,0.2); border-radius: 12px 12px 2px 12px; }
+.message-row:not(.mine) .msg-bubble { border-radius: 2px 12px 12px 12px; }
+.msg-meta { font-size: 0.68rem; color: var(--hub-muted); margin-top: 3px; display: flex; align-items: center; gap: 0.5rem; }
+.msg-actions { opacity: 0; display: flex; gap: 0.35rem; transition: opacity 0.15s; }
+.msg-actions button { background: rgba(30,41,59,0.8); border: 1px solid var(--hub-border); border-radius: 6px; color: var(--hub-muted); padding: 2px 6px; font-size: 0.72rem; cursor: pointer; transition: all 0.15s; }
+.msg-actions button:hover { color: var(--hub-text); border-color: var(--hub-accent); }
+
+.date-divider { text-align: center; font-size: 0.72rem; color: var(--hub-muted); margin: 0.75rem 0; position: relative; }
+.date-divider::before, .date-divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--hub-border); }
+.date-divider::before { left: 0; }
+.date-divider::after { right: 0; }
+
+/* Input bar */
+.chat-input-bar {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--hub-border);
+    background: rgba(15,23,42,0.5);
+}
+.chat-input-wrap {
+    display: flex; align-items: flex-end; gap: 0.5rem;
+    background: rgba(30,41,59,0.7); border: 1px solid var(--hub-border);
+    border-radius: 12px; padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s;
+}
+.chat-input-wrap:focus-within { border-color: rgba(192,132,252,0.5); }
+.chat-input {
+    flex-grow: 1; background: transparent; border: none; outline: none;
+    color: var(--hub-text); font-size: 0.875rem; resize: none; max-height: 120px;
+    line-height: 1.5; min-height: 24px;
+}
+.send-btn {
+    background: linear-gradient(135deg, #c084fc, #ec4899); border: none; border-radius: 8px;
+    color: #fff; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: opacity 0.2s;
+}
+.send-btn:hover { opacity: 0.85; }
+
+/* Empty state */
+.empty-chat { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; color: var(--hub-muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+
+<!-- Channel List Sidebar -->
+<div class="chat-sidebar">
+    <div class="pt-3 pb-2" style="overflow-y:auto; flex-grow:1;">
+        <div class="chat-sidebar-section">Channels</div>
+        {% for ch in channels %}
+        <a href="?ch={{ ch.id }}" class="channel-item {% if active_channel.id == ch.id %}active{% endif %}">
+            {% if ch.channel_type == 'announcement' %}
+            <i class="bi bi-megaphone" style="font-size:0.85rem;"></i>
+            {% else %}
+            <span style="font-size:0.9rem; font-weight:600;">#</span>
+            {% endif %}
+            <span class="text-truncate">{{ ch.name }}</span>
+        </a>
+        {% empty %}
+        <div class="px-3 py-2 text-white-50 small">No channels yet.</div>
+        {% endfor %}
+
+        {% if is_owner %}
+        <div class="chat-sidebar-section mt-2">Create</div>
+        <div class="px-2">
+            <button class="btn btn-hub-outline btn-sm w-100 mt-1" data-bs-toggle="modal" data-bs-target="#createChannelModal">
+                <i class="bi bi-plus me-1"></i>New Channel
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="px-3 py-2 border-top" style="border-color:var(--hub-border)!important; font-size:0.75rem; color:var(--hub-muted);">
+        <i class="bi bi-person-circle me-1"></i>{{ request.user.get_full_name|default:request.user.email }}
+    </div>
+</div>
+
+<!-- Main Chat Area -->
+<div class="chat-main">
+    {% if active_channel %}
+
+    <!-- Channel Header -->
+    <div class="chat-header">
+        <span style="font-size:1.1rem; font-weight:700; color:var(--hub-accent);">#</span>
+        <div>
+            <div class="fw-semibold" style="font-size:0.95rem;">{{ active_channel.name }}</div>
+            {% if active_channel.topic %}
+            <div class="text-white-50" style="font-size:0.75rem;">{{ active_channel.topic }}</div>
+            {% endif %}
+        </div>
+        <span class="ms-auto text-white-50" style="font-size:0.75rem;">
+            <i class="bi bi-people me-1"></i>{{ active_channel.members.count }} members
+        </span>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-area" id="messagesArea">
+        {% for msg in messages %}
+        <div class="message-row {% if msg.author == request.user %}mine{% endif %}" id="msg-{{ msg.id }}">
+            <div class="avatar">{{ msg.author.get_full_name|default:msg.author.email|slice:":2"|upper }}</div>
+            <div class="flex-grow-0">
+                <div class="msg-meta">
+                    <span class="fw-semibold" style="color:var(--hub-text); font-size:0.78rem;">{{ msg.author.get_full_name|default:msg.author.email }}</span>
+                    <span>{{ msg.created_at|date:"H:i" }}</span>
+                    <div class="msg-actions">
+                        {% if msg.author == request.user or is_owner %}
+                        <button onclick="deleteMsg({{ msg.id }})" title="Delete"><i class="bi bi-trash"></i></button>
+                        {% endif %}
+                        <button onclick="addReaction({{ msg.id }}, '👍')" title="React">👍</button>
+                    </div>
+                </div>
+                <div class="msg-bubble">{{ msg.content }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-chat mt-5">
+            <i class="bi bi-chat-dots" style="font-size:2.5rem; margin-bottom:1rem; opacity:0.3;"></i>
+            <div class="fw-semibold mb-1">No messages yet</div>
+            <div class="small">Be the first to say something in <span style="color:var(--hub-accent);">#{{ active_channel.name }}</span></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Input Bar -->
+    <div class="chat-input-bar">
+        <div class="chat-input-wrap">
+            <textarea class="chat-input" id="msgInput" rows="1" placeholder="Message #{{ active_channel.name }}..."
+                onkeydown="handleKey(event)"
+                oninput="autoResize(this)"></textarea>
+            <button class="send-btn" onclick="sendMessage()"><i class="bi bi-send-fill" style="font-size:0.85rem;"></i></button>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-1" style="font-size:0.72rem; color:var(--hub-muted);">
+            <span>Enter to send · Shift+Enter for new line</span>
+        </div>
+    </div>
+
+    {% else %}
+
+    <!-- No channel selected -->
+    <div class="empty-chat">
+        <i class="bi bi-chat-square-dots" style="font-size:3rem; margin-bottom:1.5rem; opacity:0.2;"></i>
+        <div class="fw-semibold fs-5 mb-2">Select a channel</div>
+        <div class="text-white-50 small">Choose a channel from the sidebar to start chatting.</div>
+    </div>
+
+    {% endif %}
+</div>
+</div>
+
+<!-- Create Channel Modal -->
+{% if is_owner %}
+<div class="modal fade" id="createChannelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1e293b; border:1px solid var(--hub-border); border-radius:16px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Create Channel</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'team_chat:channel_create' slug=biz.slug %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50">Channel Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-white border-secondary">#</span>
+                            <input type="text" name="name" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="general" required autofocus>
+                        </div>
+                        <div class="form-text text-white-50" style="font-size:0.72rem;">Lowercase, no spaces (dashes OK)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50">Topic <span class="text-white-25">(optional)</span></label>
+                        <input type="text" name="topic" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="What's this channel for?">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50">Type</label>
+                        <select name="channel_type" class="form-select bg-dark text-white border-secondary shadow-none">
+                            <option value="public">Public — Everyone can join</option>
+                            <option value="private">Private — Invite only</option>
+                            <option value="announcement">Announcement — Read-only for members</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-hub-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-hub-primary px-4">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if active_channel %}
+<script>
+const SLUG = "{{ biz.slug }}";
+const CHANNEL_ID = {{ active_channel.id }};
+const CSRF = "{{ csrf_token }}";
+let lastMsgId = {% if messages %}{{ messages.last.id|default:0 }}{% else %}0{% endif %};
+
+// ── Send Message ──────────────────────────────────────────────────────────────
+
+function sendMessage() {
+    const inp = document.getElementById('msgInput');
+    const content = inp.value.trim();
+    if (!content) return;
+
+    fetch(`/hub/${SLUG}/chat/channels/${CHANNEL_ID}/send/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+        body: (() => { const fd = new FormData(); fd.append('content', content); return fd; })(),
+    }).then(r => r.json()).then(data => {
+        if (data.error) return;
+        inp.value = '';
+        inp.style.height = 'auto';
+        appendMessage({...data, is_mine: true});
+        lastMsgId = data.id;
+    });
+}
+
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── Append Message ────────────────────────────────────────────────────────────
+
+function appendMessage(msg) {
+    const area = document.getElementById('messagesArea');
+    // Remove empty state if present
+    area.querySelector('.empty-chat')?.remove();
+
+    const div = document.createElement('div');
+    div.className = `message-row ${msg.is_mine ? 'mine' : ''}`;
+    div.id = `msg-${msg.id}`;
+    const initials = (msg.author || 'U').substring(0, 2).toUpperCase();
+    div.innerHTML = `
+        <div class="avatar">${initials}</div>
+        <div class="flex-grow-0">
+            <div class="msg-meta">
+                <span class="fw-semibold" style="color:var(--hub-text); font-size:0.78rem;">${msg.author}</span>
+                <span>${msg.created_at}</span>
+                <div class="msg-actions">
+                    ${msg.is_mine ? `<button onclick="deleteMsg(${msg.id})" title="Delete"><i class="bi bi-trash"></i></button>` : ''}
+                    <button onclick="addReaction(${msg.id}, '👍')" title="React">👍</button>
+                </div>
+            </div>
+            <div class="msg-bubble">${msg.content.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>
+        </div>`;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+}
+
+// ── Poll for New Messages ─────────────────────────────────────────────────────
+
+function pollMessages() {
+    fetch(`/hub/${SLUG}/chat/channels/${CHANNEL_ID}/poll/?after=${lastMsgId}`, {
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+    }).then(r => r.json()).then(data => {
+        data.messages.forEach(msg => {
+            if (!document.getElementById(`msg-${msg.id}`)) {
+                appendMessage(msg);
+                lastMsgId = Math.max(lastMsgId, msg.id);
+            }
+        });
+    }).catch(() => {});
+}
+
+// Poll every 3 seconds
+const pollInterval = setInterval(pollMessages, 3000);
+
+// ── Delete Message ────────────────────────────────────────────────────────────
+
+function deleteMsg(msgId) {
+    if (!confirm('Delete this message?')) return;
+    fetch(`/hub/${SLUG}/chat/messages/${msgId}/delete/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            const el = document.getElementById(`msg-${msgId}`);
+            if (el) el.querySelector('.msg-bubble').innerHTML = '<em style="opacity:0.4;">deleted</em>';
+        }
+    });
+}
+
+// ── Reactions ─────────────────────────────────────────────────────────────────
+
+function addReaction(msgId, emoji) {
+    fetch(`/hub/${SLUG}/chat/messages/${msgId}/react/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+        body: (() => { const fd = new FormData(); fd.append('emoji', emoji); return fd; })(),
+    }).then(r => r.json());
+}
+
+// ── Auto-scroll on load ───────────────────────────────────────────────────────
+
+const area = document.getElementById('messagesArea');
+if (area) area.scrollTop = area.scrollHeight;
+</script>
+{% endif %}
+{% endblock %}

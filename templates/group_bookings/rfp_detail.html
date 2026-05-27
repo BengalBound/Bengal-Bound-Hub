@@ -1,0 +1,218 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ rfp.rfp_number }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'group_bookings:rfp_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Group RFPs</a></div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="fw-bold mb-0 font-monospace">{{ rfp.rfp_number }}</h4>
+    <div class="small text-muted mt-1">{{ rfp.group_name }} · {{ rfp.get_event_type_display }} · {{ rfp.arrival_date|date:"d M" }} – {{ rfp.departure_date|date:"d M Y" }}</div>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <span class="badge
+      {% if rfp.status == 'confirmed' %}bg-success
+      {% elif rfp.status == 'cancelled' or rfp.status == 'declined' %}bg-danger
+      {% elif rfp.status == 'proposal_sent' %}bg-warning text-dark
+      {% else %}bg-secondary{% endif %} fs-6">
+      {{ rfp.get_status_display }}
+    </span>
+    {% if access_level >= 3 %}<button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#statusModal">Change Status</button>{% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-person me-1"></i>Contact Details</div>
+      <div class="card-body small">
+        <div class="fw-semibold">{{ rfp.contact_name }}</div>
+        {% if rfp.contact_email %}<div class="text-muted">{{ rfp.contact_email }}</div>{% endif %}
+        {% if rfp.contact_phone %}<div class="text-muted">{{ rfp.contact_phone }}</div>{% endif %}
+        <div class="mt-2 text-muted"><i class="bi bi-people me-1"></i>{{ rfp.adults }} adults{% if rfp.children %}, {{ rfp.children }} children{% endif %} · {{ rfp.rooms_required }} rooms</div>
+        {% if rfp.special_requirements %}<div class="mt-2 text-warning small"><i class="bi bi-exclamation-circle me-1"></i>{{ rfp.special_requirements }}</div>{% endif %}
+        {% if rfp.notes %}<div class="mt-2 text-muted border-top border-secondary pt-2">{{ rfp.notes }}</div>{% endif %}
+      </div>
+    </div>
+
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center small">
+        <span><i class="bi bi-file-earmark-check me-1"></i>Contract</span>
+        <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#contractModal">{% if contract %}Edit{% else %}Add{% endif %}</button>
+      </div>
+      {% if contract %}
+      <div class="card-body small">
+        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Total Value</span><span class="text-info fw-bold">{{ contract.currency }} {{ contract.total_value|floatformat:0 }}</span></div>
+        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Deposit</span><span>{{ contract.deposit_amount|floatformat:0 }} {% if contract.deposit_paid %}<span class="badge bg-success" style="font-size:0.6rem">Paid</span>{% else %}<span class="badge bg-warning text-dark" style="font-size:0.6rem">Unpaid</span>{% endif %}</span></div>
+        {% if contract.deposit_due_date %}<div class="d-flex justify-content-between mb-1"><span class="text-muted">Due</span><span class="text-muted">{{ contract.deposit_due_date|date:"d M Y" }}</span></div>{% endif %}
+        <div class="d-flex justify-content-between mb-1"><span class="text-muted">Attrition</span><span class="text-muted">{{ contract.attrition_pct }}%</span></div>
+        <div class="d-flex justify-content-between"><span class="text-muted">Signed</span><span>{% if contract.signed %}<span class="badge bg-success" style="font-size:0.6rem">Yes{% if contract.signed_date %} · {{ contract.signed_date|date:"d M Y" }}{% endif %}</span>{% else %}<span class="badge bg-secondary" style="font-size:0.6rem">No</span>{% endif %}</span></div>
+      </div>
+      {% else %}
+      <div class="card-body text-muted small text-center py-2">No contract yet</div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center small">
+        <span><i class="bi bi-door-open me-1"></i>Room Blocks</span>
+        {% if access_level >= 2 %}<button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addBlockModal">+ Block</button>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Room Type</th><th>Rooms</th><th>Rate/Night</th><th>Release Date</th><th>Confirmed</th></tr></thead>
+            <tbody>
+              {% for b in blocks %}
+              <tr>
+                <td class="fw-semibold">{{ b.room_type_name }}</td>
+                <td class="text-muted">{{ b.rooms_blocked }}</td>
+                <td class="text-info">{{ b.currency }} {{ b.rate_per_night|floatformat:0 }}</td>
+                <td class="text-muted">{% if b.release_date %}{{ b.release_date|date:"d M Y" }}{% else %}—{% endif %}</td>
+                <td><span class="badge {% if b.is_confirmed %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{% if b.is_confirmed %}Yes{% else %}No{% endif %}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No room blocks</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center small">
+        <span><i class="bi bi-list-ul me-1"></i>Rooming List</span>
+        <div class="d-flex gap-1">
+          {% if access_level >= 2 %}<button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addGuestModal">+ Guest</button>{% endif %}
+          <a href="{% url 'group_bookings:rooming_list' slug=biz.slug rfp_id=rfp.pk %}" class="btn btn-sm btn-outline-info">Full View</a>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Guest</th><th>Room Type</th><th>Check-in</th><th>Check-out</th><th>Room #</th><th>Assigned</th></tr></thead>
+            <tbody>
+              {% for e in rooming %}
+              <tr>
+                <td class="fw-semibold">{{ e.guest_name }}</td>
+                <td class="text-muted">{{ e.room_type_name|default:"—" }}</td>
+                <td class="text-muted">{{ e.check_in|date:"d M" }}</td>
+                <td class="text-muted">{{ e.check_out|date:"d M" }}</td>
+                <td class="font-monospace text-muted">{{ e.room_number|default:"—" }}</td>
+                <td><span class="badge {% if e.is_assigned %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{% if e.is_assigned %}Yes{% else %}No{% endif %}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No guests added</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addBlockModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Room Block</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_block">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Room Type <span class="text-danger">*</span></label><input type="text" name="room_type_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-3"><label class="form-label small">Rooms</label><input type="number" name="rooms_blocked" value="1" min="1" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Rate/Night</label><input type="number" name="rate_per_night" step="0.01" value="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Currency</label><input type="text" name="currency" value="USD" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-5"><label class="form-label small">Release Date</label><input type="date" name="release_date" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_confirmed" id="blkConfirmed"><label class="form-check-label small" for="blkConfirmed">Confirmed</label></div></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Block</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addGuestModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Guest</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_guest">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Guest Name <span class="text-danger">*</span></label><input type="text" name="guest_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Room Type</label><input type="text" name="room_type_name" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Check-in <span class="text-danger">*</span></label><input type="date" name="check_in" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Check-out <span class="text-danger">*</span></label><input type="date" name="check_out" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Special Requests</label><input type="text" name="special_requests" class="form-control bg-dark text-white border-secondary"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Guest</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="statusModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Update Status</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_status">
+        <div class="modal-body">
+          <select name="status" class="form-select bg-dark text-white border-secondary">
+            {% for code, label in statuses %}<option value="{{ code }}" {% if rfp.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="contractModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Group Contract</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_contract">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Total Value</label><input type="number" name="total_value" step="0.01" value="{{ contract.total_value|default:0 }}" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Currency</label><input type="text" name="currency" value="{{ contract.currency|default:'USD' }}" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Deposit Amount</label><input type="number" name="deposit_amount" step="0.01" value="{{ contract.deposit_amount|default:0 }}" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Deposit Due Date</label><input type="date" name="deposit_due_date" value="{{ contract.deposit_due_date|date:'Y-m-d'|default:'' }}" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Attrition %</label><input type="number" name="attrition_pct" value="{{ contract.attrition_pct|default:20 }}" min="0" max="100" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="deposit_paid" id="depPaid" {% if contract.deposit_paid %}checked{% endif %}><label class="form-check-label small" for="depPaid">Deposit Paid</label></div></div>
+          <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="signed" id="contSigned" {% if contract.signed %}checked{% endif %}><label class="form-check-label small" for="contSigned">Signed</label></div></div>
+          {% if contract.signed %}<div class="col-md-6"><label class="form-label small">Signed Date</label><input type="date" name="signed_date" value="{{ contract.signed_date|date:'Y-m-d'|default:'' }}" class="form-control bg-dark text-white border-secondary"></div>{% endif %}
+          <div class="col-12"><label class="form-label small">Cancellation Policy</label><textarea name="cancellation_policy" rows="2" class="form-control bg-dark text-white border-secondary">{{ contract.cancellation_policy|default:'' }}</textarea></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary">{{ contract.notes|default:'' }}</textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Save Contract</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

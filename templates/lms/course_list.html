@@ -1,0 +1,57 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Courses — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-collection-play me-2 text-success"></i>Courses</h4>
+  {% if access_level >= 3 %}
+  <a href="{% url 'lms:course_create' slug=biz.slug %}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>New Course</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-4">
+      <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Statuses</option>
+        {% for code, label in statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-success w-100">Filter</button></div>
+    <div class="col-md-2"><a href="{% url 'lms:course_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Title</th><th>Code</th><th>Level</th><th>Instructor</th><th>Status</th><th>Lessons</th><th>Enrolled</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for course in courses %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'lms:course_detail' slug=biz.slug course_id=course.pk %}'">
+            <td class="fw-semibold">
+              {{ course.title }}
+              {% if course.pk in enrolled_ids %}<span class="badge bg-info text-dark ms-1" style="font-size:0.6rem">Enrolled</span>{% endif %}
+              {% if course.certificate_on_completion %}<i class="bi bi-award-fill text-warning ms-1" title="Certificate"></i>{% endif %}
+            </td>
+            <td class="font-monospace text-muted">{{ course.code|default:"—" }}</td>
+            <td><span class="badge {% if course.level == 'beginner' %}bg-success{% elif course.level == 'advanced' %}bg-danger{% elif course.level == 'intermediate' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ course.get_level_display }}</span></td>
+            <td>{{ course.instructor.user.get_full_name|default:"—" }}</td>
+            <td>
+              {% if course.status == 'published' %}<span class="badge bg-success">Published</span>
+              {% elif course.status == 'archived' %}<span class="badge bg-secondary">Archived</span>
+              {% else %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+            </td>
+            <td>{{ course.lesson_count }}</td>
+            <td>{{ course.enrolled_count }}</td>
+            <td class="text-muted">{{ course.updated_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No courses — create your first course</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

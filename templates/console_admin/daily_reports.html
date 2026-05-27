@@ -1,0 +1,98 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}Daily Reports{% endblock %}
+{% block page_subtitle %}Serea's end-of-day wrap-ups — review, flag issues, and send feedback.{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-12">
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{% if 'success' in msg.tags %}success bg-success{% elif 'error' in msg.tags %}danger bg-danger{% else %}warning bg-warning{% endif %} bg-opacity-20 border-0 small mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if not serea_agent %}
+      <div class="glass-panel p-5 text-center">
+        <i class="bi bi-robot display-4 text-white-25 d-block mb-3"></i>
+        <p class="text-white-50">No active Serea agent found. <a href="/hire-ai/" class="text-primary">Hire one →</a></p>
+      </div>
+
+    {% elif not reports %}
+      <div class="glass-panel p-5 text-center">
+        <i class="bi bi-clipboard2-data display-4 text-white-25 d-block mb-3"></i>
+        <p class="text-white-50 mb-1">No daily reports yet.</p>
+        <p class="text-white-25 small">Serea generates a report every evening. Check back tonight!</p>
+      </div>
+
+    {% else %}
+      <div class="glass-panel p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h6 class="fw-bold font-outfit mb-0"><i class="bi bi-clipboard2-data me-2 text-primary"></i>All Reports</h6>
+          {% if pending_count > 0 %}
+            <span class="badge bg-warning bg-opacity-20 text-warning rounded-pill">{{ pending_count }} need review</span>
+          {% endif %}
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-dark table-borderless align-middle">
+            <thead>
+              <tr class="text-white-50 small border-bottom border-secondary border-opacity-25">
+                <th>Date</th>
+                <th>Items</th>
+                <th>Flagged</th>
+                <th>Status</th>
+                <th>Reviewed by</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for report in reports %}
+              <tr class="border-bottom border-secondary border-opacity-10">
+                <td>
+                  <span class="fw-semibold text-white">{{ report.report_date|date:"D, M d Y" }}</span>
+                  {% if report.report_date == today %}<span class="badge bg-primary bg-opacity-20 text-primary ms-2 small">Today</span>{% endif %}
+                </td>
+                <td class="text-white-50">{{ report.items.count }}</td>
+                <td>
+                  {% with fc=report.flagged_count %}
+                    {% if fc > 0 %}
+                      <span class="badge bg-danger bg-opacity-20 text-danger rounded-pill">{{ fc }} flagged</span>
+                    {% else %}
+                      <span class="text-white-25 small">—</span>
+                    {% endif %}
+                  {% endwith %}
+                </td>
+                <td>
+                  {% if report.status == 'pending' %}
+                    <span class="badge bg-warning bg-opacity-20 text-warning rounded-pill">Pending Review</span>
+                  {% elif report.status == 'approved' %}
+                    <span class="badge bg-success bg-opacity-20 text-success rounded-pill">Approved</span>
+                  {% elif report.status == 'has_issues' %}
+                    <span class="badge bg-danger bg-opacity-20 text-danger rounded-pill">Has Issues</span>
+                  {% else %}
+                    <span class="badge bg-secondary bg-opacity-30 text-white-50 rounded-pill">Reviewed</span>
+                  {% endif %}
+                </td>
+                <td class="text-white-50 small">
+                  {% if report.reviewed_by %}{{ report.reviewed_by.email|truncatechars:25 }}{% else %}—{% endif %}
+                </td>
+                <td class="text-end">
+                  <a href="/reports/{{ report.id }}/"
+                     class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                     style="font-size:.75rem">
+                    {% if report.status == 'pending' %}Review{% else %}View{% endif %}
+                    <i class="bi bi-arrow-right ms-1"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

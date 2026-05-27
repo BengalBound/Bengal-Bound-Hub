@@ -1,0 +1,128 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Rate Plans — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'channel_manager:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Channel Manager</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-tags me-2 text-info"></i>Rate Plans</h4>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addRateModal">+ Channel Rate</button>
+    <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addPlanModal"><i class="bi bi-plus-lg me-1"></i>Add Plan</button>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-list-ul me-1"></i>Rate Plans</div>
+      <div class="list-group list-group-flush">
+        {% for p in plans %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between">
+            <div class="fw-semibold">{{ p.name }}</div>
+            <span class="badge bg-dark border border-secondary">{{ p.get_meal_plan_display }}</span>
+          </div>
+          <div class="text-muted">{{ p.code }} · Min stay: {{ p.min_stay }} · {% if p.is_refundable %}Refundable{% else %}Non-refundable{% endif %}</div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No rate plans</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-currency-dollar me-1"></i>Channel Rates</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Channel</th><th>Plan</th><th>Room Type</th><th>Rate</th><th>Valid</th><th>Active</th></tr></thead>
+            <tbody>
+              {% for cr in channel_rates %}
+              <tr>
+                <td class="text-muted">{{ cr.channel.name }}</td>
+                <td>{{ cr.rate_plan.name }}</td>
+                <td class="text-muted">{{ cr.room_type_name }}</td>
+                <td class="text-info fw-bold">{{ cr.currency }} {{ cr.rate_amount|floatformat:0 }}</td>
+                <td class="text-muted" style="font-size:0.7rem">{{ cr.valid_from|date:"d M Y" }}–{{ cr.valid_to|date:"d M Y" }}</td>
+                <td><span class="badge {% if cr.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{% if cr.is_active %}Yes{% else %}No{% endif %}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No channel rates</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addPlanModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Rate Plan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_plan">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Plan Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Code <span class="text-danger">*</span></label><input type="text" name="code" class="form-control bg-dark text-white border-secondary font-monospace" required placeholder="e.g. BAR"></div>
+          <div class="col-md-6"><label class="form-label small">Meal Plan</label>
+            <select name="meal_plan" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in meal_plans %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3"><label class="form-label small">Min Stay (nights)</label><input type="number" name="min_stay" value="1" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Refundable?</label>
+            <select name="is_refundable" class="form-select bg-dark text-white border-secondary">
+              <option value="1">Yes</option><option value="0">No</option>
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addRateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Channel Rate</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_rate">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Channel <span class="text-danger">*</span></label>
+            <select name="channel_id" class="form-select bg-dark text-white border-secondary" required>
+              {% for c in channels %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Rate Plan <span class="text-danger">*</span></label>
+            <select name="rate_plan_id" class="form-select bg-dark text-white border-secondary" required>
+              {% for p in plans %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Room Type Name <span class="text-danger">*</span></label><input type="text" name="room_type_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-3"><label class="form-label small">Rate <span class="text-danger">*</span></label><input type="number" name="rate_amount" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-3"><label class="form-label small">Currency</label><input type="text" name="currency" value="USD" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Valid From <span class="text-danger">*</span></label><input type="date" name="valid_from" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Valid To <span class="text-danger">*</span></label><input type="date" name="valid_to" class="form-control bg-dark text-white border-secondary" required></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Rate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

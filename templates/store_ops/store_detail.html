@@ -1,0 +1,152 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ store.name }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'store_ops:store_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Stores</a></div>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-shop me-2 text-info"></i>{{ store.name }}</h4>
+    <div class="small text-muted mt-1">
+      {% if store.manager %}Manager: {{ store.manager.user.get_full_name }}{% endif %}
+      {% if store.phone %} · {{ store.phone }}{% endif %}
+      {% if store.opening_time %} · {{ store.opening_time|time:"H:i" }}–{{ store.closing_time|time:"H:i" }}{% endif %}
+    </div>
+  </div>
+  {% if access_level >= 2 %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addReportModal"><i class="bi bi-bar-chart me-1"></i>Daily Report</button>
+    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#addTaskModal"><i class="bi bi-plus me-1"></i>Task</button>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-bar-chart me-1"></i>Daily Reports</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Date</th><th>Sales</th><th>Txns</th><th>Top Product</th><th>By</th></tr></thead>
+            <tbody>
+              {% for r in reports %}
+              <tr>
+                <td class="fw-semibold">{{ r.report_date|date:"d M Y" }}</td>
+                <td class="text-success fw-bold">{% if r.sales_total %}{{ r.sales_total }}{% else %}—{% endif %}</td>
+                <td>{{ r.transaction_count|default:"—" }}</td>
+                <td class="text-muted">{{ r.top_selling_product|default:"—"|truncatechars:25 }}</td>
+                <td class="text-muted">{{ r.submitted_by.user.get_full_name|default:"—" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No reports yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-list-task me-1"></i>Tasks</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Task</th><th>Priority</th><th>Assigned</th><th>Due</th><th>Done</th>{% if access_level >= 2 %}<th></th>{% endif %}</tr></thead>
+            <tbody>
+              {% for task in tasks %}
+              <tr {% if task.is_done %}style="opacity:0.5"{% endif %}>
+                <td class="fw-semibold">{{ task.title }}</td>
+                <td><span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% elif task.priority == 'medium' %}bg-info text-dark{% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{{ task.get_priority_display }}</span></td>
+                <td class="text-muted">{{ task.assigned_to.user.get_full_name|default:"—" }}</td>
+                <td class="text-muted">{{ task.due_date|date:"d M"|default:"—" }}</td>
+                <td>{% if task.is_done %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle text-muted"></i>{% endif %}</td>
+                {% if access_level >= 2 %}
+                <td>
+                  {% if not task.is_done %}
+                  <form method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="complete_task">
+                    <input type="hidden" name="task_id" value="{{ task.pk }}">
+                    <button type="submit" class="btn btn-sm btn-link text-success p-0"><i class="bi bi-check-lg"></i></button>
+                  </form>
+                  {% endif %}
+                  {% if access_level >= 3 %}
+                  <form method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_task">
+                    <input type="hidden" name="task_id" value="{{ task.pk }}">
+                    <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Delete task?')"><i class="bi bi-trash"></i></button>
+                  </form>
+                  {% endif %}
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No tasks</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addReportModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Daily Report — {{ store.name }}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_report">
+        <div class="modal-body row g-2">
+          <div class="col-6"><label class="form-label small">Date <span class="text-danger">*</span></label><input type="date" name="report_date" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-6"><label class="form-label small">Sales Total</label><input type="number" name="sales_total" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Transactions</label><input type="number" name="transaction_count" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Top Selling Product</label><input type="text" name="top_selling_product" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Save Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Task — {{ store.name }}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_task">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Task Title <span class="text-danger">*</span></label><input type="text" name="title" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-6"><label class="form-label small">Assigned To</label>
+            <select name="assigned_to_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— None —</option>
+              {% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.user.get_full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-3"><label class="form-label small">Priority</label>
+            <select name="priority" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in priority_choices %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-3"><label class="form-label small">Due Date</label><input type="date" name="due_date" class="form-control bg-dark text-white border-secondary"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-dark">Add Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ lead.name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-funnel me-2" style="color:var(--hub-accent);"></i>{{ lead.name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Stage</div><span class="badge" style="background:var(--hub-surface);color:var(--hub-accent);">{{ lead.stage|title }}</span></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Company</div><div style="color:var(--hub-text);">{{ lead.company|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Email</div><div style="color:var(--hub-text);">{{ lead.email|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Phone</div><div style="color:var(--hub-text);">{{ lead.phone|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Source</div><div style="color:var(--hub-text);">{{ lead.source|title }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Assigned To</div><div style="color:var(--hub-text);">{{ lead.assigned_to.get_full_name|default:"Unassigned" }}</div></div>
+      <a href="{% url 'leads:lead_create' slug=biz.slug %}?edit={{ lead.pk }}" class="btn btn-hub-outline btn-sm w-100 mt-3">Edit</a>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Notes</h5>
+      <div style="color:var(--hub-muted);">{{ lead.notes|linebreaks|default:"No notes." }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Add Vehicle — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="mb-4">
+  <a href="{% url 'dms:vehicle_list' slug=biz.slug %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i>Stock
+  </a>
+  <h4 class="fw-bold mt-1"><i class="bi bi-plus-circle me-2 text-primary"></i>Add Vehicle to Stock</h4>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row g-4">
+
+    <!-- Identity -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-car-front me-1"></i>Vehicle Details</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Make <span class="text-danger">*</span></label>
+              <input type="text" name="make" class="form-control bg-dark text-white border-secondary" required>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Model <span class="text-danger">*</span></label>
+              <input type="text" name="model" class="form-control bg-dark text-white border-secondary" required>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Year <span class="text-danger">*</span></label>
+              <input type="number" name="year" class="form-control bg-dark text-white border-secondary" min="1900" max="2100" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Variant / Trim</label>
+              <input type="text" name="variant" class="form-control bg-dark text-white border-secondary" placeholder="e.g. 2.0 TDI Sport">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Colour</label>
+              <input type="text" name="colour" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Interior Colour</label>
+              <input type="text" name="interior_colour" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Body Type</label>
+              <input type="text" name="body_type" class="form-control bg-dark text-white border-secondary" placeholder="Sedan, SUV…">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Doors</label>
+              <input type="number" name="doors" class="form-control bg-dark text-white border-secondary" min="2" max="6">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Seats</label>
+              <input type="number" name="seats" class="form-control bg-dark text-white border-secondary" min="1" max="15">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Mileage (km)</label>
+              <input type="number" name="mileage" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Engine Size</label>
+              <input type="text" name="engine_size" class="form-control bg-dark text-white border-secondary" placeholder="e.g. 2.0L">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">VIN</label>
+              <input type="text" name="vin" class="form-control bg-dark text-white border-secondary font-monospace">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Registration</label>
+              <input type="text" name="reg_number" class="form-control bg-dark text-white border-secondary font-monospace" style="text-transform:uppercase">
+            </div>
+            <div class="col-3">
+              <label class="form-label small">Transmission</label>
+              <select name="transmission" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in transmissions %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-3">
+              <label class="form-label small">Fuel Type</label>
+              <select name="fuel_type" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in fuels %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classification & Pricing -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-header"><i class="bi bi-tag me-1"></i>Classification & Status</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Stock Type</label>
+              <select name="stock_type" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in stock_types %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Condition</label>
+              <select name="condition" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in conditions %}
+                <option value="{{ code }}" {% if code == 'good' %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Status</label>
+              <select name="status" class="form-select bg-dark text-white border-secondary">
+                {% for code, label in statuses %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Lot / Location</label>
+              <input type="text" name="location" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Date Acquired</label>
+              <input type="date" name="date_acquired" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-header"><i class="bi bi-currency-dollar me-1"></i>Pricing</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Purchase Price</label>
+              <input type="number" name="purchase_price" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Asking Price</label>
+              <input type="number" name="asking_price" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Reserve Price</label>
+              <input type="number" name="reserve_price" step="0.01" class="form-control bg-dark text-white border-secondary">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-image me-1"></i>Main Photo</div>
+        <div class="card-body">
+          <input type="file" name="main_photo" class="form-control bg-dark text-white border-secondary" accept="image/*">
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="col-12">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-text-paragraph me-1"></i>Description & Features</div>
+        <div class="card-body row g-2">
+          <div class="col-md-6">
+            <label class="form-label small">Description</label>
+            <textarea name="description" rows="4" class="form-control bg-dark text-white border-secondary"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">Features (comma-separated)</label>
+            <textarea name="features" rows="4" class="form-control bg-dark text-white border-secondary" placeholder="Sunroof, Leather seats, Navigation…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 text-end">
+      <a href="{% url 'dms:vehicle_list' slug=biz.slug %}" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>Add to Stock
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}

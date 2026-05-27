@@ -1,0 +1,120 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}{{ pres.title }} — Slides | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'slides:presentation_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span style="font-size:1rem;font-weight:600;">{{ pres.title }}</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.slide-thumb { cursor:pointer; border-radius:8px; border:2px solid transparent; background:#1e293b; aspect-ratio:16/9; transition:border-color 0.15s; overflow:hidden; }
+.slide-thumb.active { border-color:var(--hub-accent); }
+.slide-thumb:hover { border-color:rgba(192,132,252,0.4); }
+.slide-preview { aspect-ratio:16/9; border-radius:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:2.5rem; text-align:center; }
+.theme-dark { background:#0f172a; color:#f8fafc; }
+.theme-light { background:#f8fafc; color:#0f172a; }
+.theme-corporate { background:linear-gradient(135deg,#1e3a5f,#0f172a); color:#f8fafc; }
+.theme-minimal { background:#fff; color:#111; border:1px solid #e2e8f0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3" style="height:calc(100vh - 180px);">
+    <!-- Slide Panel -->
+    <div class="col-2" style="overflow-y:auto;">
+        <div class="d-flex flex-column gap-2">
+        {% for slide in slides %}
+        <a href="?slide={{ slide.pk }}" class="text-decoration-none">
+            <div class="slide-thumb p-2 {% if active_slide and active_slide.pk == slide.pk %}active{% endif %}">
+                <div class="text-white-50" style="font-size:0.6rem;margin-bottom:4px;">{{ forloop.counter }}</div>
+                <div class="text-white" style="font-size:0.62rem;font-weight:600;overflow:hidden;max-height:30px;">{{ slide.title|default:"(blank)" }}</div>
+            </div>
+        </a>
+        {% endfor %}
+        <!-- Add Slide -->
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_slide">
+            <input type="hidden" name="layout" value="content">
+            <button type="submit" class="btn btn-hub-outline btn-sm w-100 mt-1"><i class="bi bi-plus-lg me-1"></i>Add Slide</button>
+        </form>
+        </div>
+    </div>
+
+    <!-- Main Editor -->
+    <div class="col-10 d-flex flex-column gap-3">
+        <!-- Presentation settings bar -->
+        <form method="post" class="d-flex gap-2 align-items-center">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_title">
+            <input type="text" name="title" value="{{ pres.title }}" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);max-width:280px;">
+            <select name="theme" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);max-width:140px;">
+                {% for t in themes %}<option value="{{ t }}" {% if pres.theme == t %}selected{% endif %}>{{ t|title }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="btn btn-hub-primary btn-sm">Save</button>
+        </form>
+
+        {% if active_slide %}
+        <!-- Slide preview -->
+        <div class="slide-preview theme-{{ pres.theme }}">
+            {% if active_slide.title %}<h2 style="font-size:1.8rem;font-weight:700;margin-bottom:0.75rem;">{{ active_slide.title }}</h2>{% endif %}
+            {% if active_slide.body %}<p style="font-size:1rem;opacity:0.8;">{{ active_slide.body }}</p>{% endif %}
+        </div>
+
+        <!-- Slide editor form -->
+        <div class="glass-panel p-4">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_slide">
+                <input type="hidden" name="slide_id" value="{{ active_slide.pk }}">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label text-white-50 small mb-1">Layout</label>
+                        <select name="layout" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                            {% for val, label in layouts %}
+                            <option value="{{ val }}" {% if active_slide.layout == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-white-50 small mb-1">Background Color</label>
+                        <input type="color" name="background_color" value="{{ active_slide.background_color|default:'#0f172a' }}" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);height:34px;">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small mb-1">Title</label>
+                    <input type="text" name="title" value="{{ active_slide.title }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="Slide title…">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small mb-1">Content / Body</label>
+                    <textarea name="body" rows="4" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="Slide content…">{{ active_slide.body }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small mb-1">Speaker Notes</label>
+                    <textarea name="notes" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="Notes visible only to presenter…">{{ active_slide.notes }}</textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-hub-primary btn-sm">Save Slide</button>
+                    <a href="?slide={{ active_slide.pk }}" class="btn btn-hub-outline btn-sm">Discard</a>
+                </div>
+            </form>
+            <form method="post" class="mt-2 d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_slide">
+                <input type="hidden" name="slide_id" value="{{ active_slide.pk }}">
+                <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;"
+                        onclick="return confirm('Delete this slide?')">
+                    <i class="bi bi-trash me-1"></i>Delete Slide
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="glass-panel p-5 text-center">
+            <p class="text-white-50">No slides yet. Add one above.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

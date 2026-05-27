@@ -1,0 +1,139 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}My Portal — {{ biz.name }} | BengalBound{% endblock %}
+{% block page_title %}My Portal{% endblock %}
+
+{% block extra_head %}
+<style>
+  .portal-mod-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; transition: border-color 0.18s, transform 0.15s; text-decoration: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .portal-mod-card:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-1px); }
+  .portal-mod-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+  .portal-mod-name { font-size: 0.82rem; font-weight: 600; color: var(--hub-text); }
+  .portal-mod-cat { font-size: 0.68rem; color: var(--hub-muted); }
+  .quick-action { display: flex; align-items: center; gap: 0.65rem; padding: 0.65rem 0.9rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; text-decoration: none; color: var(--hub-text); transition: all 0.15s; }
+  .quick-action:hover { border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.04); color: var(--hub-text); }
+  .quick-action-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block hub_content %}
+
+<!-- ── Welcome header ──────────────────────────────────────────── -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="font-family:'Outfit',sans-serif;">
+      Welcome{% if employee and employee.name %}, {{ employee.name|truncatechars:20 }}{% endif %}
+    </h4>
+    <div class="d-flex align-items-center gap-2 flex-wrap" style="font-size:0.78rem;color:var(--hub-muted);">
+      <span>{{ biz.name }}</span>
+      {% if employee %}
+      <span style="color:var(--border);">·</span>
+      <span class="hub-badge" style="background:rgba(192,132,252,0.12);color:#c084fc;border:1px solid rgba(192,132,252,0.2);">{{ employee.get_role_display }}</span>
+      {% if employee.department %}
+      <span style="color:var(--border);">·</span>
+      <span>{{ employee.department }}</span>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Quick actions (context-sensitive based on active modules) ─ -->
+<div class="row g-2 mb-4">
+  {% if 'team_chat' in hub_active_modules %}
+  {% with url_val=hub_active_module_items %}
+  <div class="col-6 col-sm-4 col-lg-3">
+    <a href="{% url 'team_chat:channel_list' slug=biz.slug %}" class="quick-action">
+      <div class="quick-action-icon" style="background:rgba(129,140,248,0.15);"><i class="bi bi-chat-dots-fill" style="color:#818cf8;"></i></div>
+      <div><div style="font-size:0.8rem;font-weight:600;">Team Chat</div><div style="font-size:0.68rem;color:var(--hub-muted);">Messages</div></div>
+    </a>
+  </div>
+  {% endwith %}
+  {% endif %}
+
+  {% if 'task_board' in hub_active_modules %}
+  <div class="col-6 col-sm-4 col-lg-3">
+    <a href="{% url 'task_board:board_list' slug=biz.slug %}" class="quick-action">
+      <div class="quick-action-icon" style="background:rgba(16,185,129,0.15);"><i class="bi bi-kanban-fill" style="color:#10b981;"></i></div>
+      <div><div style="font-size:0.8rem;font-weight:600;">My Tasks</div><div style="font-size:0.68rem;color:var(--hub-muted);">Task Board</div></div>
+    </a>
+  </div>
+  {% endif %}
+
+  {% if 'business_calendar' in hub_active_modules %}
+  <div class="col-6 col-sm-4 col-lg-3">
+    <a href="{% url 'business_calendar:calendar_home' slug=biz.slug %}" class="quick-action">
+      <div class="quick-action-icon" style="background:rgba(56,189,248,0.15);"><i class="bi bi-calendar3" style="color:#38bdf8;"></i></div>
+      <div><div style="font-size:0.8rem;font-weight:600;">Calendar</div><div style="font-size:0.68rem;color:var(--hub-muted);">Schedule</div></div>
+    </a>
+  </div>
+  {% endif %}
+
+  {% if 'attendance' in hub_active_modules %}
+  <div class="col-6 col-sm-4 col-lg-3">
+    <a href="{% url 'attendance:index' slug=biz.slug %}" class="quick-action">
+      <div class="quick-action-icon" style="background:rgba(249,115,22,0.15);"><i class="bi bi-clock-history" style="color:#f97316;"></i></div>
+      <div><div style="font-size:0.8rem;font-weight:600;">Attendance</div><div style="font-size:0.68rem;color:var(--hub-muted);">Clock in/out</div></div>
+    </a>
+  </div>
+  {% endif %}
+
+  {% if 'announcements' in hub_active_modules %}
+  <div class="col-6 col-sm-4 col-lg-3">
+    <a href="{% url 'announcements:index' slug=biz.slug %}" class="quick-action">
+      <div class="quick-action-icon" style="background:rgba(251,191,36,0.15);"><i class="bi bi-megaphone-fill" style="color:#fbbf24;"></i></div>
+      <div><div style="font-size:0.8rem;font-weight:600;">Announcements</div><div style="font-size:0.68rem;color:var(--hub-muted);">News</div></div>
+    </a>
+  </div>
+  {% endif %}
+
+  {% if 'business_mail' in hub_active_modules %}
+  <div class="col-6 col-sm-4 col-lg-3">
+    <a href="{% url 'business_mail:mail_home' slug=biz.slug %}" class="quick-action">
+      <div class="quick-action-icon" style="background:rgba(236,72,153,0.15);"><i class="bi bi-envelope-fill" style="color:#ec4899;"></i></div>
+      <div><div style="font-size:0.8rem;font-weight:600;">Mail</div><div style="font-size:0.68rem;color:var(--hub-muted);">Inbox</div></div>
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── All accessible modules by category ─────────────────────── -->
+{% if hub_active_module_categories %}
+<div class="mb-2">
+  <h6 style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--hub-muted);font-weight:700;">My Modules</h6>
+</div>
+
+{% for cat in hub_active_module_categories %}
+<div class="mb-4">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <span style="width:6px;height:6px;border-radius:50%;background:{{ cat.color }};display:inline-block;"></span>
+    <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--hub-muted);">{{ cat.name }}</span>
+  </div>
+  <div class="row g-2">
+    {% for item in cat.items %}
+    <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+      <a href="{{ item.url }}" class="portal-mod-card">
+        <div class="portal-mod-icon" style="background:{{ cat.color }}1a;">
+          <i class="bi {{ item.tm.module.icon }}" style="color:{{ cat.color }};"></i>
+        </div>
+        <div>
+          <div class="portal-mod-name">{{ item.tm.module.name }}</div>
+          {% if not item.tm.module.url_namespace %}
+          <span style="font-size:0.62rem;background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);border-radius:4px;padding:1px 5px;">Coming Soon</span>
+          {% endif %}
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="glass-panel p-5 text-center">
+  <div style="font-size:2rem;opacity:0.3;margin-bottom:1rem;"><i class="bi bi-grid-3x3-gap"></i></div>
+  <p style="color:var(--hub-muted);font-size:0.85rem;">No modules are active for this business yet.</p>
+  <p style="color:var(--hub-muted);font-size:0.78rem;">Contact your business owner to activate modules.</p>
+</div>
+{% endif %}
+
+{% endblock hub_content %}

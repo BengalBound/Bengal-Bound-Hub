@@ -1,0 +1,74 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Sales Targets — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-bullseye me-2" style="color:var(--hub-accent);"></i>Sales Targets{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ on_track }}</div><div class="text-white-50 small">On Track</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ at_risk }}</div><div class="text-white-50 small">At Risk</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#38bdf8;">{{ total_target|floatformat:0 }}</div><div class="text-white-50 small">Total Target</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ total_achieved|floatformat:0 }}</div><div class="text-white-50 small">Total Achieved</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Sales Targets</h6>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Add Target</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Target ID</th><th>Period</th><th>Scope</th><th>Owner</th><th>Target</th><th>Achieved</th><th>Attainment</th><th>Channel</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for t in targets %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="color:var(--hub-accent);font-weight:600;">{{ t.target_id }}</td>
+          <td>{{ t.period }}</td>
+          <td>{{ t.scope }}</td>
+          <td>{{ t.owner_name }}</td>
+          <td>{{ t.target_value|floatformat:0 }}</td>
+          <td>{{ t.achieved_value|floatformat:0 }}</td>
+          <td>
+            <div style="background:var(--hub-border);border-radius:4px;height:5px;width:80px;display:inline-block;vertical-align:middle;">
+              <div style="width:{% if t.attainment_pct > 100 %}100{% else %}{{ t.attainment_pct|floatformat:0 }}{% endif %}%;background:{% if t.attainment_pct >= 100 %}#22c55e{% elif t.attainment_pct >= 75 %}#fbbf24{% else %}#f87171{% endif %};height:5px;border-radius:4px;"></div>
+            </div>
+            <span class="ms-1 small" style="color:{% if t.attainment_pct >= 100 %}#22c55e{% elif t.attainment_pct >= 75 %}#fbbf24{% else %}#f87171{% endif %};">{{ t.attainment_pct|floatformat:0 }}%</span>
+          </td>
+          <td>{{ t.channel|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if t.status == 'achieved' %}rgba(34,197,94,0.2){% elif t.status == 'on_track' %}rgba(56,189,248,0.15){% elif t.status == 'at_risk' %}rgba(251,191,36,0.2){% elif t.status == 'missed' %}rgba(248,113,113,0.2){% else %}rgba(255,255,255,0.06){% endif %};color:{% if t.status == 'achieved' %}#22c55e{% elif t.status == 'on_track' %}#38bdf8{% elif t.status == 'at_risk' %}#fbbf24{% elif t.status == 'missed' %}#f87171{% else %}var(--hub-muted){% endif %};">{{ t.status }}</span></td>
+          <td><form method="post" style="display:inline;" onsubmit="return confirm('Delete?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ t.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center text-white-50 py-4">No sales targets set.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Sales Target</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label text-white-50 small">Period *</label><input type="text" name="period" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" placeholder="e.g. May 2026" required></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Scope</label><input type="text" name="scope" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" placeholder="e.g. Export, Domestic"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Owner</label><input type="text" name="owner_name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Target Value</label><input type="number" name="target_value" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Achieved Value</label><input type="number" name="achieved_value" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Channel</label><input type="text" name="channel" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="upcoming">Upcoming</option><option value="on_track" selected>On Track</option><option value="at_risk">At Risk</option><option value="achieved">Achieved</option><option value="missed">Missed</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Target</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

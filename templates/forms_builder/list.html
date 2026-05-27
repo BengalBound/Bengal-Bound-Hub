@@ -1,0 +1,58 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Forms | {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-ui-checks me-2" style="color:var(--hub-accent);"></i>Forms{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-white-50 mb-0 small">Build surveys, feedback forms, and collect responses.</p>
+    <a href="{% url 'forms_builder:form_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>New Form
+    </a>
+</div>
+
+{% if forms %}
+<div class="row g-3">
+{% for form in forms %}
+<div class="col-md-4 col-lg-3">
+    <div class="glass-panel p-3 h-100 d-flex flex-column">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+            <i class="bi bi-ui-checks" style="font-size:1.5rem;color:#f59e0b;"></i>
+            <div class="d-flex gap-1">
+                {% if form.is_active %}<span class="active-badge">Live</span>{% else %}<span style="font-size:0.62rem;background:rgba(255,255,255,0.06);color:var(--hub-muted);border-radius:6px;padding:2px 8px;">Draft</span>{% endif %}
+            </div>
+        </div>
+        <h6 class="fw-semibold mb-1 flex-grow-1" style="font-size:0.88rem;">{{ form.title|truncatechars:40 }}</h6>
+        <div class="text-white-50 mb-1" style="font-size:0.72rem;">{{ form.fields.count }} field{{ form.fields.count|pluralize }}</div>
+        <div class="text-white-50 mb-3" style="font-size:0.72rem;">{{ form.responses.count }} response{{ form.responses.count|pluralize }}</div>
+        <div class="d-flex gap-1 flex-wrap">
+            <a href="{% url 'forms_builder:form_edit' slug=biz.slug pk=form.pk %}" class="btn btn-hub-primary btn-sm flex-grow-1">
+                <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+            <a href="{% url 'forms_builder:form_responses' slug=biz.slug pk=form.pk %}" class="btn btn-hub-outline btn-sm">
+                <i class="bi bi-bar-chart-line"></i>
+            </a>
+            <form method="post" action="{% url 'forms_builder:form_delete' slug=biz.slug pk=form.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;"
+                        onclick="return confirm('Delete this form?')"><i class="bi bi-trash"></i></button>
+            </form>
+        </div>
+        <div class="mt-2 pt-2" style="border-top:1px solid var(--hub-border);">
+            <small class="text-white-50" style="font-size:0.68rem;word-break:break-all;">
+                <i class="bi bi-link me-1"></i>/f/{{ form.slug }}/
+            </small>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-ui-checks" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+    <p class="text-white-50 mt-3 mb-3">No forms yet. Build your first one!</p>
+    <a href="{% url 'forms_builder:form_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Create Form
+    </a>
+</div>
+{% endif %}
+{% endblock %}

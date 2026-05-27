@@ -1,0 +1,32 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ job.title }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-briefcase me-2" style="color:var(--hub-accent);"></i>{{ job.title }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Status</div><span class="badge" style="background:{% if job.status == 'open' %}#22c55e20{% else %}#64748b20{% endif %};color:{% if job.status == 'open' %}#22c55e{% else %}#64748b{% endif %};">{{ job.status|title }}</span></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Department</div><div style="color:var(--hub-text);">{{ job.department|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Type</div><div style="color:var(--hub-text);">{{ job.job_type|title }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Location</div><div style="color:var(--hub-text);">{{ job.location|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Salary</div><div style="color:#38bdf8;">{{ job.salary_range|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Applications</div><div style="color:var(--hub-accent);font-size:1.3rem;font-weight:700;">{{ job.application_count }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Closes</div><div style="color:var(--hub-text);">{{ job.closing_date|default:"—" }}</div></div>
+      <a href="{% url 'recruitment:application_list' slug=biz.slug %}?job={{ job.pk }}" class="btn btn-hub-primary btn-sm w-100 mt-2">View Applications</a>
+      <a href="{% url 'recruitment:job_create' slug=biz.slug %}?edit={{ job.pk }}" class="btn btn-hub-outline btn-sm w-100 mt-2">Edit</a>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4 mb-3">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Description</h5>
+      <div style="color:var(--hub-muted);line-height:1.8;">{{ job.description|linebreaks }}</div>
+    </div>
+    {% if job.requirements %}
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Requirements</h5>
+      <div style="color:var(--hub-muted);line-height:1.8;">{{ job.requirements|linebreaks }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

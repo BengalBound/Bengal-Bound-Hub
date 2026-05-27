@@ -1,0 +1,119 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Banking — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-bank me-2" style="color:var(--hub-accent);"></i>Banking & Letters of Credit{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ cash_position|floatformat:0 }}</div><div class="text-white-50 small">Cash Position</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#38bdf8;">{{ active_lcs }}</div><div class="text-white-50 small">Active LCs</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ total_lc_value|floatformat:0 }}</div><div class="text-white-50 small">LC Value</div></div></div>
+</div>
+
+<div class="row g-4">
+  <!-- Bank Accounts -->
+  <div class="col-lg-6">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Bank Accounts</h6>
+        <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAccountModal"><i class="bi bi-plus-lg me-1"></i>Add Account</button>
+      </div>
+      {% for a in accounts %}
+      <div class="p-3 mb-2" style="background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--hub-border);">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div style="font-weight:600;font-size:.9rem;">{{ a.name }}</div>
+            <div style="color:var(--hub-muted);font-size:.72rem;">{{ a.bank }} &nbsp;·&nbsp; {{ a.currency }} &nbsp;·&nbsp; {{ a.account_number }}</div>
+          </div>
+          <div class="text-end">
+            <div style="font-size:1.2rem;font-weight:700;color:#22c55e;">{{ a.balance|floatformat:0 }}</div>
+            <div style="color:var(--hub-muted);font-size:.7rem;">{{ a.last_txn_date|default:"no txn" }}</div>
+          </div>
+        </div>
+        <div class="mt-2 text-end">
+          <form method="post" style="display:inline;" onsubmit="return confirm('Delete account?')">{% csrf_token %}<input type="hidden" name="action" value="delete_account"><input type="hidden" name="pk" value="{{ a.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center text-white-50 py-3 small">No accounts yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Letters of Credit -->
+  <div class="col-lg-6">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Letters of Credit</h6>
+        <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addLCModal"><i class="bi bi-plus-lg me-1"></i>Add LC</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0" style="font-size:.82rem;border-color:var(--hub-border);">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+            <th>LC ID</th><th>Beneficiary</th><th>Value</th><th>Expiry</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody>
+            {% for lc in lcs %}
+            <tr style="border-color:var(--hub-border);">
+              <td style="color:var(--hub-accent);font-weight:600;">{{ lc.lc_id }}</td>
+              <td>{{ lc.beneficiary|truncatechars:20 }}</td>
+              <td>{{ lc.value|floatformat:0 }} {{ lc.currency }}</td>
+              <td style="{% if lc.is_expiring_soon %}color:#fbbf24;font-weight:600;{% endif %}">{{ lc.expiry_date|default:"—" }}{% if lc.is_expiring_soon %} ⚠{% endif %}</td>
+              <td><span class="badge" style="background:{% if lc.status == 'active' %}rgba(34,197,94,0.15){% elif lc.status == 'expired' %}rgba(248,113,113,0.15){% else %}rgba(255,255,255,0.06){% endif %};color:{% if lc.status == 'active' %}#22c55e{% elif lc.status == 'expired' %}#f87171{% else %}var(--hub-muted){% endif %};">{{ lc.status }}</span></td>
+              <td><form method="post" style="display:inline;" onsubmit="return confirm('Delete LC?')">{% csrf_token %}<input type="hidden" name="action" value="delete_lc"><input type="hidden" name="pk" value="{{ lc.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-white-50 py-3">No LCs found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Account Modal -->
+<div class="modal fade" id="addAccountModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Bank Account</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create_account">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label text-white-50 small">Account Name *</label><input type="text" name="name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Bank Name</label><input type="text" name="bank" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Account Number</label><input type="text" name="account_number" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Currency</label><input type="text" name="currency" value="BDT" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Balance</label><input type="number" name="balance" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Last Transaction Date</label><input type="date" name="last_txn_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Account</button></div>
+    </form>
+  </div></div>
+</div>
+
+<!-- Add LC Modal -->
+<div class="modal fade" id="addLCModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Letter of Credit</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create_lc">
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label text-white-50 small">Description *</label><input type="text" name="description" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Bank</label><input type="text" name="lc_bank" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Beneficiary</label><input type="text" name="beneficiary" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Value</label><input type="number" name="lc_value" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Currency</label><input type="text" name="lc_currency" value="USD" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Expiry Date</label><input type="date" name="expiry_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="lc_status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="active">Active</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add LC</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

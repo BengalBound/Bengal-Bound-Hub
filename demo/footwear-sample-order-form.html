@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Footwear Sample Order Form</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --rust: #c94f1e;
+    --gold: #b8962e;
+    --steel: #4a5568;
+    --light: #faf8f3;
+    --border: #c8bfaa;
+    --shadow: rgba(26,26,26,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .page-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255,255,255,0.02) 10px,
+      rgba(255,255,255,0.02) 20px
+    );
+  }
+  .header-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 36px 40px 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .brand-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--rust);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .brand-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--paper);
+    letter-spacing: 3px;
+    line-height: 1;
+  }
+  .brand-subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,240,232,0.5);
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+  .form-id-box {
+    text-align: right;
+  }
+  .form-id-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: rgba(245,240,232,0.4);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .form-id-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    color: var(--rust);
+    font-weight: 500;
+  }
+  .status-bar {
+    background: var(--rust);
+    padding: 8px 40px;
+    max-width: 100%;
+  }
+  .status-bar-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  .status-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: rgba(245,240,232,0.9);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper); }
+
+  /* Main */
+  .main-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 32px;
+    background: var(--light);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+  .section:nth-child(1) { animation-delay: 0.05s; }
+  .section:nth-child(2) { animation-delay: 0.10s; }
+  .section:nth-child(3) { animation-delay: 0.15s; }
+  .section:nth-child(4) { animation-delay: 0.20s; }
+  .section:nth-child(5) { animation-delay: 0.25s; }
+  .section:nth-child(6) { animation-delay: 0.30s; }
+  .section:nth-child(7) { animation-delay: 0.35s; }
+  .section:nth-child(8) { animation-delay: 0.40s; }
+  .section:nth-child(9) { animation-delay: 0.45s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+  }
+  .section-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: var(--light);
+    background: var(--ink);
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 1px;
+  }
+  .section-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 0 20px;
+  }
+  .section-title-bn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--steel);
+    padding: 0 0 0 8px;
+    border-left: 1px solid var(--border);
+    margin-left: 4px;
+  }
+  .section-icon {
+    margin-left: auto;
+    margin-right: 20px;
+    font-size: 18px;
+    opacity: 0.4;
+  }
+
+  .section-body { padding: 24px; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+  .col-span-2 { grid-column: span 2; }
+  .col-span-3 { grid-column: span 3; }
+  .col-span-4 { grid-column: span 4; }
+
+  /* Field */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--steel);
+  }
+  .field label span.req { color: var(--rust); margin-left: 2px; }
+  .field input,
+  .field select,
+  .field textarea {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    padding: 9px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    width: 100%;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--rust);
+    box-shadow: 0 0 0 3px rgba(201,79,30,0.1);
+  }
+  .field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a5568'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  /* Unit field */
+  .unit-wrap { position: relative; }
+  .unit-wrap input { padding-right: 52px; }
+  .unit-label {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    display: flex; align-items: center;
+    padding: 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--steel);
+    background: var(--cream);
+    border-left: 1px solid var(--border);
+    border-radius: 0 1px 1px 0;
+    pointer-events: none;
+  }
+
+  /* Radio/Check group */
+  .check-group { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 2px; }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    user-select: none;
+  }
+  .check-item:has(input:checked) {
+    border-color: var(--rust);
+    background: rgba(201,79,30,0.06);
+    color: var(--rust);
+    font-weight: 500;
+  }
+  .check-item input { display: none; }
+
+  /* Problem / Instruction row */
+  .dynamic-list { display: flex; flex-direction: column; gap: 8px; }
+  .dynamic-row {
+    display: grid;
+    grid-template-columns: 36px 1fr 180px auto;
+    gap: 8px;
+    align-items: center;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: translateX(-6px); } to { opacity:1; transform: none; } }
+  .row-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--rust);
+    font-weight: 500;
+    text-align: center;
+    background: rgba(201,79,30,0.08);
+    border-radius: 2px;
+    padding: 8px 4px;
+    border: 1px solid rgba(201,79,30,0.2);
+  }
+  .btn-add, .btn-remove {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    border-radius: 2px;
+    padding: 8px 16px;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+  }
+  .btn-add { background: var(--ink); color: var(--paper); }
+  .btn-add:hover { background: var(--rust); }
+  .btn-remove { background: rgba(201,79,30,0.1); color: var(--rust); padding: 8px 10px; font-size: 14px; }
+  .btn-remove:hover { background: var(--rust); color: white; }
+
+  /* Process table */
+  .process-table { width: 100%; border-collapse: collapse; }
+  .process-table thead th {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .process-table tbody tr { border-bottom: 1px solid var(--border); }
+  .process-table tbody tr:last-child { border-bottom: none; }
+  .process-table tbody tr:hover { background: rgba(201,79,30,0.03); }
+  .process-table td { padding: 8px 12px; vertical-align: middle; }
+  .process-table td input, .process-table td select {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+    padding: 6px 10px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .process-table td input:focus, .process-table td select:focus { border-color: var(--rust); }
+  .process-table .td-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--rust);
+    font-weight: 500;
+    width: 32px;
+    text-align: center;
+  }
+  .add-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--steel);
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 2px;
+    padding: 10px 16px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+  .add-row-btn:hover { border-color: var(--rust); color: var(--rust); background: rgba(201,79,30,0.04); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .sub-head {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sub-head::after { content: ''; flex: 1; height: 1px; background: rgba(201,79,30,0.2); }
+
+  /* Priority badge */
+  .priority-wrap { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .priority-badge input { display: none; }
+  .priority-badge.urgent { background: rgba(201,79,30,0.1); border-color: rgba(201,79,30,0.3); color: var(--rust); }
+  .priority-badge.normal { background: rgba(184,150,46,0.1); border-color: rgba(184,150,46,0.3); color: var(--gold); }
+  .priority-badge.low { background: rgba(74,85,104,0.08); border-color: rgba(74,85,104,0.2); color: var(--steel); }
+  .priority-badge:has(input:checked) { opacity: 1; transform: scale(1.02); }
+  .priority-badge.urgent:has(input:checked) { background: var(--rust); color: white; border-color: var(--rust); }
+  .priority-badge.normal:has(input:checked) { background: var(--gold); color: white; border-color: var(--gold); }
+  .priority-badge.low:has(input:checked) { background: var(--steel); color: white; border-color: var(--steel); }
+
+  /* Material specs */
+  .spec-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 80px 80px 80px auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--cream);
+  }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--steel);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .spec-label::before { content: '▸'; color: var(--rust); font-size: 8px; }
+
+  /* Signature */
+  .sig-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 8px;
+  }
+  .sig-item { display: flex; flex-direction: column; gap: 6px; }
+  .sig-line {
+    height: 44px;
+    border-bottom: 1.5px solid var(--ink);
+    position: relative;
+  }
+  .sig-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--steel);
+  }
+
+  /* Submit */
+  .submit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .submit-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--steel);
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+  .btn-submit {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 14px 48px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-submit:hover { background: var(--rust); transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-reset {
+    background: transparent;
+    color: var(--steel);
+    border: 1px solid var(--border);
+    padding: 13px 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 2px;
+  }
+  .btn-reset:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* Print watermark */
+  @media print {
+    .btn-submit, .btn-reset, .btn-add, .btn-remove, .add-row-btn { display: none !important; }
+    .section { break-inside: avoid; }
+    .page-header { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+
+  /* Info tip */
+  .info-tip {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 11px;
+    color: var(--steel);
+    background: var(--cream);
+    border-left: 3px solid var(--gold);
+    padding: 8px 12px;
+    border-radius: 0 2px 2px 0;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 700px) {
+    .header-inner { flex-direction: column; align-items: flex-start; padding: 24px 20px 16px; }
+    .main-wrap { padding: 20px 16px 60px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .col-span-2, .col-span-3, .col-span-4 { grid-column: span 1; }
+    .dynamic-row { grid-template-columns: 28px 1fr auto; }
+    .dynamic-row .field:nth-child(3) { display: none; }
+    .sig-block { grid-template-columns: 1fr; }
+    .spec-row { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="page-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-tag">Merchandiser → Designer</span>
+      <div class="brand-title">FOOTWEAR SAMPLE ORDER</div>
+      <div class="brand-subtitle">Sample Development Request Form · ফুটওয়্যার স্যাম্পল অর্ডার ফর্ম</div>
+    </div>
+    <div class="form-id-box">
+      <span class="form-id-label">FORM REF #</span>
+      <span class="form-id-value" id="formRef">FSO-2026-0001</span>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-bar-inner">
+      <span class="status-item"><span class="status-dot"></span> SAMPLE REQUEST</span>
+      <span class="status-item"><span class="status-dot"></span> DEVELOPMENT STAGE</span>
+      <span class="status-item"><span class="status-dot"></span> CONFIDENTIAL</span>
+    </div>
+  </div>
+</div>
+
+<div class="main-wrap">
+<form id="sampleForm" onsubmit="handleSubmit(event)">
+
+<!-- 1. Basic Info -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div class="section-title">Basic Information <span class="section-title-bn">মৌলিক তথ্য</span></div>
+    <span class="section-icon">📋</span>
+  </div>
+  <div class="section-body">
+    <div class="grid-4">
+      <div class="field">
+        <label>Order Date <span class="req">*</span></label>
+        <input type="date" name="orderDate" required>
+      </div>
+      <div class="field">
+        <label>Required By Date <span class="req">*</span></label>
+        <input type="date" name="requiredDate" required>
+      </div>
+      <div class="field">
+        <label>Season / সিজন</label>
+        <select name="season">
+          <option value="">-- Select --</option>
+          <option>SS (Summer/Spring)</option>
+          <option>FW (Fall/Winter)</option>
+          <option>AW (Autumn/Winter)</option>
+          <option>All Season</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Year / বছর</label>
+        <input type="text" name="year" placeholder="2026">
+      </div>
+
+      <div class="field">
+        <label>Merchandiser Name <span class="req">*</span></label>
+        <input type="text" name="merchandiserName" placeholder="Full Name" required>
+      </div>
+      <div class="field">
+        <label>Merchandiser ID</label>
+        <input type="text" name="merchandiserId" placeholder="M-0001">
+      </div>
+      <div class="field">
+        <label>Department</label>
+        <input type="text" name="department" placeholder="Footwear Division">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="name@company.com">
+      </div>
+
+      <div class="field">
+        <label>Designer Name <span class="req">*</span></label>
+        <input type="text" name="designerName" placeholder="Assigned Designer" required>
+      </div>
+      <div class="field">
+        <label>Designer ID</label>
+        <input type="text" name="designerId" placeholder="D-0001">
+      </div>
+      <div class="field">
+        <label>Buyer / ক্রেতা</label>
+        <input type="text" name="buyer" placeholder="Buyer / Brand Name">
+      </div>
+      <div class="field">
+        <label>Style No. / স্টাইল নং <span class="req">*</span></label>
+        <input type="text" name="styleNo" placeholder="STY-2026-001" required>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Last Information -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div class="section-title">Last / Mould Information <span class="section-title-bn">লাস্ট / মোল্ড তথ্য</span></div>
+    <span class="section-icon">👟</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-head">Last Details · লাস্ট তথ্য</div>
+    <div class="grid-4">
+      <div class="field">
+        <label>Last Number <span class="req">*</span></label>
+        <input type="text" name="lastNumber" placeholder="e.g. LT-1024-B" required>
+      </div>
+      <div class="field">
+        <label>Last Type / ধরন</label>
+        <select name="lastType">
+          <option value="">-- Select --</option>
+          <option>Standard Last</option>
+          <option>Pointed Toe</option>
+          <option>Round Toe</option>
+          <option>Square Toe</option>
+          <option>Almond Toe</option>
+          <option>Peep Toe</option>
+          <option>Platform Last</option>
+          <option>Custom Last</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Last Size / লাস্ট সাইজ <span class="req">*</span></label>
+        <input type="text" name="lastSize" placeholder="e.g. 38, 39, 40" required>
+      </div>
+      <div class="field">
+        <label>Size Range</label>
+        <input type="text" name="sizeRange" placeholder="36 – 41">
+      </div>
+
+      <div class="field">
+        <label>Heel Height / হিল উচ্চতা</label>
+        <div class="unit-wrap">
+          <input type="number" name="heelHeight" placeholder="0" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Platform Height</label>
+        <div class="unit-wrap">
+          <input type="number" name="platformHeight" placeholder="0" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Toe Spring / টো স্প্রিং</label>
+        <div class="unit-wrap">
+          <input type="number" name="toeSpring" placeholder="0" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Last Width Fitting</label>
+        <select name="lastWidth">
+          <option value="">-- Select --</option>
+          <option>Narrow (A/B)</option>
+          <option>Standard (C/D)</option>
+          <option>Wide (E/EE)</option>
+          <option>Extra Wide (EEE)</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="sub-head">Allowance Details · অ্যালাউন্স তথ্য</div>
+    <div class="grid-4">
+      <div class="field">
+        <label>Lasting Allowance <span class="req">*</span></label>
+        <div class="unit-wrap">
+          <input type="number" name="lastingAllowance" placeholder="15" step="0.5" min="0" required>
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Toe Lasting Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="toeAllowance" placeholder="15" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Side Lasting Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="sideAllowance" placeholder="15" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Heel Lasting Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="heelAllowance" placeholder="18" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Seam Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="seamAllowance" placeholder="6" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Skiving Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="skivingAllowance" placeholder="4" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Rib / Insole Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="ribAllowance" placeholder="8" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Welt Allowance</label>
+        <div class="unit-wrap">
+          <input type="number" name="weltAllowance" placeholder="10" step="0.5" min="0">
+          <span class="unit-label">MM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Material Specs -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div class="section-title">Material Specifications <span class="section-title-bn">ম্যাটেরিয়াল স্পেসিফিকেশন</span></div>
+    <span class="section-icon">🧵</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-head">Upper Materials · আপার ম্যাটেরিয়াল</div>
+    <div id="materialRows">
+      <div class="spec-row">
+        <div class="spec-label">Upper / আপার</div>
+        <input type="text" name="upper_material" placeholder="Material name / code">
+        <input type="text" name="upper_color" placeholder="Color">
+        <input type="text" name="upper_thickness" placeholder="Thickness">
+        <select name="upper_unit"><option>MM</option><option>GSM</option><option>OZ</option></select>
+        <input type="text" name="upper_qty" placeholder="Qty/Pair">
+      </div>
+      <div class="spec-row">
+        <div class="spec-label">Lining / লাইনিং</div>
+        <input type="text" name="lining_material" placeholder="Material name / code">
+        <input type="text" name="lining_color" placeholder="Color">
+        <input type="text" name="lining_thickness" placeholder="Thickness">
+        <select name="lining_unit"><option>MM</option><option>GSM</option><option>OZ</option></select>
+        <input type="text" name="lining_qty" placeholder="Qty/Pair">
+      </div>
+      <div class="spec-row">
+        <div class="spec-label">Insole / ইনসোল</div>
+        <input type="text" name="insole_material" placeholder="Material name / code">
+        <input type="text" name="insole_color" placeholder="Color">
+        <input type="text" name="insole_thickness" placeholder="Thickness">
+        <select name="insole_unit"><option>MM</option><option>GSM</option><option>OZ</option></select>
+        <input type="text" name="insole_qty" placeholder="Qty/Pair">
+      </div>
+      <div class="spec-row">
+        <div class="spec-label">Outsole / আউটসোল</div>
+        <input type="text" name="outsole_material" placeholder="Material name / code">
+        <input type="text" name="outsole_color" placeholder="Color">
+        <input type="text" name="outsole_thickness" placeholder="Thickness">
+        <select name="outsole_unit"><option>MM</option><option>GSM</option><option>OZ</option></select>
+        <input type="text" name="outsole_qty" placeholder="Qty/Pair">
+      </div>
+      <div class="spec-row">
+        <div class="spec-label">Midsole / মিডসোল</div>
+        <input type="text" name="midsole_material" placeholder="Material name / code">
+        <input type="text" name="midsole_color" placeholder="Color">
+        <input type="text" name="midsole_thickness" placeholder="Thickness">
+        <select name="midsole_unit"><option>MM</option><option>GSM</option><option>OZ</option></select>
+        <input type="text" name="midsole_qty" placeholder="Qty/Pair">
+      </div>
+    </div>
+    <div class="info-tip">সব ম্যাটেরিয়ালের পরিমাণ প্রতি জোড়া হিসেবে উল্লেখ করুন। Specify all quantities per pair.</div>
+  </div>
+</div>
+
+<!-- 4. Thread & Adhesive -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div class="section-title">Thread & Adhesive Specifications <span class="section-title-bn">সুতা ও আঠা স্পেসিফিকেশন</span></div>
+    <span class="section-icon">🪡</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-head">Thread Details · সুতার বিবরণ</div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Thread Type / সুতার ধরন <span class="req">*</span></label>
+        <select name="threadType">
+          <option value="">-- Select --</option>
+          <option>Nylon Thread</option>
+          <option>Polyester Thread</option>
+          <option>Cotton Thread</option>
+          <option>Bonded Nylon</option>
+          <option>Kevlar Thread</option>
+          <option>Linen Thread</option>
+          <option>Waxed Thread</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Thread Ticket No.</label>
+        <input type="text" name="threadTicket" placeholder="e.g. 20, 40, 60, 80">
+      </div>
+      <div class="field">
+        <label>Thread Color / রং</label>
+        <input type="text" name="threadColor" placeholder="Color name or code">
+      </div>
+
+      <div class="field">
+        <label>Thread Qty (Upper) <span class="req">*</span></label>
+        <div class="unit-wrap">
+          <input type="number" name="threadQtyUpper" placeholder="0" step="0.1" min="0" required>
+          <span class="unit-label">MTR</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Thread Qty (Sole Stitching)</label>
+        <div class="unit-wrap">
+          <input type="number" name="threadQtySole" placeholder="0" step="0.1" min="0">
+          <span class="unit-label">MTR</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Stitch Per Inch (SPI)</label>
+        <input type="number" name="spi" placeholder="8–12" min="0">
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="sub-head">Adhesive / Glue Details · আঠার বিবরণ</div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Glue Type / আঠার ধরন <span class="req">*</span></label>
+        <select name="glueType">
+          <option value="">-- Select --</option>
+          <option>PU Cement / পিইউ সিমেন্ট</option>
+          <option>Neoprene Cement</option>
+          <option>Hot Melt Glue</option>
+          <option>Water-Based Cement</option>
+          <option>Polyurethane Adhesive</option>
+          <option>Rubber Cement</option>
+          <option>Contact Cement</option>
+          <option>EVA Hot Melt</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Glue Brand / ব্র্যান্ড</label>
+        <input type="text" name="glueBrand" placeholder="Brand / Code">
+      </div>
+      <div class="field">
+        <label>Glue Qty (Upper to Sole) <span class="req">*</span></label>
+        <div class="unit-wrap">
+          <input type="number" name="glueQtyMain" placeholder="0" step="0.1" min="0" required>
+          <span class="unit-label">GM</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Glue Qty (Lasting)</label>
+        <div class="unit-wrap">
+          <input type="number" name="glueQtyLasting" placeholder="0" step="0.1" min="0">
+          <span class="unit-label">GM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Glue Qty (Insole)</label>
+        <div class="unit-wrap">
+          <input type="number" name="glueQtyInsole" placeholder="0" step="0.1" min="0">
+          <span class="unit-label">GM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Total Glue / মোট আঠা</label>
+        <div class="unit-wrap">
+          <input type="number" name="glueQtyTotal" placeholder="Auto sum" step="0.1" min="0">
+          <span class="unit-label">GM</span>
+        </div>
+      </div>
+    </div>
+    <div class="info-tip">প্রতি জোড়া হিসেবে গ্লু ও সুতার পরিমাণ দিন। All quantities per pair.</div>
+  </div>
+</div>
+
+<!-- 5. Construction Process -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div class="section-title">Construction Process <span class="section-title-bn">কনস্ট্রাকশন প্রসেস</span></div>
+    <span class="section-icon">⚙️</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-head">Construction Method · নির্মাণ পদ্ধতি</div>
+    <div class="field" style="margin-bottom:16px">
+      <label>Construction Type / ধরন <span class="req">*</span></label>
+      <div class="check-group">
+        <label class="check-item"><input type="radio" name="constructionType" value="cemented"> Cemented / সিমেন্টেড</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="stitch"> Stitch-Down / স্টিচডাউন</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="goodyear"> Goodyear Welt</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="blake"> Blake Stitch</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="injection"> Injection Moulded</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="vulcanized"> Vulcanized</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="bolognese"> Bolognese</label>
+        <label class="check-item"><input type="radio" name="constructionType" value="other"> Other</label>
+      </div>
+    </div>
+
+    <div class="sub-head">Process Steps · প্রসেস ধাপ</div>
+    <table class="process-table" id="processTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Process Name / প্রসেস নাম</th>
+          <th>Method / পদ্ধতি</th>
+          <th>Machine Used</th>
+          <th>Temperature (°C)</th>
+          <th>Pressure</th>
+          <th>Time (Sec)</th>
+          <th>Note / মন্তব্য</th>
+        </tr>
+      </thead>
+      <tbody id="processBody">
+        <tr>
+          <td class="td-num">01</td>
+          <td><input type="text" name="p1_name" placeholder="e.g. Lasting"></td>
+          <td><select name="p1_method"><option value="">--</option><option>Hand</option><option>Machine</option><option>Both</option></select></td>
+          <td><input type="text" name="p1_machine" placeholder="Machine name"></td>
+          <td><input type="number" name="p1_temp" placeholder="0"></td>
+          <td><input type="text" name="p1_pressure" placeholder="bar/kgf"></td>
+          <td><input type="number" name="p1_time" placeholder="0"></td>
+          <td><input type="text" name="p1_note" placeholder="Details..."></td>
+        </tr>
+        <tr>
+          <td class="td-num">02</td>
+          <td><input type="text" name="p2_name" placeholder="e.g. Roughing"></td>
+          <td><select name="p2_method"><option value="">--</option><option>Hand</option><option>Machine</option><option>Both</option></select></td>
+          <td><input type="text" name="p2_machine" placeholder="Machine name"></td>
+          <td><input type="number" name="p2_temp" placeholder="0"></td>
+          <td><input type="text" name="p2_pressure" placeholder="bar/kgf"></td>
+          <td><input type="number" name="p2_time" placeholder="0"></td>
+          <td><input type="text" name="p2_note" placeholder="Details..."></td>
+        </tr>
+        <tr>
+          <td class="td-num">03</td>
+          <td><input type="text" name="p3_name" placeholder="e.g. Cementing"></td>
+          <td><select name="p3_method"><option value="">--</option><option>Hand</option><option>Machine</option><option>Both</option></select></td>
+          <td><input type="text" name="p3_machine" placeholder="Machine name"></td>
+          <td><input type="number" name="p3_temp" placeholder="0"></td>
+          <td><input type="text" name="p3_pressure" placeholder="bar/kgf"></td>
+          <td><input type="number" name="p3_time" placeholder="0"></td>
+          <td><input type="text" name="p3_note" placeholder="Details..."></td>
+        </tr>
+        <tr>
+          <td class="td-num">04</td>
+          <td><input type="text" name="p4_name" placeholder="e.g. Pressing"></td>
+          <td><select name="p4_method"><option value="">--</option><option>Hand</option><option>Machine</option><option>Both</option></select></td>
+          <td><input type="text" name="p4_machine" placeholder="Machine name"></td>
+          <td><input type="number" name="p4_temp" placeholder="0"></td>
+          <td><input type="text" name="p4_pressure" placeholder="bar/kgf"></td>
+          <td><input type="number" name="p4_time" placeholder="0"></td>
+          <td><input type="text" name="p4_note" placeholder="Details..."></td>
+        </tr>
+      </tbody>
+    </table>
+    <button type="button" class="add-row-btn" onclick="addProcessRow()">+ ADD PROCESS ROW &nbsp;·&nbsp; নতুন প্রসেস যোগ করুন</button>
+  </div>
+</div>
+
+<!-- 6. Problems -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div class="section-title">Problems / Issues <span class="section-title-bn">সমস্যা / ইস্যু</span></div>
+    <span class="section-icon">⚠️</span>
+  </div>
+  <div class="section-body">
+    <div class="info-tip" style="margin-bottom:16px">যদি আগের স্যাম্পলে কোনো সমস্যা থাকে তাহলে এখানে উল্লেখ করুন। List any problems found in previous samples.</div>
+    <div class="dynamic-list" id="problemList">
+      <div class="dynamic-row">
+        <div class="row-num">01</div>
+        <div class="field">
+          <label>Problem Description / সমস্যার বিবরণ</label>
+          <input type="text" name="prob_desc_1" placeholder="e.g. Upper stitching loosening at toe area">
+        </div>
+        <div class="field">
+          <label>Severity / মাত্রা</label>
+          <select name="prob_severity_1">
+            <option>Critical</option>
+            <option>Major</option>
+            <option>Minor</option>
+          </select>
+        </div>
+        <button type="button" class="btn-remove" onclick="removeRow(this, 'problem')">✕</button>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button type="button" class="btn-add" onclick="addProblemRow()">+ ADD PROBLEM</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Instructions -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div class="section-title">Special Instructions <span class="section-title-bn">বিশেষ নির্দেশনা</span></div>
+    <span class="section-icon">📌</span>
+  </div>
+  <div class="section-body">
+    <div class="info-tip" style="margin-bottom:16px">ডিজাইনারকে যে বিশেষ নির্দেশনা দিতে চান তা নিচে লিখুন। Add special instructions for the designer.</div>
+    <div class="dynamic-list" id="instructionList">
+      <div class="dynamic-row">
+        <div class="row-num">01</div>
+        <div class="field">
+          <label>Instruction / নির্দেশনা</label>
+          <input type="text" name="inst_desc_1" placeholder="e.g. Use contrast stitching on heel counter">
+        </div>
+        <div class="field">
+          <label>Priority</label>
+          <select name="inst_priority_1">
+            <option>Must Follow</option>
+            <option>Recommended</option>
+            <option>Optional</option>
+          </select>
+        </div>
+        <button type="button" class="btn-remove" onclick="removeRow(this, 'instruction')">✕</button>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button type="button" class="btn-add" onclick="addInstructionRow()">+ ADD INSTRUCTION</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. Sample Details -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <div class="section-title">Sample Details & Priority <span class="section-title-bn">স্যাম্পল তথ্য ও অগ্রাধিকার</span></div>
+    <span class="section-icon">🎯</span>
+  </div>
+  <div class="section-body">
+    <div class="grid-3">
+      <div class="field">
+        <label>Sample Type / স্যাম্পল ধরন <span class="req">*</span></label>
+        <select name="sampleType" required>
+          <option value="">-- Select --</option>
+          <option>Proto Sample / প্রোটো স্যাম্পল</option>
+          <option>Fit Sample / ফিট স্যাম্পল</option>
+          <option>Sealing Sample / সিলিং স্যাম্পল</option>
+          <option>Counter Sample</option>
+          <option>Photo Sample</option>
+          <option>Salesman Sample</option>
+          <option>Pre-Production Sample</option>
+          <option>TOP Sample</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>No. of Pairs <span class="req">*</span></label>
+        <input type="number" name="noOfPairs" placeholder="1" min="1" required>
+      </div>
+      <div class="field">
+        <label>Colorways</label>
+        <input type="text" name="colorways" placeholder="e.g. Black, Brown, Tan">
+      </div>
+
+      <div class="field col-span-3">
+        <label>Priority Level / অগ্রাধিকার</label>
+        <div class="priority-wrap">
+          <label class="priority-badge urgent">
+            <input type="radio" name="priority" value="urgent">
+            🔴 URGENT / জরুরি
+          </label>
+          <label class="priority-badge normal">
+            <input type="radio" name="priority" value="normal" checked>
+            🟡 NORMAL / স্বাভাবিক
+          </label>
+          <label class="priority-badge low">
+            <input type="radio" name="priority" value="low">
+            🟢 LOW / কম জরুরি
+          </label>
+        </div>
+      </div>
+
+      <div class="field col-span-3">
+        <label>Additional Notes / অতিরিক্ত মন্তব্য</label>
+        <textarea name="additionalNotes" placeholder="Any other important details for the sample development...&#10;স্যাম্পল তৈরির জন্য অন্য কোনো গুরুত্বপূর্ণ তথ্য..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. Approval -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <div class="section-title">Approval & Signature <span class="section-title-bn">অনুমোদন ও স্বাক্ষর</span></div>
+    <span class="section-icon">✍️</span>
+  </div>
+  <div class="section-body">
+    <div class="sig-block">
+      <div class="sig-item">
+        <div class="sig-line"></div>
+        <div class="sig-label">Merchandiser Signature / মার্চেন্ডাইজার স্বাক্ষর</div>
+      </div>
+      <div class="sig-item">
+        <div class="sig-line"></div>
+        <div class="sig-label">Designer Acknowledgement / ডিজাইনার স্বীকৃতি</div>
+      </div>
+      <div class="sig-item">
+        <div class="sig-line"></div>
+        <div class="sig-label">Department Head Approval / বিভাগীয় প্রধানের অনুমোদন</div>
+      </div>
+      <div class="sig-item">
+        <div class="sig-line"></div>
+        <div class="sig-label">Date of Receipt / প্রাপ্তির তারিখ</div>
+      </div>
+    </div>
+    <div class="submit-bar" style="margin-top:32px">
+      <div class="submit-note">
+        * চিহ্নিত ঘরগুলো পূরণ করা আবশ্যক।<br>
+        * Marked fields are mandatory. Form ID: <strong id="formRefSmall">FSO-2026-0001</strong>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <button type="button" class="btn-reset" onclick="window.print()">🖨️ PRINT</button>
+        <button type="button" class="btn-reset" onclick="resetForm()">RESET FORM</button>
+        <button type="submit" class="btn-submit">SUBMIT ORDER ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</form>
+</div>
+
+<script>
+  // Generate Form Ref
+  const ref = 'FSO-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random()*9000)+1000);
+  document.getElementById('formRef').textContent = ref;
+  document.getElementById('formRefSmall').textContent = ref;
+
+  // Set today's date
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelector('[name="orderDate"]').value = today;
+
+  // Process row counter
+  let processRowCount = 4;
+  function addProcessRow() {
+    processRowCount++;
+    const n = String(processRowCount).padStart(2, '0');
+    const i = processRowCount;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-num">${n}</td>
+      <td><input type="text" name="p${i}_name" placeholder="Process name"></td>
+      <td><select name="p${i}_method"><option value="">--</option><option>Hand</option><option>Machine</option><option>Both</option></select></td>
+      <td><input type="text" name="p${i}_machine" placeholder="Machine name"></td>
+      <td><input type="number" name="p${i}_temp" placeholder="0"></td>
+      <td><input type="text" name="p${i}_pressure" placeholder="bar/kgf"></td>
+      <td><input type="number" name="p${i}_time" placeholder="0"></td>
+      <td><input type="text" name="p${i}_note" placeholder="Details..."></td>
+    `;
+    document.getElementById('processBody').appendChild(tr);
+  }
+
+  // Problem rows
+  let probCount = 1;
+  function addProblemRow() {
+    probCount++;
+    const list = document.getElementById('problemList');
+    const div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.innerHTML = `
+      <div class="row-num">${String(probCount).padStart(2,'0')}</div>
+      <div class="field">
+        <label>Problem Description / সমস্যার বিবরণ</label>
+        <input type="text" name="prob_desc_${probCount}" placeholder="Describe the problem...">
+      </div>
+      <div class="field">
+        <label>Severity / মাত্রা</label>
+        <select name="prob_severity_${probCount}">
+          <option>Critical</option><option>Major</option><option>Minor</option>
+        </select>
+      </div>
+      <button type="button" class="btn-remove" onclick="removeRow(this,'problem')">✕</button>
+    `;
+    list.appendChild(div);
+  }
+
+  // Instruction rows
+  let instCount = 1;
+  function addInstructionRow() {
+    instCount++;
+    const list = document.getElementById('instructionList');
+    const div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.innerHTML = `
+      <div class="row-num">${String(instCount).padStart(2,'0')}</div>
+      <div class="field">
+        <label>Instruction / নির্দেশনা</label>
+        <input type="text" name="inst_desc_${instCount}" placeholder="Enter instruction...">
+      </div>
+      <div class="field">
+        <label>Priority</label>
+        <select name="inst_priority_${instCount}">
+          <option>Must Follow</option><option>Recommended</option><option>Optional</option>
+        </select>
+      </div>
+      <button type="button" class="btn-remove" onclick="removeRow(this,'instruction')">✕</button>
+    `;
+    list.appendChild(div);
+  }
+
+  function removeRow(btn, type) {
+    const list = btn.closest('.dynamic-list');
+    if (list.children.length <= 1) { alert('কমপক্ষে একটি রো থাকতে হবে।'); return; }
+    btn.closest('.dynamic-row').remove();
+    // Renumber
+    const rows = list.querySelectorAll('.row-num');
+    rows.forEach((el, i) => el.textContent = String(i+1).padStart(2,'0'));
+  }
+
+  // Glue auto-sum
+  ['glueQtyMain','glueQtyLasting','glueQtyInsole'].forEach(id => {
+    document.querySelector(`[name="${id}"]`).addEventListener('input', () => {
+      const a = parseFloat(document.querySelector('[name="glueQtyMain"]').value)||0;
+      const b = parseFloat(document.querySelector('[name="glueQtyLasting"]').value)||0;
+      const c = parseFloat(document.querySelector('[name="glueQtyInsole"]').value)||0;
+      document.querySelector('[name="glueQtyTotal"]').value = (a+b+c).toFixed(1);
+    });
+  });
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const form = document.getElementById('sampleForm');
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    const btn = document.querySelector('.btn-submit');
+    btn.textContent = '✓ ORDER SUBMITTED';
+    btn.style.background = '#2d6a4f';
+    setTimeout(() => {
+      btn.textContent = 'SUBMIT ORDER ▶';
+      btn.style.background = '';
+    }, 3000);
+    alert('✅ Sample Order Submitted Successfully!\nRef: ' + ref + '\n\nস্যাম্পল অর্ডার সফলভাবে জমা দেওয়া হয়েছে।');
+  }
+
+  function resetForm() {
+    if (confirm('ফর্মটি রিসেট করবেন? সব তথ্য মুছে যাবে।\nReset form? All data will be cleared.')) {
+      document.getElementById('sampleForm').reset();
+      document.querySelector('[name="orderDate"]').value = today;
+    }
+  }
+</script>
+</body>
+</html>

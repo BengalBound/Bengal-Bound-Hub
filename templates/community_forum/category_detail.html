@@ -1,0 +1,78 @@
+{% extends 'community_forum/base_forum.html' %}
+
+{% block title %}{{ category.name }} | BengalBound Community{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5 border-bottom border-secondary pb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2 small font-inter">
+                <li class="breadcrumb-item"><a href="{% url 'index' %}" class="text-white-50 text-decoration-none">Forums</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">{{ category.name }}</li>
+            </ol>
+        </nav>
+        <h1 class="h2 font-outfit fw-bold text-white mb-0">{{ category.name }}</h1>
+    </div>
+    {% if can_post %}
+    <a href="{% url 'create_topic' category.slug %}" class="btn btn-primary-gradient px-4 rounded-pill shadow-glow fw-semibold">
+        <i class="bi bi-pencil-square me-2"></i> New Topic
+    </a>
+    {% endif %}
+</div>
+
+<div class="glass-card overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0 align-middle">
+            <thead>
+                <tr class="text-white-50 border-bottom border-secondary" style="font-size: 0.85rem;">
+                    <th class="ps-4 py-3">Topic Title</th>
+                    <th class="py-3 text-center">Replies</th>
+                    <th class="py-3 text-muted">Author</th>
+                    <th class="pe-4 py-3 text-end">Last Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topic in topics %}
+                <tr class="forum-card">
+                    <td class="ps-4 py-3">
+                        <a href="{% url 'topic_detail' topic.pk %}" class="text-decoration-none d-flex align-items-center gap-2">
+                            {% if topic.is_pinned %}
+                                <i class="bi bi-pin-angle-fill text-warning" title="Pinned"></i>
+                            {% elif topic.is_locked %}
+                                <i class="bi bi-lock-fill text-danger" title="Locked"></i>
+                            {% else %}
+                                <i class="bi bi-chat-text text-primary" title="Discussion"></i>
+                            {% endif %}
+                            <strong class="text-white">{{ topic.title }}</strong>
+                        </a>
+                    </td>
+                    <td class="py-3 text-center text-white-50">
+                        <span class="badge bg-secondary bg-opacity-25 text-light rounded-pill px-3">{{ topic.posts.count }}</span>
+                    </td>
+                    <td class="py-3 text-muted small">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-person-circle"></i>
+                            {{ topic.creator.email }}
+                        </div>
+                    </td>
+                    <td class="pe-4 py-3 text-end text-white-50 small">
+                        {{ topic.updated_at|timesince }} ago
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-white-50">
+                        There are no topics in this category yet.
+                        {% if can_post %}
+                        <br><a href="{% url 'create_topic' category.slug %}" class="btn btn-sm btn-outline-light mt-3">Start the discussion</a>
+                        {% else %}
+                        <br><a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://community.localhost:1234/accounts/sso/consume/?next={% url 'category_detail' category.slug %}" class="btn btn-sm btn-primary mt-3">Log in to post</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Garden Management — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-tree me-2 text-info"></i>Garden Management</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'garden_ops:site_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Sites</a>
+    <a href="{% url 'garden_ops:job_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Jobs</a>
+    <a href="{% url 'garden_ops:inventory' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Inventory</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.total_sites }}</div>
+      <div class="small text-muted mt-1">Active Sites</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.pending_jobs }}</div>
+      <div class="small text-muted mt-1">Pending Jobs</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.jobs_today }}</div>
+      <div class="small text-muted mt-1">Scheduled Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark {% if stats.low_stock > 0 %}border-warning{% else %}border-secondary{% endif %} text-center p-3">
+      <div class="display-6 fw-bold {% if stats.low_stock > 0 %}text-warning{% else %}text-muted{% endif %}">{{ stats.low_stock }}</div>
+      <div class="small text-muted mt-1">Low Stock Items</div>
+    </div>
+  </div>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-list-task me-1"></i>Recent Jobs</span>
+    <a href="{% url 'garden_ops:job_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info">View All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Client / Site</th><th>Job</th><th>Type</th><th>Scheduled</th><th>Assigned</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for j in recent_jobs %}
+          <tr>
+            <td><a href="{% url 'garden_ops:site_detail' slug=biz.slug site_id=j.site.pk %}" class="text-muted text-decoration-none">{{ j.site.client_name }}</a></td>
+            <td class="fw-semibold">{{ j.title }}</td>
+            <td><span class="badge bg-dark border border-secondary">{{ j.get_job_type_display }}</span></td>
+            <td class="text-muted">{{ j.scheduled_date|date:"d M Y"|default:"—" }}</td>
+            <td class="text-muted">{% if j.assigned_to %}{{ j.assigned_to.user.get_full_name|default:j.assigned_to.user.email }}{% else %}—{% endif %}</td>
+            <td>
+              <span class="badge
+                {% if j.status == 'completed' %}bg-success
+                {% elif j.status == 'in_progress' %}bg-warning text-dark
+                {% elif j.status == 'cancelled' %}bg-danger
+                {% elif j.status == 'scheduled' %}bg-info text-dark
+                {% else %}bg-secondary{% endif %}">{{ j.get_status_display }}</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No jobs yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'workspace_admin/base_admin.html' %}
+
+{% block page_title %}Workspace Tasks{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+            <i class="bi bi-list-task me-2"></i> New Task
+        </button>
+    </div>
+</div>
+
+<div class="glass-panel p-4">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+            <thead class="text-white-50">
+                <tr>
+                    <th>Task</th>
+                    <th>Project</th>
+                    <th>Assigned To</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tasks %}
+                <tr>
+                    <td><strong>{{ t.title }}</strong></td>
+                    <td class="text-white-50">{{ t.project.title }}</td>
+                    <td class="text-white-50">{{ t.assigned_to.email|default:"Unassigned" }}</td>
+                    <td>
+                        <span class="badge {% if t.priority == 'high' or t.priority == 'urgent' %}bg-danger{% else %}bg-info{% endif %} bg-opacity-25 border border-opacity-50">
+                            {{ t.get_priority_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">{{ t.get_status_display }}</span>
+                    </td>
+                    <td>
+                        <form method="POST" class="d-inline-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_status">
+                            <input type="hidden" name="task_id" value="{{ t.id }}">
+                            <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 120px;" onchange="this.form.submit()">
+                                {% for s_val, s_label in status_choices %}
+                                <option value="{{ s_val }}" {% if t.status == s_val %}selected{% endif %}>{{ s_label }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-white-50 py-3">No tasks found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-primary">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_task">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-primary">Assign Task</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Project</label>
+                        <select name="project_id" class="form-select form-control-premium bg-dark text-white" required>
+                            {% for p in projects %}
+                            <option value="{{ p.id }}">{{ p.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Task Title</label>
+                        <input type="text" name="title" class="form-control form-control-premium" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Assign To</label>
+                        <select name="assigned_to_id" class="form-select form-control-premium bg-dark text-white">
+                            <option value="">-- Unassigned --</option>
+                            {% for u in staff_users %}
+                            <option value="{{ u.id }}">{{ u.email }} ({{ u.get_role_display }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Priority</label>
+                        <select name="priority" class="form-select form-control-premium bg-dark text-white" required>
+                            {% for p_val, p_label in priority_choices %}
+                            <option value="{{ p_val }}">{{ p_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary">Assign Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

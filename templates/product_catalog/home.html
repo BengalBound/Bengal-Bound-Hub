@@ -1,0 +1,69 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Digital Product Catalog — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-journal-richtext me-2 text-info"></i>Digital Product Catalog</h4>
+  {% if access_level >= 3 %}
+  <a href="{% url 'product_catalog:catalog_create' slug=biz.slug %}" class="btn btn-info text-dark"><i class="bi bi-plus-lg me-1"></i>New Catalog</a>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.catalogs }}</div>
+      <div class="small text-muted mt-1">Catalogs</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.public }}</div>
+      <div class="small text-muted mt-1">Public / Shared</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.items }}</div>
+      <div class="small text-muted mt-1">Total Items</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-light">{{ stats.featured }}</div>
+      <div class="small text-muted mt-1">Featured</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for cat in catalogs %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ cat.title }}</span>
+        {% if cat.is_public %}<span class="badge bg-success">Public</span>{% else %}<span class="badge bg-secondary">Private</span>{% endif %}
+      </div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-6 text-muted">Items</div><div class="col-6">{{ cat.item_count }}</div>
+          <div class="col-6 text-muted">Categories</div><div class="col-6">{{ cat.categories.count }}</div>
+          <div class="col-6 text-muted">Created</div><div class="col-6">{{ cat.created_at|date:"d M Y" }}</div>
+        </div>
+        {% if cat.description %}<div class="mt-2 text-muted pt-2 border-top border-secondary">{{ cat.description|truncatechars:80 }}</div>{% endif %}
+      </div>
+      <div class="card-footer bg-transparent border-secondary">
+        <a href="{% url 'product_catalog:catalog_detail' slug=biz.slug catalog_id=cat.pk %}" class="btn btn-sm btn-outline-info w-100">Open Catalog</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-journal-richtext display-3 mb-3 d-block"></i>No catalogs yet. Create your first product catalog.
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

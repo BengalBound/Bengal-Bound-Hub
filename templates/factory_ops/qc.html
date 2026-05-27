@@ -1,0 +1,102 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}QC Inspections — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-shield-check me-2" style="color:var(--hub-accent);"></i>QC Inspections{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ total }}</div><div class="text-white-50 small">Total Inspections</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ passed }}</div><div class="text-white-50 small">Passed</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ failed }}</div><div class="text-white-50 small">Failed</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3">
+    <div style="font-size:1.8rem;font-weight:700;color:{% if ftr_rate >= ftr_target %}#22c55e{% elif ftr_rate >= 85 %}#fbbf24{% else %}#f87171{% endif %};">{{ ftr_rate }}%</div>
+    <div class="text-white-50 small">FTR Rate</div>
+    <div style="font-size:.7rem;color:var(--hub-muted);">Target {{ ftr_target }}%</div>
+  </div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Inspection Records</h6>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Record Inspection</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Inspection ID</th><th>Date</th><th>Lot #</th><th>Checkpoint</th><th>Style</th><th>Inspector</th><th>Stage</th><th>AQL</th><th>Severity</th><th>Checked</th><th>Defects</th><th>Defect %</th><th>1st Insp.</th><th>Result</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for i in inspections %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="color:var(--hub-accent);font-weight:600;">{{ i.inspection_id }}</td>
+          <td>{{ i.inspection_date }}</td>
+          <td style="color:var(--hub-muted);font-size:.78rem;">{{ i.lot_number|default:"—" }}</td>
+          <td>{{ i.checkpoint|truncatechars:20 }}</td>
+          <td>{{ i.style|truncatechars:16 }}</td>
+          <td>{{ i.inspector }}</td>
+          <td>{{ i.stage }}</td>
+          <td><span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;font-size:.68rem;">{{ i.aql_level }}</span></td>
+          <td>{% if i.defect_severity %}<span class="badge" style="background:{% if i.defect_severity == 'critical' %}rgba(248,113,113,0.2){% elif i.defect_severity == 'major' %}rgba(251,191,36,0.2){% else %}rgba(34,197,94,0.2){% endif %};color:{% if i.defect_severity == 'critical' %}#f87171{% elif i.defect_severity == 'major' %}#fbbf24{% else %}#22c55e{% endif %};font-size:.68rem;">{{ i.defect_severity }}</span>{% else %}—{% endif %}</td>
+          <td>{{ i.checked }}</td>
+          <td>{{ i.defects_found }}</td>
+          <td style="font-weight:600;color:{% if i.defect_rate_pct > 5 %}#f87171{% elif i.defect_rate_pct > 2 %}#fbbf24{% else %}#22c55e{% endif %};">{{ i.defect_rate_pct|floatformat:1 }}%</td>
+          <td>{% if i.is_first_inspection %}<span style="color:#22c55e;font-size:.75rem;">Yes</span>{% else %}<span style="color:var(--hub-muted);font-size:.75rem;">Re-insp.</span>{% endif %}</td>
+          <td><span class="badge" style="background:{% if i.result == 'pass' %}rgba(34,197,94,0.2){% elif i.result == 'fail' %}rgba(248,113,113,0.2){% else %}rgba(251,191,36,0.2){% endif %};color:{% if i.result == 'pass' %}#22c55e{% elif i.result == 'fail' %}#f87171{% else %}#fbbf24{% endif %};">{{ i.result|upper }}</span></td>
+          <td><form method="post" style="display:inline;" onsubmit="return confirm('Delete?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ i.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="15" class="text-center text-white-50 py-4">No inspections recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Record Inspection</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label text-white-50 small">Checkpoint *</label><input type="text" name="checkpoint" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Style</label><input type="text" name="style" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">PO Reference</label><input type="text" name="production_order_ref" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Lot Number</label><input type="text" name="lot_number" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Inspector</label><input type="text" name="inspector" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Date</label><input type="date" name="inspection_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">AQL Level</label>
+          <select name="aql_level" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for val, label in aql_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Defect Severity</label>
+          <select name="defect_severity" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="">— None —</option>
+            {% for val, label in severity_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Lot Size</label><input type="number" name="lot_size" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Checked</label><input type="number" name="checked" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Defects Found</label><input type="number" name="defects_found" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Stage</label>
+          <select name="stage" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="inline">Inline</option><option value="final">Final</option><option value="pre_ship">Pre-Ship</option>
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Result</label>
+          <select name="result" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="pass">Pass</option><option value="fail">Fail</option><option value="conditional">Conditional</option>
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">First Inspection?</label>
+          <select name="is_first_inspection" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="yes">Yes — First Time</option><option value="no">No — Re-inspection</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Record Inspection</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

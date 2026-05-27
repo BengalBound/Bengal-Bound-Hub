@@ -1,0 +1,96 @@
+{% extends 'hub/base_hub_os.html' %}
+{% block title %}Setup — {{ biz.name }}{% endblock %}
+{% block page_title %}Welcome to BengalBound{% endblock %}
+{% block page_subtitle %}Let's get {{ biz.name }} up and running{% endblock %}
+
+{% block content %}
+<!-- Progress indicator -->
+<div class="d-flex align-items-center gap-2 mb-4">
+  {% for s in steps %}
+  <div class="d-flex align-items-center gap-2">
+    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold small"
+         style="width:28px;height:28px;{% if forloop.counter < current_step %}background:linear-gradient(135deg,#c084fc,#ec4899);color:#fff;{% elif forloop.counter == current_step %}background:rgba(192,132,252,0.2);border:2px solid #c084fc;color:#c084fc;{% else %}background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(226,232,240,0.3);{% endif %}">
+      {% if forloop.counter < current_step %}<i class="bi bi-check2" style="font-size:0.7rem;"></i>{% else %}{{ forloop.counter }}{% endif %}
+    </div>
+    <span class="small {% if forloop.counter == current_step %}text-white fw-semibold{% else %}text-muted{% endif %}">{{ s }}</span>
+    {% if not forloop.last %}<i class="bi bi-chevron-right small text-muted"></i>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="glass-panel p-4">
+
+      <!-- Step 1: Business basics -->
+      {% if current_step == 1 %}
+      <h5 class="fw-bold text-white mb-1">Your Business</h5>
+      <p class="small mb-4" style="color:rgba(226,232,240,0.4);">Review and confirm your business details.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="1">
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" style="color:rgba(226,232,240,0.6);">Business Name</label>
+          <input type="text" name="name" class="form-control form-control-sm" value="{{ biz.name }}"
+                 style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#f8fafc;border-radius:8px;">
+        </div>
+        <div class="mb-4">
+          <label class="form-label small fw-semibold" style="color:rgba(226,232,240,0.6);">Business Email</label>
+          <input type="email" name="business_email" class="form-control form-control-sm" value="{{ biz.business_email }}"
+                 style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#f8fafc;border-radius:8px;">
+        </div>
+        <button type="submit" class="btn btn-sm" style="background:linear-gradient(135deg,#c084fc,#ec4899);color:#fff;border:none;border-radius:8px;padding:0.4rem 1.5rem;">
+          Continue <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </form>
+
+      <!-- Step 2: Activate modules -->
+      {% elif current_step == 2 %}
+      <h5 class="fw-bold text-white mb-1">Activate Modules</h5>
+      <p class="small mb-4" style="color:rgba(226,232,240,0.4);">Choose the tools you need. You can change this anytime.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="2">
+        <div class="row g-2 mb-4">
+          {% for module in popular_modules %}
+          <div class="col-6">
+            <label class="d-flex align-items-center gap-2 p-2 rounded cursor-pointer" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;">
+              <input type="checkbox" name="modules" value="{{ module.pk }}" class="form-check-input" style="width:14px;height:14px;">
+              <span class="small">{{ module.name }}</span>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-sm" style="background:linear-gradient(135deg,#c084fc,#ec4899);color:#fff;border:none;border-radius:8px;padding:0.4rem 1.5rem;">
+            Continue <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+          <button type="submit" name="skip" value="1" class="btn btn-sm" style="background:rgba(255,255,255,0.04);color:rgba(226,232,240,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:8px;">
+            Skip
+          </button>
+        </div>
+      </form>
+
+      <!-- Step 3: Done -->
+      {% elif current_step == 3 %}
+      <div class="text-center py-3">
+        <div class="mb-3" style="font-size:3rem;">🎉</div>
+        <h5 class="fw-bold text-white mb-2">You're all set!</h5>
+        <p class="small mb-4" style="color:rgba(226,232,240,0.4);">
+          {{ biz.name }} is ready. Head to your console to hire your first AI employee or explore your modules.
+        </p>
+        <div class="d-flex gap-2 justify-content-center">
+          <a href="{% url 'console_admin:hire_ai' %}" class="btn btn-sm" style="background:linear-gradient(135deg,#c084fc,#ec4899);color:#fff;border:none;border-radius:8px;padding:0.4rem 1.25rem;">
+            <i class="bi bi-robot me-1"></i>Hire AI Employee
+          </a>
+          <a href="{% url 'console_admin:dashboard' %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);color:rgba(226,232,240,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.4rem 1.25rem;">
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

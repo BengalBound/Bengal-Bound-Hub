@@ -1,0 +1,75 @@
+{% extends 'hub/base_hub_os.html' %}
+{% block title %}Team Members — {{ biz.name }}{% endblock %}
+{% block page_title %}Team Members{% endblock %}
+{% block page_subtitle %}Manage access to {{ biz.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'hub:hub_invite_member' slug=biz.slug %}" class="btn btn-sm" style="background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(236,72,153,0.2));color:#c084fc;border:1px solid rgba(192,132,252,0.3);border-radius:8px;">
+    <i class="bi bi-person-plus me-1"></i>Invite Member
+  </a>
+</div>
+
+<div class="glass-panel p-0" style="overflow:hidden;">
+  <table class="table table-dark table-hover mb-0" style="color:#f8fafc;">
+    <thead style="background:rgba(30,41,59,0.8);">
+      <tr>
+        <th class="px-4 py-3">Member</th>
+        <th class="py-3">Role</th>
+        <th class="py-3">Joined</th>
+        <th class="py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Owner row -->
+      <tr>
+        <td class="px-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:linear-gradient(135deg,rgba(192,132,252,0.3),rgba(236,72,153,0.3));font-size:0.75rem;font-weight:600;color:#e2e8f0;">
+              {{ biz.owner.get_full_name|first|upper|default:"O" }}
+            </div>
+            <div>
+              <div class="fw-semibold small">{{ biz.owner.get_full_name|default:biz.owner.email }}</div>
+              <div style="font-size:0.7rem;color:rgba(226,232,240,0.4);">{{ biz.owner.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge" style="background:rgba(192,132,252,0.15);color:#c084fc;border:1px solid rgba(192,132,252,0.3);">Owner</span></td>
+        <td class="small text-muted">{{ biz.created_at|date:"M d, Y" }}</td>
+        <td></td>
+      </tr>
+      {% for m in memberships %}
+      <tr>
+        <td class="px-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:rgba(255,255,255,0.06);font-size:0.75rem;font-weight:600;color:#e2e8f0;">
+              {{ m.user.get_full_name|first|upper|default:"U" }}
+            </div>
+            <div>
+              <div class="fw-semibold small">{{ m.user.get_full_name|default:m.user.email }}</div>
+              <div style="font-size:0.7rem;color:rgba(226,232,240,0.4);">{{ m.user.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2);">
+            {{ m.get_role_display }}
+          </span>
+        </td>
+        <td class="small text-muted">{{ m.joined_at|date:"M d, Y" }}</td>
+        <td class="text-end pe-3">
+          <form method="post" action="{% url 'hub:hub_remove_member' slug=biz.slug membership_id=m.pk %}" onsubmit="return confirm('Remove {{ m.user.email }} from this workspace?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm p-1" style="background:none;border:none;color:rgba(239,68,68,0.6);" title="Remove">
+              <i class="bi bi-person-dash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center py-4" style="color:rgba(226,232,240,0.3);">No additional members yet. Invite someone!</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

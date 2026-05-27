@@ -1,0 +1,60 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Add Property — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'property_listings:property_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Listings</a></div>
+<h4 class="fw-bold mb-4"><i class="bi bi-house-add me-2 text-info"></i>Add Property Listing</h4>
+
+<form method="post" class="card bg-dark border-secondary">
+  {% csrf_token %}
+  <div class="card-body row g-3">
+    <div class="col-12"><label class="form-label small">Listing Title <span class="text-danger">*</span></label><input type="text" name="title" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Spacious 4-Bed Family Home in Riverside" required></div>
+
+    <div class="col-md-4"><label class="form-label small">Property Type</label>
+      <select name="property_type" class="form-select bg-dark text-white border-secondary">
+        {% for code, label in property_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4"><label class="form-label small">Listing Type</label>
+      <select name="listing_type" class="form-select bg-dark text-white border-secondary">
+        {% for code, label in listing_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4"><label class="form-label small">Status</label>
+      <select name="status" class="form-select bg-dark text-white border-secondary">
+        {% for code, label in statuses %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12"><label class="form-label small">Property Address <span class="text-danger">*</span></label><textarea name="address" rows="2" class="form-control bg-dark text-white border-secondary" required></textarea></div>
+    <div class="col-md-4"><label class="form-label small">City</label><input type="text" name="city" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">State / Region</label><input type="text" name="region" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">Country</label><input type="text" name="country" class="form-control bg-dark text-white border-secondary"></div>
+
+    <div class="col-md-2"><label class="form-label small">Bedrooms</label><input type="number" name="bedrooms" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-2"><label class="form-label small">Bathrooms</label><input type="number" name="bathrooms" step="0.5" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-3"><label class="form-label small">Area (sqft)</label><input type="number" name="area_sqft" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+
+    <div class="col-md-3"><label class="form-label small">Sale Price</label><input type="number" name="price" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-1"><label class="form-label small">CCY</label><input type="text" name="currency" value="USD" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-3"><label class="form-label small">Rent / Month</label><input type="number" name="rent_per_month" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+
+    <div class="col-md-4"><label class="form-label small">MLS / Listing #</label><input type="text" name="mls_number" class="form-control bg-dark text-white border-secondary font-monospace"></div>
+    <div class="col-md-4"><label class="form-label small">Listing Date</label><input type="date" name="listing_date" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">Assigned Agent</label>
+      <select name="listed_by_id" class="form-select bg-dark text-white border-secondary">
+        <option value="">— Self —</option>
+        {% for a in agents %}<option value="{{ a.pk }}">{{ a.user.get_full_name }}</option>{% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12"><label class="form-label small">IDX / Portal / MLS URL</label><input type="url" name="listing_url" class="form-control bg-dark text-white border-secondary" placeholder="https://"></div>
+    <div class="col-12"><label class="form-label small">Virtual Tour / 3D Walkthrough URL</label><input type="url" name="virtual_tour_url" class="form-control bg-dark text-white border-secondary" placeholder="https://my.matterport.com/..."></div>
+    <div class="col-12"><label class="form-label small">Key Features</label><input type="text" name="features" class="form-control bg-dark text-white border-secondary" placeholder="Pool, Double Garage, Garden, Solar Panels (comma-separated)"></div>
+    <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="4" class="form-control bg-dark text-white border-secondary"></textarea></div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary d-flex gap-2">
+    <button type="submit" class="btn btn-info text-dark">Add Listing</button>
+    <a href="{% url 'property_listings:property_list' slug=biz.slug %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}AI Assistant — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-robot me-2" style="color:var(--hub-accent);"></i>AI Assistant{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4">
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Recent Conversations</h5>
+      {% for conv in conversations %}
+      <a href="{% url 'ai_assistant:conversation' slug=biz.slug pk=conv.pk %}" class="d-block text-decoration-none mb-2">
+        <div class="glass-panel p-3" style="border-radius:12px;">
+          <div style="color:var(--hub-text);">{{ conv.title }}</div>
+          <div style="color:var(--hub-muted);font-size:.8rem;">{{ conv.updated_at }}</div>
+        </div>
+      </a>
+      {% empty %}
+      <div class="text-center" style="color:var(--hub-muted);padding:2rem;">No conversations yet. Start one below.</div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;">Quick Start</h6>
+      <a href="{% url 'ai_assistant:conversation_new' slug=biz.slug %}" class="btn btn-hub-primary btn-sm w-100 mb-2"><i class="bi bi-plus-lg me-1"></i>New Conversation</a>
+      <a href="{% url 'ai_assistant:prompt_templates' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100"><i class="bi bi-file-text me-1"></i>Prompt Templates</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

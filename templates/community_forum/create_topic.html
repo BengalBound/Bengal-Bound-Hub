@@ -1,0 +1,56 @@
+{% extends 'community_forum/base_forum.html' %}
+
+{% block title %}Create Topic | {{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-5 border-bottom border-secondary pb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2 small font-inter">
+            <li class="breadcrumb-item"><a href="{% url 'index' %}" class="text-white-50 text-decoration-none">Forums</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'category_detail' category.slug %}" class="text-white-50 text-decoration-none">{{ category.name }}</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">New Topic</li>
+        </ol>
+    </nav>
+    <h1 class="h2 font-outfit fw-bold text-white mb-2">Create New Topic</h1>
+    <p class="text-white-50">Starting a new discussion in <strong>{{ category.name }}</strong></p>
+</div>
+
+<div class="glass-card p-4 mx-auto" style="max-width: 800px;">
+    <form method="post" action="{% url 'create_topic' category.slug %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="topicTitle" class="form-label text-white-50 small fw-medium">Topic Title</label>
+            <input type="text" name="title" id="topicTitle" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="What would you like to discuss?" required maxlength="255">
+        </div>
+        {% if not user.is_authenticated and can_post %}
+        <div class="mb-4">
+            <label for="topicEmail" class="form-label text-white-50 small fw-medium">Your Email</label>
+            <input type="email" name="email" id="topicEmail" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Enter your email to post as a viewer" required>
+            <div class="form-text text-white-50 small mt-1">We'll create a unique viewer username based on this email.</div>
+        </div>
+        {% endif %}
+        
+        <div class="mb-4">
+            <label class="form-label text-white-50 small fw-medium">Post Type</label>
+            <div class="d-flex gap-2 flex-wrap">
+                {% for value, label in topic_types %}
+                <input type="radio" class="btn-check" name="topic_type" id="type_{{ value }}" value="{{ value }}" {% if forloop.first %}checked{% endif %}>
+                <label class="btn btn-outline-secondary rounded-pill px-4" for="type_{{ value }}">
+                    {% if value == 'question' %}<i class="bi bi-question-circle me-1"></i>
+                    {% elif value == 'article' %}<i class="bi bi-newspaper me-1"></i>
+                    {% else %}<i class="bi bi-bug me-1"></i>{% endif %}{{ label }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mb-4">
+            <label for="topicContent" class="form-label text-white-50 small fw-medium">Main Content</label>
+            <textarea name="content" id="topicContent" class="form-control bg-dark border-secondary text-white shadow-none" rows="8" placeholder="Provide background, questions, or resources..." required></textarea>
+        </div>
+        <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top border-secondary">
+            <a href="{% url 'category_detail' category.slug %}" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+            <button type="submit" class="btn btn-primary-gradient px-4 rounded-pill shadow-glow fw-semibold">Publish Topic</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

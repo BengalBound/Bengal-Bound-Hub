@@ -1,0 +1,31 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}All Leads — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-funnel me-2" style="color:var(--hub-accent);"></i>All Leads{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Leads</h5>
+    <a href="{% url 'leads:lead_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Lead</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Name</th><th>Company</th><th>Source</th><th>Stage</th><th>Assigned</th><th></th></tr></thead>
+      <tbody>
+        {% for lead in leads %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ lead.name }}</td>
+          <td style="color:var(--hub-muted);">{{ lead.company|default:"—" }}</td>
+          <td style="color:var(--hub-muted);">{{ lead.source|default:"—" }}</td>
+          <td><span class="badge" style="background:var(--hub-surface);color:var(--hub-accent);">{{ lead.stage|title }}</span></td>
+          <td style="color:var(--hub-muted);">{{ lead.assigned_to.get_full_name|default:"Unassigned" }}</td>
+          <td><a href="{% url 'leads:lead_detail' slug=biz.slug pk=lead.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center" style="color:var(--hub-muted);padding:2rem;">No leads.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

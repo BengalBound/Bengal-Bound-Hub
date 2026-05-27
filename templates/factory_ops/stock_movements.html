@@ -1,0 +1,62 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Stock Movements — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-arrow-left-right me-2" style="color:var(--hub-accent);"></i>Stock Movement Log{% endblock %}
+{% block content %}
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      <!-- Item type filter -->
+      <a href="?{% if move_filter %}type={{ move_filter }}&{% endif %}" class="btn btn-sm {% if not item_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All Items</a>
+      {% for val, label in item_types %}
+      <a href="?item_type={{ val }}{% if move_filter %}&type={{ move_filter }}{% endif %}" class="btn btn-sm {% if item_filter == val %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      <!-- Move type filter -->
+      <a href="?{% if item_filter %}item_type={{ item_filter }}&{% endif %}" class="btn btn-sm {% if not move_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All Types</a>
+      {% for val, label in move_types %}
+      <a href="?type={{ val }}{% if item_filter %}&item_type={{ item_filter }}{% endif %}" class="btn btn-sm {% if move_filter == val %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <span class="text-white-50 small">{{ total_count }} total records</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Date/Time</th><th>Item Type</th><th>Item</th><th>Move Type</th>
+        <th class="text-end">Before</th><th class="text-end">Change</th><th class="text-end">After</th>
+        <th>Reference</th><th>By</th>
+      </tr></thead>
+      <tbody>
+        {% for m in movements %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="font-size:.78rem;color:var(--hub-muted);">{{ m.created_at|date:"d M Y H:i" }}</td>
+          <td><span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:.7rem;">{{ m.get_item_type_display }}</span></td>
+          <td>
+            <div style="font-weight:600;">{{ m.item_name }}</div>
+            <div style="font-size:.75rem;color:var(--hub-muted);">{{ m.item_ref }}</div>
+          </td>
+          <td>
+            <span class="badge" style="background:{% if m.move_type == 'in' %}rgba(34,197,94,0.15){% elif m.move_type == 'out' %}rgba(248,113,113,0.15){% elif m.move_type == 'adjust' %}rgba(251,191,36,0.15){% else %}rgba(139,92,246,0.15){% endif %};color:{% if m.move_type == 'in' %}#22c55e{% elif m.move_type == 'out' %}#f87171{% elif m.move_type == 'adjust' %}#fbbf24{% else %}#a78bfa{% endif %};font-size:.7rem;">{{ m.get_move_type_display }}</span>
+          </td>
+          <td class="text-end" style="color:var(--hub-muted);">{{ m.qty_before|floatformat:2 }}</td>
+          <td class="text-end" style="font-weight:600;color:{% if m.qty_change >= 0 %}#22c55e{% else %}#f87171{% endif %};">
+            {% if m.qty_change >= 0 %}+{% endif %}{{ m.qty_change|floatformat:2 }}
+          </td>
+          <td class="text-end" style="font-weight:600;">{{ m.qty_after|floatformat:2 }}</td>
+          <td style="font-size:.78rem;color:var(--hub-muted);">{{ m.reference|default:"—" }}</td>
+          <td style="font-size:.78rem;color:var(--hub-muted);">{{ m.performed_by|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-white-50 py-4">No stock movement records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if total_count > 200 %}
+  <p class="text-white-50 small text-end mt-2">Showing latest 200 of {{ total_count }} records.</p>
+  {% endif %}
+</div>
+{% endblock %}

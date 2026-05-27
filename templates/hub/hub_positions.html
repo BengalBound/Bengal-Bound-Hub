@@ -1,0 +1,84 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Custom Positions — {{ biz.name }}{% endblock %}
+{% block page_title %}Custom Positions{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-white-50 mb-0">Define custom roles with granular permission control for your organisation.</p>
+    {% if is_owner %}
+    <a href="{% url 'hub:hub_position_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus me-1"></i>New Position
+    </a>
+    {% endif %}
+</div>
+
+{% if messages %}
+{% for m in messages %}
+<div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
+    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if positions %}
+<div class="glass-panel p-0" style="overflow:hidden;">
+    <table class="table table-dark table-borderless mb-0" style="font-size:0.85rem;">
+        <thead>
+            <tr style="color:var(--hub-muted);border-bottom:1px solid var(--hub-border);">
+                <th class="px-4 py-3">Position Name</th>
+                <th>Description</th>
+                <th>Access Level</th>
+                <th>Permissions</th>
+                <th>Employees</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for pos in positions %}
+        <tr style="border-bottom:1px solid var(--hub-border);">
+            <td class="px-4 py-3 fw-semibold">{{ pos.name }}</td>
+            <td class="text-white-50">{{ pos.description|default:"—" }}</td>
+            <td>
+                <span class="badge" style="background:rgba(192,132,252,0.15);color:#c084fc;">Level {{ pos.access_level }}</span>
+            </td>
+            <td>
+                <div class="d-flex flex-wrap gap-1">
+                    {% if pos.perm_view_financials %}<span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;font-size:0.65rem;">Financials</span>{% endif %}
+                    {% if pos.perm_approve_expenses %}<span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;font-size:0.65rem;">Expenses</span>{% endif %}
+                    {% if pos.perm_manage_employees %}<span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;font-size:0.65rem;">People</span>{% endif %}
+                    {% if pos.perm_manage_modules %}<span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;font-size:0.65rem;">Modules</span>{% endif %}
+                    {% if pos.perm_access_reports %}<span class="badge" style="background:rgba(148,163,184,0.12);color:#94a3b8;font-size:0.65rem;">Reports</span>{% endif %}
+                    {% if pos.perm_manage_inventory %}<span class="badge" style="background:rgba(251,191,36,0.12);color:#fbbf24;font-size:0.65rem;">Inventory</span>{% endif %}
+                    {% if pos.perm_manage_production %}<span class="badge" style="background:rgba(251,191,36,0.12);color:#fbbf24;font-size:0.65rem;">Production</span>{% endif %}
+                    {% if pos.perm_manage_quality %}<span class="badge" style="background:rgba(251,191,36,0.12);color:#fbbf24;font-size:0.65rem;">Quality</span>{% endif %}
+                    {% if pos.perm_manage_assets %}<span class="badge" style="background:rgba(236,72,153,0.12);color:#ec4899;font-size:0.65rem;">Assets</span>{% endif %}
+                    {% if pos.perm_manage_erp %}<span class="badge" style="background:rgba(236,72,153,0.12);color:#ec4899;font-size:0.65rem;">ERP</span>{% endif %}
+                    {% if pos.perm_manage_mes %}<span class="badge" style="background:rgba(236,72,153,0.12);color:#ec4899;font-size:0.65rem;">MES</span>{% endif %}
+                    {% if pos.perm_manage_plm %}<span class="badge" style="background:rgba(236,72,153,0.12);color:#ec4899;font-size:0.65rem;">PLM</span>{% endif %}
+                </div>
+            </td>
+            <td style="color:var(--hub-muted);">{{ pos.employees.count }}</td>
+            <td class="pe-4">
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{% url 'hub:hub_position_edit' slug=biz.slug pos_id=pos.pk %}" class="btn btn-hub-outline btn-sm">Edit</a>
+                    <form method="post" action="{% url 'hub:hub_position_delete' slug=biz.slug pos_id=pos.pk %}" onsubmit="return confirm('Delete this position?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);">Delete</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <div style="font-size:2.5rem;opacity:0.3;margin-bottom:1rem;">🏷️</div>
+    <p class="text-white-50 mb-3">No custom positions yet. Create one to define role-specific permissions.</p>
+    <a href="{% url 'hub:hub_position_create' slug=biz.slug %}" class="btn btn-hub-primary">
+        <i class="bi bi-plus me-1"></i>Create First Position
+    </a>
+</div>
+{% endif %}
+{% endblock %}

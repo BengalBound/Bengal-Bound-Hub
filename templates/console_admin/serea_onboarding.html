@@ -1,0 +1,262 @@
+{% extends 'console_admin/base_console.html' %}
+
+{% block title %}Welcome Serea | BengalBound{% endblock %}
+{% block page_title %}Getting Started{% endblock %}
+{% block page_subtitle %}Let's get your AI employee set up — takes about 2 minutes.{% endblock %}
+
+{% block header_actions %}
+    {% if step > 1 %}
+        <a href="{% url 'console_admin:serea_onboarding' %}?step={{ step|add:'-1' }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8 col-xl-7">
+
+    <!-- Progress bar -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small text-white-50">Step {{ step }} of 3</span>
+            <span class="small text-white-50">
+                {% if step == 1 %}Welcome{% elif step == 2 %}Connect{% else %}Business Info{% endif %}
+            </span>
+        </div>
+        <div class="progress" style="height:4px; background:rgba(255,255,255,.1);">
+            <div class="progress-bar bg-primary" style="width:{% if step == 1 %}33{% elif step == 2 %}66{% else %}100{% endif %}%;"></div>
+        </div>
+    </div>
+
+    {# ─── STEP 1: Welcome ──────────────────────────────────────────────────────── #}
+    {% if step == 1 %}
+    <div class="glass-panel p-5 text-center position-relative overflow-hidden">
+        <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 opacity-10"
+             style="background: radial-gradient(circle, var(--bs-primary) 0%, transparent 70%); filter:blur(60px); z-index:0;"></div>
+
+        <div class="position-relative z-1">
+            <!-- Avatar -->
+            <div class="mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center bg-primary bg-opacity-15 border border-primary border-opacity-25"
+                 style="width:96px; height:96px;">
+                <i class="bi bi-robot text-primary" style="font-size:2.8rem;"></i>
+            </div>
+
+            <div class="d-inline-flex bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill small fw-bold mb-3 border border-primary border-opacity-25">
+                <i class="bi bi-stars me-2"></i> New Employee
+            </div>
+
+            <h2 class="display-6 fw-bold font-outfit text-white mb-3">
+                Meet {{ hired_ai.ai_name|default:"Serea" }}
+            </h2>
+
+            <p class="text-white-50 lead mb-4 mx-auto" style="max-width:520px;">
+                Serea is your Social Media AI Employee. She monitors your pages, moderates comments,
+                replies to DMs, writes and schedules posts, and sends you a daily briefing —
+                just like a real team member.
+            </p>
+
+            <div class="row g-3 text-start mb-5 mx-auto" style="max-width:480px;">
+                <div class="col-12">
+                    <div class="d-flex align-items-start gap-3 glass-panel p-3">
+                        <div class="rounded-circle bg-primary bg-opacity-15 p-2 flex-shrink-0">
+                            <i class="bi bi-shield-check text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="text-white fw-semibold small">24/7 Moderation</div>
+                            <div class="text-white-50 small">Monitors comments and DMs round the clock — flags anything that needs your review.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex align-items-start gap-3 glass-panel p-3">
+                        <div class="rounded-circle bg-success bg-opacity-15 p-2 flex-shrink-0">
+                            <i class="bi bi-pencil-square text-success"></i>
+                        </div>
+                        <div>
+                            <div class="text-white fw-semibold small">Content & Posting</div>
+                            <div class="text-white-50 small">Plans and schedules posts based on your brand voice and the content you provide.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex align-items-start gap-3 glass-panel p-3">
+                        <div class="rounded-circle bg-warning bg-opacity-15 p-2 flex-shrink-0">
+                            <i class="bi bi-chat-dots text-warning"></i>
+                        </div>
+                        <div>
+                            <div class="text-white fw-semibold small">Always Asks Before Acting</div>
+                            <div class="text-white-50 small">If she's unsure about something, she'll check with you before taking action — not after.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" action="{% url 'console_admin:serea_onboarding' %}">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="1">
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow-glow">
+                    Let's get started <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# ─── STEP 2: Connect Facebook ─────────────────────────────────────────────── #}
+    {% elif step == 2 %}
+    <div class="glass-panel p-5">
+        <div class="text-center mb-4">
+            <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:72px; height:72px; background: #1877F2; font-size:2rem;">
+                <i class="bi bi-facebook text-white"></i>
+            </div>
+            <h3 class="fw-bold font-outfit text-white mb-2">Connect Your Facebook Page</h3>
+            <p class="text-white-50 mb-0">
+                Serea needs access to your Facebook Page so she can read comments, reply to DMs,
+                and post content on your behalf. One click — no setup required on your end.
+            </p>
+        </div>
+
+        {% if has_fb %}
+        <!-- Already connected -->
+        <div class="alert d-flex align-items-center gap-3 mb-4"
+             style="background:rgba(25,135,84,.15); border:1px solid rgba(25,135,84,.3); border-radius:12px;">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <div>
+                <div class="text-white fw-semibold">Facebook connected</div>
+                <div class="text-white-50 small">Serea already has access to your page. You can skip this step.</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex flex-column gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3 text-white-50 small">
+                <i class="bi bi-lock-fill text-primary"></i>
+                Your login credentials are never stored. Serea only gets a page access token.
+            </div>
+            <div class="d-flex align-items-center gap-3 text-white-50 small">
+                <i class="bi bi-instagram text-primary"></i>
+                If your page has a linked Instagram Business account, it will be connected automatically too.
+            </div>
+            <div class="d-flex align-items-center gap-3 text-white-50 small">
+                <i class="bi bi-bell-fill text-primary"></i>
+                Real-time notifications are activated automatically — no Developer Console needed.
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+            <a href="{% url 'console_admin:serea_fb_connect' %}" class="btn btn-primary btn-lg px-4">
+                <i class="bi bi-facebook me-2"></i>
+                {% if has_fb %}Reconnect Facebook{% else %}Connect with Facebook{% endif %}
+            </a>
+
+            <!-- Skip (they can connect later from Platforms page) -->
+            <form method="post" action="{% url 'console_admin:serea_onboarding' %}">
+                {% csrf_token %}
+                <input type="hidden" name="step" value="2">
+                <button type="submit" class="btn btn-outline-secondary btn-lg px-4">
+                    {% if has_fb %}Next <i class="bi bi-arrow-right ms-1"></i>{% else %}Skip for now{% endif %}
+                </button>
+            </form>
+        </div>
+
+        {% if not has_fb %}
+        <p class="text-white-50 small mt-3 mb-0">
+            You can always connect platforms later from
+            <a href="{% url 'console_admin:serea_platforms' %}" class="text-primary-emphasis">Platform Connections</a>.
+        </p>
+        {% endif %}
+    </div>
+
+    {# ─── STEP 3: Business Info ────────────────────────────────────────────────── #}
+    {% elif step == 3 %}
+    <div class="glass-panel p-5">
+        <div class="text-center mb-4">
+            <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center bg-warning bg-opacity-10 border border-warning border-opacity-25"
+                 style="width:72px; height:72px;">
+                <i class="bi bi-briefcase text-warning" style="font-size:2rem;"></i>
+            </div>
+            <h3 class="fw-bold font-outfit text-white mb-2">Tell Serea About Your Business</h3>
+            <p class="text-white-50 mb-0">
+                The more context she has, the better she'll represent you.
+                Everything here is optional — you can fill it in or update it later.
+            </p>
+        </div>
+
+        <form method="post" action="{% url 'console_admin:serea_onboarding' %}">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="3">
+
+            <!-- Manager name -->
+            <div class="mb-4">
+                <label class="form-label text-white fw-semibold">
+                    <i class="bi bi-person-badge me-2 text-primary"></i>Your Name
+                </label>
+                <input type="text" name="manager_name" class="form-control glass-input"
+                       placeholder="e.g. Sarah" value="{{ serea_agent.manager_name }}">
+                <div class="form-text text-white-50">
+                    Serea will use this name when she talks to you or asks for your approval.
+                </div>
+            </div>
+
+            <!-- Business description -->
+            <div class="mb-4">
+                <label class="form-label text-white fw-semibold">
+                    <i class="bi bi-building me-2 text-primary"></i>About Your Business
+                    <span class="text-white-50 fw-normal small ms-1">(optional)</span>
+                </label>
+                <textarea name="description" class="form-control glass-input" rows="3"
+                    placeholder="e.g. We're a boutique clothing brand selling sustainable fashion in the UK. Our customers are women 25–45 who care about the environment."></textarea>
+                <div class="form-text text-white-50">
+                    Products, services, target audience — anything that helps Serea write better for you.
+                </div>
+            </div>
+
+            <!-- Brand tone -->
+            <div class="mb-4">
+                <label class="form-label text-white fw-semibold">
+                    <i class="bi bi-chat-quote me-2 text-primary"></i>Brand Voice & Tone
+                    <span class="text-white-50 fw-normal small ms-1">(optional)</span>
+                </label>
+                <textarea name="tone" class="form-control glass-input" rows="2"
+                    placeholder="e.g. Friendly and warm, never aggressive. We use 'you' and 'your' a lot. No formal language. Occasional emojis are fine."></textarea>
+                <div class="form-text text-white-50">
+                    How do you want Serea to sound when she replies to comments and DMs?
+                </div>
+            </div>
+
+            <!-- Working hours -->
+            <div class="mb-5">
+                <label class="form-label text-white fw-semibold">
+                    <i class="bi bi-clock me-2 text-primary"></i>Working Hours
+                    <span class="text-white-50 fw-normal small ms-1">(optional)</span>
+                </label>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label text-white-50 small">Start</label>
+                        <input type="time" name="working_hours_start" class="form-control glass-input"
+                               value="{% if serea_agent.working_hours_start %}{{ serea_agent.working_hours_start|time:'H:i' }}{% endif %}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-white-50 small">End</label>
+                        <input type="time" name="working_hours_end" class="form-control glass-input"
+                               value="{% if serea_agent.working_hours_end %}{{ serea_agent.working_hours_end|time:'H:i' }}{% endif %}">
+                    </div>
+                </div>
+                <div class="form-text text-white-50">
+                    Leave blank for 24/7 operation. This controls when Serea proactively reaches out to you.
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow-glow flex-grow-1">
+                    <i class="bi bi-check2 me-2"></i>Finish Setup
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Seasons — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'rate_manager:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Rate Manager</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-calendar2-range me-2 text-info"></i>Seasons</h4>
+  {% if access_level >= 3 %}<button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addSeasonModal"><i class="bi bi-plus-lg me-1"></i>Add Season</button>{% endif %}
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Name</th><th>Type</th><th>Start</th><th>End</th><th>Multiplier</th><th>Description</th></tr></thead>
+        <tbody>
+          {% for s in seasons %}
+          <tr>
+            <td class="fw-semibold">{{ s.name }}</td>
+            <td><span class="badge bg-dark border border-secondary">{{ s.get_season_type_display }}</span></td>
+            <td class="text-muted">{{ s.start_date|date:"d M Y" }}</td>
+            <td class="text-muted">{{ s.end_date|date:"d M Y" }}</td>
+            <td class="text-info fw-bold">×{{ s.rate_multiplier }}</td>
+            <td class="text-muted">{{ s.description|truncatechars:50|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No seasons configured</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addSeasonModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Season</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_season">
+        <div class="modal-body row g-2">
+          <div class="col-md-8"><label class="form-label small">Season Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. Peak Summer"></div>
+          <div class="col-md-4"><label class="form-label small">Type</label>
+            <select name="season_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in season_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Start Date <span class="text-danger">*</span></label><input type="date" name="start_date" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">End Date <span class="text-danger">*</span></label><input type="date" name="end_date" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Rate Multiplier</label><input type="number" name="rate_multiplier" value="1.00" step="0.01" min="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Season</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

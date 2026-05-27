@@ -1,0 +1,89 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Raw Materials — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-layers me-2" style="color:var(--hub-accent);"></i>Raw Materials{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ total_items }}</div><div class="text-white-50 small">Total Items</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ low_stock_count }}</div><div class="text-white-50 small">Low Stock</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ total_value|floatformat:0 }}</div><div class="text-white-50 small">Stock Value</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'factory_ops:raw_materials' slug=biz.slug %}" class="btn btn-sm {% if not cat_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+      {% for cat in categories %}<a href="?cat={{ cat }}" class="btn btn-sm {% if cat_filter == cat %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">{{ cat }}</a>{% endfor %}
+    </div>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Add Material</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>ID</th><th>Name</th><th>Category</th><th>On Hand</th><th>Reorder Level</th><th>UOM</th><th>Unit Cost</th><th>Stock Value</th><th>Supplier</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for item in items %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="color:var(--hub-accent);font-weight:600;">{{ item.item_id }}</td>
+          <td>{{ item.name }}</td>
+          <td><span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;font-size:.7rem;">{{ item.category }}</span></td>
+          <td style="{% if item.is_low_stock %}color:#f87171;font-weight:600;{% endif %}">{{ item.on_hand }}</td>
+          <td>{{ item.reorder_level }}</td>
+          <td>{{ item.uom }}</td>
+          <td>{{ item.unit_cost }}</td>
+          <td>{{ item.stock_value|floatformat:0 }}</td>
+          <td>{{ item.supplier|default:"—" }}</td>
+          <td>{% if item.is_low_stock %}<span class="badge" style="background:rgba(248,113,113,0.15);color:#f87171;">LOW</span>{% else %}<span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;">OK</span>{% endif %}</td>
+          <td class="d-flex gap-1">
+            <button class="btn btn-sm" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:none;padding:2px 8px;" data-bs-toggle="modal" data-bs-target="#adjustModal{{ item.pk }}"><i class="bi bi-arrow-up-down"></i></button>
+            <form method="post" style="display:inline;" onsubmit="return confirm('Delete?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ item.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form>
+          </td>
+        </tr>
+        <!-- Adjust Modal per item -->
+        <div class="modal fade" id="adjustModal{{ item.pk }}" tabindex="-1">
+          <div class="modal-dialog modal-sm"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+            <div class="modal-header" style="border-color:var(--border);"><h6 class="modal-title" style="color:var(--hub-text);">Adjust: {{ item.name }}</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="adjust"><input type="hidden" name="pk" value="{{ item.pk }}">
+              <label class="form-label text-white-50 small">New On-Hand Qty</label>
+              <input type="number" name="on_hand" value="{{ item.on_hand }}" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            </div>
+            <div class="modal-footer" style="border-color:var(--border);"><button type="submit" class="btn btn-hub-primary btn-sm">Update Stock</button></div>
+            </form>
+          </div></div>
+        </div>
+        {% empty %}
+        <tr><td colspan="11" class="text-center text-white-50 py-4">No materials added yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Raw Material</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label text-white-50 small">Name *</label><input type="text" name="name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Category</label>
+          <select name="category" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for cat in categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">On Hand</label><input type="number" name="on_hand" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Reorder Level</label><input type="number" name="reorder_level" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">UOM</label><input type="text" name="uom" value="pcs" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Unit Cost</label><input type="number" name="unit_cost" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Supplier</label><input type="text" name="supplier" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Location</label><input type="text" name="location" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Last Received</label><input type="date" name="last_received" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Material</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

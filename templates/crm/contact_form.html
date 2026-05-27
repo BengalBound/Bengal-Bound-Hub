@@ -1,0 +1,23 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if contact %}Edit Contact{% else %}New Contact{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-plus me-2" style="color:var(--hub-accent);"></i>{% if contact %}Edit Contact{% else %}New Contact{% endif %}{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:700px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">First Name</label><input name="first_name" value="{{ contact.first_name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Last Name</label><input name="last_name" value="{{ contact.last_name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Email</label><input type="email" name="email" value="{{ contact.email|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Phone</label><input name="phone" value="{{ contact.phone|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Company</label><input name="company" value="{{ contact.company|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Stage</label><select name="stage" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="prospect">Prospect</option><option value="lead">Lead</option><option value="qualified">Qualified</option><option value="customer">Customer</option></select></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Notes</label><textarea name="notes" rows="4" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ contact.notes|default:'' }}</textarea></div>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+      <button type="submit" class="btn btn-hub-primary btn-sm">{% if contact %}Update{% else %}Add{% endif %} Contact</button>
+      <a href="{% url 'crm:contacts' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

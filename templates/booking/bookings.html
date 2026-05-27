@@ -1,0 +1,38 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}All Bookings — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-calendar-event me-2" style="color:var(--hub-accent);"></i>All Bookings{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">All Bookings</h5>
+    <div class="d-flex gap-2">
+      <form method="get" class="d-flex gap-2">
+        <select name="status" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-hub-outline btn-sm">Filter</button>
+      </form>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Client</th><th>Service</th><th>Date & Time</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for booking in bookings %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ booking.client_name }}</td>
+          <td style="color:var(--hub-muted);">{{ booking.service.name }}</td>
+          <td style="color:var(--hub-muted);">{{ booking.datetime }}</td>
+          <td><span class="badge" style="background:{% if booking.status == 'confirmed' %}#22c55e20{% elif booking.status == 'cancelled' %}#f8717120{% elif booking.status == 'completed' %}#38bdf820{% else %}#fbbf2420{% endif %};color:{% if booking.status == 'confirmed' %}#22c55e{% elif booking.status == 'cancelled' %}#f87171{% elif booking.status == 'completed' %}#38bdf8{% else %}#fbbf24{% endif %};">{{ booking.status|title }}</span></td>
+          <td><a href="{% url 'booking:booking_detail' slug=biz.slug pk=booking.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center" style="color:var(--hub-muted);padding:2rem;">No bookings found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

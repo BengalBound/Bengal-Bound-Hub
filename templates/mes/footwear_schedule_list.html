@@ -1,0 +1,76 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Footwear Production Schedules — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'mes:dashboard' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>MES Dashboard</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-calendar-range me-2 text-info"></i>Footwear Production Schedules</h4>
+  {% if access_level >= 3 %}<button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#createScheduleModal"><i class="bi bi-plus-lg me-1"></i>New Schedule</button>{% endif %}
+</div>
+
+<div class="row g-3">
+  {% for s in schedules %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge bg-dark border border-secondary" style="font-size:0.65rem">{{ s.get_footwear_type_display }}</span>
+          <span class="text-muted small">{{ s.start_date|date:"d M Y" }}</span>
+        </div>
+        <h6 class="fw-semibold mb-1">{{ s.article_code|default:"Untitled Schedule" }}</h6>
+        {% if s.buyer %}<div class="text-muted small mb-2">{{ s.buyer }}</div>{% endif %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Progress</span>
+            <span>{{ s.overall_progress_pct }}%</span>
+          </div>
+          <div class="progress" style="height:6px;background:#333">
+            <div class="progress-bar bg-info" style="width:{{ s.overall_progress_pct }}%"></div>
+          </div>
+        </div>
+        <div class="text-muted small">{{ s.total_pairs_planned }} pairs planned &middot; {{ s.day_entries.count }} days</div>
+      </div>
+      <div class="card-footer border-secondary p-2">
+        <a href="{% url 'mes:footwear_schedule_detail' slug=biz.slug schedule_id=s.pk %}" class="btn btn-sm btn-outline-info w-100" style="font-size:0.75rem">Open Schedule</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-calendar-range display-4 d-block mb-3 opacity-25"></i>
+        No production schedules yet.
+        {% if access_level >= 3 %}<div class="mt-2 small">Create a schedule and the system will populate the standard 12-day footwear plan automatically.</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="createScheduleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">New Production Schedule</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Article Code</label><input type="text" name="article_code" class="form-control bg-dark text-white border-secondary" placeholder="e.g. OX-001"></div>
+          <div class="col-md-6"><label class="form-label small">Buyer</label><input type="text" name="buyer" class="form-control bg-dark text-white border-secondary" placeholder="e.g. The Shoe Supply"></div>
+          <div class="col-md-6"><label class="form-label small">Footwear Type</label>
+            <select name="footwear_type" class="form-select bg-dark text-white border-secondary">{% for code, label in footwear_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Total Pairs Planned <span class="text-danger">*</span></label><input type="number" name="total_pairs_planned" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Start Date (D-3 Pre-production) <span class="text-danger">*</span></label><input type="date" name="start_date" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><div class="alert alert-secondary small mb-0 py-2"><i class="bi bi-info-circle me-1"></i>The system will auto-generate the standard 15-step footwear plan (D-3 pre-production through Day 12 pack-out) based on your article and pair count.</div></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Create Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

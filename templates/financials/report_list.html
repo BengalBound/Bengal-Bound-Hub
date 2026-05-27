@@ -1,0 +1,94 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Reports — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-file-text me-2" style="color:var(--hub-accent);"></i>Operational Reports{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <a href="{% url 'financials:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+    <a href="{% url 'financials:report_submit' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus me-1"></i>New Report
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="glass-panel p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label text-white-50 small mb-1">Status</label>
+            <select name="status" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">All Statuses</option>
+                <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+                <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-white-50 small mb-1">Type</label>
+            <select name="type" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                <option value="">All Types</option>
+                {% for val, label in report_types %}
+                <option value="{{ val }}" {% if type_filter == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-hub-outline btn-sm w-100">
+                <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if reports %}
+<div class="glass-panel" style="overflow:hidden;">
+    <table class="table table-dark table-hover mb-0" style="font-size:0.875rem;">
+        <thead style="border-bottom:1px solid var(--hub-border);">
+            <tr>
+                <th class="py-3 ps-4">Report</th>
+                <th class="py-3">Type</th>
+                <th class="py-3">Period</th>
+                {% if access_level >= 6 %}<th class="py-3">Submitted By</th>{% endif %}
+                <th class="py-3">Status</th>
+                <th class="py-3 pe-4">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rep in reports %}
+            <tr onclick="window.location='{% url 'financials:report_detail' slug=biz.slug pk=rep.pk %}'" style="cursor:pointer;">
+                <td class="py-3 ps-4">
+                    <div class="fw-semibold" style="color:var(--hub-text);">{{ rep.title }}</div>
+                    {% if rep.summary %}<div class="text-white-50 small text-truncate" style="max-width:220px;">{{ rep.summary }}</div>{% endif %}
+                </td>
+                <td class="py-3 text-white-50">{{ rep.get_report_type_display }}</td>
+                <td class="py-3 text-white-50 small">{{ rep.period_start }} → {{ rep.period_end }}</td>
+                {% if access_level >= 6 %}
+                <td class="py-3 text-white-50">{{ rep.submitted_by.get_full_name|default:rep.submitted_by.email }}</td>
+                {% endif %}
+                <td class="py-3">
+                    <span class="badge" style="font-size:0.7rem;
+                        {% if rep.status == 'approved' %}background:rgba(34,197,94,0.15);color:#22c55e;
+                        {% elif rep.status == 'rejected' %}background:rgba(248,113,113,0.15);color:#f87171;
+                        {% elif rep.status == 'submitted' %}background:rgba(251,191,36,0.15);color:#fbbf24;
+                        {% else %}background:rgba(255,255,255,0.08);color:var(--hub-muted);{% endif %}">
+                        {{ rep.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-3 pe-4 text-white-50 small">{{ rep.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-file-earmark-x" style="font-size:2.5rem;color:var(--hub-muted);"></i>
+    <p class="text-white-50 mt-3 mb-3">No reports found{% if status_filter or type_filter %} for the selected filters{% endif %}.</p>
+    <a href="{% url 'financials:report_submit' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus me-1"></i>Submit First Report
+    </a>
+</div>
+{% endif %}
+{% endblock %}

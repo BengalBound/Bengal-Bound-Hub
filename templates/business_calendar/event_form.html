@@ -1,0 +1,85 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}New Event | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'business_calendar:calendar_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>New Event</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="glass-panel p-4" style="max-width:680px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Calendar</label>
+            <select name="calendar_id" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                {% for cal in calendars %}
+                <option value="{{ cal.pk }}">{{ cal.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Event Title</label>
+            <input type="text" name="title" required class="form-control" placeholder="e.g. Team Standup"
+                   style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Description</label>
+            <textarea name="description" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Location</label>
+            <input type="text" name="location" class="form-control" placeholder="Room / URL / Address"
+                   style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-5">
+                <label class="form-label text-white-50 small">Start</label>
+                <input type="datetime-local" name="start_datetime" required class="form-control"
+                       style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-white-50 small">End</label>
+                <input type="datetime-local" name="end_datetime" required class="form-control"
+                       style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <label class="d-flex align-items-center gap-2 small mb-2">
+                    <input type="checkbox" name="all_day" value="1"> All day
+                </label>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label text-white-50 small">Recurrence</label>
+                <select name="recurrence" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    {% for val, label in recurrences %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-white-50 small">Color</label>
+                <input type="color" name="color" value="#c084fc" class="form-control" style="background:#1e293b;border-color:var(--hub-border);height:42px;">
+            </div>
+        </div>
+        {% if employees %}
+        <div class="mb-4">
+            <label class="form-label text-white-50 small">Invite Employees</label>
+            <div class="d-flex flex-wrap gap-2">
+            {% for emp in employees %}
+            <label class="d-flex align-items-center gap-2 p-2" style="border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);cursor:pointer;font-size:0.83rem;">
+                <input type="checkbox" name="attendee_ids" value="{{ emp.pk }}">
+                {{ emp.user.get_full_name|default:emp.user.email }}
+            </label>
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-hub-primary">
+            <i class="bi bi-calendar-plus me-1"></i>Create Event
+        </button>
+    </form>
+</div>
+{% endblock %}

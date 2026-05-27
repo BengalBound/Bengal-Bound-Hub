@@ -1,0 +1,168 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ catalog.title }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'product_catalog:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Catalogs</a></div>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-journal-richtext me-2 text-info"></i>{{ catalog.title }}</h4>
+    <div class="small text-muted mt-1">{{ catalog.item_count }} items · {% if catalog.is_public %}<span class="text-success fw-semibold">Public</span>{% else %}Private{% endif %}</div>
+  </div>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2 flex-wrap">
+    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Category</button>
+    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addItemModal">+ Item</button>
+    <form method="post" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="{% if catalog.is_public %}unshare{% else %}share{% endif %}">
+      <button type="submit" class="btn btn-sm {% if catalog.is_public %}btn-outline-secondary{% else %}btn-outline-success{% endif %}">
+        {% if catalog.is_public %}Remove Share{% else %}<i class="bi bi-share me-1"></i>Share{% endif %}
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+{% if share_url %}
+<div class="alert py-2 px-3 mb-4" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3)">
+  <div class="small text-success fw-semibold mb-1"><i class="bi bi-link-45deg me-1"></i>Public Catalog Link</div>
+  <div class="d-flex gap-2 align-items-center">
+    <code class="text-white small flex-grow-1">{{ share_url }}</code>
+    <button class="btn btn-sm btn-outline-success" onclick="navigator.clipboard.writeText('{{ share_url }}')">Copy</button>
+  </div>
+</div>
+{% endif %}
+
+{% if not items %}
+<div class="card bg-dark border-secondary">
+  <div class="card-body text-center py-4 text-muted">No items in this catalog yet. Add categories and items above.</div>
+</div>
+{% else %}
+
+{% for cat in categories %}
+<div class="card bg-dark border-secondary mb-3">
+  <div class="card-header small fw-semibold"><i class="bi bi-tag me-1"></i>{{ cat.name }}</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Product</th><th>SKU</th><th>Price</th><th>Unit</th><th>Stock</th><th>Featured</th>{% if access_level >= 3 %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for item in cat.items.all %}
+          <tr>
+            <td class="fw-semibold">{{ item.name }}{% if item.description %}<div class="text-muted" style="font-size:0.75rem">{{ item.description|truncatechars:60 }}</div>{% endif %}</td>
+            <td class="font-monospace text-muted">{{ item.sku|default:"—" }}</td>
+            <td>{% if item.price %}{{ item.currency }} {{ item.price }}{% else %}—{% endif %}</td>
+            <td class="text-muted">{{ item.unit|default:"—" }}</td>
+            <td>{% if item.in_stock %}<span class="badge bg-success" style="font-size:0.65rem">In Stock</span>{% else %}<span class="badge bg-danger" style="font-size:0.65rem">Out</span>{% endif %}</td>
+            <td>{% if item.is_featured %}<i class="bi bi-star-fill text-warning"></i>{% else %}—{% endif %}</td>
+            {% if access_level >= 3 %}
+            <td>
+              <form method="post" style="display:inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_item">
+                <input type="hidden" name="item_id" value="{{ item.pk }}">
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Delete item?')"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% if uncategorized %}
+<div class="card bg-dark border-secondary mb-3">
+  <div class="card-header small fw-semibold text-muted">Uncategorised</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Product</th><th>SKU</th><th>Price</th><th>Unit</th><th>Stock</th>{% if access_level >= 3 %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for item in uncategorized %}
+          <tr>
+            <td class="fw-semibold">{{ item.name }}</td>
+            <td class="font-monospace text-muted">{{ item.sku|default:"—" }}</td>
+            <td>{% if item.price %}{{ item.currency }} {{ item.price }}{% else %}—{% endif %}</td>
+            <td class="text-muted">{{ item.unit|default:"—" }}</td>
+            <td>{% if item.in_stock %}<span class="badge bg-success" style="font-size:0.65rem">In Stock</span>{% else %}<span class="badge bg-danger" style="font-size:0.65rem">Out</span>{% endif %}</td>
+            {% if access_level >= 3 %}
+            <td>
+              <form method="post" style="display:inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_item">
+                <input type="hidden" name="item_id" value="{{ item.pk }}">
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Delete item?')"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Category</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_category">
+        <div class="modal-body row g-2">
+          <div class="col-8"><label class="form-label small">Category Name <span class="text-danger">*</span></label><input type="text" name="category_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-4"><label class="form-label small">Order</label><input type="number" name="display_order" value="0" class="form-control bg-dark text-white border-secondary"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addItemModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Item</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_item">
+        <div class="modal-body row g-2">
+          <div class="col-8"><label class="form-label small">Product Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-4"><label class="form-label small">SKU</label><input type="text" name="sku" class="form-control bg-dark text-white border-secondary font-monospace"></div>
+          <div class="col-6"><label class="form-label small">Category</label>
+            <select name="category_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— None —</option>
+              {% for c in categories %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-3"><label class="form-label small">Price</label><input type="number" name="price" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-1"><label class="form-label small">CCY</label><input type="text" name="currency" value="USD" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-2"><label class="form-label small">Unit</label><input type="text" name="unit" class="form-control bg-dark text-white border-secondary" placeholder="kg, box…"></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-6">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="is_featured" id="featuredCheck"><label class="form-check-label small" for="featuredCheck">Mark as Featured</label></div>
+          </div>
+          <div class="col-6">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="in_stock" id="inStockCheck" checked><label class="form-check-label small" for="inStockCheck">In Stock</label></div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Add Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

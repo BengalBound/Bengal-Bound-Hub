@@ -1,0 +1,109 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ channel.name }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'omnichannel:channel_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Channels</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-plugin me-2 text-info"></i>{{ channel.name }}</h4>
+    <div class="small text-muted mt-1">{{ channel.get_channel_type_display }} · {% if channel.is_active %}<span class="text-success">Active</span>{% else %}<span class="text-muted">Paused</span>{% endif %}</div>
+  </div>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <form method="post" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="sync">
+      <button type="submit" class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-repeat me-1"></i>Sync All</button>
+    </form>
+    <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addListingModal"><i class="bi bi-plus-lg me-1"></i>Add Listing</button>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list me-1"></i>Listings ({{ listings.count }})</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Product</th><th>SKU</th><th>Channel SKU</th><th>Price</th><th>Stock</th><th>Synced</th>{% if access_level >= 3 %}<th></th>{% endif %}</tr></thead>
+            <tbody>
+              {% for listing in listings %}
+              <tr>
+                <td class="fw-semibold">{{ listing.product_name }}</td>
+                <td class="font-monospace text-muted small">{{ listing.sku|default:"—" }}</td>
+                <td class="font-monospace text-muted small">{{ listing.channel_sku|default:"—" }}</td>
+                <td>{% if listing.listed_price %}{{ listing.listed_price }}{% else %}—{% endif %}</td>
+                <td>{{ listing.stock_qty }}</td>
+                <td>{% if listing.is_synced %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-clock text-muted"></i>{% endif %}</td>
+                {% if access_level >= 3 %}
+                <td>
+                  <form method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_listing">
+                    <input type="hidden" name="listing_id" value="{{ listing.pk }}">
+                    <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Remove listing?')"><i class="bi bi-trash"></i></button>
+                  </form>
+                </td>
+                {% endif %}
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-3">No listings yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-arrow-repeat me-1"></i>Sync History</div>
+      <div class="list-group list-group-flush" style="max-height:400px;overflow-y:auto">
+        {% for log in sync_logs %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="badge {% if log.status == 'success' %}bg-success{% elif log.status == 'partial' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ log.get_status_display }}</span>
+              <span class="text-muted ms-1">{{ log.items_synced }} items</span>
+            </div>
+            <span class="text-muted" style="font-size:0.7rem">{{ log.synced_at|date:"d M, H:i" }}</span>
+          </div>
+          {% if log.notes %}<div class="text-muted mt-1" style="font-size:0.7rem">{{ log.notes }}</div>{% endif %}
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No syncs yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addListingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Listing</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_listing">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Product Name <span class="text-danger">*</span></label><input type="text" name="product_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-6"><label class="form-label small">Internal SKU</label><input type="text" name="sku" class="form-control bg-dark text-white border-secondary font-monospace"></div>
+          <div class="col-6"><label class="form-label small">Channel SKU</label><input type="text" name="channel_sku" class="form-control bg-dark text-white border-secondary font-monospace"></div>
+          <div class="col-6"><label class="form-label small">Listed Price</label><input type="number" name="listed_price" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Stock Qty</label><input type="number" name="stock_qty" value="0" class="form-control bg-dark text-white border-secondary"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

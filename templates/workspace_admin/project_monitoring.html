@@ -1,0 +1,90 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% block page_title %}Project Live Monitoring{% endblock %}
+
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-info border-0 small bg-info bg-opacity-25 text-info mb-4">{{ msg }}</div>{% endfor %}{% endif %}
+
+<div class="row g-4">
+    <!-- Site Picker -->
+    <div class="col-md-4">
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold font-outfit mb-3"><i class="bi bi-Globe me-2 text-primary"></i>Select Client Site</h6>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">WaaS Site</label>
+                    <select name="site_id" class="form-select bg-dark text-white border-secondary" required>
+                        <option value="">Choose a client site...</option>
+                        {% for site in waas_sites %}
+                        <option value="{{ site.id }}" {% if selected_site.id == site.id %}selected{% endif %}>{{ site.domain }} — {{ site.client.email }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill fw-semibold shadow-glow">
+                    <i class="bi bi-cloud-download me-2"></i>Fetch Live Data
+                </button>
+            </form>
+
+            {% if selected_site %}
+            <hr class="border-secondary mt-4">
+            <div class="small text-white-50">
+                <div class="mb-1"><span class="text-white fw-medium">Domain:</span> {{ selected_site.domain }}</div>
+                <div class="mb-1"><span class="text-white fw-medium">Client:</span> {{ selected_site.client.email }}</div>
+                <div><span class="text-white fw-medium">API Key:</span> <code class="text-muted">{{ selected_site.api_key|truncatechars:20 }}…</code></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Live Data Panel -->
+    <div class="col-md-8">
+        {% if fetch_error %}
+        <div class="glass-panel p-4 border border-danger border-opacity-25">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="bi bi-exclamation-circle text-danger fs-4"></i>
+                <h6 class="fw-bold text-danger mb-0">Connection Failed</h6>
+            </div>
+            <p class="text-white-50 small mb-0">{{ fetch_error }}</p>
+            <hr class="border-secondary">
+            <p class="text-muted small mb-0">Make sure the client's application has the BengalBound analytics endpoint available at:<br>
+            <code>GET https://[domain]/api/bengalbound/analytics/</code><br>
+            with header <code>X-BengalBound-Key: [api_key]</code></p>
+        </div>
+
+        {% elif live_data %}
+        <div class="glass-panel p-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-activity text-success fs-4"></i>
+                <h6 class="fw-bold mb-0">Live Analytics — {{ selected_site.domain }}</h6>
+                <span class="ms-auto badge bg-success bg-opacity-25 text-success">● Connected</span>
+            </div>
+            <!-- Render any metrics returned from the client's API as key-value cards -->
+            <div class="row g-3">
+                {% for key, value in live_data.items %}
+                <div class="col-md-4">
+                    <div class="glass-panel p-3 text-center">
+                        <div class="h4 fw-bold text-primary">{{ value }}</div>
+                        <div class="text-white-50 small text-capitalize">{{ key|cut:"_" }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- Raw JSON fallback -->
+            <details class="mt-4">
+                <summary class="text-white-50 small" style="cursor:pointer;">View Raw JSON Response</summary>
+                <pre class="mt-2 text-white-50 small bg-dark p-3 rounded" style="max-height:300px;overflow:auto;">{{ live_data|pprint }}</pre>
+            </details>
+        </div>
+
+        {% else %}
+        <div class="glass-panel p-5 h-100 d-flex align-items-center justify-content-center text-center">
+            <div>
+                <i class="bi bi-display fs-1 d-block mb-3 text-muted"></i>
+                <h6 class="text-white-50">Select a client site and click "Fetch Live Data"</h6>
+                <p class="text-muted small">The dashboard will pull real-time analytics directly from your client's application via their API key.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

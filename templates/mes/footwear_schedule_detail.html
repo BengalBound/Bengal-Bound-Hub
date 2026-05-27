@@ -1,0 +1,102 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ schedule.article_code|default:"Schedule" }} — Production Plan{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'mes:footwear_schedule_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Schedules</a></div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-calendar-range me-2 text-info"></i>{{ schedule.article_code|default:"Production Schedule" }}</h4>
+    <div class="text-muted small mt-1">{{ schedule.get_footwear_type_display }} &middot; {{ schedule.buyer|default:"No buyer" }} &middot; Start: {{ schedule.start_date|date:"d M Y" }}</div>
+  </div>
+  <div class="text-end">
+    <div class="fw-bold text-info display-6" style="line-height:1">{{ schedule.overall_progress_pct }}%</div>
+    <div class="text-muted small">overall</div>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div class="mb-4">
+  <div class="progress" style="height:10px;background:#222">
+    <div class="progress-bar bg-info" style="width:{{ schedule.overall_progress_pct }}%"></div>
+  </div>
+  <div class="d-flex justify-content-between small text-muted mt-1">
+    <span>0 pairs</span>
+    <span>{{ schedule.total_pairs_planned }} pairs planned</span>
+  </div>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary">
+          <tr><th style="width:60px">Day</th><th>Stage</th><th>Key Activities</th><th>Owner</th><th style="width:100px">Daily Target</th><th style="width:100px">Actual</th><th style="width:100px">Cumul. Target</th><th style="width:100px">Cumul. Actual</th><th style="width:80px">Variance</th>{% if access_level >= 2 %}<th style="width:80px"></th>{% endif %}</tr>
+        </thead>
+        <tbody>
+          {% for entry in day_entries %}
+          <tr class="{% if entry.daily_target > 0 and entry.actual_output > 0 %}{% if entry.on_target %}table-success bg-opacity-10{% else %}table-warning bg-opacity-10{% endif %}{% endif %}">
+            <td class="fw-bold text-center">
+              <span class="badge {% if 'pre' in entry.stage %}bg-secondary{% elif entry.stage == 'cutting' %}bg-warning text-dark{% elif 'closing' in entry.stage %}bg-info text-dark{% elif 'lasting' in entry.stage %}bg-primary{% elif 'bottoming' in entry.stage %}bg-indigo{% elif 'finishing' in entry.stage %}bg-success{% elif entry.stage == 'qc' %}bg-danger{% else %}bg-dark border border-secondary{% endif %}">{{ entry.day_label }}</span>
+            </td>
+            <td><span class="text-muted">{{ entry.get_stage_display }}</span></td>
+            <td class="text-muted" style="max-width:220px">{{ entry.key_activities|truncatechars:80 }}</td>
+            <td class="text-muted small">{{ entry.owner|default:"—" }}</td>
+            <td class="text-center {% if entry.daily_target > 0 %}text-white{% else %}text-muted{% endif %}">{% if entry.daily_target > 0 %}{{ entry.daily_target }}{% else %}—{% endif %}</td>
+            <td class="text-center fw-bold {% if entry.actual_output > 0 %}{% if entry.on_target %}text-success{% else %}text-warning{% endif %}{% else %}text-muted{% endif %}">
+              {% if entry.actual_output > 0 %}{{ entry.actual_output }}{% else %}—{% endif %}
+            </td>
+            <td class="text-center text-muted">{% if entry.cumulative_target > 0 %}{{ entry.cumulative_target }}{% else %}—{% endif %}</td>
+            <td class="text-center text-muted">{% if entry.cumulative_actual > 0 %}{{ entry.cumulative_actual }}{% else %}—{% endif %}</td>
+            <td class="text-center {% if entry.daily_target > 0 and entry.actual_output > 0 %}{% if entry.variance >= 0 %}text-success{% else %}text-danger{% endif %}{% else %}text-muted{% endif %}">
+              {% if entry.daily_target > 0 and entry.actual_output > 0 %}
+                {% if entry.variance >= 0 %}+{% endif %}{{ entry.variance }}
+              {% else %}—{% endif %}
+            </td>
+            {% if access_level >= 2 %}
+            <td>
+              <button class="btn btn-sm btn-link text-info p-0" data-bs-toggle="modal" data-bs-target="#updateDay{{ entry.pk }}">
+                <i class="bi bi-pencil" style="font-size:0.8rem"></i>
+              </button>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="10" class="text-center text-muted py-4">No day entries found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Update Day Modals -->
+{% if access_level >= 2 %}
+{% for entry in day_entries %}
+<div class="modal fade" id="updateDay{{ entry.pk }}" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h6 class="modal-title small">Day {{ entry.day_label }} — {{ entry.get_stage_display }}</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_day">
+        <input type="hidden" name="entry_id" value="{{ entry.pk }}">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Date</label><input type="date" name="production_date" value="{{ entry.production_date|date:'Y-m-d' }}" class="form-control form-control-sm bg-dark text-white border-secondary"></div>
+          <div class="col-12">
+            <label class="form-label small">Actual Output <span class="text-muted">(pairs)</span></label>
+            <input type="number" name="actual_output" value="{{ entry.actual_output }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+            <div class="form-text text-muted" style="font-size:0.7rem">Target: {{ entry.daily_target }} pairs</div>
+          </div>
+          <div class="col-12"><label class="form-label small">Bottleneck / Note</label><textarea name="bottleneck" rows="2" class="form-control form-control-sm bg-dark text-white border-secondary">{{ entry.bottleneck }}</textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-info text-dark">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

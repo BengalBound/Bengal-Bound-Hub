@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BengalBound | {{ post.title }}{% endblock %}
+
+{% block content %}
+<section class="py-5 position-relative z-1" style="padding-top: 10rem !important; padding-bottom: 5rem;">
+    <!-- Background Accents -->
+    <div class="position-absolute w-100 h-100 top-0 start-0 z-n1 overflow-hidden" style="pointer-events: none;">
+        <div class="position-absolute" style="top: -10%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(157, 78, 221, 0.15) 0%, transparent 70%); filter: blur(60px);"></div>
+        <div class="position-absolute" style="top: 40%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0, 245, 212, 0.1) 0%, transparent 70%); filter: blur(60px);"></div>
+    </div>
+
+    <div class="container position-relative z-2">
+        <!-- Back button -->
+        <div class="mb-4 fade-up">
+            <a href="{% url 'public_site:blog_list' %}" class="text-white-50 text-decoration-none hover-text-cyan transition-all d-inline-flex align-items-center">
+                <i class="bi bi-arrow-left me-2"></i> Back to Blog
+            </a>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <!-- Blog Header Card -->
+                <div class="bento-card mb-5 p-0 overflow-hidden fade-up delay-100" style="background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(20px);">
+                    
+                    <!-- Header Banner -->
+                    <div class="position-relative w-100 d-flex align-items-center justify-content-center" style="height: 300px; background: linear-gradient(135deg, rgba(157,78,221,0.2) 0%, rgba(0,245,212,0.1) 100%);">
+                        {% if post.category %}
+                        <div class="position-absolute top-0 start-0 m-4">
+                            <span class="badge rounded-pill px-3 py-2" style="background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); color: var(--bb-accent-cyan); font-size: 0.9rem;">
+                                {{ post.category.name }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        <i class="bi bi-journal-text opacity-25" style="font-size: 5rem; color: #fff;"></i>
+                    </div>
+
+                    <!-- Title & Meta -->
+                    <div class="p-4 p-md-5">
+                        <h1 class="display-5 fw-bold text-white mb-4 lh-sm">{{ post.title }}</h1>
+                        
+                        <div class="d-flex flex-wrap align-items-center gap-4 text-white-50 font-inter">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="small fw-semibold text-white">Author</div>
+                                    <div class="small">{{ post.author.get_full_name|default:post.author.username|default:"BengalBound Team" }}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
+                            
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    <i class="bi bi-calendar-event text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="small fw-semibold text-white">Published</div>
+                                    <div class="small">{{ post.created_at|date:"F d, Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blog Content -->
+                <div class="blog-content text-white-50 font-inter lh-lg fs-5 fade-up delay-200">
+                    {{ post.content|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Styling for the rich text content of the blog */
+    .blog-content h1, .blog-content h2, .blog-content h3, .blog-content h4, .blog-content h5, .blog-content h6 {
+        color: #fff;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .blog-content p {
+        margin-bottom: 1.5rem;
+    }
+    
+    .blog-content a {
+        color: var(--bb-accent-cyan);
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(0, 245, 212, 0.4);
+        transition: all 0.2s ease;
+    }
+    
+    .blog-content a:hover {
+        border-bottom-style: solid;
+        color: #fff;
+    }
+
+    .blog-content ul, .blog-content ol {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .blog-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .blog-content blockquote {
+        border-left: 4px solid var(--bb-accent-purple);
+        padding-left: 1.5rem;
+        font-style: italic;
+        color: rgba(255,255,255,0.8);
+        background: rgba(157, 78, 221, 0.05);
+        padding: 1rem 1.5rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .blog-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 1rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+</style>
+{% endblock %}

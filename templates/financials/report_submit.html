@@ -1,0 +1,70 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Submit Report — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-file-earmark-plus me-2" style="color:var(--hub-accent);"></i>Submit Operational Report{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'financials:report_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Reports
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="glass-panel p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label text-white-50 small">Report Title *</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Daily Operations — April 28, 2026" required
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small">Report Type *</label>
+                        <select name="report_type" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                            {% for val, label in report_types %}
+                            <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label text-white-50 small">Period Start *</label>
+                        <input type="date" name="period_start" value="{{ today }}" class="form-control" required
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label text-white-50 small">Period End *</label>
+                        <input type="date" name="period_end" value="{{ today }}" class="form-control" required
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-white-50 small">Executive Summary <span class="text-white-50">(optional)</span></label>
+                        <textarea name="summary" rows="2" class="form-control" placeholder="Short summary for the reviewer..."
+                                  style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label text-white-50 small">Report Content *</label>
+                        <textarea name="content" rows="10" class="form-control" placeholder="Full report details, observations, metrics, issues, etc." required
+                                  style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);font-size:0.9rem;"></textarea>
+                    </div>
+
+                    <div class="col-12 d-flex gap-2 justify-content-end">
+                        <button type="submit" name="action" value="draft" class="btn btn-hub-outline">
+                            <i class="bi bi-floppy me-1"></i>Save Draft
+                        </button>
+                        <button type="submit" name="action" value="submit" class="btn btn-hub-primary">
+                            <i class="bi bi-send me-1"></i>Submit for Review
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

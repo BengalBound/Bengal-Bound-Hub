@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inspection Report — {{ inspection.vehicle_reg }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    body { background: #0d0d0d; color: #e0e0e0; }
+    .brand-bar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-bottom: 1px solid #333; }
+  </style>
+</head>
+<body>
+
+<div class="brand-bar py-3 mb-4">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h5 class="fw-bold mb-0 text-white"><i class="bi bi-clipboard2-check-fill me-2 text-info"></i>Digital Vehicle Inspection</h5>
+      <div class="small text-muted">Official inspection report</div>
+    </div>
+    <div class="text-end small text-muted">
+      Report #DVI-{{ inspection.inspection_number }}<br>
+      {{ inspection.inspected_at|date:"d F Y" }}
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  <!-- Result badge -->
+  <div class="text-center mb-4">
+    {% if inspection.overall_result == 'pass' %}
+    <div class="display-4 text-success fw-bold"><i class="bi bi-check-circle-fill me-2"></i>PASS</div>
+    <p class="text-muted">Vehicle passed all inspection points</p>
+    {% elif inspection.overall_result == 'advisory' %}
+    <div class="display-4 text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>PASS WITH ADVISORIES</div>
+    <p class="text-muted">Vehicle passed with items requiring attention</p>
+    {% elif inspection.overall_result == 'fail' %}
+    <div class="display-4 text-danger fw-bold"><i class="bi bi-x-circle-fill me-2"></i>FAIL</div>
+    <p class="text-muted">Vehicle has critical issues requiring immediate attention</p>
+    {% else %}
+    <div class="display-4 text-secondary fw-bold">INCOMPLETE</div>
+    {% endif %}
+  </div>
+
+  <!-- Score -->
+  <div class="row g-3 mb-4">
+    <div class="col-4">
+      <div class="card bg-dark border-success text-center py-3">
+        <div class="fs-2 fw-bold text-success">{{ inspection.pass_count }}</div>
+        <div class="small text-muted">OK / Pass</div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card bg-dark border-warning text-center py-3">
+        <div class="fs-2 fw-bold text-warning">{{ inspection.advisory_count }}</div>
+        <div class="small text-muted">Advisory</div>
+      </div>
+    </div>
+    <div class="col-4">
+      <div class="card bg-dark border-danger text-center py-3">
+        <div class="fs-2 fw-bold text-danger">{{ inspection.fail_count }}</div>
+        <div class="small text-muted">Critical</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle Info -->
+  <div class="card bg-dark border-secondary mb-4">
+    <div class="card-header"><i class="bi bi-car-front me-1"></i>Vehicle</div>
+    <div class="card-body">
+      <div class="row g-2 small">
+        <div class="col-6 col-md-3"><span class="text-muted">Registration:</span> <span class="font-monospace fw-bold">{{ inspection.vehicle_reg }}</span></div>
+        <div class="col-6 col-md-3"><span class="text-muted">Make:</span> {{ inspection.vehicle_make }}</div>
+        <div class="col-6 col-md-3"><span class="text-muted">Model:</span> {{ inspection.vehicle_model }}</div>
+        <div class="col-6 col-md-3"><span class="text-muted">Year:</span> {{ inspection.vehicle_year|default:"—" }}</div>
+        {% if inspection.mileage %}<div class="col-6 col-md-3"><span class="text-muted">Mileage:</span> {{ inspection.mileage|floatformat:0 }} km</div>{% endif %}
+        {% if inspection.vin %}<div class="col-12"><span class="text-muted">VIN:</span> <span class="font-monospace">{{ inspection.vin }}</span></div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="card bg-dark border-secondary mb-4">
+    <div class="card-header"><i class="bi bi-list-check me-1"></i>Inspection Results</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-dark table-sm mb-0">
+          <thead class="table-secondary">
+            <tr><th>#</th><th>Checkpoint</th><th>Result</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td class="text-muted">{{ forloop.counter }}</td>
+              <td class="small fw-semibold">{{ item.checkpoint }}</td>
+              <td>
+                {% if item.status == 'ok' %}<span class="badge bg-success"><i class="bi bi-check"></i> OK</span>
+                {% elif item.status == 'attention' %}<span class="badge bg-warning text-dark"><i class="bi bi-exclamation"></i> Advisory</span>
+                {% elif item.status == 'critical' %}<span class="badge bg-danger"><i class="bi bi-x"></i> Critical</span>
+                {% else %}<span class="badge bg-secondary">N/A</span>{% endif %}
+              </td>
+              <td class="small text-muted">{{ item.notes|default:"" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if inspection.notes %}
+  <div class="card bg-dark border-secondary mb-4">
+    <div class="card-header small"><i class="bi bi-chat-left-text me-1"></i>Technician Notes</div>
+    <div class="card-body">{{ inspection.notes }}</div>
+  </div>
+  {% endif %}
+
+  <div class="text-center text-muted small pt-3 border-top border-secondary">
+    Inspection performed by {{ inspection.performed_by.user.get_full_name|default:"Workshop Technician" }}
+    on {{ inspection.inspected_at|date:"d F Y \a\t H:i" }}<br>
+    This report is auto-generated and provided for informational purposes.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

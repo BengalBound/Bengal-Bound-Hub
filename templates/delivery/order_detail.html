@@ -1,0 +1,73 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}DEL-{{ order.order_number }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-truck me-2" style="color:var(--hub-accent);"></i>DEL-{{ order.order_number }}{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'delivery:delivery_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-muted);margin-bottom:1rem;">Status</h6>
+      <span class="badge mb-3" style="font-size:.9rem;background:{% if order.status == 'delivered' %}#22c55e20{% elif order.status == 'in_transit' %}#38bdf820{% elif order.status == 'failed' %}#f8717120{% elif order.status == 'pending' %}#fbbf2420{% else %}#64748b20{% endif %};color:{% if order.status == 'delivered' %}#22c55e{% elif order.status == 'in_transit' %}#38bdf8{% elif order.status == 'failed' %}#f87171{% elif order.status == 'pending' %}#fbbf24{% else %}#64748b{% endif %};">{{ order.get_status_display }}</span>
+      {% if order.status != 'delivered' and order.status != 'cancelled' and order.status != 'failed' %}
+      <form method="post" class="mt-2">{% csrf_token %}
+        <input type="hidden" name="action" value="update_status">
+        <div class="mb-2">
+          <select name="status" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="assigned" {% if order.status == 'assigned' %}selected{% endif %}>Assigned</option>
+            <option value="picked_up" {% if order.status == 'picked_up' %}selected{% endif %}>Picked Up</option>
+            <option value="in_transit" {% if order.status == 'in_transit' %}selected{% endif %}>In Transit</option>
+            <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+            <option value="failed" {% if order.status == 'failed' %}selected{% endif %}>Failed</option>
+          </select>
+        </div>
+        <div class="mb-2"><label class="form-label" style="color:var(--hub-muted);font-size:.8rem;">Driver</label><select name="driver" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="">— Unassigned —</option>{% for d in drivers %}<option value="{{ d.pk }}" {% if order.driver_id == d.pk %}selected{% endif %}>{{ d.name }}</option>{% endfor %}</select></div>
+        <button type="submit" class="btn btn-hub-primary btn-sm w-100">Update</button>
+      </form>
+      {% endif %}
+      {% if order.status not in 'pending,assigned' %}
+      <form method="post" class="mt-2">{% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" class="btn btn-sm w-100" style="color:#f87171;border:1px solid #f87171;border-radius:8px;background:transparent;" onclick="return confirm('Delete this order?')">Delete Order</button>
+      </form>
+      {% endif %}
+    </div>
+    <div class="glass-panel p-4 mt-3">
+      <h6 style="color:var(--hub-muted);margin-bottom:1rem;">Details</h6>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Priority</div><div style="color:var(--hub-text);">{{ order.get_priority_display }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Driver</div><div style="color:var(--hub-text);">{{ order.driver.name|default:"Unassigned" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Zone</div><div style="color:var(--hub-text);">{{ order.zone.name|default:"—" }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Scheduled</div><div style="color:var(--hub-text);">{{ order.scheduled_date }}</div></div>
+      {% if order.delivered_at %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Delivered At</div><div style="color:#22c55e;">{{ order.delivered_at }}</div></div>{% endif %}
+      {% if order.delivery_fee %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.75rem;">Delivery Fee</div><div style="color:#38bdf8;">{{ order.delivery_fee }}</div></div>{% endif %}
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;"><i class="bi bi-geo-alt me-1" style="color:#fbbf24;"></i>Pickup</h6>
+      <div class="mb-1" style="color:var(--hub-text);">{{ order.pickup_address }}</div>
+      {% if order.pickup_contact %}<div style="color:var(--hub-muted);font-size:.85rem;">{{ order.pickup_contact }} {% if order.pickup_phone %}· {{ order.pickup_phone }}{% endif %}</div>{% endif %}
+    </div>
+    <div class="glass-panel p-4 mt-3">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;"><i class="bi bi-geo-alt-fill me-1" style="color:#22c55e;"></i>Delivery</h6>
+      <div class="mb-1" style="color:var(--hub-text);">{{ order.delivery_address }}</div>
+      {% if order.delivery_contact %}<div style="color:var(--hub-muted);font-size:.85rem;">{{ order.delivery_contact }} {% if order.delivery_phone %}· {{ order.delivery_phone }}{% endif %}</div>{% endif %}
+    </div>
+    {% if order.description or order.special_instructions %}
+    <div class="glass-panel p-4 mt-3">
+      {% if order.description %}<div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Contents / Description</div><div style="color:var(--hub-text);">{{ order.description }}</div></div>{% endif %}
+      {% if order.special_instructions %}<div><div style="color:var(--hub-muted);font-size:.8rem;">Special Instructions</div><div style="color:#fbbf24;">{{ order.special_instructions }}</div></div>{% endif %}
+    </div>
+    {% endif %}
+    {% if order.failure_reason %}
+    <div class="glass-panel p-4 mt-3" style="border-color:rgba(248,113,113,0.3);">
+      <div style="color:var(--hub-muted);font-size:.8rem;">Failure Reason</div>
+      <div style="color:#f87171;">{{ order.failure_reason }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

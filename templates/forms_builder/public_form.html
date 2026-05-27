@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ form.title }}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body { background:#0f172a; color:#f8fafc; font-family:'Inter',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+.form-card { background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:16px; max-width:680px; width:100%; padding:2.5rem; }
+.form-control, .form-select { background:#1e293b !important; border-color:rgba(255,255,255,0.1) !important; color:#f8fafc !important; }
+.form-check-input { background:#1e293b; border-color:rgba(255,255,255,0.2); }
+.form-check-label { color:#f8fafc; }
+.btn-submit { background:linear-gradient(135deg,#c084fc,#38bdf8); border:none; color:#fff; font-weight:600; padding:0.65rem 2rem; border-radius:10px; }
+.btn-submit:hover { opacity:0.9; color:#fff; }
+label.required::after { content:" *"; color:#ef4444; }
+</style>
+</head>
+<body>
+<div class="form-card">
+    <h4 class="fw-bold mb-1">{{ form.title }}</h4>
+    {% if form.description %}<p class="text-white-50 mb-4">{{ form.description }}</p>{% endif %}
+
+    {% if form.accepts_responses %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Your Name (optional)</label>
+            <input type="text" name="respondent_name" class="form-control">
+        </div>
+        <div class="mb-4">
+            <label class="form-label text-white-50 small">Your Email (optional)</label>
+            <input type="email" name="respondent_email" class="form-control">
+        </div>
+        <hr style="border-color:rgba(255,255,255,0.08);">
+        {% for field in fields %}
+        <div class="mb-4">
+            <label class="form-label {% if field.is_required %}required{% endif %}">{{ field.label }}</label>
+            {% if field.help_text %}<div class="form-text text-white-50 mb-1" style="font-size:0.78rem;">{{ field.help_text }}</div>{% endif %}
+            {% if field.field_type == 'text' %}
+                <input type="text" name="field_{{ field.pk }}" class="form-control" placeholder="{{ field.placeholder }}" {% if field.is_required %}required{% endif %}>
+            {% elif field.field_type == 'textarea' %}
+                <textarea name="field_{{ field.pk }}" class="form-control" rows="4" placeholder="{{ field.placeholder }}" {% if field.is_required %}required{% endif %}></textarea>
+            {% elif field.field_type == 'email' %}
+                <input type="email" name="field_{{ field.pk }}" class="form-control" placeholder="{{ field.placeholder }}" {% if field.is_required %}required{% endif %}>
+            {% elif field.field_type == 'number' %}
+                <input type="number" name="field_{{ field.pk }}" class="form-control" placeholder="{{ field.placeholder }}" {% if field.is_required %}required{% endif %}>
+            {% elif field.field_type == 'date' %}
+                <input type="date" name="field_{{ field.pk }}" class="form-control" {% if field.is_required %}required{% endif %}>
+            {% elif field.field_type == 'select' %}
+                <select name="field_{{ field.pk }}" class="form-select" {% if field.is_required %}required{% endif %}>
+                    <option value="">Choose…</option>
+                    {% for opt in field.options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+                </select>
+            {% elif field.field_type == 'radio' %}
+                {% for opt in field.options %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_{{ field.pk }}" value="{{ opt }}" id="f{{ field.pk }}_{{ forloop.counter }}" {% if field.is_required %}required{% endif %}>
+                    <label class="form-check-label" for="f{{ field.pk }}_{{ forloop.counter }}">{{ opt }}</label>
+                </div>
+                {% endfor %}
+            {% elif field.field_type == 'checkbox_multi' %}
+                {% for opt in field.options %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="field_{{ field.pk }}" value="{{ opt }}" id="f{{ field.pk }}_{{ forloop.counter }}">
+                    <label class="form-check-label" for="f{{ field.pk }}_{{ forloop.counter }}">{{ opt }}</label>
+                </div>
+                {% endfor %}
+            {% elif field.field_type == 'checkbox' %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="field_{{ field.pk }}" value="yes" id="f{{ field.pk }}">
+                    <label class="form-check-label" for="f{{ field.pk }}">Yes</label>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-submit w-100 mt-2">Submit Response</button>
+    </form>
+    {% else %}
+    <div class="text-center py-4">
+        <p class="text-white-50">This form is currently not accepting responses.</p>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

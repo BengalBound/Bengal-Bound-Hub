@@ -1,0 +1,116 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Module Store — {{ biz.name }} | BengalBound{% endblock %}
+{% block page_title %}Module Store{% endblock %}
+
+{% block extra_head %}
+<style>
+  .mod-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 13px; padding: 1.1rem 1.1rem 1rem; transition: border-color 0.2s, box-shadow 0.2s; }
+  .mod-card:hover { border-color: rgba(255,255,255,0.14); box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+  .mod-card--active { border-color: rgba(56,189,248,0.25) !important; }
+  .mod-card--priority { border-color: rgba(192,132,252,0.3) !important; }
+  .cat-tab { font-size: 0.78rem; padding: 0.3rem 0.85rem; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); background: transparent; cursor: pointer; text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .cat-tab:hover, .cat-tab.active { background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.3); color: #c084fc; }
+  .search-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 0.45rem 0.9rem; color: var(--text); font-size: 0.82rem; width: 220px; }
+  .search-box:focus { outline: none; border-color: rgba(192,132,252,0.4); }
+  .search-box::placeholder { color: var(--muted); }
+  .plan-banner { background: linear-gradient(135deg, rgba(192,132,252,0.08), rgba(56,189,248,0.05)); border: 1px solid rgba(192,132,252,0.2); border-radius: 12px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Header bar ──────────────────────────────────────────────── -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+  <div>
+    <p class="mb-1" style="color:var(--hub-muted);font-size:0.82rem;">
+      Build your backoffice for <strong style="color:var(--hub-text);">{{ biz.name }}</strong> &mdash; {{ biz.get_business_type_display }}
+    </p>
+    <div class="d-flex align-items-center gap-2">
+      <span class="hub-badge" style="background:{% if sub.plan_type == 'advance' %}rgba(236,72,153,0.12);color:#ec4899;{% elif sub.plan_type == 'premium' %}rgba(192,132,252,0.12);color:#c084fc;{% elif sub.plan_type == 'standard' %}rgba(56,189,248,0.12);color:#38bdf8;{% else %}rgba(148,163,184,0.12);color:#94a3b8;{% endif %}">
+        <i class="bi bi-layers me-1"></i>{{ sub.get_plan_type_display }} Plan
+      </span>
+      <a href="{% url 'hub:hub_subscription' slug=biz.slug %}" style="font-size:0.72rem;color:var(--hub-muted);">Manage →</a>
+    </div>
+  </div>
+  <input type="text" class="search-box" placeholder="&#128269; Search modules..." id="modSearch" oninput="filterModules(this.value)">
+</div>
+
+<!-- ── Category filter tabs ────────────────────────────────────── -->
+<div class="d-flex gap-2 flex-wrap mb-4" style="overflow-x:auto;padding-bottom:2px;">
+  <a href="{% url 'hub:hub_module_store' slug=biz.slug %}" class="cat-tab {% if not current_cat %}active{% endif %}">
+    All
+  </a>
+  {% for cat_id, cat_label in categories %}
+  <a href="{% url 'hub:hub_module_store' slug=biz.slug %}?cat={{ cat_id }}" class="cat-tab {% if current_cat == cat_id %}active{% endif %}">
+    {{ cat_label }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- ── Recommended for this industry ──────────────────────────── -->
+{% if priority_modules and not current_cat %}
+<div class="mb-5" id="section-recommended">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <div style="width:4px;height:18px;background:linear-gradient(#c084fc,#ec4899);border-radius:2px;"></div>
+    <h6 class="fw-bold mb-0" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;">
+      Recommended for {{ biz.get_business_type_display }}
+    </h6>
+    <span class="hub-badge" style="background:rgba(192,132,252,0.1);color:#c084fc;">{{ priority_modules|length }}</span>
+  </div>
+  <div class="row g-3" id="priority-grid">
+    {% for item in priority_modules %}
+    {% include "hub/_module_card.html" %}
+    {% endfor %}
+  </div>
+  <hr style="border-color:var(--hub-border);margin:2.25rem 0 1.5rem;">
+</div>
+{% endif %}
+
+<!-- ── Modules grouped by category ────────────────────────────── -->
+<div id="allModules">
+{% for category, modules in grouped_modules.items %}
+<div class="mb-5 mod-category-section" data-cat="{{ category }}">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <div style="width:4px;height:18px;background:rgba(255,255,255,0.12);border-radius:2px;"></div>
+    <h6 class="fw-bold mb-0" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:var(--hub-muted);">{{ category }}</h6>
+    <span style="font-size:0.65rem;color:var(--hub-muted);">{{ modules|length }}</span>
+  </div>
+  <div class="row g-3 mod-grid">
+    {% for item in modules %}
+    {% include "hub/_module_card.html" %}
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+</div>
+
+{% if not grouped_modules %}
+<div class="glass-panel p-5 text-center">
+  <div style="font-size:2.5rem;margin-bottom:1rem;opacity:0.3;"><i class="bi bi-grid-3x3-gap"></i></div>
+  <p style="color:var(--hub-muted);">No modules found for the selected category.</p>
+  <a href="{% url 'hub:hub_module_store' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">View All Modules</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterModules(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('#allModules .col-md-6').forEach(col => {
+    const text = col.innerText.toLowerCase();
+    col.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+  document.querySelectorAll('#priority-grid .col-md-6').forEach(col => {
+    const text = col.innerText.toLowerCase();
+    col.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+  // Hide empty category sections
+  document.querySelectorAll('.mod-category-section').forEach(sec => {
+    const visible = [...sec.querySelectorAll('.col-md-6')].some(c => c.style.display !== 'none');
+    sec.style.display = visible ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

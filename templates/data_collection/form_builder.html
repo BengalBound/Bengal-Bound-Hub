@@ -1,0 +1,130 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Form Builder — {{ form.title }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'data_collection:form_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Forms</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-ui-checks me-2 text-info"></i>Form Builder</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'data_collection:form_detail' slug=biz.slug form_id=form.pk %}" class="btn btn-sm btn-outline-secondary">View Responses</a>
+    <a href="{% url 'data_collection:public_form' slug=biz.slug form_id=form.pk %}" target="_blank" class="btn btn-sm btn-outline-info"><i class="bi bi-box-arrow-up-right me-1"></i>Preview</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header border-secondary small"><i class="bi bi-gear me-1"></i>Form Settings</div>
+      {% if access_level >= 2 %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_form">
+        <div class="card-body row g-2">
+          <div class="col-12"><label class="form-label small">Title <span class="text-danger">*</span></label><input type="text" name="title" value="{{ form.title }}" class="form-control form-control-sm bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Form Type</label>
+            <select name="form_type" class="form-select form-select-sm bg-dark text-white border-secondary">
+              {% for code, label in form_types %}<option value="{{ code }}" {% if form.form_type == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="3" class="form-control form-control-sm bg-dark text-white border-secondary">{{ form.description }}</textarea></div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="activeToggle" {% if form.is_active %}checked{% endif %}>
+              <label class="form-check-label small" for="activeToggle">Active</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer border-secondary">
+          <button type="submit" class="btn btn-sm btn-info text-dark w-100">Save Settings</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="card-body">
+        <div class="small text-muted mb-1">{{ form.get_form_type_display }}</div>
+        <div class="fw-semibold">{{ form.title }}</div>
+        {% if form.description %}<div class="small text-muted mt-1">{{ form.description }}</div>{% endif %}
+        <span class="badge {% if form.is_active %}bg-success{% else %}bg-secondary{% endif %} mt-2">{% if form.is_active %}Active{% else %}Inactive{% endif %}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if access_level >= 2 %}
+    <div class="card bg-dark border-secondary">
+      <div class="card-header border-secondary small"><i class="bi bi-plus-circle me-1"></i>Add Field</div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_field">
+        <div class="card-body row g-2">
+          <div class="col-12"><label class="form-label small">Label <span class="text-danger">*</span></label><input type="text" name="label" class="form-control form-control-sm bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Field Type</label>
+            <select name="field_type" class="form-select form-select-sm bg-dark text-white border-secondary" id="fieldTypeSelect" onchange="toggleOptionsHint(this.value)">
+              {% for code, label in field_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12" id="optionsHint" style="display:none">
+            <label class="form-label small">Options <span class="text-muted">(one per line)</span></label>
+            <textarea name="options_text" rows="3" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Option A&#10;Option B&#10;Option C"></textarea>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_required" id="reqCheck">
+              <label class="form-check-label small" for="reqCheck">Required</label>
+            </div>
+          </div>
+          <div class="col-12"><label class="form-label small">Help Text</label><input type="text" name="help_text" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Optional hint for respondent"></div>
+        </div>
+        <div class="card-footer border-secondary">
+          <button type="submit" class="btn btn-sm btn-info text-dark w-100">Add Field</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header border-secondary small"><i class="bi bi-list-ul me-1"></i>Fields ({{ fields|length }})</div>
+      <div class="list-group list-group-flush">
+        {% for field in fields %}
+        <div class="list-group-item bg-dark border-secondary">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold small">
+                {{ field.label }}
+                {% if field.is_required %}<span class="text-danger ms-1" title="Required">*</span>{% endif %}
+              </div>
+              <div class="d-flex gap-2 mt-1">
+                <span class="badge bg-dark border border-secondary" style="font-size:0.6rem">{{ field.get_field_type_display }}</span>
+                <span class="text-muted" style="font-size:0.7rem">Order: {{ field.order }}</span>
+              </div>
+              {% if field.help_text %}<div class="text-muted mt-1" style="font-size:0.7rem"><i class="bi bi-info-circle me-1"></i>{{ field.help_text }}</div>{% endif %}
+              {% if field.options %}
+              <div class="mt-1">
+                {% for opt in field.options %}<span class="badge bg-secondary me-1" style="font-size:0.6rem">{{ opt }}</span>{% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% if access_level >= 2 %}
+            <form method="post" class="d-inline" onsubmit="return confirm('Delete this field?')">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_field">
+              <input type="hidden" name="field_id" value="{{ field.pk }}">
+              <button type="submit" class="btn btn-sm btn-link text-danger p-0"><i class="bi bi-trash" style="font-size:0.8rem"></i></button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-center text-muted py-4 small">No fields added yet — use the panel on the left to add your first field.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleOptionsHint(val) {
+  const hint = document.getElementById('optionsHint');
+  hint.style.display = (val === 'select' || val === 'radio' || val === 'checkbox') ? 'block' : 'none';
+}
+</script>
+{% endblock %}

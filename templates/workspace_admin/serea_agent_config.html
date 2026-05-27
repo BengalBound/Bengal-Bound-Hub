@@ -1,0 +1,205 @@
+{% extends "workspace_admin/base_admin.html" %}
+
+{% block title %}Serea AI Config | WorkspaceAdmin{% endblock %}
+{% block page_title %}Serea AI Configuration{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Manual Agent Creation -->
+{% if unlinked_employees %}
+<div class="glass-panel p-4 mb-4 border border-warning border-opacity-25">
+  <h6 class="fw-bold text-warning mb-3"><i class="bi bi-plus-circle me-2"></i>Create Serea Agent</h6>
+  <p class="text-white-50 small mb-3">The following AI employees don't have a Serea brain yet. Link one now:</p>
+  <form method="POST" action="/serea-config/" class="d-flex align-items-end gap-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create_agent">
+    <div class="flex-grow-1">
+      <label class="form-label text-white-50 small">Select AI Employee</label>
+      <select name="hired_employee_id" class="form-select bg-dark text-white border-secondary">
+        {% for emp in unlinked_employees %}
+        <option value="{{ emp.id }}">{{ emp.employer.email }} — {{ emp.ai_name }} ({{ emp.tier.get_name_display|default:'No Tier' }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-warning px-4"><i class="bi bi-robot me-1"></i>Create Agent</button>
+  </form>
+</div>
+{% endif %}
+
+{% if not agents %}
+  <div class="glass-panel p-4 text-center text-white-50">
+    <i class="bi bi-robot fs-2 mb-2 d-block"></i>
+    No Serea agents found. Agents are created automatically when a client hires an AI tier.
+  </div>
+{% endif %}
+
+{% for agent in agents %}
+<div class="glass-panel p-4 mb-4">
+  <!-- Agent Header -->
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <div class="rounded-circle d-flex align-items-center justify-content-center"
+         style="width:44px;height:44px;background:linear-gradient(135deg,#38bdf8,#3b82f6);">
+      <i class="bi bi-robot text-white fs-5"></i>
+    </div>
+    <div>
+      <h5 class="mb-0 fw-semibold">{{ agent.tenant.email }}</h5>
+      <small class="text-white-50">
+        Tier: <span class="text-info">{{ agent.get_tier_display }}</span>
+        &nbsp;·&nbsp;
+        Status:
+        <span class="badge
+          {% if agent.status == 'working' %}bg-success
+          {% elif agent.status == 'waiting' %}bg-warning text-dark
+          {% elif agent.status == 'offline' %}bg-secondary
+          {% else %}bg-primary{% endif %}">
+          {{ agent.get_status_display }}
+        </span>
+      </small>
+    </div>
+    <div class="ms-auto text-end">
+      <div class="small text-white-50">Tokens used this month</div>
+      <div class="fw-bold fs-5
+        {% if agent.effective_token_limit and agent.tokens_used_this_month >= agent.effective_token_limit %}text-danger
+        {% else %}text-info{% endif %}">
+        {{ agent.tokens_used_this_month|default:0 }}
+        {% if agent.effective_token_limit %}
+          <span class="text-white-50 small fw-normal">/ {{ agent.effective_token_limit }}
+            {% if agent.token_limit_override is not None %}(override){% else %}(tier){% endif %}
+          </span>
+        {% else %}
+          <span class="text-white-50 small fw-normal">/ —</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <hr class="border-secondary my-3">
+
+  <div class="row g-4">
+    <!-- Left: Update Config Form -->
+    <div class="col-lg-8">
+      <form method="POST" action="/serea-config/">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_config">
+        <input type="hidden" name="agent_id" value="{{ agent.id }}">
+
+        <div class="row g-3">
+          <!-- Agent Status -->
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small">Agent Status</label>
+            <select name="agent_status" class="form-select bg-dark text-white border-secondary">
+              {% for val, label in status_choices %}
+              <option value="{{ val }}" {% if agent.status == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-text text-white-50">Controls whether Serea is actively processing tasks.</div>
+          </div>
+
+          <!-- AI Model -->
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small">AI Model</label>
+            <select name="ai_model" class="form-select bg-dark text-white border-secondary" id="ai-model-{{ agent.id }}">
+              {% for value, label in ai_model_choices %}
+              <option value="{{ value }}" {% if agent.ai_model == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          </div>
+
+          <!-- API Keys -->
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small">Groq API Key</label>
+            <input type="password" name="groq_api_key" class="form-control bg-dark text-white border-secondary"
+                   autocomplete="new-password"
+                   placeholder="{% if agent.groq_api_key %}••••••••••••{{ agent.groq_api_key|slice:'-4:' }}{% else %}Leave blank to use platform key{% endif %}">
+            <div class="form-text text-white-50">For Llama, Gemma, Mixtral via Groq.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small">OpenRouter API Key</label>
+            <input type="password" name="openrouter_api_key" class="form-control bg-dark text-white border-secondary"
+                   autocomplete="new-password"
+                   placeholder="{% if agent.openrouter_api_key %}••••••••••••{{ agent.openrouter_api_key|slice:'-4:' }}{% else %}Leave blank to use platform key{% endif %}">
+            <div class="form-text text-white-50">
+              For OpenRouter models (incl. FREE tier — Llama, Gemma, DeepSeek, Mistral, Phi-4).
+              <a href="https://openrouter.ai/keys" target="_blank" class="text-info">Get a key</a>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small">OpenAI API Key</label>
+            <input type="password" name="openai_api_key" class="form-control bg-dark text-white border-secondary"
+                   autocomplete="new-password"
+                   placeholder="{% if agent.openai_api_key %}••••••••••••{{ agent.openai_api_key|slice:'-4:' }}{% else %}Leave blank to use platform key{% endif %}">
+            <div class="form-text text-white-50">For GPT-4o / GPT-3.5 via OpenAI.</div>
+          </div>
+
+          <!-- Token Limit Override -->
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small">Monthly Token Limit Override</label>
+            <input type="number" name="token_limit_override" min="0"
+                   class="form-control bg-dark text-white border-secondary"
+                   value="{{ agent.token_limit_override|default:'' }}"
+                   placeholder="Blank = inherit from tier  |  0 = unlimited">
+            <div class="form-text text-white-50">
+              Tier default:
+              {% if agent.hired_employee and agent.hired_employee.tier %}
+                {{ agent.hired_employee.tier.token_limit }} tokens
+              {% else %}
+                not set
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save2 me-1"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right: Quick Actions -->
+    <div class="col-lg-4">
+      <div class="p-3 rounded" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);">
+        <h6 class="text-white-50 small text-uppercase fw-bold mb-3">Quick Actions</h6>
+
+        <!-- Reset Token Counter -->
+        <form method="POST" action="/serea-config/" class="mb-2"
+              onsubmit="return confirm('Reset token counter to 0 for {{ agent.tenant.email }}?')">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reset_tokens">
+          <input type="hidden" name="agent_id" value="{{ agent.id }}">
+          <button type="submit" class="btn btn-outline-warning btn-sm w-100">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Monthly Token Counter
+          </button>
+        </form>
+
+        <hr class="border-secondary">
+        <div class="small text-white-50">
+          <div class="d-flex justify-content-between mb-1">
+            <span>Current Model</span>
+            <span class="text-info fw-semibold">{{ agent.get_ai_model_display }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1">
+            <span>Agent ID</span>
+            <span class="text-white">#{{ agent.id }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Created</span>
+            <span class="text-white">{{ agent.created_at|date:"M d, Y" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

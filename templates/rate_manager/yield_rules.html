@@ -1,0 +1,126 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Yield Rules — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'rate_manager:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Rate Manager</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-sliders me-2 text-info"></i>Yield Rules</h4>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addRestrModal">+ Restriction</button>
+    <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addRuleModal"><i class="bi bi-plus-lg me-1"></i>Add Rule</button>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card bg-dark border-secondary mb-4">
+      <div class="card-header small"><i class="bi bi-lightning me-1"></i>Yield Rules</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Name</th><th>Type</th><th>Trigger</th><th>Adjustment</th><th>Active</th></tr></thead>
+            <tbody>
+              {% for r in rules %}
+              <tr>
+                <td class="fw-semibold">{{ r.name }}</td>
+                <td><span class="badge bg-dark border border-secondary">{{ r.get_rule_type_display }}</span></td>
+                <td class="text-muted">{{ r.trigger_value|floatformat:0 }}{% if r.rule_type == 'occupancy' %}%{% endif %}</td>
+                <td>
+                  <span class="{% if r.adjustment_type == 'increase' %}text-danger{% else %}text-success{% endif %} fw-bold">
+                    {% if r.adjustment_type == 'increase' %}+{% else %}-{% endif %}{{ r.adjustment_value }}{% if r.adj_type == 'percent' %}%{% endif %}
+                  </span>
+                </td>
+                <td><span class="badge {% if r.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{% if r.is_active %}On{% else %}Off{% endif %}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No yield rules</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-shield-check me-1"></i>Booking Restrictions</div>
+      <div class="list-group list-group-flush">
+        {% for res in restrictions %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between">
+            <div><div class="fw-semibold">{{ res.room_type_name|default:"All Rooms" }}</div><div class="text-muted">{{ res.get_restriction_type_display }}</div></div>
+            <div class="text-end">
+              <div class="text-info">{{ res.restriction_date|date:"d M Y" }}</div>
+              <div class="text-muted" style="font-size:0.7rem">{{ res.value }}</div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No restrictions</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addRuleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Yield Rule</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_rule">
+        <div class="modal-body row g-2">
+          <div class="col-md-8"><label class="form-label small">Rule Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Rule Type</label>
+            <select name="rule_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in rule_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Trigger Value <span class="text-danger">*</span></label><input type="number" name="trigger_value" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Adjustment Type</label>
+            <select name="adjustment_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in adj_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Adjustment Value <span class="text-danger">*</span></label><input type="number" name="adjustment_value" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Rule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addRestrModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Restriction</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_restriction">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Date <span class="text-danger">*</span></label><input type="date" name="restriction_date" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Type</label>
+            <select name="restriction_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in restriction_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Room Type (optional)</label><input type="text" name="room_type_name" class="form-control bg-dark text-white border-secondary" placeholder="Leave blank for all"></div>
+          <div class="col-md-6"><label class="form-label small">Value <span class="text-danger">*</span></label><input type="text" name="value" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. 3 (for min nights)"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Restriction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

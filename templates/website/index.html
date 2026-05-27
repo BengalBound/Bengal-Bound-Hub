@@ -1,0 +1,17 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Website — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-globe me-2" style="color:var(--hub-accent);"></i>Website{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-4"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_projects|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Projects</div></div></div>
+  <div class="col-md-4"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ live_projects|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Live</div></div></div>
+  <div class="col-md-4"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ draft_projects|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Drafts</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Website Operations</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'website:project_list' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-folder me-1"></i>Projects</a>
+  </div>
+</div>
+{% endblock %}

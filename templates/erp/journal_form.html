@@ -1,0 +1,33 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Journal Entry — {{ biz.name }}{% endblock %}
+{% block page_title %}New Journal Entry{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+<form method="post" action="{% url 'erp:journal_create' slug=biz.slug %}">
+{% csrf_token %}
+<div class="glass-panel p-4 mb-4">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Reference</label>
+            <input type="text" name="reference" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. INV-2026-001">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label text-white-50 small">Entry Date</label>
+            <input type="date" name="entry_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <div class="col-12">
+            <label class="form-label text-white-50 small">Description</label>
+            <textarea name="description" rows="2" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="Brief description of this transaction"></textarea>
+        </div>
+    </div>
+</div>
+<div class="d-flex gap-3">
+    <button type="submit" class="btn btn-hub-primary px-5">Create Draft</button>
+    <a href="{% url 'erp:journal' slug=biz.slug %}" class="btn btn-hub-outline px-4">Cancel</a>
+</div>
+</form>
+</div>
+</div>
+{% endblock %}

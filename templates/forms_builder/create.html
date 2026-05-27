@@ -1,0 +1,29 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}New Form | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'forms_builder:form_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>New Form</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="glass-panel p-4" style="max-width:600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Form Title</label>
+            <input type="text" name="title" class="form-control" required placeholder="e.g. Customer Feedback Survey"
+                   style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        </div>
+        <div class="mb-4">
+            <label class="form-label text-white-50 small">Description (optional)</label>
+            <textarea name="description" rows="3" class="form-control" placeholder="Briefly describe what this form is for…"
+                      style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+        </div>
+        <button type="submit" class="btn btn-hub-primary">
+            <i class="bi bi-arrow-right me-1"></i>Create & Build Fields
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Factory Operations — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-building-gear me-2" style="color:var(--hub-accent);"></i>Factory Operations Hub{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<!-- KPI Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:var(--hub-accent);">{{ active_orders_count }}</div><div class="text-white-50 small">Active Orders</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#f87171;">{{ overdue_orders_count }}</div><div class="text-white-50 small">Overdue Orders</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#38bdf8;">{{ total_pairs_in_flow }}</div><div class="text-white-50 small">Pairs In Flow</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#fbbf24;">{{ low_stock_count }}</div><div class="text-white-50 small">Low Stock Alerts</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#22c55e;">{{ headcount }}</div><div class="text-white-50 small">Headcount</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#c084fc;">{{ open_deals_count }}</div><div class="text-white-50 small">Open Deals</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#38bdf8;">{{ total_ar|floatformat:0 }}</div><div class="text-white-50 small">Total AR</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.9rem;font-weight:700;color:#fb923c;">{{ pending_approvals_count }}</div><div class="text-white-50 small">Pending Approvals</div></div></div>
+</div>
+
+<!-- Operating System Quick-Ref -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:12px 16px;">
+      <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#22c55e;margin-bottom:.5rem;"><i class="bi bi-sun me-1"></i>Three Daily Habits</div>
+      <div style="font-size:.78rem;color:var(--hub-text);line-height:1.7;">
+        1. Review <a href="{% url 'factory_ops:hourly_board' slug=biz.slug %}" style="color:#22c55e;">Hourly Board</a> by 8:30AM<br>
+        2. 5PM sign-off: output, QC, downtime<br>
+        3. Update <a href="{% url 'factory_ops:tasks' slug=biz.slug %}" style="color:#22c55e;">task list</a> before leaving
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:12px 16px;">
+      <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#fbbf24;margin-bottom:.5rem;"><i class="bi bi-calendar-check me-1"></i>Saturday 4PM Accountability Loop</div>
+      <div style="font-size:.78rem;color:var(--hub-text);line-height:1.7;">
+        30 min · Hub on screen · Owner-by-owner review<br>
+        Review: <a href="{% url 'factory_ops:mis' slug=biz.slug %}" style="color:#fbbf24;">MIS</a> · <a href="{% url 'factory_ops:targets' slug=biz.slug %}" style="color:#fbbf24;">Targets</a> · <a href="{% url 'factory_ops:approvals' slug=biz.slug %}" style="color:#fbbf24;">Approvals</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.2);border-radius:10px;padding:12px 16px;">
+      <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:#38bdf8;margin-bottom:.5rem;"><i class="bi bi-cash-stack me-1"></i>Spending Thresholds</div>
+      <div style="font-size:.78rem;color:var(--hub-text);line-height:1.7;">
+        ≤ 5,000 BDT → <a href="{% url 'factory_ops:petty_cash' slug=biz.slug %}" style="color:#38bdf8;">Petty Cash</a> (auto)<br>
+        5,000–25,000 → Manager sign-off<br>
+        &gt; 25,000 → <a href="{% url 'factory_ops:approvals' slug=biz.slug %}" style="color:#fbbf24;">CEO digital approval</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Module Quick Links — full 37-module grid -->
+  <div class="col-lg-8">
+    <div class="glass-panel p-4">
+
+      <!-- Production Flow -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Production Flow</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:production' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-boxes me-1"></i>Production</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:planning' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-calendar3 me-1"></i>Planning</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:inventory' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-upc-scan me-1"></i>Inventory</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:raw_materials' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-layers me-1"></i>Raw Materials</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:wip' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-arrow-repeat me-1"></i>WIP</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:finished_goods' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-box-seam me-1"></i>Finished Goods</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:daily_report' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-clipboard-data me-1"></i>Daily Report</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:attendance' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-person-check me-1"></i>Attendance</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:material_consumption' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-arrow-down-circle me-1"></i>Material Issue</a></div>
+      </div>
+
+      <!-- Industrial Engineering -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Industrial Engineering</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:time_study' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-stopwatch me-1"></i>Time Study</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:smv' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-table me-1"></i>SMV</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:capacity' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-speedometer2 me-1"></i>Capacity</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:costing' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-currency-dollar me-1"></i>Costing</a></div>
+      </div>
+
+      <!-- Quality & Operations -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Quality &amp; Operations</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:qc' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-shield-check me-1"></i>QC Inspections</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:rework' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-arrow-counterclockwise me-1"></i>Rework</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:sops' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-file-text me-1"></i>SOPs</a></div>
+      </div>
+
+      <!-- Commercial -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Commercial</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:buyers' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-briefcase me-1"></i>Buyers</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:sales' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-funnel me-1"></i>Sales Pipeline</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-receipt me-1"></i>Orders</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:invoices' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-file-earmark-text me-1"></i>Invoices</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:vendors' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-truck me-1"></i>Vendors &amp; POs</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:supplier_scorecard' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-star-half me-1"></i>Supplier Score</a></div>
+      </div>
+
+      <!-- Distribution & Sales Force -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Distribution &amp; Sales Force</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:distribution' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-diagram-2 me-1"></i>Distribution</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:wholesale' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-buildings me-1"></i>Wholesale</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:sales_team' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-person-badge me-1"></i>Sales Team</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:targets' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-bullseye me-1"></i>Targets</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:tasks' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-check2-square me-1"></i>Tasks</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:marketing' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-megaphone me-1"></i>Marketing</a></div>
+      </div>
+
+      <!-- Finance & Admin -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Finance &amp; Admin</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:ar_ap' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-journal-text me-1"></i>AR / AP</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:financials' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-clipboard-data me-1"></i>Financials</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:banking' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-bank me-1"></i>Banking &amp; LCs</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:hr' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-people me-1"></i>HR Roster</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:approvals' slug=biz.slug %}" class="btn btn-hub-primary btn-sm w-100 text-start"><i class="bi bi-check2-circle me-1"></i>Approvals{% if pending_approvals_count %} <span class="badge bg-danger ms-1">{{ pending_approvals_count }}</span>{% endif %}</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:mis' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-graph-up me-1"></i>MIS Report</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:petty_cash' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-cash-coin me-1"></i>Petty Cash</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:worker_advances' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-person-badge me-1"></i>Worker Advances</a></div>
+      </div>
+
+      <!-- Floor Management -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Floor Management</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:hourly_board' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start" style="border-color:rgba(34,197,94,0.3);"><i class="bi bi-speedometer2 me-1" style="color:#22c55e;"></i>Hourly Board</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:stock_movements' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-arrow-left-right me-1"></i>Stock Log</a></div>
+      </div>
+
+      <!-- Performance & Incentives -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Performance &amp; Incentives</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:kpi_templates' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-bar-chart-steps me-1"></i>KPI Templates</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:evaluations' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-person-check-fill me-1"></i>Evaluations</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:sales_incentives' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-cash-coin me-1"></i>Sales Incentives</a></div>
+      </div>
+
+      <!-- Sample Development -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Sample Development</div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:sample_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start" style="border-color:rgba(192,132,252,0.3);"><i class="bi bi-palette me-1" style="color:#c084fc;"></i>Sample Orders</a></div>
+      </div>
+
+      <!-- Tools & Exports -->
+      <div class="mb-1" style="color:var(--hub-muted);font-size:.68rem;text-transform:uppercase;letter-spacing:1px;">Tools &amp; Exports</div>
+      <div class="row g-2">
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:settings' slug=biz.slug %}" class="btn btn-sm w-100 text-start" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;"><i class="bi bi-gear me-1"></i>Settings</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:export_production' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-download me-1"></i>Export Production</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:export_inventory' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-download me-1"></i>Export Inventory</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:export_arap' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-download me-1"></i>Export AR/AP</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:export_invoices' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-download me-1"></i>Export Invoices</a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'factory_ops:export_attendance' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100 text-start"><i class="bi bi-download me-1"></i>Export Attendance</a></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Attention Items -->
+  <div class="col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h6 style="color:var(--hub-muted);margin-bottom:1rem;font-size:.75rem;text-transform:uppercase;letter-spacing:1px;">Attention Items</h6>
+      {% if attention_items %}
+        {% for item in attention_items %}
+        <div class="d-flex align-items-start gap-2 mb-2 p-2" style="background:rgba(255,255,255,0.03);border-radius:8px;">
+          <span style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;background:{% if item.sev == 'red' %}#f87171{% else %}#fbbf24{% endif %};"></span>
+          <div>
+            <div style="font-size:.78rem;font-weight:600;color:{% if item.sev == 'red' %}#f87171{% else %}#fbbf24{% endif %};">{{ item.type }}</div>
+            <div style="font-size:.72rem;color:var(--hub-muted);">{{ item.desc }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-4 text-white-50 small"><i class="bi bi-check-circle me-1"></i>No urgent items</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent Production -->
+{% if recent_production %}
+<div class="glass-panel p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="color:var(--hub-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Recent Production Orders</h6>
+    <a href="{% url 'factory_ops:production' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">View All</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0" style="font-size:.82rem;">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Order ID</th><th>Style</th><th>Buyer</th><th>Qty</th><th>Stage</th><th>Progress</th>
+      </tr></thead>
+      <tbody>
+        {% for o in recent_production %}
+        <tr style="border-color:var(--hub-border);">
+          <td><a href="{% url 'factory_ops:production_detail' slug=biz.slug pk=o.pk %}" style="color:var(--hub-accent);">{{ o.order_id }}</a></td>
+          <td>{{ o.style|truncatechars:30 }}</td>
+          <td>{{ o.buyer|default:"—" }}</td>
+          <td>{{ o.qty }}</td>
+          <td><span class="badge" style="background:rgba(192,132,252,0.15);color:#c084fc;font-size:.7rem;">{{ o.current_stage }}</span></td>
+          <td>
+            <div style="background:var(--hub-border);border-radius:4px;height:5px;width:80px;">
+              <div style="width:{{ o.progress_pct }}%;background:{% if o.progress_pct == 100 %}#22c55e{% elif o.progress_pct > 60 %}#38bdf8{% else %}var(--hub-accent){% endif %};height:5px;border-radius:4px;"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Finance Summary -->
+<div class="row g-3">
+  <div class="col-md-4"><div class="glass-panel p-4">
+    <div style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Cash Position</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#22c55e;">{{ cash_position|floatformat:0 }}</div>
+    <a href="{% url 'factory_ops:banking' slug=biz.slug %}" class="btn btn-hub-outline btn-sm mt-2">View Banking</a>
+  </div></div>
+  <div class="col-md-4"><div class="glass-panel p-4">
+    <div style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Accounts Receivable</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#38bdf8;">{{ total_ar|floatformat:0 }}</div>
+    {% if overdue_ar %}<div style="color:#f87171;font-size:.75rem;">{{ overdue_ar|floatformat:0 }} overdue</div>{% endif %}
+    <a href="{% url 'factory_ops:ar_ap' slug=biz.slug %}" class="btn btn-hub-outline btn-sm mt-2">View AR/AP</a>
+  </div></div>
+  <div class="col-md-4"><div class="glass-panel p-4">
+    <div style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Open Tasks</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#fbbf24;">{{ open_tasks_count }}</div>
+    <a href="{% url 'factory_ops:tasks' slug=biz.slug %}" class="btn btn-hub-outline btn-sm mt-2">View Tasks</a>
+  </div></div>
+</div>
+{% endblock %}

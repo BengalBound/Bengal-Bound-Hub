@@ -1,0 +1,139 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Business | BengalBound Hub{% endblock %}
+{% block page_title %}New Business{% endblock %}
+
+{% block extra_head %}
+<style>
+  .form-input { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--hub-text); border-radius: 9px; padding: 0.5rem 0.85rem; font-size: 0.85rem; width: 100%; transition: border-color 0.15s; }
+  .form-input:focus { outline: none; border-color: rgba(192,132,252,0.45); background: rgba(255,255,255,0.05); }
+  .form-input::placeholder { color: var(--muted); }
+  .form-label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.4rem; display: block; }
+  .deploy-option { border: 1px solid var(--border); border-radius: 11px; padding: 0.85rem 1rem; cursor: pointer; transition: all 0.15s; }
+  .deploy-option:hover { border-color: rgba(255,255,255,0.18); }
+  .deploy-option.selected-cloud { border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.06); }
+  .deploy-option.selected-ip_locked { border-color: rgba(249,115,22,0.5); background: rgba(249,115,22,0.06); }
+  .deploy-option.selected-self_hosted { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.06); }
+  .deploy-radio { display: none; }
+</style>
+{% endblock %}
+
+{% block hub_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-xl-6">
+
+    <div class="mb-4">
+      <a href="{% url 'hub:hub_landing' %}" class="text-decoration-none" style="color:var(--hub-muted);font-size:0.82rem;">
+        <i class="bi bi-arrow-left me-1"></i>Back to Hub
+      </a>
+      <h3 class="fw-bold mt-3 mb-1" style="font-family:'Outfit',sans-serif;">New Business Instance</h3>
+      <p style="color:var(--hub-muted);font-size:0.88rem;">Set up your business in BengalBound Hub. You can add modules and employees after creation.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="glass-panel p-4 p-lg-5">
+      {% csrf_token %}
+
+      <!-- Business Identity -->
+      <div class="mb-2" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--hub-accent);font-weight:700;">Identity</div>
+      <hr style="border-color:var(--border);margin-bottom:1.25rem;margin-top:0.4rem;">
+
+      <div class="mb-3">
+        <label class="form-label">Business Name <span style="color:#ef4444;">*</span></label>
+        <input type="text" name="name" class="form-input" placeholder="e.g. Acme Manufacturing Ltd." required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tagline <span style="color:var(--muted);font-size:0.68rem;text-transform:none;font-weight:400;">(optional)</span></label>
+        <input type="text" name="tagline" class="form-input" placeholder="One sentence about what you do">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Business Type <span style="color:#ef4444;">*</span></label>
+        <select name="business_type" id="bizType" class="form-input" style="appearance:auto;">
+          {% for val, label in business_types %}
+          <option value="{{ val }}" {% if val == 'business' %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div style="font-size:0.72rem;color:var(--hub-muted);margin-top:0.3rem;"><i class="bi bi-star me-1"></i>Used to recommend the right modules for your industry.</div>
+      </div>
+
+      <!-- Deployment -->
+      <div class="mb-2 mt-3" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--hub-accent);font-weight:700;">Deployment Mode</div>
+      <hr style="border-color:var(--border);margin-bottom:1.25rem;margin-top:0.4rem;">
+
+      <div class="row g-2 mb-4" id="deployOptions">
+        <div class="col-12">
+          <label class="deploy-option selected-cloud" id="opt-cloud" onclick="selectDeploy('cloud')">
+            <input type="radio" name="installation_type" value="cloud" class="deploy-radio" checked>
+            <div class="d-flex align-items-start gap-3">
+              <div style="width:36px;height:36px;border-radius:9px;background:rgba(56,189,248,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-cloud-fill" style="color:#38bdf8;font-size:1rem;"></i></div>
+              <div>
+                <div class="fw-semibold" style="font-size:0.85rem;color:#38bdf8;">Cloud Hosted</div>
+                <div style="font-size:0.77rem;color:var(--hub-muted);">Fully managed by BengalBound. Accessible anywhere. No infrastructure needed.</div>
+              </div>
+            </div>
+          </label>
+        </div>
+        <div class="col-12">
+          <label class="deploy-option" id="opt-ip_locked" onclick="selectDeploy('ip_locked')">
+            <input type="radio" name="installation_type" value="ip_locked" class="deploy-radio">
+            <div class="d-flex align-items-start gap-3">
+              <div style="width:36px;height:36px;border-radius:9px;background:rgba(249,115,22,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-shield-lock-fill" style="color:#f97316;font-size:1rem;"></i></div>
+              <div>
+                <div class="fw-semibold" style="font-size:0.85rem;color:#f97316;">IP-Locked Cloud</div>
+                <div style="font-size:0.77rem;color:var(--hub-muted);">Cloud-hosted, but only your approved IP addresses can log in. Ideal for offices with a fixed internet connection.</div>
+              </div>
+            </div>
+          </label>
+        </div>
+        <div class="col-12">
+          <label class="deploy-option" id="opt-self_hosted" onclick="selectDeploy('self_hosted')">
+            <input type="radio" name="installation_type" value="self_hosted" class="deploy-radio">
+            <div class="d-flex align-items-start gap-3">
+              <div style="width:36px;height:36px;border-radius:9px;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-server" style="color:#22c55e;font-size:1rem;"></i></div>
+              <div>
+                <div class="fw-semibold" style="font-size:0.85rem;color:#22c55e;">Self-Hosted</div>
+                <div style="font-size:0.77rem;color:var(--hub-muted);">Deploy on your own server for full data control. Syncs with BengalBound for AI services and updates. Requires technical setup.</div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="mb-2 mt-1" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--hub-muted);font-weight:700;">Contact <span style="font-size:0.62rem;font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+      <hr style="border-color:var(--border);margin-bottom:1.25rem;margin-top:0.4rem;">
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label class="form-label">Business Email</label>
+          <input type="email" name="business_email" class="form-input" placeholder="info@yourbusiness.com">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Phone Number</label>
+          <input type="text" name="business_phone" class="form-input" placeholder="+1 555 0100">
+        </div>
+      </div>
+
+      <div class="d-flex gap-3 pt-2">
+        <button type="submit" class="btn btn-hub-primary px-5">
+          <i class="bi bi-building-add me-2"></i>Create Business
+        </button>
+        <a href="{% url 'hub:hub_landing' %}" class="btn btn-hub-outline px-4">Cancel</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock hub_content %}
+
+{% block extra_js %}
+<script>
+function selectDeploy(val) {
+  ['cloud','ip_locked','self_hosted'].forEach(v => {
+    const el = document.getElementById('opt-' + v);
+    el.className = 'deploy-option' + (v === val ? ' selected-' + val : '');
+    el.querySelector('input').checked = (v === val);
+  });
+}
+</script>
+{% endblock %}

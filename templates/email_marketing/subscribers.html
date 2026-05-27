@@ -1,0 +1,42 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Subscribers — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-people me-2" style="color:var(--hub-accent);"></i>Subscribers{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Subscribers</h5>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addSubModal"><i class="bi bi-plus-lg me-1"></i>Add Subscriber</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Email</th><th>Name</th><th>List</th><th>Subscribed</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for sub in subscribers %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ sub.email }}</td>
+          <td style="color:var(--hub-muted);">{{ sub.name|default:"—" }}</td>
+          <td style="color:var(--hub-muted);">{{ sub.email_list.name }}</td>
+          <td style="color:var(--hub-muted);">{{ sub.created_at|date:"M d, Y" }}</td>
+          <td><span class="badge" style="background:{% if sub.is_active %}#22c55e20{% else %}#f8717120{% endif %};color:{% if sub.is_active %}#22c55e{% else %}#f87171{% endif %};">{% if sub.is_active %}Active{% else %}Unsubscribed{% endif %}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center" style="color:var(--hub-muted);padding:2rem;">No subscribers yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal fade" id="addSubModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Subscriber</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}<div class="modal-body">
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Email</label><input type="email" name="email" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Name (optional)</label><input name="name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">List</label><select name="email_list" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{% for lst in email_lists %}<option value="{{ lst.pk }}">{{ lst.name }}</option>{% endfor %}</select></div>
+      </div><div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add</button></div></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

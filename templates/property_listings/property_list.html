@@ -1,0 +1,63 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}All Properties — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'property_listings:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Properties</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-house-door me-2 text-info"></i>All Listings</h4>
+  {% if access_level >= 2 %}<a href="{% url 'property_listings:property_add' slug=biz.slug %}" class="btn btn-info text-dark"><i class="bi bi-plus-lg me-1"></i>Add Property</a>{% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-3">
+      <select name="type" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Types</option>
+        {% for code, label in property_types %}<option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Statuses</option>
+        {% for code, label in statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="agent" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Agents</option>
+        {% for a in agents %}<option value="{{ a.pk }}" {% if agent_filter == a.pk|stringformat:'s' %}selected{% endif %}>{{ a.user.get_full_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-1"><button type="submit" class="btn btn-sm btn-info text-dark w-100">Go</button></div>
+    <div class="col-md-2"><a href="{% url 'property_listings:property_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Property</th><th>Type</th><th>Price</th><th>Beds/Baths</th><th>Status</th><th>Agent</th><th>MLS #</th><th>Listed</th></tr></thead>
+        <tbody>
+          {% for p in properties %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'property_listings:property_detail' slug=biz.slug property_id=p.pk %}'">
+            <td>
+              <div class="fw-semibold">{{ p.title }}</div>
+              <div class="text-muted" style="font-size:0.75rem">{{ p.address|truncatechars:45 }}{% if p.city %}, {{ p.city }}{% endif %}</div>
+            </td>
+            <td class="text-muted">{{ p.get_property_type_display }}</td>
+            <td class="fw-bold">{% if p.price %}{{ p.currency }} {{ p.price|floatformat:0 }}{% elif p.rent_per_month %}{{ p.currency }} {{ p.rent_per_month|floatformat:0 }}/mo{% else %}—{% endif %}</td>
+            <td class="text-muted">{% if p.bedrooms %}{{ p.bedrooms }}bd{% endif %}{% if p.bathrooms %} / {{ p.bathrooms }}ba{% endif %}{% if not p.bedrooms and not p.bathrooms %}—{% endif %}</td>
+            <td><span class="badge {% if p.status == 'active' %}bg-success{% elif p.status == 'under_contract' %}bg-warning text-dark{% elif p.status == 'sold' or p.status == 'rented' %}bg-secondary{% else %}bg-dark border border-secondary{% endif %}">{{ p.get_status_display }}</span></td>
+            <td class="text-muted">{{ p.listed_by.user.get_full_name|default:"—" }}</td>
+            <td class="font-monospace text-muted">{{ p.mls_number|default:"—" }}</td>
+            <td class="text-muted">{{ p.listing_date|date:"d M Y"|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No properties found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Loyalty Programs — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-star me-2" style="color:var(--hub-accent);"></i>Loyalty Programs{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Programs</h5>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newProgramModal"><i class="bi bi-plus-lg me-1"></i>New Program</button>
+  </div>
+  <div class="row g-3">
+    {% for prog in programs %}
+    <div class="col-md-4">
+      <a href="{% url 'loyalty:program_detail' slug=biz.slug pk=prog.pk %}" class="text-decoration-none">
+        <div class="glass-panel p-4" style="border-radius:12px;">
+          <div style="color:var(--hub-text);font-weight:600;font-size:1.05rem;">{{ prog.name }}</div>
+          <div style="color:var(--hub-muted);font-size:.85rem;margin:.25rem 0;">{{ prog.member_count }} members</div>
+          <div style="color:var(--hub-accent);">{{ prog.points_per_spend }} pts per {{ prog.currency_unit }}</div>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center" style="color:var(--hub-muted);padding:2rem;">No loyalty programs yet.</div>
+    {% endfor %}
+  </div>
+</div>
+<div class="modal fade" id="newProgramModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">New Loyalty Program</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}<div class="modal-body">
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Program Name</label><input name="name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Points Per Spend Unit</label><input name="points_per_spend" type="number" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" value="1"></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Currency / Spend Unit</label><input name="currency_unit" class="form-control" placeholder="e.g. $" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      </div><div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Create</button></div></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

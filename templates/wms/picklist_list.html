@@ -1,0 +1,77 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Pick Lists — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-list-check me-2 text-warning"></i>Pick Lists</h4>
+  {% if access_level >= 3 %}
+  <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#createPickModal"><i class="bi bi-plus-lg me-1"></i>New Pick List</button>
+  {% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-4"><select name="status" class="form-select form-select-sm bg-dark text-white border-secondary"><option value="">All Statuses</option>{% for code, label in statuses %}<option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-warning text-dark w-100">Filter</button></div>
+    <div class="col-md-2"><a href="{% url 'wms:picklist_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>PL #</th><th>Order Ref</th><th>Customer</th><th>Status</th><th>Due</th><th>Assigned</th><th>Progress</th></tr></thead>
+        <tbody>
+          {% for pl in picks %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'wms:picklist_detail' slug=biz.slug pick_id=pl.pk %}'">
+            <td class="font-monospace fw-bold">PL-{{ pl.pick_number }}</td>
+            <td>{{ pl.order_reference|default:"—" }}</td>
+            <td>{{ pl.customer_name|default:"—" }}</td>
+            <td>
+              {% if pl.status == 'dispatched' %}<span class="badge bg-success">Dispatched</span>
+              {% elif pl.status == 'picking' %}<span class="badge bg-warning text-dark">Picking</span>
+              {% elif pl.status == 'picked' or pl.status == 'packed' %}<span class="badge bg-info">{{ pl.get_status_display }}</span>
+              {% elif pl.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>
+              {% else %}<span class="badge bg-secondary">Pending</span>{% endif %}
+            </td>
+            <td class="text-muted">{{ pl.due_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ pl.assigned_to.user.get_full_name|default:"—" }}</td>
+            <td>
+              <div class="progress" style="height:6px;min-width:60px"><div class="progress-bar bg-success" style="width:{{ pl.completion_pct }}%"></div></div>
+              <div style="font-size:0.7rem" class="text-muted">{{ pl.completion_pct }}%</div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No pick lists</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="createPickModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">New Pick List</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body row g-2">
+          <div class="col-6"><label class="form-label small">Order Reference</label><input type="text" name="order_reference" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Customer Name</label><input type="text" name="customer_name" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Customer Address</label><textarea name="customer_address" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-6"><label class="form-label small">Assign To</label><select name="assigned_to_id" class="form-select bg-dark text-white border-secondary"><option value="">Unassigned</option>{% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.user.get_full_name }}</option>{% endfor %}</select></div>
+          <div class="col-6"><label class="form-label small">Due Date</label><input type="date" name="due_date" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-dark">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

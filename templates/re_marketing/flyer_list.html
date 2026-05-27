@@ -1,0 +1,74 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Flyers — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 're_marketing:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Marketing</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-file-richtext me-2 text-info"></i>Listing Flyers</h4>
+  {% if access_level >= 2 %}<button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addFlyerModal"><i class="bi bi-plus-lg me-1"></i>Create Flyer</button>{% endif %}
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Property</th><th>Headline</th><th>Template</th><th>Agent</th><th>Open House</th><th>Price</th><th>Links</th></tr></thead>
+        <tbody>
+          {% for f in flyers %}
+          <tr>
+            <td class="fw-semibold">{{ f.property_address|truncatechars:40 }}</td>
+            <td class="text-muted">{{ f.headline|truncatechars:30|default:"—" }}</td>
+            <td><span class="badge bg-dark border border-secondary">{{ f.get_template_display }}</span></td>
+            <td class="text-muted">{{ f.agent_name|default:"—" }}</td>
+            <td class="text-muted">{{ f.open_house_date|default:"—" }}</td>
+            <td class="text-info fw-bold">{{ f.price|default:"—" }}</td>
+            <td>
+              {% if f.property_url %}<a href="{{ f.property_url }}" target="_blank" class="me-1 text-info small"><i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
+              {% if f.virtual_tour_url %}<a href="{{ f.virtual_tour_url }}" target="_blank" class="text-success small"><i class="bi bi-badge-3d"></i></a>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No flyers yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addFlyerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Create Listing Flyer</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Property Address <span class="text-danger">*</span></label><input type="text" name="property_address" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Template</label>
+            <select name="template" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in templates %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Price</label><input type="text" name="price" class="form-control bg-dark text-white border-secondary" placeholder="e.g. $485,000"></div>
+          <div class="col-md-6"><label class="form-label small">Headline</label><input type="text" name="headline" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Tagline</label><input type="text" name="tagline" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Bedrooms</label><input type="number" name="bedrooms" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Bathrooms</label><input type="number" name="bathrooms" step="0.5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Open House Date</label><input type="text" name="open_house_date" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Sat 15 Mar, 2–4pm"></div>
+          <div class="col-md-4"><label class="form-label small">Agent Name</label><input type="text" name="agent_name" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Agent Phone</label><input type="text" name="agent_phone" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label small">Agent Email</label><input type="email" name="agent_email" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Property Listing URL</label><input type="url" name="property_url" class="form-control bg-dark text-white border-secondary" placeholder="https://"></div>
+          <div class="col-md-6"><label class="form-label small">Virtual Tour URL</label><input type="url" name="virtual_tour_url" class="form-control bg-dark text-white border-secondary" placeholder="https://"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Create Flyer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

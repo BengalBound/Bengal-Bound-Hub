@@ -1,0 +1,21 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if employee %}Edit Employee{% else %}Add Employee{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-plus me-2" style="color:var(--hub-accent);"></i>{% if employee %}Edit Employee{% else %}Add Employee{% endif %}{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:800px;">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">First Name</label><input name="first_name" value="{{ employee.first_name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Last Name</label><input name="last_name" value="{{ employee.last_name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Email</label><input type="email" name="email" value="{{ employee.email|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Phone</label><input name="phone" value="{{ employee.phone|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Department</label><select name="department" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="">— None —</option>{% for dept in departments %}<option value="{{ dept.pk }}" {% if employee.department_id == dept.pk %}selected{% endif %}>{{ dept.name }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Position / Title</label><input name="position" value="{{ employee.position|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Join Date</label><input type="date" name="join_date" value="{{ employee.join_date|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Salary</label><input type="number" step="0.01" name="salary" value="{{ employee.salary|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Address</label><textarea name="address" rows="3" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ employee.address|default:'' }}</textarea></div>
+    </div>
+    <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-hub-primary btn-sm">{% if employee %}Update{% else %}Add{% endif %} Employee</button><a href="{% url 'hr:employees' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a></div>
+  </form>
+</div>
+{% endblock %}

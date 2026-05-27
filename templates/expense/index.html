@@ -1,0 +1,18 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Expense Management — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-receipt me-2" style="color:var(--hub-accent);"></i>Expense Management{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ pending_claims|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Pending Claims</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ approved_this_month|default:"0" }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Approved This Month</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#f87171;">{{ rejected_claims|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Rejected</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Expense Tools</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'expense:claims' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-list-ul me-1"></i>All Claims</a>
+    <a href="{% url 'expense:claim_create' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-plus-lg me-1"></i>Submit Claim</a>
+  </div>
+</div>
+{% endblock %}

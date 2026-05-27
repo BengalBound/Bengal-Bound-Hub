@@ -1,0 +1,64 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Travel Policies — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'travel_desk:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Travel Desk</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-shield-check me-2 text-info"></i>Travel Policies</h4>
+  {% if access_level >= 3 %}<button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addPolicyModal"><i class="bi bi-plus-lg me-1"></i>Add Policy</button>{% endif %}
+</div>
+
+<div class="row g-3">
+  {% for p in policies %}
+  <div class="col-md-6">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2">{{ p.name }}</h6>
+        <div class="small text-muted mb-2">Applies to: <span class="text-white">{{ p.applies_to|capfirst }}</span></div>
+        <div class="row g-1 small">
+          {% if p.max_hotel_rate_usd %}<div class="col-12 d-flex justify-content-between border-bottom border-secondary py-1"><span class="text-muted">Max Hotel Rate</span><span class="text-info">USD {{ p.max_hotel_rate_usd|floatformat:0 }}/night</span></div>{% endif %}
+          <div class="col-12 d-flex justify-content-between border-bottom border-secondary py-1"><span class="text-muted">Economy Only</span><span>{% if p.max_flight_economy %}<span class="badge bg-warning text-dark">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</span></div>
+          <div class="col-12 d-flex justify-content-between border-bottom border-secondary py-1"><span class="text-muted">Advance Booking</span><span class="text-white">{{ p.require_advance_booking_days }} days</span></div>
+          <div class="col-12 d-flex justify-content-between border-bottom border-secondary py-1"><span class="text-muted">Approval Required</span><span>{% if p.require_approval %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</span></div>
+          {% if p.require_approval %}<div class="col-12 d-flex justify-content-between py-1"><span class="text-muted">Approval Threshold</span><span class="text-warning">USD {{ p.approval_threshold|floatformat:0 }}</span></div>{% endif %}
+        </div>
+        {% if p.notes %}<div class="mt-2 text-muted border-top border-secondary pt-2" style="font-size:0.75rem">{{ p.notes }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body text-muted small text-center py-4">No travel policies defined</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addPolicyModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Travel Policy</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_policy">
+        <div class="modal-body row g-2">
+          <div class="col-md-8"><label class="form-label small">Policy Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Applies To</label><input type="text" name="applies_to" value="all" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-6"><label class="form-label small">Max Hotel Rate (USD)</label><input type="number" name="max_hotel_rate_usd" step="0.01" class="form-control bg-dark text-white border-secondary" placeholder="Leave blank for no limit"></div>
+          <div class="col-md-3"><label class="form-label small">Advance Booking (days)</label><input type="number" name="require_advance_booking_days" value="7" min="0" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-3"><label class="form-label small">Approval Threshold</label><input type="number" name="approval_threshold" value="500" step="0.01" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="max_flight_economy" id="econOnly"><label class="form-check-label small" for="econOnly">Economy Only</label></div></div>
+          <div class="col-md-4 d-flex align-items-end"><div class="form-check"><input class="form-check-input" type="checkbox" name="require_approval" id="reqApproval"><label class="form-check-label small" for="reqApproval">Require Approval</label></div></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Policy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

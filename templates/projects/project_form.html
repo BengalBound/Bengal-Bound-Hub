@@ -1,0 +1,45 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Project — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-plus-circle me-2" style="color:var(--hub-accent);"></i>New Project{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'projects:project_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+<div class="glass-panel p-4" style="max-width:720px;">
+  <form method="post">{% csrf_token %}
+    <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Project Name *</label><input name="name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+    <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Description</label><textarea name="description" rows="3" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea></div>
+    <div class="row g-3 mb-3">
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Status</label>
+        <select name="status" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+          <option value="planning">Planning</option>
+          <option value="active">Active</option>
+          <option value="on_hold">On Hold</option>
+        </select>
+      </div>
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Priority</label>
+        <select name="priority" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Start Date</label><input type="date" name="start_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">End Date</label><input type="date" name="end_date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Budget</label><input type="number" name="budget" step="0.01" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="0.00"></div>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Client Name</label><input name="client_name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col"><label class="form-label" style="color:var(--hub-muted);">Client Email</label><input type="email" name="client_email" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-hub-primary">Create Project</button>
+      <a href="{% url 'projects:project_list' slug=biz.slug %}" class="btn btn-hub-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

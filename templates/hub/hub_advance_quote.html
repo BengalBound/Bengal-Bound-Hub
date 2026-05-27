@@ -1,0 +1,152 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Advance Plan Configurator — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-stars me-2" style="color:var(--hub-accent);"></i>Advance Plan Configurator{% endblock %}
+
+{% block extra_head %}
+<style>
+.module-toggle { cursor:pointer; border-radius:10px; padding:0.65rem 0.85rem; border:1px solid var(--hub-border); background:rgba(255,255,255,0.03); transition:all 0.15s; }
+.module-toggle:hover { border-color:rgba(192,132,252,0.4); background:rgba(192,132,252,0.06); }
+.module-toggle.selected { border-color:rgba(192,132,252,0.6); background:rgba(192,132,252,0.12); }
+#total-display { font-size:1.8rem; font-weight:700; color:var(--hub-accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'hub:hub_subscription' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Subscription
+    </a>
+    <p class="text-white-50 small mt-2">Select exactly the modules, storage, and installation types you need. Get a bundle discount on the total price.</p>
+</div>
+
+<form method="post" id="quoteForm">
+{% csrf_token %}
+<div class="row g-4">
+    <!-- Module Selection -->
+    <div class="col-lg-8">
+        <div class="glass-panel p-4">
+            <div class="fw-semibold mb-3">Select Modules</div>
+            <div class="row g-2">
+            {% for entry in modules_with_price %}
+            <div class="col-md-4 col-6">
+                <label class="module-toggle d-flex align-items-center gap-2 w-100">
+                    <input type="checkbox" name="module_ids" value="{{ entry.obj.module_id }}"
+                           class="module-check" data-price="{{ entry.monthly|default:0 }}" style="display:none;">
+                    <i class="bi {{ entry.obj.icon }} flex-shrink-0" style="color:var(--hub-accent);"></i>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="small fw-semibold text-truncate">{{ entry.obj.name }}</div>
+                        <div style="font-size:0.68rem;color:var(--hub-muted);">
+                            {% if entry.monthly > 0 %}${{ entry.monthly }}/mo{% else %}Included{% endif %}
+                        </div>
+                    </div>
+                </label>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Config + Pricing -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4 mb-3">
+            <div class="fw-semibold mb-3">Storage</div>
+            <label class="text-white-50 small">Storage (GB)</label>
+            <input type="range" name="storage_gb" id="storageSlider" min="100" max="5000" step="50" value="100"
+                   class="form-range mb-1">
+            <div class="d-flex justify-content-between text-white-50 small">
+                <span>100 GB</span>
+                <span id="storageVal" class="fw-semibold" style="color:var(--hub-accent);">100 GB</span>
+                <span>5 TB</span>
+            </div>
+        </div>
+
+        <div class="glass-panel p-4 mb-3">
+            <div class="fw-semibold mb-3">Installation Type</div>
+            <div class="d-flex flex-column gap-2">
+                <label class="d-flex align-items-center gap-2">
+                    <input type="checkbox" name="installation_types" value="cloud" checked> <span class="small">Cloud Hosted (included)</span>
+                </label>
+                <label class="d-flex align-items-center gap-2">
+                    <input type="checkbox" name="installation_types" value="ip_locked"
+                           data-price="{{ advance_plan.ip_locked_addon_usd|default:0 }}">
+                    <span class="small">IP-Locked +${{ advance_plan.ip_locked_addon_usd|default:0 }}/mo</span>
+                </label>
+                <label class="d-flex align-items-center gap-2">
+                    <input type="checkbox" name="installation_types" value="self_hosted"
+                           data-price="{{ advance_plan.self_hosted_addon_usd|default:0 }}">
+                    <span class="small">Self-Hosted +${{ advance_plan.self_hosted_addon_usd|default:0 }}/mo</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="glass-panel p-4 mb-3" style="border-color:rgba(192,132,252,0.3);">
+            <div class="text-white-50 small mb-1">Estimated Monthly</div>
+            <div id="total-display">$0</div>
+            {% if advance_plan.advance_discount_percent > 0 %}
+            <div class="text-white-50 small mt-1">
+                <i class="bi bi-tag me-1" style="color:#22c55e;"></i>
+                {{ advance_plan.advance_discount_percent }}% bundle discount applied
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label text-white-50 small">Notes (optional)</label>
+            <textarea name="notes" rows="2" class="form-control" placeholder="Any specific requirements?"
+                      style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-hub-primary w-100">
+            <i class="bi bi-send me-1"></i>Submit Quote Request
+        </button>
+        <p class="text-white-50 small text-center mt-2">Our team will review and confirm pricing within 24 hours.</p>
+    </div>
+</div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const discount = {{ advance_plan.advance_discount_percent|default:0 }};
+const storagePricePerGb = {{ advance_plan.extra_storage_price_per_gb|default:"0.5" }};
+
+function recalc() {
+    let total = 0;
+    // Modules
+    document.querySelectorAll('.module-check:checked').forEach(cb => {
+        total += parseFloat(cb.dataset.price || 0);
+    });
+    // Storage beyond 100GB
+    const gb = parseInt(document.getElementById('storageSlider').value);
+    total += Math.max(0, gb - 100) * storagePricePerGb;
+    // Install types
+    document.querySelectorAll('input[name="installation_types"]:checked').forEach(cb => {
+        total += parseFloat(cb.dataset.price || 0);
+    });
+    // Apply discount
+    const final = total * (1 - discount / 100);
+    document.getElementById('total-display').textContent = '$' + final.toFixed(2);
+}
+
+// Module toggle visual
+document.querySelectorAll('.module-toggle').forEach(label => {
+    label.addEventListener('click', () => {
+        const cb = label.querySelector('.module-check');
+        cb.checked = !cb.checked;
+        label.classList.toggle('selected', cb.checked);
+        recalc();
+    });
+});
+
+// Storage slider
+const slider = document.getElementById('storageSlider');
+slider.addEventListener('input', () => {
+    const gb = parseInt(slider.value);
+    document.getElementById('storageVal').textContent = gb >= 1000 ? (gb/1000).toFixed(1) + ' TB' : gb + ' GB';
+    recalc();
+});
+
+document.querySelectorAll('input[name="installation_types"]').forEach(cb => cb.addEventListener('change', recalc));
+</script>
+{% endblock %}

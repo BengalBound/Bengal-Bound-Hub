@@ -1,0 +1,164 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}Boards — {{ biz.name }} | BengalBound Hub{% endblock %}
+{% block page_title %}<i class="bi bi-kanban me-2" style="color:var(--hub-accent)"></i>Task Boards{% endblock %}
+
+{% block extra_head %}
+<style>
+.board-card {
+    background: rgba(15,23,42,0.6);
+    border: 1px solid var(--hub-border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+.board-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); color: inherit; }
+.board-card-header { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.board-card-body { padding: 1rem; }
+.create-board-btn {
+    background: rgba(15,23,42,0.3);
+    border: 2px dashed rgba(255,255,255,0.1);
+    border-radius: 14px;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--hub-muted);
+}
+.create-board-btn:hover { border-color: var(--hub-accent); color: var(--hub-accent); background: rgba(192,132,252,0.05); }
+.color-default { background: linear-gradient(135deg,#1e293b,#334155); }
+.color-blue { background: linear-gradient(135deg,#1d4ed8,#3b82f6); }
+.color-green { background: linear-gradient(135deg,#15803d,#22c55e); }
+.color-purple { background: linear-gradient(135deg,#7e22ce,#a855f7); }
+.color-red { background: linear-gradient(135deg,#b91c1c,#ef4444); }
+.color-orange { background: linear-gradient(135deg,#c2410c,#f97316); }
+.color-teal { background: linear-gradient(135deg,#0f766e,#14b8a6); }
+.color-indigo { background: linear-gradient(135deg,#4338ca,#6366f1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Your Boards</h4>
+        <p class="text-white-50 small mb-0">{{ boards.count }} active board{{ boards.count|pluralize }} across {{ biz.name }}</p>
+    </div>
+    <button class="btn btn-hub-primary px-4" data-bs-toggle="modal" data-bs-target="#createBoardModal">
+        <i class="bi bi-plus-lg me-2"></i>New Board
+    </button>
+</div>
+
+<!-- Boards Grid -->
+<div class="row g-3 mb-5">
+    {% for board in boards %}
+    <div class="col-sm-6 col-md-4 col-xl-3">
+        <a href="{% url 'task_board:board_detail' slug=biz.slug board_id=board.id %}" class="board-card">
+            <div class="board-card-header color-{{ board.color }}">
+                <i class="bi bi-kanban text-white" style="opacity:0.7;"></i>
+            </div>
+            <div class="board-card-body">
+                <div class="fw-semibold mb-1 text-truncate">{{ board.name }}</div>
+                {% if board.description %}
+                <div class="text-white-50 small mb-2 text-truncate">{{ board.description }}</div>
+                {% endif %}
+                <div class="d-flex align-items-center gap-3 mt-2" style="font-size:0.75rem; color:var(--hub-muted);">
+                    <span><i class="bi bi-card-text me-1"></i>{{ board.get_card_count }} cards</span>
+                    <span><i class="bi bi-check2-circle me-1"></i>{{ board.get_done_count }} done</span>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+
+    <!-- Create New Board Button -->
+    <div class="col-sm-6 col-md-4 col-xl-3">
+        <div class="create-board-btn" data-bs-toggle="modal" data-bs-target="#createBoardModal">
+            <i class="bi bi-plus-circle fs-2 mb-2"></i>
+            <span class="small fw-medium">Create New Board</span>
+        </div>
+    </div>
+</div>
+
+{% if archived_boards %}
+<!-- Archived Boards -->
+<div class="mt-4">
+    <button class="btn btn-hub-outline btn-sm mb-3" data-bs-toggle="collapse" data-bs-target="#archivedBoards">
+        <i class="bi bi-archive me-2"></i>Archived Boards ({{ archived_boards.count }})
+    </button>
+    <div class="collapse" id="archivedBoards">
+        <div class="row g-3">
+            {% for board in archived_boards %}
+            <div class="col-sm-6 col-md-4 col-xl-3">
+                <div class="glass-panel p-3" style="opacity:0.6;">
+                    <div class="fw-semibold text-truncate mb-1">{{ board.name }}</div>
+                    <div class="text-white-50 small">Archived</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Create Board Modal -->
+<div class="modal fade" id="createBoardModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1e293b; border:1px solid var(--hub-border); border-radius:16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Create New Board</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'task_board:board_create' slug=biz.slug %}">
+                {% csrf_token %}
+                <div class="modal-body pt-3">
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50">Board Name</label>
+                        <input type="text" name="name" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="e.g. Product Roadmap" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50">Description <span class="text-white-25">(optional)</span></label>
+                        <input type="text" name="description" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="What is this board for?">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50 d-block">Color</label>
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            {% for val, hex in board_colors %}
+                            <label class="d-flex align-items-center" style="cursor:pointer;">
+                                <input type="radio" name="color" value="{{ val }}" {% if val == 'default' %}checked{% endif %} class="d-none board-color-radio">
+                                <span class="board-color-swatch color-{{ val }}" style="width:32px;height:32px;border-radius:8px;border:2px solid transparent;transition:border-color 0.15s;display:block;" data-val="{{ val }}"></span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-hub-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-hub-primary px-4">Create Board</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Color swatch selection
+document.querySelectorAll('.board-color-radio').forEach(radio => {
+    radio.addEventListener('change', () => {
+        document.querySelectorAll('.board-color-swatch').forEach(s => s.style.borderColor = 'transparent');
+        radio.nextElementSibling.style.borderColor = '#c084fc';
+    });
+});
+// Pre-select default
+const defaultRadio = document.querySelector('.board-color-radio[value="default"]');
+if (defaultRadio) defaultRadio.nextElementSibling.style.borderColor = '#c084fc';
+</script>
+{% endblock %}

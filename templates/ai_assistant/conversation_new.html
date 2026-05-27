@@ -1,0 +1,30 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Conversation — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-chat-dots me-2" style="color:var(--hub-accent);"></i>New Conversation{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4" style="max-width:700px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-4">
+      <label class="form-label" style="color:var(--hub-muted);">Conversation Title</label>
+      <input name="title" class="form-control" placeholder="e.g. Marketing strategy ideas" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required>
+    </div>
+    <div class="mb-4">
+      <label class="form-label" style="color:var(--hub-muted);">Select Template (optional)</label>
+      <select name="template" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+        <option value="">— None —</option>
+        {% for tpl in prompt_templates %}<option value="{{ tpl.pk }}">{{ tpl.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="form-label" style="color:var(--hub-muted);">First Message</label>
+      <textarea name="first_message" rows="5" class="form-control" placeholder="Ask anything…" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-hub-primary btn-sm">Start Conversation</button>
+      <a href="{% url 'ai_assistant:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

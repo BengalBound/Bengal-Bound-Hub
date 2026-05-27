@@ -1,0 +1,78 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}AR/AP Ledger — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-journal-text me-2" style="color:var(--hub-accent);"></i>AR/AP Ledger{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#38bdf8;">{{ total_ar|floatformat:0 }}</div><div class="text-white-50 small">Total AR</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ overdue_ar|floatformat:0 }}</div><div class="text-white-50 small">Overdue AR</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ total_ap|floatformat:0 }}</div><div class="text-white-50 small">Total AP</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'factory_ops:ar_ap' slug=biz.slug %}" class="btn btn-sm {% if not type_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+      <a href="?type=receivable" class="btn btn-sm {% if type_filter == 'receivable' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Receivable (AR)</a>
+      <a href="?type=payable" class="btn btn-sm {% if type_filter == 'payable' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Payable (AP)</a>
+    </div>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Add Entry</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Entry ID</th><th>Type</th><th>Party</th><th>Invoice Ref</th><th>Amount</th><th>Due Date</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for e in entries %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="color:var(--hub-accent);font-weight:600;">{{ e.entry_id }}</td>
+          <td><span class="badge" style="background:{% if e.entry_type == 'receivable' %}rgba(56,189,248,0.15){% else %}rgba(251,191,36,0.15){% endif %};color:{% if e.entry_type == 'receivable' %}#38bdf8{% else %}#fbbf24{% endif %};">{{ e.entry_type|upper }}</span></td>
+          <td>{{ e.party }}</td>
+          <td>{{ e.invoice_ref|default:"—" }}</td>
+          <td style="font-weight:600;">{{ e.amount|floatformat:0 }}</td>
+          <td style="{% if e.status == 'overdue' %}color:#f87171;{% endif %}">{{ e.due_date|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if e.status == 'paid' %}rgba(34,197,94,0.2){% elif e.status == 'overdue' %}rgba(248,113,113,0.2){% else %}rgba(251,191,36,0.2){% endif %};color:{% if e.status == 'paid' %}#22c55e{% elif e.status == 'overdue' %}#f87171{% else %}#fbbf24{% endif %};">{{ e.status|upper }}</span></td>
+          <td class="d-flex gap-1">
+            {% if e.status != 'paid' %}
+            <form method="post" style="display:inline;">{% csrf_token %}<input type="hidden" name="action" value="mark_paid"><input type="hidden" name="pk" value="{{ e.pk }}"><button class="btn btn-sm" style="background:rgba(34,197,94,0.1);color:#22c55e;border:none;padding:2px 8px;" title="Mark Paid"><i class="bi bi-check2"></i></button></form>
+            {% endif %}
+            <form method="post" style="display:inline;" onsubmit="return confirm('Delete entry?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ e.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-white-50 py-4">No entries found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add AR/AP Entry</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label text-white-50 small">Type</label>
+          <select name="entry_type" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="receivable">Receivable (AR)</option><option value="payable">Payable (AP)</option>
+          </select>
+        </div>
+        <div class="col-md-8"><label class="form-label text-white-50 small">Party *</label><input type="text" name="party" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Invoice Ref</label><input type="text" name="invoice_ref" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Amount</label><input type="number" name="amount" value="0" step="0.01" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Due Date</label><input type="date" name="due_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="open">Open</option><option value="overdue">Overdue</option><option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Entry</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

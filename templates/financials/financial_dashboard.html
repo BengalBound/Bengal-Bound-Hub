@@ -1,0 +1,163 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}P&L Dashboard — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-bar-chart-line me-2" style="color:var(--hub-accent);"></i>Profit &amp; Loss Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    .pl-metric { border-radius:14px; padding:1.5rem; }
+    .pl-revenue { background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); }
+    .pl-expense { background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.2); }
+    .pl-net-pos  { background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.2); }
+    .pl-net-neg  { background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.3); }
+    .cat-bar { height:8px; border-radius:4px; background:var(--hub-accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <p class="text-white-50 mb-0">Financial overview aggregated from Invoicing, Expenses, and Payroll</p>
+    </div>
+    <a href="{% url 'financials:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Financials
+    </a>
+</div>
+
+<!-- Top P&L Metrics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="pl-metric pl-revenue text-center">
+            <div class="text-white-50 small mb-1">Total Revenue</div>
+            <div style="font-size:1.6rem;font-weight:700;color:#22c55e;">${{ total_revenue|floatformat:2 }}</div>
+            <div class="text-white-50" style="font-size:0.75rem;">from {{ invoice_count }} invoice(s)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="pl-metric pl-expense text-center">
+            <div class="text-white-50 small mb-1">Total Expenses</div>
+            <div style="font-size:1.6rem;font-weight:700;color:#f87171;">${{ total_expenses|floatformat:2 }}</div>
+            <div class="text-white-50" style="font-size:0.75rem;">claims + staff + payroll</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="pl-metric {% if net_profit >= 0 %}pl-net-pos{% else %}pl-net-neg{% endif %} text-center">
+            <div class="text-white-50 small mb-1">Net {{ net_profit >= 0|yesno:"Profit,Loss" }}</div>
+            <div style="font-size:1.6rem;font-weight:700;color:{% if net_profit >= 0 %}#38bdf8{% else %}#f87171{% endif %};">
+                {% if net_profit < 0 %}-{% endif %}${{ net_profit|floatformat:2|slice:"1:" if net_profit < 0 else net_profit|floatformat:2 }}
+            </div>
+            <div class="text-white-50" style="font-size:0.75rem;">Revenue − Expenses</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="pl-metric pl-expense text-center">
+            <div class="text-white-50 small mb-1">Outstanding Invoices</div>
+            <div style="font-size:1.6rem;font-weight:700;color:#fbbf24;">${{ outstanding|floatformat:2 }}</div>
+            <div class="text-white-50" style="font-size:0.75rem;">yet to be collected</div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Breakdown -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="glass-panel p-3 h-100">
+            <div class="fw-semibold mb-3">Expense Breakdown</div>
+            <div class="d-flex justify-content-between text-white-50 small mb-2">
+                <span><i class="bi bi-file-earmark-check me-1"></i>Approved Claims</span>
+                <span>${{ claimed_expense_total|floatformat:2 }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-white-50 small mb-2">
+                <span><i class="bi bi-receipt me-1"></i>Staff Expenses</span>
+                <span>${{ staff_expense_total|floatformat:2 }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-white-50 small mb-3">
+                <span><i class="bi bi-people me-1"></i>Payroll</span>
+                <span>${{ payroll_total|floatformat:2 }}</span>
+            </div>
+            <hr style="border-color:var(--hub-border);">
+            <div class="d-flex justify-content-between fw-semibold small">
+                <span>Total</span>
+                <span style="color:#f87171;">${{ total_expenses|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Expenses by Category -->
+    <div class="col-md-8">
+        <div class="glass-panel p-3 h-100">
+            <div class="fw-semibold mb-3">Staff Expenses by Category</div>
+            {% if expense_by_category %}
+                {% with max_cat=expense_by_category.0.total %}
+                {% for cat in expense_by_category %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>{{ cat.category_name }}</span>
+                        <span class="text-white-50">${{ cat.total|floatformat:2 }} ({{ cat.count }})</span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.05);border-radius:4px;height:8px;">
+                        <div class="cat-bar" style="width:{% if max_cat %}{% widthratio cat.total max_cat 100 %}{% else %}0{% endif %}%;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endwith %}
+            {% else %}
+                <p class="text-white-50 small mb-0">No approved staff expenses yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Pending Reports + Recent Expenses -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="glass-panel p-3">
+            <div class="fw-semibold mb-3">
+                Pending Report Approvals
+                {% if pending_reports %}<span class="badge ms-2" style="background:rgba(251,191,36,0.2);color:#fbbf24;">{{ pending_reports|length }}</span>{% endif %}
+            </div>
+            {% if pending_reports %}
+            <div class="d-flex flex-column gap-2">
+                {% for rep in pending_reports %}
+                <a href="{% url 'financials:report_detail' slug=biz.slug pk=rep.pk %}" class="d-flex align-items-start gap-2 p-2 rounded text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);">
+                    <i class="bi bi-file-text mt-1" style="color:var(--hub-accent);flex-shrink:0;"></i>
+                    <div class="overflow-hidden">
+                        <div class="small fw-semibold text-truncate" style="color:var(--hub-text);">{{ rep.title }}</div>
+                        <div class="text-white-50" style="font-size:0.72rem;">{{ rep.get_report_type_display }} · {{ rep.submitted_by.get_full_name|default:rep.submitted_by.email }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-white-50 small mb-0">No pending reports.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="glass-panel p-3">
+            <div class="fw-semibold mb-3">Recent Expenses</div>
+            {% if recent_expenses %}
+            <div class="d-flex flex-column gap-2">
+                {% for exp in recent_expenses %}
+                <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);">
+                    <div class="overflow-hidden me-2">
+                        <div class="small fw-semibold text-truncate" style="color:var(--hub-text);">{{ exp.title }}</div>
+                        <div class="text-white-50" style="font-size:0.72rem;">{{ exp.category_name }} · {{ exp.submitted_by.get_full_name|default:exp.submitted_by.email }}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <span class="small fw-semibold">${{ exp.amount|floatformat:2 }}</span>
+                        <span class="badge" style="font-size:0.65rem;
+                            {% if exp.status == 'approved' %}background:rgba(34,197,94,0.15);color:#22c55e;{% elif exp.status == 'rejected' %}background:rgba(248,113,113,0.15);color:#f87171;{% elif exp.status == 'submitted' %}background:rgba(251,191,36,0.15);color:#fbbf24;{% else %}background:rgba(255,255,255,0.08);color:var(--hub-muted);{% endif %}">
+                            {{ exp.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-white-50 small mb-0">No expenses logged yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

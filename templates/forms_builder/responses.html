@@ -1,0 +1,57 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Responses — {{ form.title }} | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'forms_builder:form_edit' slug=biz.slug pk=form.pk %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>Responses: {{ form.title }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+    <div class="glass-panel px-4 py-2">
+        <span class="fw-bold" style="color:var(--hub-accent);font-size:1.4rem;">{{ responses.count }}</span>
+        <span class="text-white-50 small ms-1">total response{{ responses.count|pluralize }}</span>
+    </div>
+</div>
+
+{% if responses %}
+<div class="glass-panel p-0" style="overflow:hidden;">
+<table class="table table-dark table-hover mb-0" style="font-size:0.83rem;">
+<thead>
+    <tr style="border-bottom:1px solid var(--hub-border);">
+        <th class="px-4 py-3 text-white-50 fw-normal">#</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Name</th>
+        <th class="px-4 py-3 text-white-50 fw-normal">Email</th>
+        {% for field in fields %}
+        <th class="px-4 py-3 text-white-50 fw-normal">{{ field.label|truncatechars:20 }}</th>
+        {% endfor %}
+        <th class="px-4 py-3 text-white-50 fw-normal">Submitted</th>
+    </tr>
+</thead>
+<tbody>
+{% for resp in responses %}
+<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+    <td class="px-4 py-3 text-white-50">{{ forloop.counter }}</td>
+    <td class="px-4 py-3">{{ resp.respondent_name|default:"—" }}</td>
+    <td class="px-4 py-3">{{ resp.respondent_email|default:"—" }}</td>
+    {% for field in fields %}
+    <td class="px-4 py-3 text-white-50">
+        {% with ans=resp.answers|default_if_none:"" %}
+        {{ ans|default:"—" }}
+        {% endwith %}
+    </td>
+    {% endfor %}
+    <td class="px-4 py-3 text-white-50">{{ resp.submitted_at|date:"M d, Y H:i" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-inbox" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+    <p class="text-white-50 mt-3 mb-0">No responses yet. Share the public link to start collecting.</p>
+</div>
+{% endif %}
+{% endblock %}

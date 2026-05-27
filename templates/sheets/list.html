@@ -1,0 +1,49 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Sheets | {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-table me-2" style="color:var(--hub-accent);"></i>Sheets{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-white-50 mb-0 small">Build and share spreadsheets with your team.</p>
+    <a href="{% url 'sheets:sheet_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>New Spreadsheet
+    </a>
+</div>
+
+{% if sheets %}
+<div class="row g-3">
+{% for sheet in sheets %}
+<div class="col-md-4 col-lg-3">
+    <div class="glass-panel p-3 h-100 d-flex flex-column">
+        <i class="bi bi-table mb-2" style="font-size:1.6rem;color:#22c55e;"></i>
+        <h6 class="fw-semibold mb-1 flex-grow-1" style="font-size:0.88rem;">{{ sheet.title|truncatechars:40 }}</h6>
+        <div class="text-white-50 mb-3" style="font-size:0.72rem;">
+            Updated {{ sheet.updated_at|date:"M d, Y" }}
+            {% if sheet.data %}&bull; {{ sheet.data|length }} rows{% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'sheets:sheet_edit' slug=biz.slug pk=sheet.pk %}" class="btn btn-hub-primary btn-sm flex-grow-1">
+                <i class="bi bi-pencil me-1"></i>Open
+            </a>
+            <form method="post" action="{% url 'sheets:sheet_delete' slug=biz.slug pk=sheet.pk %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;"
+                        onclick="return confirm('Delete this spreadsheet?')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-table" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+    <p class="text-white-50 mt-3 mb-3">No spreadsheets yet.</p>
+    <a href="{% url 'sheets:sheet_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Create Spreadsheet
+    </a>
+</div>
+{% endif %}
+{% endblock %}

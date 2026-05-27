@@ -1,0 +1,132 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}MES Dashboard — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-gear-wide-connected me-2" style="color:var(--hub-accent);"></i>Manufacturing Execution System{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#fbbf24;">{{ status_counts.planned }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Planned Orders</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#22c55e;">{{ status_counts.in_progress }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">In Progress</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#38bdf8;">{{ status_counts.completed }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Completed</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#ef4444;">{{ status_counts.paused }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Paused</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Nav -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a href="{% url 'mes:work_centers' slug=biz.slug %}" class="glass-panel p-4 d-flex align-items-center gap-3 text-decoration-none" style="border-color:rgba(56,189,248,0.2);">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(56,189,248,0.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#38bdf8;">
+                <i class="bi bi-cpu"></i>
+            </div>
+            <div>
+                <div class="fw-semibold">Work Centers</div>
+                <div style="color:var(--hub-muted);font-size:0.8rem;">{{ work_centers.count }} configured</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'mes:production_orders' slug=biz.slug %}" class="glass-panel p-4 d-flex align-items-center gap-3 text-decoration-none" style="border-color:rgba(34,197,94,0.2);">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#22c55e;">
+                <i class="bi bi-gear-wide-connected"></i>
+            </div>
+            <div>
+                <div class="fw-semibold">Production Orders</div>
+                <div style="color:var(--hub-muted);font-size:0.8rem;">{{ active_orders.count }} active</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'mes:downtime' slug=biz.slug %}" class="glass-panel p-4 d-flex align-items-center gap-3 text-decoration-none" style="border-color:rgba(239,68,68,0.2);">
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#ef4444;">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div class="fw-semibold">Downtime Logs</div>
+                <div style="color:var(--hub-muted);font-size:0.8rem;">Record issues</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Bottlenecks -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-funnel me-2" style="color:#fbbf24;"></i>Production Bottlenecks</h6>
+            {% if bottleneck_stations %}
+            {% for station in bottleneck_stations %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span style="font-size:0.85rem;">{{ station.work_center.name }} <span style="color:var(--hub-muted);font-size:0.75rem;">({{ station.routing.name }})</span></span>
+                    <span style="font-size:0.75rem;font-weight:600;color:{% if station.active_count > 10 %}#ef4444{% elif station.active_count > 5 %}#fbbf24{% else %}#38bdf8{% endif %};">{{ station.active_count }} active</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:4px;">
+                    <div style="height:6px;border-radius:4px;width:{% widthratio station.active_count 20 100 %}%;background:{% if station.active_count > 10 %}#ef4444{% elif station.active_count > 5 %}#fbbf24{% else %}#38bdf8{% endif %};"></div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-check2-all" style="font-size:2rem;color:#22c55e;opacity:0.6;"></i>
+                <p style="color:var(--hub-muted);font-size:0.85rem;margin-top:0.5rem;">No active bottlenecks detected.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent QC -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-shield-check me-2" style="color:#c084fc;"></i>Recent QC Checks</h6>
+                <a href="{% url 'mes:production_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">View All</a>
+            </div>
+            {% if recent_checks %}
+            {% for qc in recent_checks %}
+            <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--hub-border);">
+                <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:{% if qc.result == 'pass' %}rgba(34,197,94,0.12){% elif qc.result == 'fail' %}rgba(239,68,68,0.12){% else %}rgba(251,191,36,0.12){% endif %};">
+                    <i class="bi {% if qc.result == 'pass' %}bi-check-lg text-success{% elif qc.result == 'fail' %}bi-x-lg text-danger{% else %}bi-dash-lg text-warning{% endif %}"></i>
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="fw-semibold text-truncate" style="font-size:0.85rem;">{{ qc.checkpoint }}</div>
+                    <div style="color:var(--hub-muted);font-size:0.75rem;">{{ qc.production_order.order_number }} · {{ qc.production_order.product_name }}</div>
+                </div>
+                <div style="color:var(--hub-muted);font-size:0.72rem;white-space:nowrap;">{{ qc.inspected_at|timesince }} ago</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-journal-x" style="font-size:2rem;opacity:0.4;"></i>
+                <p style="color:var(--hub-muted);font-size:0.85rem;margin-top:0.5rem;">No quality checks recorded recently.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 text-end">
+    <a href="{% url 'mes:executive_dashboard' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">
+        <i class="bi bi-graph-up-arrow me-1"></i>Executive View
+    </a>
+</div>
+{% endblock %}

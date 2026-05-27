@@ -1,0 +1,62 @@
+{% extends 'console_admin/base_console.html' %}
+{% block title %}Select a Facebook Page | BengalBound{% endblock %}
+{% block page_title %}Select Your Facebook Page{% endblock %}
+{% block page_subtitle %}We found multiple Pages on your account. Choose the one Serea should manage.{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'console_admin:serea_platforms' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-x me-1"></i>Cancel
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="glass-panel p-4">
+      <p class="text-white-50 small mb-4">
+        <i class="bi bi-info-circle me-1"></i>
+        Serea can manage one Facebook Page at a time. Select the Page you want her to moderate and post on.
+        If you have a linked Instagram Business account, it will be connected automatically too.
+      </p>
+
+      <form method="post" action="{% url 'console_admin:serea_fb_page_select' %}">
+        {% csrf_token %}
+
+        <div class="d-flex flex-column gap-3 mb-4">
+          {% for page in pages %}
+          <label class="page-option d-flex align-items-center gap-3 p-3 rounded-3"
+                 style="cursor:pointer;border:1px solid rgba(255,255,255,0.1);transition:all .15s;">
+            <input type="radio" name="page_id" value="{{ page.id }}"
+                   class="form-check-input flex-shrink-0" style="width:1.2rem;height:1.2rem;"
+                   {% if forloop.first %}checked{% endif %}>
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:42px;height:42px;background:#1877f2;">
+              <i class="bi bi-facebook text-white"></i>
+            </div>
+            <div>
+              <div class="fw-semibold text-white">{{ page.name }}</div>
+              <div class="text-white-50" style="font-size:.75rem;">ID: {{ page.id }}{% if page.category %} · {{ page.category }}{% endif %}</div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn w-100 rounded-pill fw-semibold py-2"
+                style="background:#1877f2;color:#fff;">
+          <i class="bi bi-check2-circle me-2"></i>Connect Selected Page
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .page-option:has(input:checked) {
+    border-color: #1877f2 !important;
+    background: rgba(24,119,242,0.1);
+  }
+  .page-option:hover { border-color: rgba(24,119,242,0.4) !important; }
+</style>
+{% endblock %}

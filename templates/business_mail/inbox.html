@@ -1,0 +1,64 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}{{ folder|title }} — {{ account.address }} | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'business_mail:mail_home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>{{ account.display_name|default:account.address }}</span>
+    <span class="badge" style="background:rgba(192,132,252,0.12);color:var(--hub-accent);font-size:0.7rem;">{{ folder|title }}</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.mail-row { transition:background 0.1s; border-bottom:1px solid var(--hub-border); }
+.mail-row:hover { background:rgba(255,255,255,0.03); }
+.mail-row.unread .mail-subject { font-weight:700; }
+.mail-row .mail-subject { font-size:0.88rem; }
+.folder-tab { font-size:0.8rem; padding:4px 14px; border-radius:8px; color:var(--hub-muted); text-decoration:none; }
+.folder-tab.active { background:rgba(192,132,252,0.15); color:var(--hub-accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap align-items-center justify-content-between">
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="?folder=inbox" class="folder-tab {% if folder == 'inbox' %}active{% endif %}"><i class="bi bi-inbox me-1"></i>Inbox</a>
+    <a href="?folder=sent" class="folder-tab {% if folder == 'sent' %}active{% endif %}"><i class="bi bi-send me-1"></i>Sent</a>
+    <a href="?folder=drafts" class="folder-tab {% if folder == 'drafts' %}active{% endif %}"><i class="bi bi-file-earmark me-1"></i>Drafts</a>
+    <a href="?folder=starred" class="folder-tab {% if folder == 'starred' %}active{% endif %}"><i class="bi bi-star me-1"></i>Starred</a>
+    <a href="?folder=trash" class="folder-tab {% if folder == 'trash' %}active{% endif %}"><i class="bi bi-trash me-1"></i>Trash</a>
+    </div>
+    <div class="d-flex gap-2">
+        <form class="d-flex gap-2">
+            <input type="hidden" name="folder" value="{{ folder }}">
+            <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm" placeholder="Search…" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);max-width:200px;">
+            <button type="submit" class="btn btn-hub-outline btn-sm"><i class="bi bi-search"></i></button>
+        </form>
+        <a href="{% url 'business_mail:mail_compose' slug=biz.slug %}" class="btn btn-hub-primary btn-sm">
+            <i class="bi bi-pencil-square me-1"></i>Compose
+        </a>
+    </div>
+</div>
+
+{% if messages %}
+<div class="glass-panel p-0" style="overflow:hidden;">
+{% for msg in messages %}
+<a href="{% url 'business_mail:mail_view' slug=biz.slug account_id=account.pk msg_id=msg.pk %}" class="text-decoration-none d-block">
+<div class="mail-row px-4 py-3 d-flex align-items-center gap-3 {% if not msg.is_read %}unread{% endif %}">
+    {% if msg.is_starred %}<i class="bi bi-star-fill" style="color:#fbbf24;flex-shrink:0;"></i>{% else %}<i class="bi bi-circle{% if not msg.is_read %}-fill{% endif %}" style="color:{% if not msg.is_read %}var(--hub-accent){% else %}transparent{% endif %};font-size:0.5rem;flex-shrink:0;"></i>{% endif %}
+    <div class="flex-shrink-0" style="width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.82rem;color:{% if not msg.is_read %}#f8fafc{% else %}var(--hub-muted){% endif %};">
+        {{ msg.from_address }}
+    </div>
+    <div class="flex-grow-1 mail-subject text-white" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ msg.subject|default:"(no subject)" }}</div>
+    <div class="text-white-50 flex-shrink-0" style="font-size:0.75rem;">{{ msg.received_at|date:"M d, H:i" }}</div>
+</div>
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center">
+    <i class="bi bi-inbox" style="font-size:3rem;color:rgba(255,255,255,0.1);"></i>
+    <p class="text-white-50 mt-3 mb-0">{{ folder|title }} is empty.</p>
+</div>
+{% endif %}
+{% endblock %}

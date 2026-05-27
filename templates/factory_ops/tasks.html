@@ -1,0 +1,79 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Tasks — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-check2-square me-2" style="color:var(--hub-accent);"></i>Factory Tasks{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ open_count }}</div><div class="text-white-50 small">Open Tasks</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#f87171;">{{ overdue_count }}</div><div class="text-white-50 small">Overdue</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ task_list.count }}</div><div class="text-white-50 small">Showing</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'factory_ops:tasks' slug=biz.slug %}" class="btn btn-sm {% if not status_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+      <a href="?status=todo" class="btn btn-sm {% if status_filter == 'todo' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Todo</a>
+      <a href="?status=in_progress" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">In Progress</a>
+      <a href="?status=done" class="btn btn-sm {% if status_filter == 'done' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Done</a>
+    </div>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Add Task</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Task ID</th><th>Title</th><th>Assignee</th><th>Category</th><th>Priority</th><th>Due Date</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for t in task_list %}
+        <tr style="border-color:var(--hub-border);{% if t.status == 'done' %}opacity:0.6;{% endif %}">
+          <td style="color:var(--hub-accent);font-weight:600;">{{ t.task_id }}</td>
+          <td style="{% if t.status == 'done' %}text-decoration:line-through;{% endif %}">{{ t.title|truncatechars:40 }}</td>
+          <td>{{ t.assignee|default:"—" }}</td>
+          <td>{{ t.category|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if t.priority == 'urgent' %}rgba(239,68,68,0.3){% elif t.priority == 'high' %}rgba(248,113,113,0.2){% else %}rgba(255,255,255,0.08){% endif %};color:{% if t.priority == 'urgent' %}#ef4444{% elif t.priority == 'high' %}#f87171{% else %}var(--hub-muted){% endif %};">{{ t.priority }}</span></td>
+          <td style="{% if t.is_overdue and t.status != 'done' %}color:#f87171;{% endif %}">{{ t.due_date|default:"—" }}{% if t.is_overdue and t.status != 'done' %} ⚠{% endif %}</td>
+          <td><span class="badge" style="background:{% if t.status == 'done' %}rgba(34,197,94,0.15){% elif t.status == 'in_progress' %}rgba(56,189,248,0.15){% else %}rgba(255,255,255,0.06){% endif %};color:{% if t.status == 'done' %}#22c55e{% elif t.status == 'in_progress' %}#38bdf8{% else %}var(--hub-muted){% endif %};">{{ t.status }}</span></td>
+          <td class="d-flex gap-1">
+            {% if t.status != 'done' %}
+            <form method="post" style="display:inline;">{% csrf_token %}<input type="hidden" name="action" value="complete"><input type="hidden" name="pk" value="{{ t.pk }}"><button class="btn btn-sm" style="background:rgba(34,197,94,0.1);color:#22c55e;border:none;padding:2px 8px;"><i class="bi bi-check2"></i></button></form>
+            {% endif %}
+            <form method="post" style="display:inline;" onsubmit="return confirm('Delete task?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ t.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-white-50 py-4">No tasks found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Task</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-12"><label class="form-label text-white-50 small">Title *</label><input type="text" name="title" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Assignee</label><input type="text" name="assignee" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Priority</label>
+          <select name="priority" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="low">Low</option><option value="med" selected>Med</option><option value="high">High</option><option value="urgent">Urgent</option>
+          </select>
+        </div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Due Date</label><input type="date" name="due_date" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Category</label><input type="text" name="category" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="todo">Todo</option><option value="in_progress">In Progress</option><option value="blocked">Blocked</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Task</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}KPI Templates — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-bar-chart-steps me-2" style="color:var(--hub-accent);"></i>KPI Templates{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <p class="text-white-50 mb-0 small">Define role-based KPI criteria and bonus percentages. Evaluations link to these templates.</p>
+  <div class="d-flex gap-2">
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addForm"><i class="bi bi-plus-lg me-1"></i>New Template</button>
+    <a href="{% url 'factory_ops:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+<!-- Add Template Form -->
+<div class="collapse mb-4" id="addForm">
+  <div class="glass-panel p-4">
+    <h6 class="mb-3" style="color:var(--hub-accent);">New KPI Template</h6>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Role / Designation</label>
+          <input type="text" name="role" class="form-control" placeholder="e.g. Cutting In-Charge" required style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Department</label>
+          <select name="department" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for val, label in dept_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Max Bonus (% of salary at 100% score)</label>
+          <input type="number" name="bonus_pct" value="10" step="0.5" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-12">
+          <label class="form-label text-white-50 small">Notes</label>
+          <input type="text" name="notes" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="text-white-50 small">KPI Criteria (name · weight · description)</span>
+          <button type="button" class="btn btn-hub-outline btn-sm" id="addCriterion"><i class="bi bi-plus me-1"></i>Add Criterion</button>
+        </div>
+        <div id="criteriaRows">
+          <div class="row g-2 mb-2 criterion-row">
+            <div class="col-md-4"><input type="text" name="criteria_name" class="form-control form-control-sm" placeholder="e.g. Daily Output Achievement" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+            <div class="col-md-2"><input type="number" name="criteria_weight" value="20" min="0" max="100" step="1" class="form-control form-control-sm" placeholder="Weight" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+            <div class="col-md-5"><input type="text" name="criteria_desc" class="form-control form-control-sm" placeholder="What is measured" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+            <div class="col-md-1"><button type="button" class="btn btn-sm w-100 remove-criterion" style="background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.3);color:#f87171;">×</button></div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-hub-primary">Save Template</button>
+    </form>
+  </div>
+</div>
+
+<!-- Templates Table -->
+{% if templates %}
+<div class="glass-panel p-0">
+  {% for tpl in templates %}
+  <div class="p-4" style="border-bottom:1px solid var(--border);">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+      <div>
+        <span style="font-weight:600;color:var(--hub-text);">{{ tpl.role }}</span>
+        <span class="badge ms-2" style="background:rgba(192,132,252,0.12);color:#c084fc;font-size:.68rem;">{{ tpl.department }}</span>
+        {% if not tpl.is_active %}<span class="badge ms-1" style="background:rgba(248,113,113,0.12);color:#f87171;font-size:.68rem;">Inactive</span>{% endif %}
+        <span class="ms-2 text-white-50 small">Bonus: <strong style="color:#22c55e;">{{ tpl.bonus_pct_of_salary }}%</strong> of salary</span>
+        <span class="ms-2 text-white-50 small">Total Weight: {{ tpl.total_weight }}</span>
+      </div>
+      <div class="d-flex gap-2">
+        <form method="post" class="d-inline">
+          {% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="pk" value="{{ tpl.pk }}">
+          <button type="submit" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border-color:var(--border);color:var(--hub-muted);font-size:.72rem;">{% if tpl.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+        </form>
+        <form method="post" class="d-inline" onsubmit="return confirm('Delete this template?')">
+          {% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ tpl.pk }}">
+          <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.25);color:#f87171;font-size:.72rem;"><i class="bi bi-trash"></i></button>
+        </form>
+      </div>
+    </div>
+    {% if tpl.criteria %}
+    <div class="table-responsive">
+      <table class="table table-dark mb-0" style="font-size:.78rem;">
+        <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+          <th>#</th><th>Criterion</th><th style="width:80px;">Weight</th><th>Description</th>
+        </tr></thead>
+        <tbody>
+          {% for c in tpl.criteria %}
+          <tr style="border-color:var(--border);">
+            <td class="text-white-50">{{ forloop.counter }}</td>
+            <td style="color:var(--hub-text);">{{ c.name }}</td>
+            <td><span style="color:var(--hub-accent);">{{ c.weight }}</span></td>
+            <td class="text-white-50">{{ c.description }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-white-50 small mb-0"><i class="bi bi-info-circle me-1"></i>No criteria defined yet.</p>
+    {% endif %}
+    {% if tpl.notes %}<p class="text-white-50 small mt-2 mb-0">{{ tpl.notes }}</p>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="glass-panel p-5 text-center text-white-50">
+  <i class="bi bi-bar-chart-steps" style="font-size:2rem;opacity:.3;"></i>
+  <p class="mt-2 mb-0">No KPI templates yet. Create your first template above.</p>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('addCriterion').addEventListener('click', function() {
+  const row = document.querySelector('.criterion-row').cloneNode(true);
+  row.querySelectorAll('input').forEach(i => { if (i.type !== 'number') i.value = ''; });
+  document.getElementById('criteriaRows').appendChild(row);
+});
+document.getElementById('criteriaRows').addEventListener('click', function(e) {
+  if (e.target.classList.contains('remove-criterion')) {
+    const rows = document.querySelectorAll('.criterion-row');
+    if (rows.length > 1) e.target.closest('.criterion-row').remove();
+  }
+});
+</script>
+{% endblock %}

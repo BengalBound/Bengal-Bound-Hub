@@ -1,0 +1,20 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Recruitment — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-plus me-2" style="color:var(--hub-accent);"></i>Recruitment{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ open_jobs|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Open Jobs</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ total_applications|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Applications</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ interviews_scheduled|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Interviews</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ offers_made|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Offers Made</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Recruitment Tools</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'recruitment:job_list' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-briefcase me-1"></i>Job Postings</a>
+    <a href="{% url 'recruitment:application_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-file-person me-1"></i>Applications</a>
+    <a href="{% url 'recruitment:job_create' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-plus-lg me-1"></i>Post Job</a>
+  </div>
+</div>
+{% endblock %}

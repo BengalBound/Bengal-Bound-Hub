@@ -1,0 +1,28 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Insights — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-lightbulb me-2" style="color:var(--hub-accent);"></i>AI Insights{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Generated Insights</h5>
+    <button class="btn btn-hub-primary btn-sm"><i class="bi bi-magic me-1"></i>Generate Insights</button>
+  </div>
+  <div class="row g-3">
+    {% for insight in insights %}
+    <div class="col-md-6">
+      <div class="glass-panel p-3" style="border-radius:12px;border-left:3px solid var(--hub-accent);">
+        <div style="color:var(--hub-text);font-weight:600;margin-bottom:.5rem;">{{ insight.title }}</div>
+        <div style="color:var(--hub-muted);font-size:.9rem;">{{ insight.summary }}</div>
+        <div style="color:var(--hub-muted);font-size:.75rem;margin-top:.75rem;">{{ insight.created_at }}</div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center" style="color:var(--hub-muted);padding:3rem;">
+      <i class="bi bi-lightbulb" style="font-size:3rem;color:var(--hub-border);display:block;margin-bottom:1rem;"></i>
+      No insights generated yet. Connect a dataset and run analysis.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}SHP-{{ shipment.shipment_number }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'tms:shipment_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Shipments</a></div>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><span class="badge bg-secondary me-2">SHP-{{ shipment.shipment_number }}</span>{{ shipment.destination_name|default:shipment.destination_address }}</h4>
+    <div class="small text-muted mt-1">
+      <span class="badge bg-secondary">{{ shipment.get_shipment_type_display }}</span>
+      {% if shipment.carrier %} · {{ shipment.carrier.name }}{% endif %}
+      {% if shipment.customer_name %} · {{ shipment.customer_name }}{% endif %}
+      {% if shipment.tracking_number %} · Track: <span class="font-monospace">{{ shipment.tracking_number }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if shipment.priority == 'urgent' %}<span class="badge bg-danger fs-6">Urgent</span>
+    {% elif shipment.priority == 'express' %}<span class="badge bg-warning text-dark fs-6">Express</span>{% endif %}
+    {% if shipment.status == 'in_transit' %}<span class="badge bg-warning text-dark fs-6">In Transit</span>
+    {% elif shipment.status == 'delivered' %}<span class="badge bg-success fs-6">Delivered</span>
+    {% elif shipment.status == 'delayed' %}<span class="badge bg-danger fs-6">Delayed</span>
+    {% elif shipment.status == 'cancelled' %}<span class="badge bg-danger fs-6">Cancelled</span>
+    {% else %}<span class="badge bg-secondary fs-6">{{ shipment.get_status_display }}</span>{% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>Shipment Details</div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-5 text-muted">Origin</div><div class="col-7">{{ shipment.origin_name|default:"—" }}<br><span class="text-muted">{{ shipment.origin_address|default:"" }}</span></div>
+          <div class="col-5 text-muted">Destination</div><div class="col-7">{{ shipment.destination_name|default:"—" }}<br><span class="text-muted">{{ shipment.destination_address }}</span></div>
+          <div class="col-5 text-muted">Carrier</div><div class="col-7">{{ shipment.carrier.name|default:"—" }}</div>
+          <div class="col-5 text-muted">Route</div><div class="col-7">{{ shipment.route.name|default:"—" }}</div>
+          <div class="col-5 text-muted">Pieces</div><div class="col-7">{{ shipment.pieces|default:"—" }}</div>
+          <div class="col-5 text-muted">Weight</div><div class="col-7">{% if shipment.weight_kg %}{{ shipment.weight_kg }} kg{% else %}—{% endif %}</div>
+          <div class="col-5 text-muted">Volume</div><div class="col-7">{% if shipment.volume_m3 %}{{ shipment.volume_m3 }} m³{% else %}—{% endif %}</div>
+          <div class="col-5 text-muted">Sched. Pickup</div><div class="col-7">{{ shipment.scheduled_pickup|date:"d M Y H:i"|default:"—" }}</div>
+          <div class="col-5 text-muted">Sched. Delivery</div><div class="col-7">{{ shipment.scheduled_delivery|date:"d M Y H:i"|default:"—" }}</div>
+          <div class="col-5 text-muted">Actual Pickup</div><div class="col-7">{{ shipment.actual_pickup|date:"d M Y H:i"|default:"—" }}</div>
+          <div class="col-5 text-muted">Actual Delivery</div><div class="col-7">{{ shipment.actual_delivery|date:"d M Y H:i"|default:"—" }}</div>
+          <div class="col-5 text-muted">Freight Cost</div><div class="col-7 text-success fw-bold">{% if shipment.freight_cost %}R{{ shipment.freight_cost|floatformat:2 }}{% else %}—{% endif %}</div>
+          {% if shipment.is_hazmat %}<div class="col-12"><span class="badge bg-danger mt-1">⚠ Hazmat</span></div>{% endif %}
+          {% if shipment.requires_refrigeration %}<div class="col-12"><span class="badge bg-info mt-1">❄ Refrigeration Required</span></div>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-pencil me-1"></i>Quick Update</div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update">
+          <div class="col-12">
+            <label class="form-label small">Tracking #</label>
+            <input type="text" name="tracking_number" value="{{ shipment.tracking_number }}" class="form-control form-control-sm bg-dark text-white border-secondary font-monospace">
+          </div>
+          <div class="col-12">
+            <label class="form-label small">Freight Cost</label>
+            <input type="number" name="freight_cost" step="0.01" value="{{ shipment.freight_cost|default:'' }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+          </div>
+          <div class="col-12">
+            <label class="form-label small">Notes</label>
+            <textarea name="notes" rows="2" class="form-control form-control-sm bg-dark text-white border-secondary">{{ shipment.notes }}</textarea>
+          </div>
+          <div class="col-12"><button type="submit" class="btn btn-sm btn-outline-warning w-100">Save</button></div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-8">
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-arrow-repeat me-1"></i>Update Status</div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="status">
+          <div class="col-md-4">
+            <select name="status" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in statuses %}<option value="{{ code }}" {% if shipment.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <input type="text" name="location" class="form-control bg-dark text-white border-secondary" placeholder="Current location">
+          </div>
+          <div class="col-md-4">
+            <input type="text" name="note" class="form-control bg-dark text-white border-secondary" placeholder="Note (optional)">
+          </div>
+          <div class="col-12"><button type="submit" class="btn btn-primary">Update Status</button></div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Add tracking event -->
+    {% if access_level >= 2 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-pin-map me-1"></i>Add Tracking Event</div>
+      <div class="card-body">
+        <form method="post" class="row g-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_event">
+          <div class="col-md-3">
+            <select name="event_type" class="form-select form-select-sm bg-dark text-white border-secondary">
+              {% for code, label in event_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <input type="text" name="location" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Location">
+          </div>
+          <div class="col-md-3">
+            <input type="text" name="note" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Note">
+          </div>
+          <div class="col-md-3"><button type="submit" class="btn btn-sm btn-outline-info w-100">Add Event</button></div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Tracking timeline -->
+    <div class="card bg-dark border-secondary">
+      <div class="card-header"><i class="bi bi-clock-history me-1"></i>Tracking Timeline</div>
+      <div class="card-body">
+        {% if events %}
+        <div class="timeline">
+          {% for ev in events %}
+          <div class="d-flex gap-3 mb-3">
+            <div class="text-center" style="min-width:30px">
+              {% if ev.event_type == 'delivered' %}<i class="bi bi-check-circle-fill text-success fs-5"></i>
+              {% elif ev.event_type == 'delayed' or ev.event_type == 'exception' %}<i class="bi bi-exclamation-circle-fill text-danger fs-5"></i>
+              {% elif ev.event_type == 'pickup' or ev.event_type == 'departed' %}<i class="bi bi-truck text-warning fs-5"></i>
+              {% else %}<i class="bi bi-circle text-secondary fs-5"></i>{% endif %}
+            </div>
+            <div>
+              <div class="fw-semibold small">{{ ev.get_event_type_display }}</div>
+              {% if ev.location %}<div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ ev.location }}</div>{% endif %}
+              {% if ev.note %}<div class="small">{{ ev.note }}</div>{% endif %}
+              <div class="text-muted" style="font-size:0.75rem">{{ ev.timestamp|date:"d M Y H:i" }}{% if ev.recorded_by %} · {{ ev.recorded_by.get_full_name }}{% endif %}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-3 small">No tracking events yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

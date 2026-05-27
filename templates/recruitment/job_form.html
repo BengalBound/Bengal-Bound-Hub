@@ -1,0 +1,20 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if job %}Edit Job{% else %}Post Job{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-briefcase me-2" style="color:var(--hub-accent);"></i>{% if job %}Edit{% else %}Post{% endif %} Job{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:800px;">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-8"><label class="form-label" style="color:var(--hub-muted);">Job Title</label><input name="title" value="{{ job.title|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-4"><label class="form-label" style="color:var(--hub-muted);">Department</label><input name="department" value="{{ job.department|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-4"><label class="form-label" style="color:var(--hub-muted);">Job Type</label><select name="job_type" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="full_time">Full Time</option><option value="part_time">Part Time</option><option value="contract">Contract</option><option value="internship">Internship</option></select></div>
+      <div class="col-md-4"><label class="form-label" style="color:var(--hub-muted);">Location</label><input name="location" value="{{ job.location|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-4"><label class="form-label" style="color:var(--hub-muted);">Salary Range</label><input name="salary_range" value="{{ job.salary_range|default:'' }}" class="form-control" placeholder="e.g. $50k–$70k" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Job Description</label><textarea name="description" rows="8" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required>{{ job.description|default:'' }}</textarea></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Requirements</label><textarea name="requirements" rows="5" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ job.requirements|default:'' }}</textarea></div>
+      <div class="col-md-4"><label class="form-label" style="color:var(--hub-muted);">Closing Date</label><input type="date" name="closing_date" value="{{ job.closing_date|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+    </div>
+    <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-hub-primary btn-sm">{% if job %}Update{% else %}Post{% endif %} Job</button><a href="{% url 'recruitment:job_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a></div>
+  </form>
+</div>
+{% endblock %}

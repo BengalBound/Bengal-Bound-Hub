@@ -1,0 +1,69 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}B2B Wholesale Portal — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-buildings me-2 text-info"></i>B2B Wholesale Portal</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'b2b_portal:order_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">All Orders</a>
+    <a href="{% url 'b2b_portal:customer_list' slug=biz.slug %}" class="btn btn-info text-dark"><i class="bi bi-people me-1"></i>Customers</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.customers }}</div>
+      <div class="small text-muted mt-1">B2B Customers</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.active_customers }}</div>
+      <div class="small text-muted mt-1">Active</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.active_orders }}</div>
+      <div class="small text-muted mt-1">Active Orders</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-light" style="font-size:1.5rem">{{ stats.total_revenue|floatformat:0 }}</div>
+      <div class="small text-muted mt-1">Revenue Delivered</div>
+    </div>
+  </div>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-receipt me-1"></i>Recent Orders</span>
+    <a href="{% url 'b2b_portal:order_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Order #</th><th>Customer</th><th>Status</th><th>Lines</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'b2b_portal:order_detail' slug=biz.slug order_id=order.pk %}'">
+            <td class="font-monospace text-muted">#{{ order.pk }}{% if order.reference_no %} · {{ order.reference_no }}{% endif %}</td>
+            <td class="fw-semibold">{{ order.customer.company_name }}</td>
+            <td>
+              <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% elif order.status == 'shipped' %}bg-info text-dark{% elif order.status == 'confirmed' %}bg-primary{% else %}bg-secondary{% endif %}">
+                {{ order.get_status_display }}
+              </span>
+            </td>
+            <td>{{ order.line_count }}</td>
+            <td class="text-muted">{{ order.ordered_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No orders yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'workspace_admin/base_admin.html' %}
+
+{% block title %}CMS & Site Content | Workspace Admin{% endblock %}
+{% block page_title %}CMS & Site Content{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="glass-panel p-4 mb-4" style="border-left: 4px solid var(--bb-accent-cyan);">
+            <h4 class="fw-bold"><i class="bi bi-window-sidebar text-gradient-purple-cyan me-2"></i> Public Site CMS</h4>
+            <p class="text-white-50 mb-0">Select a content module below to add, edit, or remove entries from the public-facing website. These links will open the native data manager.</p>
+        </div>
+    </div>
+
+    <!-- Hero & Marketing -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-layout-text-window fs-3 text-primary me-3"></i>
+                <h5 class="fw-bold mb-0">Homepage Hero</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Manage the massive typography and button links on the front page.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='homepagecontent' %}" class="btn btn-outline-primary btn-sm w-100 mt-auto">Manage Content <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+    <!-- Marketing & Landing Page -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-megaphone fs-3 text-info me-3"></i>
+                <h5 class="fw-bold mb-0">Marketing Content</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Manage Core Values, Platform Features, Work Process steps, and text Testimonials.</p>
+            <div class="d-flex flex-wrap gap-2 mt-auto">
+                <a href="{% url 'workspace_admin:cms_list' model_name='corevalue' %}" class="btn btn-outline-info btn-sm flex-fill">Core Values</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='platformfeature' %}" class="btn btn-outline-info btn-sm flex-fill">Platform Features</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='workprocessstep' %}" class="btn btn-outline-info btn-sm flex-fill">How it Works</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='testimonial' %}" class="btn btn-outline-info btn-sm flex-fill">Testimonials</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-lightning-charge fs-3 text-warning me-3"></i>
+                <h5 class="fw-bold mb-0">Services</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Add or edit the primary services offered by BengalBound.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='service' %}" class="btn btn-outline-warning btn-sm w-100 mt-auto">Manage Services <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+    <!-- Products -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-box-seam fs-3 text-success me-3"></i>
+                <h5 class="fw-bold mb-0">Products & Tools</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Manage standard products, tools, and AI agents listed.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='product' %}" class="btn btn-outline-success btn-sm w-100 mt-auto">Manage Products <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+    <!-- Team Members -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-people fs-3 text-info me-3"></i>
+                <h5 class="fw-bold mb-0">Team Members</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Add team members that appear on the About Us page.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='teammember' %}" class="btn btn-outline-info btn-sm w-100 mt-auto">Manage Team <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+    <!-- Partners / Logos -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-building fs-3 text-secondary me-3"></i>
+                <h5 class="fw-bold mb-0">Partner Logos</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Manage the trusted partner logos scrolling on the homepage.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='partner' %}" class="btn btn-outline-secondary btn-sm w-100 mt-auto">Manage Partners <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-question-circle fs-3 text-danger me-3"></i>
+                <h5 class="fw-bold mb-0">FAQs</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Add to the frequently asked questions list across the site.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='faq' %}" class="btn btn-outline-danger btn-sm w-100 mt-auto">Manage FAQs <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+    <!-- Videos & Demos -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-camera-video fs-3 text-primary me-3"></i>
+                <h5 class="fw-bold mb-0">Videos & Reviews</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Manage embedded video representations and client video reviews.</p>
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{% url 'workspace_admin:cms_list' model_name='videorepresentation' %}" class="btn btn-outline-primary btn-sm flex-fill">Demos <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='videoreview' %}" class="btn btn-outline-primary btn-sm flex-fill">Reviews <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation & Footer Links -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-link-45deg fs-3 text-warning me-3"></i>
+                <h5 class="fw-bold mb-0">Navigation & Footer</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Edit the structural links in the header navbar and the footer.</p>
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{% url 'workspace_admin:cms_list' model_name='navbaritem' %}" class="btn btn-outline-warning btn-sm flex-fill">Navbar <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='footerlink' %}" class="btn btn-outline-warning btn-sm flex-fill">Footer <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blogs & Categories -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-journal-text fs-3 text-success me-3"></i>
+                <h5 class="fw-bold mb-0">Blog System</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Write blog posts, manage blog categories, and moderate comments.</p>
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{% url 'workspace_admin:cms_list' model_name='blogpost' %}" class="btn btn-outline-success btn-sm flex-fill">Posts <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='blogcategory' %}" class="btn btn-outline-success btn-sm flex-fill">Categories <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documentation -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-book fs-3 me-3" style="color: var(--bb-accent-cyan);"></i>
+                <h5 class="fw-bold mb-0">Documentation</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Add and manage documentation cards displayed on the homepage, with filter categories.</p>
+            <div class="d-flex gap-2 mt-auto flex-wrap">
+                <a href="{% url 'workspace_admin:cms_list' model_name='documentation' %}" class="btn btn-sm flex-fill" style="background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.25); color: var(--bb-accent-cyan);">Docs <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='documentationcategory' %}" class="btn btn-outline-secondary btn-sm flex-fill">Categories</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partners (Marquee) -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-building fs-3 me-3" style="color: #6c757d;"></i>
+                <h5 class="fw-bold mb-0">Partners / Clients</h5>
+            </div>
+            <p class="text-white-50 small mb-4">Manage the scrolling logo marquee displayed at the top of the homepage.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='partner' %}" class="btn btn-outline-light btn-sm w-100 mt-auto">Manage Partners <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .hover-glow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+</style>
+{% endblock %}

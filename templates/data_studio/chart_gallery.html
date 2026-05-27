@@ -1,0 +1,58 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Chart Gallery — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2 text-warning"></i>Chart Gallery</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'data_studio:dataset_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info"><i class="bi bi-table me-1"></i>Datasets</a>
+  </div>
+</div>
+
+{% if charts %}
+<div class="row g-3">
+  {% for chart in charts %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header d-flex justify-content-between align-items-center small">
+        <span class="fw-semibold">{{ chart.name }}</span>
+        {% if chart.is_pinned %}<i class="bi bi-pin-fill text-warning" title="Pinned to dashboard"></i>{% endif %}
+      </div>
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded mb-3" style="height:140px">
+          {% if chart.chart_type == 'bar' %}<i class="bi bi-bar-chart-fill display-3 text-info opacity-50"></i>
+          {% elif chart.chart_type == 'line' %}<i class="bi bi-graph-up display-3 text-success opacity-50"></i>
+          {% elif chart.chart_type == 'pie' %}<i class="bi bi-pie-chart-fill display-3 text-warning opacity-50"></i>
+          {% elif chart.chart_type == 'scatter' %}<i class="bi bi-scatter-chart display-3 text-danger opacity-50"></i>
+          {% elif chart.chart_type == 'area' %}<i class="bi bi-graph-up-arrow display-3 text-purple opacity-50"></i>
+          {% elif chart.chart_type == 'pivot' %}<i class="bi bi-layout-split display-3 text-secondary opacity-75"></i>
+          {% else %}<i class="bi bi-table display-3 text-secondary opacity-75"></i>{% endif %}
+        </div>
+        <div class="small">
+          <div class="d-flex justify-content-between text-muted mb-1">
+            <span>Type</span><span class="text-light">{{ chart.get_chart_type_display }}</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted mb-1">
+            <span>Dataset</span><span class="text-light">{{ chart.dataset.name }}</span>
+          </div>
+          {% if chart.x_column %}<div class="d-flex justify-content-between text-muted mb-1"><span>X-axis</span><span class="font-monospace text-info">{{ chart.x_column }}</span></div>{% endif %}
+          {% if chart.y_column %}<div class="d-flex justify-content-between text-muted"><span>Y-axis</span><span class="font-monospace text-success">{{ chart.y_column }}</span></div>{% endif %}
+        </div>
+      </div>
+      <div class="card-footer d-flex justify-content-between align-items-center small border-secondary">
+        <span class="text-muted">{{ chart.created_at|date:"d M Y" }}</span>
+        <a href="{% url 'data_studio:dataset_detail' slug=biz.slug dataset_id=chart.dataset.pk %}" class="btn btn-sm btn-outline-secondary">View Dataset</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card bg-dark border-secondary">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-bar-chart display-3 mb-3 d-block"></i>
+    No charts yet — open a dataset and create your first chart.
+    <div class="mt-3"><a href="{% url 'data_studio:dataset_list' slug=biz.slug %}" class="btn btn-outline-info">Go to Datasets</a></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

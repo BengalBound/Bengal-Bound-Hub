@@ -1,0 +1,92 @@
+{% extends 'workspace_admin/base_admin.html' %}
+
+{% block page_title %}Internal Office Projects{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+            <i class="bi bi-diagram-3 me-2"></i> New Project
+        </button>
+    </div>
+</div>
+
+<div class="glass-panel p-4">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+            <thead class="text-white-50">
+                <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Manager</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in projects %}
+                <tr>
+                    <td><strong>{{ p.title }}</strong></td>
+                    <td class="text-white-50">{{ p.client.email|default:"Internal" }}</td>
+                    <td class="text-white-50">{{ p.manager.email|default:"None" }}</td>
+                    <td>
+                        <span class="badge bg-secondary">{{ p.get_status_display }}</span>
+                    </td>
+                    <td>{{ p.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-white-50 py-3">No active internal projects.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createProjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-primary">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-primary">Create Project</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Title</label>
+                        <input type="text" name="title" class="form-control form-control-premium" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Description</label>
+                        <textarea name="description" class="form-control form-control-premium" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Manager</label>
+                        <select name="manager_id" class="form-select form-control-premium bg-dark text-white">
+                            <option value="">-- Unassigned --</option>
+                            {% for u in users %}
+                                {% if u.role in 'super_admin manager' %}
+                                <option value="{{ u.id }}">{{ u.email }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Client</label>
+                        <select name="client_id" class="form-select form-control-premium bg-dark text-white">
+                            <option value="">-- Internal Workspace --</option>
+                            {% for u in users %}
+                                <option value="{{ u.id }}">{{ u.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary">Save Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

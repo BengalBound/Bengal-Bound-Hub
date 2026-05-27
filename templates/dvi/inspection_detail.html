@@ -1,0 +1,201 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}DVI-{{ inspection.inspection_number }} — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="mb-3">
+  <a href="{% url 'dvi:home' slug=biz.slug %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i>Inspections
+  </a>
+</div>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0">
+      <span class="badge bg-secondary me-2">DVI-{{ inspection.inspection_number }}</span>
+      {{ inspection.vehicle_make }} {{ inspection.vehicle_model }}
+      {% if inspection.vehicle_year %}({{ inspection.vehicle_year }}){% endif %}
+    </h4>
+    <div class="small text-muted mt-1">
+      Reg: <span class="font-monospace">{{ inspection.vehicle_reg }}</span>
+      {% if inspection.customer_name %} · {{ inspection.customer_name }}{% endif %}
+      {% if inspection.performed_by %} · Technician: {{ inspection.performed_by.user.get_full_name }}{% endif %}
+      · {{ inspection.inspected_at|date:"d M Y H:i" }}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if inspection.overall_result == 'pass' %}<span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Pass</span>
+    {% elif inspection.overall_result == 'advisory' %}<span class="badge bg-warning text-dark fs-6"><i class="bi bi-exclamation-triangle me-1"></i>Pass with Advisories</span>
+    {% elif inspection.overall_result == 'fail' %}<span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Fail</span>
+    {% else %}<span class="badge bg-secondary fs-6">Incomplete</span>{% endif %}
+  </div>
+</div>
+
+<!-- Result summary bar -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="card bg-dark border-success text-center py-2">
+      <div class="fs-3 fw-bold text-success">{{ inspection.pass_count }}</div>
+      <div class="small text-muted">OK / Pass</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card bg-dark border-warning text-center py-2">
+      <div class="fs-3 fw-bold text-warning">{{ inspection.advisory_count }}</div>
+      <div class="small text-muted">Advisory</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card bg-dark border-danger text-center py-2">
+      <div class="fs-3 fw-bold text-danger">{{ inspection.fail_count }}</div>
+      <div class="small text-muted">Critical / Fail</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Checklist -->
+  <div class="col-lg-8">
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-clipboard2-check me-1"></i>Inspection Checklist</div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_items">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-dark table-sm mb-0">
+              <thead class="table-secondary">
+                <tr><th>#</th><th>Checkpoint</th><th style="min-width:200px">Status</th><th>Notes</th></tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                <tr class="{% if item.status == 'critical' %}table-danger{% elif item.status == 'attention' %}table-warning{% elif item.status == 'ok' %}table-success{% endif %}" style="--bs-table-bg-type: transparent">
+                  <td class="text-muted small">{{ forloop.counter }}</td>
+                  <td class="small fw-semibold">{{ item.checkpoint }}</td>
+                  <td>
+                    <select name="status_{{ item.pk }}" class="form-select form-select-sm bg-dark text-white border-secondary">
+                      {% for code, label in item_statuses %}
+                      <option value="{{ code }}" {% if item.status == code %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </td>
+                  <td>
+                    <input type="text" name="notes_{{ item.pk }}" value="{{ item.notes }}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Notes…">
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="submit" class="btn btn-info text-dark">
+            <i class="bi bi-save me-1"></i>Save Inspection
+          </button>
+        </div>
+      </form>
+    </div>
+    {% else %}
+    <!-- Read-only view -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header"><i class="bi bi-clipboard2-check me-1"></i>Inspection Checklist</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0">
+            <thead class="table-secondary">
+              <tr><th>#</th><th>Checkpoint</th><th>Result</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr>
+                <td class="text-muted small">{{ forloop.counter }}</td>
+                <td class="small">{{ item.checkpoint }}</td>
+                <td>
+                  {% if item.status == 'ok' %}<span class="badge bg-success">OK</span>
+                  {% elif item.status == 'attention' %}<span class="badge bg-warning text-dark">Advisory</span>
+                  {% elif item.status == 'critical' %}<span class="badge bg-danger">Critical</span>
+                  {% else %}<span class="badge bg-secondary">N/A</span>{% endif %}
+                </td>
+                <td class="small text-muted">{{ item.notes|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right panel: actions -->
+  <div class="col-lg-4">
+    <!-- Override Result -->
+    {% if access_level >= 4 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-shield-check me-1"></i>Override Result</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="override_result">
+          <div class="mb-2">
+            <select name="overall_result" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in overall_choices %}
+              <option value="{{ code }}" {% if inspection.overall_result == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary" placeholder="Notes…">{{ inspection.notes }}</textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-outline-warning w-100">Override</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Share Report -->
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-info mb-3">
+      <div class="card-header text-info small"><i class="bi bi-share me-1"></i>Customer Report</div>
+      <div class="card-body">
+        {% if inspection.share_token %}
+        <div class="input-group input-group-sm mb-2">
+          <input type="text" class="form-control bg-dark text-white border-secondary font-monospace" value="{{ request.build_absolute_uri }}{% url 'dvi:report_public' token=inspection.share_token %}" readonly id="shareLink">
+          <button class="btn btn-outline-info" onclick="navigator.clipboard.writeText(document.getElementById('shareLink').value);this.textContent='Copied!'">Copy</button>
+        </div>
+        {% if inspection.report_sent %}
+        <span class="badge bg-success">Report Sent</span>
+        {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_sent">
+          <button type="submit" class="btn btn-sm btn-outline-success w-100">Mark as Sent</button>
+        </form>
+        {% endif %}
+        {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="generate_link">
+          <button type="submit" class="btn btn-sm btn-info text-dark w-100">Generate Share Link</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Vehicle Info -->
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-info-circle me-1"></i>Vehicle Info</div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-5 text-muted">Reg</div><div class="col-7 font-monospace fw-bold">{{ inspection.vehicle_reg|default:"—" }}</div>
+          <div class="col-5 text-muted">VIN</div><div class="col-7 font-monospace">{{ inspection.vin|default:"—" }}</div>
+          <div class="col-5 text-muted">Mileage</div><div class="col-7">{% if inspection.mileage %}{{ inspection.mileage|floatformat:0 }} km{% else %}—{% endif %}</div>
+          <div class="col-5 text-muted">Job Card</div><div class="col-7 font-monospace">{{ inspection.job_card_number|default:"—" }}</div>
+          <div class="col-5 text-muted">Template</div><div class="col-7">{{ inspection.template.name|default:"Standard" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

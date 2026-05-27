@@ -1,0 +1,67 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Channel Manager — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-diagram-2 me-2 text-info"></i>Channel Manager</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'channel_manager:channels' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Channels</a>
+    <a href="{% url 'channel_manager:rates' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Rates</a>
+    <a href="{% url 'channel_manager:availability' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Availability</a>
+    <a href="{% url 'channel_manager:sync_log' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Sync Log</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.total_channels }}</div>
+      <div class="small text-muted mt-1">Total Channels</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.active_channels }}</div>
+      <div class="small text-muted mt-1">Active</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-muted">{{ stats.rate_plans }}</div>
+      <div class="small text-muted mt-1">Rate Plans</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="small fw-bold text-warning mt-2">{% if stats.last_sync %}{{ stats.last_sync.synced_at|date:"d M H:i" }}{% else %}Never{% endif %}</div>
+      <div class="small text-muted mt-1">Last Sync</div>
+    </div>
+  </div>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-arrow-repeat me-1"></i>Recent Sync Activity</span>
+    <a href="{% url 'channel_manager:sync_log' slug=biz.slug %}" class="btn btn-sm btn-outline-info">All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Channel</th><th>Type</th><th>Status</th><th>Records</th><th>When</th></tr></thead>
+        <tbody>
+          {% for log in recent_logs %}
+          <tr>
+            <td class="text-muted">{{ log.channel.name|default:"All" }}</td>
+            <td><span class="badge bg-dark border border-secondary">{{ log.get_sync_type_display }}</span></td>
+            <td><span class="badge {% if log.status == 'success' %}bg-success{% elif log.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ log.get_status_display }}</span></td>
+            <td class="text-muted">{{ log.records_synced }}</td>
+            <td class="text-muted">{{ log.synced_at|date:"d M Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-3">No sync activity yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

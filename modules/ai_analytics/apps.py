@@ -1,0 +1,8 @@
+from django.apps import AppConfig
+
+
+class AiAnalyticsConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'modules.ai_analytics'
+    label = 'ai_analytics'
+    verbose_name = 'Ai Analytics'

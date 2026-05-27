@@ -1,0 +1,30 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Deals — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-briefcase me-2" style="color:var(--hub-accent);"></i>Deals Pipeline{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div></div>
+  <a href="{% url 'crm:deal_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Deal</a>
+</div>
+<div class="row g-3">
+  {% for stage, stage_deals in pipeline.items %}
+  <div class="col-md-3">
+    <div class="glass-panel p-3" style="border-radius:12px;">
+      <div style="color:var(--hub-accent);font-weight:600;margin-bottom:1rem;text-transform:uppercase;font-size:.8rem;letter-spacing:.05em;">{{ stage }}</div>
+      {% for deal in stage_deals %}
+      <a href="{% url 'crm:deal_detail' slug=biz.slug pk=deal.pk %}" class="d-block text-decoration-none mb-2">
+        <div class="glass-panel p-2" style="border-radius:8px;">
+          <div style="color:var(--hub-text);font-size:.9rem;">{{ deal.title }}</div>
+          <div style="color:#38bdf8;font-size:.8rem;margin-top:.25rem;">{{ deal.value }}</div>
+          <div style="color:var(--hub-muted);font-size:.75rem;">{{ deal.contact.get_full_name|default:"—" }}</div>
+        </div>
+      </a>
+      {% empty %}<div style="color:var(--hub-muted);font-size:.85rem;text-align:center;padding:1rem 0;">Empty</div>{% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center" style="color:var(--hub-muted);padding:3rem;">No deals yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

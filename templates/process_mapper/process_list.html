@@ -1,0 +1,60 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Process Maps — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2 text-success"></i>Process Maps</h4>
+  {% if access_level >= 3 %}
+  <a href="{% url 'process_mapper:process_create' slug=biz.slug %}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>New Process</a>
+  {% endif %}
+</div>
+
+<form method="get" class="card bg-dark border-secondary p-3 mb-4">
+  <div class="row g-2">
+    <div class="col-md-3">
+      <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary">
+        <option value="">All Statuses</option>
+        <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+        <option value="review" {% if status_filter == 'review' %}selected{% endif %}>In Review</option>
+        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+        <option value="archived" {% if status_filter == 'archived' %}selected{% endif %}>Archived</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="category" value="{{ category_filter|default:'' }}" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Filter by category…">
+    </div>
+    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-success w-100">Filter</button></div>
+    <div class="col-md-2"><a href="{% url 'process_mapper:process_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary w-100">Clear</a></div>
+  </div>
+</form>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Name</th><th>Category</th><th>Version</th><th>Status</th><th>Steps</th><th>Owner</th><th>Last Simulation</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for pm in processes %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'process_mapper:process_detail' slug=biz.slug process_id=pm.pk %}'">
+            <td class="fw-semibold">{{ pm.name }}</td>
+            <td class="text-muted">{{ pm.category|default:"—" }}</td>
+            <td class="font-monospace text-muted">v{{ pm.version }}</td>
+            <td>
+              {% if pm.status == 'approved' %}<span class="badge bg-success">Approved</span>
+              {% elif pm.status == 'review' %}<span class="badge bg-info">In Review</span>
+              {% elif pm.status == 'archived' %}<span class="badge bg-secondary">Archived</span>
+              {% else %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
+            </td>
+            <td>{{ pm.steps.count }}</td>
+            <td>{{ pm.owner.user.get_full_name|default:"—" }}</td>
+            <td class="text-muted">{{ pm.simulations.last.created_at|date:"d M Y"|default:"—" }}</td>
+            <td class="text-muted">{{ pm.updated_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No process maps</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

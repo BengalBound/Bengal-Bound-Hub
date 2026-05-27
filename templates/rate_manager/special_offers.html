@@ -1,0 +1,74 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Special Offers — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'rate_manager:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Rate Manager</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-gift me-2 text-info"></i>Special Offers</h4>
+  {% if access_level >= 3 %}<button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addOfferModal"><i class="bi bi-plus-lg me-1"></i>Add Offer</button>{% endif %}
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Name</th><th>Type</th><th>Discount</th><th>Valid From</th><th>Valid To</th><th>Promo Code</th><th>Min Nights</th><th>Active</th></tr></thead>
+        <tbody>
+          {% for o in offers %}
+          <tr>
+            <td class="fw-semibold">{{ o.name }}</td>
+            <td><span class="badge bg-dark border border-secondary">{{ o.get_offer_type_display }}</span></td>
+            <td>
+              <span class="badge bg-success">{{ o.discount_value }}{% if o.discount_type == 'percent' %}%{% else %} off{% endif %}</span>
+            </td>
+            <td class="text-muted">{{ o.valid_from|date:"d M Y" }}</td>
+            <td class="text-muted">{{ o.valid_to|date:"d M Y" }}</td>
+            <td>{% if o.promo_code %}<span class="font-monospace text-info">{{ o.promo_code }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td class="text-muted">{% if o.min_nights %}{{ o.min_nights }}{% else %}—{% endif %}</td>
+            <td><span class="badge {% if o.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{% if o.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No special offers</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="addOfferModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Special Offer</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_offer">
+        <div class="modal-body row g-2">
+          <div class="col-md-8"><label class="form-label small">Offer Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required placeholder="e.g. Early Bird Summer Deal"></div>
+          <div class="col-md-4"><label class="form-label small">Offer Type</label>
+            <select name="offer_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in offer_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Discount Value <span class="text-danger">*</span></label><input type="number" name="discount_value" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Discount Type</label>
+            <select name="discount_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in discount_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Min Nights</label><input type="number" name="min_nights" min="1" class="form-control bg-dark text-white border-secondary" placeholder="None"></div>
+          <div class="col-md-6"><label class="form-label small">Valid From <span class="text-danger">*</span></label><input type="date" name="valid_from" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Valid To <span class="text-danger">*</span></label><input type="date" name="valid_to" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Promo Code</label><input type="text" name="promo_code" class="form-control bg-dark text-white border-secondary font-monospace" placeholder="Optional"></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Offer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

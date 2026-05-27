@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Log In | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center position-relative overflow-hidden py-5 mt-5">
+    <!-- Background Glow -->
+    <div class="position-absolute top-50 start-50 translate-middle w-100 h-100 bg-primary-gradient opacity-25" style="filter: blur(150px); z-index: -1;"></div>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="glass-card p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="h3 fw-bold font-outfit">Welcome Back</h2>
+                        <p class="text-white-50 small">Log in to your continuous cloud workspace.</p>
+                    </div>
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small">
+                            Invalid email or password.
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{{ request.path }}">
+                        {% csrf_token %}
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        <div class="mb-4">
+                            <label for="id_login" class="form-label text-white-50 small fw-medium">Email Address</label>
+                            <input type="email" name="login" class="form-control bg-dark text-white border-secondary shadow-none" id="id_login" placeholder="name@company.com" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label text-white-50 small fw-medium">Password</label>
+                            <input type="password" name="password" class="form-control bg-dark text-white border-secondary shadow-none" id="id_password" placeholder="••••••••" required>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4 small">
+                            <div class="form-check">
+                                <input class="form-check-input bg-transparent border-secondary" type="checkbox" name="remember" id="rememberMe">
+                                <label class="form-check-label text-white-50" for="rememberMe">Remember me</label>
+                            </div>
+                            <a href="{{ password_reset_url }}" class="text-primary-gradient text-decoration-none">Forgot password?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill py-2 fw-semibold shadow-glow mb-3">Sign In</button>
+                    </form>
+
+                    <!-- Social Login Options -->
+                    {% get_providers as socialaccount_providers %}
+                    {% if socialaccount_providers %}
+                    <div class="position-relative my-4">
+                        <hr class="border-secondary border-opacity-50">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-dark px-2 text-white-50 small">or login with</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
+                            <i class="bi bi-google"></i> Google
+                        </a>
+                        <a href="{% provider_login_url 'github' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
+                            <i class="bi bi-github"></i> GitHub
+                        </a>
+                        <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
+                            <i class="bi bi-facebook"></i> Facebook
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="text-center mt-4 border-top border-secondary pt-4">
+                        <p class="text-white-50 small mb-0">Don't have an account? <a href="{{ signup_url }}" class="text-primary-gradient text-decoration-none fw-medium">Start Today</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

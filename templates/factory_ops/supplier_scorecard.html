@@ -1,0 +1,73 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Supplier Scorecard — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-star-half me-2" style="color:var(--hub-accent);"></i>Supplier Scorecard{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#22c55e;">{{ preferred }}</div><div class="text-white-50 small">Preferred</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:#fbbf24;">{{ watch }}</div><div class="text-white-50 small">On Watch</div></div></div>
+  <div class="col-6 col-md-4"><div class="stat-card glass-panel text-center p-3"><div style="font-size:1.8rem;font-weight:700;color:var(--hub-accent);">{{ total }}</div><div class="text-white-50 small">Total Scored</div></div></div>
+</div>
+
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="color:var(--hub-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:1px;margin:0;">Supplier Ratings</h6>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>Add Score</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" style="font-size:.82rem;border-color:var(--hub-border);">
+      <thead><tr style="color:var(--hub-muted);border-color:var(--hub-border);">
+        <th>Vendor</th><th>Category</th><th>Orders YTD</th><th>On-Time %</th><th>Quality %</th><th>Defect Rate</th><th>Price Rating</th><th>Composite</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% for s in scores %}
+        <tr style="border-color:var(--hub-border);">
+          <td style="font-weight:600;">{{ s.vendor_name }}</td>
+          <td>{{ s.category }}</td>
+          <td>{{ s.orders_ytd }}</td>
+          <td style="color:{% if s.on_time_pct >= 90 %}#22c55e{% elif s.on_time_pct >= 75 %}#fbbf24{% else %}#f87171{% endif %};">{{ s.on_time_pct }}%</td>
+          <td style="color:{% if s.quality_pct >= 95 %}#22c55e{% elif s.quality_pct >= 85 %}#fbbf24{% else %}#f87171{% endif %};">{{ s.quality_pct }}%</td>
+          <td style="color:{% if s.defect_rate <= 2 %}#22c55e{% elif s.defect_rate <= 5 %}#fbbf24{% else %}#f87171{% endif %};">{{ s.defect_rate }}%</td>
+          <td>{{ s.price_rating }}</td>
+          <td style="font-weight:700;color:{% if s.composite_score >= 80 %}#22c55e{% elif s.composite_score >= 65 %}#fbbf24{% else %}#f87171{% endif %};">{{ s.composite_score|floatformat:0 }}</td>
+          <td><span class="badge" style="background:{% if s.status == 'preferred' %}rgba(34,197,94,0.2){% elif s.status == 'watch' %}rgba(251,191,36,0.2){% elif s.status == 'blacklisted' %}rgba(248,113,113,0.2){% else %}rgba(56,189,248,0.15){% endif %};color:{% if s.status == 'preferred' %}#22c55e{% elif s.status == 'watch' %}#fbbf24{% elif s.status == 'blacklisted' %}#f87171{% else %}#38bdf8{% endif %};">{{ s.status }}</span></td>
+          <td><form method="post" style="display:inline;" onsubmit="return confirm('Delete?')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ s.pk }}"><button class="btn btn-sm" style="background:rgba(248,113,113,0.1);color:#f87171;border:none;padding:2px 8px;"><i class="bi bi-trash3"></i></button></form></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center text-white-50 py-4">No supplier scores yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div class="modal-header" style="border-color:var(--border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Supplier Score</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <form method="post"><div class="modal-body">{% csrf_token %}<input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label text-white-50 small">Vendor Name *</label><input type="text" name="vendor_name" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" required></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Category</label><input type="text" name="category" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Orders YTD</label><input type="number" name="orders_ytd" value="0" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">On-Time %</label><input type="number" name="on_time_pct" value="0" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Quality %</label><input type="number" name="quality_pct" value="0" min="0" max="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-3"><label class="form-label text-white-50 small">Defect Rate %</label><input type="number" name="defect_rate" value="0" step="0.1" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Price Rating</label>
+          <select name="price_rating" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="very_competitive">Very Competitive</option><option value="competitive">Competitive</option><option value="average">Average</option><option value="expensive">Expensive</option>
+          </select>
+        </div>
+        <div class="col-md-6"><label class="form-label text-white-50 small">Status</label>
+          <select name="status" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="preferred">Preferred</option><option value="approved">Approved</option><option value="watch">Watch</option><option value="blacklisted">Blacklisted</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="form-label text-white-50 small">Notes</label><textarea name="notes" rows="2" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-color:var(--border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add Score</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

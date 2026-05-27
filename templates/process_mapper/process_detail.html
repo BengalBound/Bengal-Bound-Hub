@@ -1,0 +1,335 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ process.name }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'process_mapper:process_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Process Maps</a></div>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2 text-success"></i>{{ process.name }}</h4>
+    <div class="small text-muted mt-1">
+      v{{ process.version }}
+      {% if process.category %} · {{ process.category }}{% endif %}
+      {% if process.owner %} · Owner: {{ process.owner.user.get_full_name }}{% endif %}
+    </div>
+    {% if process.description %}<div class="small text-muted mt-1">{{ process.description }}</div>{% endif %}
+    {% if process.tags %}<div class="mt-1">{% for tag in process.tags.split %}<span class="badge bg-secondary me-1">{{ tag }}</span>{% endfor %}</div>{% endif %}
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    {% if process.status == 'approved' %}<span class="badge bg-success fs-6">Approved</span>
+    {% elif process.status == 'review' %}<span class="badge bg-info fs-6">In Review</span>
+    {% elif process.status == 'archived' %}<span class="badge bg-secondary fs-6">Archived</span>
+    {% else %}<span class="badge bg-warning text-dark fs-6">Draft</span>{% endif %}
+    {% if access_level >= 3 %}
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button>
+      <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#statusModal">Change Status</a></li>
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#simulationModal"><i class="bi bi-cpu me-1"></i>Run Simulation</a></li>
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Steps column -->
+  <div class="col-lg-7">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ol me-1"></i>Process Steps ({{ steps.count }})</span>
+        {% if access_level >= 3 and process.status not in 'approved archived' %}
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addStepModal"><i class="bi bi-plus me-1"></i>Add Step</button>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if steps %}
+        <div class="list-group list-group-flush">
+          {% for step in steps %}
+          <div class="list-group-item bg-dark border-secondary py-2 px-3">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-center" style="min-width:36px">
+                <div class="badge {% if step.step_type == 'start' %}bg-success{% elif step.step_type == 'end' %}bg-danger{% elif step.step_type == 'decision' %}bg-warning text-dark{% elif step.step_type == 'approval' %}bg-info{% else %}bg-secondary{% endif %} rounded-circle" style="width:32px;height:32px;line-height:32px;font-size:0.75rem">{{ step.order }}</div>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <span class="fw-semibold small">{{ step.name }}</span>
+                    <span class="badge bg-secondary ms-2" style="font-size:0.65rem">{{ step.get_step_type_display }}</span>
+                  </div>
+                  {% if access_level >= 3 and process.status not in 'approved archived' %}
+                  <form method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_step">
+                    <input type="hidden" name="step_id" value="{{ step.pk }}">
+                    <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Delete this step?')"><i class="bi bi-trash"></i></button>
+                  </form>
+                  {% endif %}
+                </div>
+                {% if step.description %}<div class="text-muted small mt-1">{{ step.description }}</div>{% endif %}
+                <div class="d-flex flex-wrap gap-2 mt-1 small text-muted">
+                  {% if step.responsible_role %}<span><i class="bi bi-person me-1"></i>{{ step.responsible_role }}</span>{% endif %}
+                  {% if step.duration_estimate %}<span><i class="bi bi-clock me-1"></i>{{ step.duration_estimate }} min</span>{% endif %}
+                  {% if step.sla %}<span><i class="bi bi-hourglass-split me-1"></i>SLA: {{ step.sla }}</span>{% endif %}
+                  {% if step.tools_used %}<span><i class="bi bi-tools me-1"></i>{{ step.tools_used }}</span>{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4 small">No steps — add your first step to define the process flow.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Flows -->
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-arrow-right-square me-1"></i>Flows / Connections</span>
+        {% if access_level >= 3 and steps.count >= 2 and process.status not in 'approved archived' %}
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addFlowModal"><i class="bi bi-plus me-1"></i>Add Flow</button>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>From</th><th></th><th>To</th><th>Type</th><th>Label</th></tr></thead>
+            <tbody>
+              {% for flow in flows %}
+              <tr>
+                <td>{{ flow.from_step.order }}. {{ flow.from_step.name }}</td>
+                <td class="text-muted"><i class="bi bi-arrow-right"></i></td>
+                <td>{{ flow.to_step.order }}. {{ flow.to_step.name }}</td>
+                <td>
+                  {% if flow.flow_type == 'yes' %}<span class="badge bg-success">Yes</span>
+                  {% elif flow.flow_type == 'no' %}<span class="badge bg-danger">No</span>
+                  {% elif flow.flow_type == 'exception' %}<span class="badge bg-warning text-dark">Exception</span>
+                  {% else %}<span class="badge bg-secondary">Sequence</span>{% endif %}
+                </td>
+                <td class="text-muted">{{ flow.label|default:"—" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-2">No flows defined</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="col-lg-5">
+    <!-- Simulation results -->
+    {% if latest_sim %}
+    <div class="card bg-dark border-success mb-3">
+      <div class="card-header text-success small"><i class="bi bi-cpu me-1"></i>Latest Simulation</div>
+      <div class="card-body small">
+        <div class="row g-1">
+          <div class="col-7 text-muted">Throughput/day</div><div class="col-5 fw-bold text-success">{{ latest_sim.throughput_per_day|floatformat:1 }}</div>
+          <div class="col-7 text-muted">Avg Cycle Time</div><div class="col-5 fw-bold">{{ latest_sim.avg_cycle_time|floatformat:1 }} min</div>
+          {% if latest_sim.bottleneck_step %}<div class="col-7 text-muted">Bottleneck</div><div class="col-5 fw-bold text-warning">{{ latest_sim.bottleneck_step.name }}</div>{% endif %}
+          <div class="col-7 text-muted">Run Date</div><div class="col-5">{{ latest_sim.created_at|date:"d M Y" }}</div>
+        </div>
+        {% if latest_sim.results_summary %}<div class="mt-2 pt-2 border-top border-secondary text-muted">{{ latest_sim.results_summary }}</div>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Documents -->
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center small">
+        <span><i class="bi bi-paperclip me-1"></i>Documents</span>
+        {% if access_level >= 3 %}
+        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#docModal">Attach</button>
+        {% endif %}
+      </div>
+      <div class="list-group list-group-flush">
+        {% for doc in documents %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ doc.name }}</div>
+              {% if doc.url %}<a href="{{ doc.url }}" target="_blank" class="text-info small">{{ doc.url|truncatechars:40 }}</a>{% endif %}
+            </div>
+            <i class="bi bi-file-earmark text-muted"></i>
+          </div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No documents attached</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Simulations history -->
+    {% if simulations %}
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-clock-history me-1"></i>Simulation History</div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for sim in simulations %}
+          <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+            <div class="d-flex justify-content-between">
+              <span>{{ sim.created_at|date:"d M Y" }}</span>
+              <span class="text-success">{{ sim.throughput_per_day|floatformat:1 }}/day</span>
+            </div>
+            {% if sim.assumptions %}<div class="text-muted mt-1">{{ sim.assumptions|truncatechars:60 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<!-- Add Step Modal -->
+<div class="modal fade" id="addStepModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Step</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_step">
+        <div class="modal-body row g-2">
+          <div class="col-8"><label class="form-label small">Step Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-4"><label class="form-label small">Type</label>
+            <select name="step_type" class="form-select bg-dark text-white border-secondary">
+              <option value="task">Task</option>
+              <option value="start">Start</option>
+              <option value="end">End</option>
+              <option value="decision">Decision</option>
+              <option value="subprocess">Sub-process</option>
+              <option value="delay">Delay</option>
+              <option value="approval">Approval</option>
+              <option value="notification">Notification</option>
+              <option value="system">System</option>
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-4"><label class="form-label small">Responsible Role</label><input type="text" name="responsible_role" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Manager"></div>
+          <div class="col-4"><label class="form-label small">Duration (min)</label><input type="number" name="duration_estimate" step="0.5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-4"><label class="form-label small">Order</label><input type="number" name="order" value="{{ steps.count|add:1 }}" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-6"><label class="form-label small">Inputs</label><input type="text" name="inputs" class="form-control bg-dark text-white border-secondary" placeholder="What enters this step?"></div>
+          <div class="col-6"><label class="form-label small">Outputs</label><input type="text" name="outputs" class="form-control bg-dark text-white border-secondary" placeholder="What exits this step?"></div>
+          <div class="col-6"><label class="form-label small">Tools Used</label><input type="text" name="tools_used" class="form-control bg-dark text-white border-secondary" placeholder="e.g. ERP, Email"></div>
+          <div class="col-6"><label class="form-label small">SLA</label><input type="text" name="sla" class="form-control bg-dark text-white border-secondary" placeholder="e.g. 2 hours, 1 day"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Add Step</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Flow Modal -->
+<div class="modal fade" id="addFlowModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Flow</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_flow">
+        <div class="modal-body row g-2">
+          <div class="col-6"><label class="form-label small">From Step</label>
+            <select name="from_step_id" class="form-select bg-dark text-white border-secondary">
+              {% for step in steps %}<option value="{{ step.pk }}">{{ step.order }}. {{ step.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6"><label class="form-label small">To Step</label>
+            <select name="to_step_id" class="form-select bg-dark text-white border-secondary">
+              {% for step in steps %}<option value="{{ step.pk }}">{{ step.order }}. {{ step.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6"><label class="form-label small">Flow Type</label>
+            <select name="flow_type" class="form-select bg-dark text-white border-secondary">
+              <option value="sequence">Sequence</option>
+              <option value="yes">Yes (from decision)</option>
+              <option value="no">No (from decision)</option>
+              <option value="exception">Exception</option>
+            </select>
+          </div>
+          <div class="col-6"><label class="form-label small">Label</label><input type="text" name="label" class="form-control bg-dark text-white border-secondary" placeholder="Optional label"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Add Flow</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Update Status</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_status">
+        <div class="modal-body">
+          <select name="status" class="form-select bg-dark text-white border-secondary">
+            <option value="draft" {% if process.status == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="review" {% if process.status == 'review' %}selected{% endif %}>In Review</option>
+            <option value="approved" {% if process.status == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="archived" {% if process.status == 'archived' %}selected{% endif %}>Archived</option>
+          </select>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Simulation Modal -->
+<div class="modal fade" id="simulationModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title"><i class="bi bi-cpu me-2"></i>Run Simulation</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="run_simulation">
+        <div class="modal-body row g-2">
+          <div class="col-12 text-muted small">The simulation calculates estimated throughput and cycle time based on step durations. Results help identify bottlenecks.</div>
+          <div class="col-12"><label class="form-label small">Assumptions / Parameters</label><textarea name="assumptions" rows="3" class="form-control bg-dark text-white border-secondary" placeholder="e.g. 8-hour workday, 2 operators, no rework…"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success"><i class="bi bi-play-fill me-1"></i>Run</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Document Modal -->
+<div class="modal fade" id="docModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Attach Document</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_document">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Name <span class="text-danger">*</span></label><input type="text" name="doc_name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">URL</label><input type="url" name="doc_url" class="form-control bg-dark text-white border-secondary" placeholder="https://…"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea name="doc_notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Attach</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

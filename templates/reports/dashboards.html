@@ -1,0 +1,33 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Report Dashboards — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-grid me-2" style="color:var(--hub-accent);"></i>Report Dashboards{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="glass-panel p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 style="color:var(--hub-text);margin:0;">Dashboards</h5>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newDashModal"><i class="bi bi-plus-lg me-1"></i>New Dashboard</button>
+  </div>
+  <div class="row g-3">
+    {% for dash in dashboards %}
+    <div class="col-md-4">
+      <div class="glass-panel p-4" style="border-radius:12px;">
+        <div style="color:var(--hub-text);font-weight:600;">{{ dash.name }}</div>
+        <div style="color:var(--hub-muted);font-size:.85rem;margin:.25rem 0;">{{ dash.report_count }} reports</div>
+        <a href="#" class="btn btn-hub-outline btn-sm w-100 mt-2">View</a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center" style="color:var(--hub-muted);padding:2rem;">No dashboards yet.</div>
+    {% endfor %}
+  </div>
+</div>
+<div class="modal fade" id="newDashModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">New Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">{% csrf_token %}<div class="modal-body"><div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Name</label><input name="name" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div></div><div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Create</button></div></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

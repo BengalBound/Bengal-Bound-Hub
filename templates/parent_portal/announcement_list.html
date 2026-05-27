@@ -1,0 +1,106 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Announcements — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'parent_portal:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Portal</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-megaphone me-2 text-warning"></i>Announcements</h4>
+  {% if access_level >= 3 %}
+  <button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#postModal"><i class="bi bi-plus-lg me-1"></i>Post Announcement</button>
+  {% endif %}
+</div>
+
+{% if not announcements %}
+<div class="card bg-dark border-secondary">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-megaphone display-3 mb-3 d-block"></i>No announcements posted yet
+  </div>
+</div>
+{% else %}
+<div class="d-flex flex-column gap-3">
+  {% for ann in announcements %}
+  <div class="card bg-dark border-secondary">
+    <div class="card-body py-3 px-4">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            {% if ann.is_pinned %}<i class="bi bi-pin-fill text-warning" title="Pinned"></i>{% endif %}
+            <span class="fw-semibold">{{ ann.title }}</span>
+            <span class="badge bg-secondary" style="font-size:0.65rem">{{ ann.get_audience_display }}</span>
+            {% if ann.class_group %}<span class="badge bg-info text-dark" style="font-size:0.65rem">{{ ann.class_group }}</span>{% endif %}
+          </div>
+          <div class="small text-muted mb-2">
+            <i class="bi bi-person me-1"></i>{{ ann.posted_by.user.get_full_name|default:"Staff" }}
+            · {{ ann.posted_at|date:"d M Y, H:i" }}
+          </div>
+          <div class="small" style="white-space:pre-line">{{ ann.body }}</div>
+        </div>
+        {% if access_level >= 3 %}
+        <form method="post" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="ann_id" value="{{ ann.pk }}">
+          <button type="submit" class="btn btn-sm btn-link text-danger p-0" onclick="return confirm('Delete this announcement?')">
+            <i class="bi bi-trash"></i>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if access_level >= 3 %}
+<div class="modal fade" id="postModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">Post Announcement</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="post">
+        <div class="modal-body row g-2">
+          <div class="col-12">
+            <label class="form-label small">Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control bg-dark text-white border-secondary" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label small">Body <span class="text-danger">*</span></label>
+            <textarea name="body" rows="5" class="form-control bg-dark text-white border-secondary" required></textarea>
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Audience</label>
+            <select name="audience" id="audienceSelect" class="form-select bg-dark text-white border-secondary" onchange="toggleClassGroup(this.value)">
+              {% for code, label in audiences %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6" id="classGroupField" style="display:none">
+            <label class="form-label small">Class / Group</label>
+            <input type="text" name="class_group" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Grade 10A">
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_pinned" id="pinnedCheck">
+              <label class="form-check-label small text-warning" for="pinnedCheck">Pin to top of portal</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning text-dark">Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleClassGroup(val) {
+  document.getElementById('classGroupField').style.display = (val === 'class' || val === 'individual') ? '' : 'none';
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'workspace_admin/base_admin.html' %}
+
+{% block page_title %}Internal Finance{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12 text-end">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createRecordModal">
+            <i class="bi bi-wallet2 me-2"></i> Add Record
+        </button>
+    </div>
+</div>
+
+<div class="glass-panel p-4">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+            <thead class="text-white-50">
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Title / Ref</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Recorded By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td>{{ r.date|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge {% if r.record_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                            {{ r.get_record_type_display }}
+                        </span>
+                    </td>
+                    <td><strong>{{ r.title }}</strong></td>
+                    <td class="text-white-50">{{ r.category }}</td>
+                    <td class="{% if r.record_type == 'income' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                        {% if r.record_type == 'income' %}+{% else %}-{% endif %}${{ r.amount }}
+                    </td>
+                    <td class="text-white-50 small">{{ r.recorded_by.email }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-white-50 py-3">No financial records matching criteria.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="createRecordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-success">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-success">Add Financial Record</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Record Type</label>
+                        <select name="record_type" class="form-select form-control-premium bg-dark text-white" required>
+                            {% for val, label in record_types %}
+                            <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Title / Reference</label>
+                        <input type="text" name="title" class="form-control form-control-premium" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label text-white-50 small">Amount ($)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control form-control-premium" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label text-white-50 small">Date</label>
+                            <input type="date" name="date" class="form-control form-control-premium" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small">Category (e.g. Payroll, Subscriptions, Sales)</label>
+                        <input type="text" name="category" class="form-control form-control-premium" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-success">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

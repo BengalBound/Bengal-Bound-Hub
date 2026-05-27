@@ -1,0 +1,236 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}AI Chat / DM{% endblock %}
+{% block page_subtitle %}Direct message your AI employees and view your conversation history.{% endblock %}
+
+{% block content %}
+<div class="row g-4" style="height: calc(100vh - 200px)">
+
+    <!-- AI Selector Sidebar -->
+    <div class="col-md-3">
+        <div class="glass-panel p-3 h-100">
+            <h6 class="text-white-50 text-uppercase small fw-bold mb-3" style="letter-spacing:1px;">Your AI Agents</h6>
+            {% for ai in hired_ais %}
+            <a href="{% url 'console_admin:ai_chat_with' ai.id %}" class="d-flex align-items-center gap-3 p-2 rounded-3 mb-2 text-decoration-none hover-elevate transition-all {% if active_ai.id == ai.id %}bg-primary bg-opacity-25{% endif %}">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;">
+                    <i class="bi bi-robot text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold text-white small">{{ ai.ai_name }}</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">{{ ai.tier.get_name_display }}</div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-white-50 small text-center py-4">
+                <i class="bi bi-robot d-block fs-2 mb-2 text-muted"></i>
+                No AI agents hired yet.<br>
+                <a href="{% url 'console_admin:hire_ai' %}" class="text-primary small">Hire your first agent &rarr;</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="col-md-9 d-flex flex-column">
+        {% if active_ai %}
+        <div class="glass-panel p-4 d-flex flex-column h-100">
+
+            <!-- Chat Header -->
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom border-secondary">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                    <i class="bi bi-robot fs-5 text-white"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold font-outfit">{{ active_ai.ai_name }}</h5>
+                    <small class="text-white-50">{{ active_ai.tier.get_name_display }}</small>
+                </div>
+                {% if serea_agent %}
+                <span class="ms-auto badge px-3 py-2
+                    {% if serea_agent.status == 'working' %}bg-success bg-opacity-25 border border-success text-success
+                    {% elif serea_agent.status == 'waiting' %}bg-warning bg-opacity-25 border border-warning text-warning
+                    {% elif serea_agent.status == 'offline' %}bg-secondary bg-opacity-25 border border-secondary text-secondary
+                    {% else %}bg-primary bg-opacity-25 border border-primary text-primary{% endif %}">
+                    &#9679;&nbsp;{{ serea_agent.get_status_display }}
+                </span>
+                {% else %}
+                <span class="ms-auto badge bg-success bg-opacity-25 border border-success text-success px-3 py-2">&#9679;&nbsp;Online</span>
+                {% endif %}
+            </div>
+
+            <!-- Token progress bar (Serea only) -->
+            {% if serea_agent %}
+            <div class="mb-3">
+                <div class="d-flex justify-content-between text-white-50 mb-1" style="font-size:0.75rem;">
+                    <span>Tokens used this month</span>
+                    <span>{{ serea_agent.tokens_used_this_month|default:0 }}
+                        {% if serea_agent.hired_employee and serea_agent.hired_employee.tier %}/ {{ serea_agent.hired_employee.tier.token_limit }}{% endif %}
+                    </span>
+                </div>
+                {% if serea_agent.hired_employee and serea_agent.hired_employee.tier %}
+                {% with limit=serea_agent.hired_employee.tier.token_limit used=serea_agent.tokens_used_this_month %}
+                {% if limit and limit > 0 %}
+                <div class="progress" style="height:3px;background:rgba(255,255,255,0.08);">
+                    {% widthratio used limit 100 as pct %}
+                    <div class="progress-bar {% if pct >= 90 %}bg-danger{% elif pct >= 70 %}bg-warning{% else %}bg-primary{% endif %}"
+                         style="width:{% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%;transition:width 0.4s;"></div>
+                </div>
+                {% endif %}
+                {% endwith %}
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Messages -->
+            <div class="flex-grow-1 overflow-auto mb-4 d-flex flex-column gap-3" id="chatBox" style="max-height:50vh;">
+                {% for msg in chat_messages %}
+                {% if serea_agent %}
+
+                    {% if msg.is_permission_request %}
+                    <!-- Permission Request Card -->
+                    <div class="d-flex justify-content-start" id="perm-{{ msg.id }}">
+                        <div class="px-3 py-3 rounded-3 small w-100"
+                             style="max-width:85%;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.35);">
+                            <div class="text-warning fw-semibold mb-2" style="font-size:0.72rem;">
+                                <i class="bi bi-shield-exclamation me-1"></i>
+                                {{ active_ai.ai_name }} &mdash; Permission Request &middot; {{ msg.created_at|time:"H:i" }}
+                            </div>
+                            <div class="text-white" style="white-space:pre-line;">{{ msg.message_text }}</div>
+                            <div class="perm-actions mt-3">
+                                {% if msg.permission_granted is None %}
+                                <button class="btn btn-sm btn-success px-3 me-2"
+                                        onclick="respondPermission({{ msg.id }}, 'approve', this)">
+                                    <i class="bi bi-check-lg me-1"></i>Approve
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger px-3"
+                                        onclick="respondPermission({{ msg.id }}, 'deny', this)">
+                                    <i class="bi bi-x-lg me-1"></i>Deny
+                                </button>
+                                {% elif msg.permission_granted %}
+                                <span class="text-success small"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                                {% else %}
+                                <span class="text-danger small"><i class="bi bi-x-circle me-1"></i>Denied</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Regular ConversationMessage -->
+                    <div class="d-flex {% if msg.sender == 'serea' %}justify-content-start{% else %}justify-content-end{% endif %}">
+                        <div class="px-3 py-2 rounded-3 small"
+                             style="max-width:70%;
+                                    background:{% if msg.sender == 'serea' %}rgba(99,102,241,0.15){% else %}rgba(14,165,233,0.15){% endif %};
+                                    border:1px solid {% if msg.sender == 'serea' %}rgba(99,102,241,0.3){% else %}rgba(14,165,233,0.3){% endif %};">
+                            <div class="text-white-50 mb-1" style="font-size:0.68rem;">
+                                {% if msg.sender == 'serea' %}{{ active_ai.ai_name }}{% else %}You{% endif %} &middot; {{ msg.created_at|time:"H:i" }}
+                            </div>
+                            <div class="text-white" style="white-space:pre-line;">{{ msg.message_text }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                {% else %}
+                    <!-- Legacy AIChatInteraction -->
+                    <div class="d-flex {% if msg.is_from_ai %}justify-content-start{% else %}justify-content-end{% endif %}">
+                        <div class="px-3 py-2 rounded-3 small"
+                             style="max-width:70%;
+                                    background:{% if msg.is_from_ai %}rgba(99,102,241,0.15){% else %}rgba(14,165,233,0.15){% endif %};
+                                    border:1px solid {% if msg.is_from_ai %}rgba(99,102,241,0.3){% else %}rgba(14,165,233,0.3){% endif %};">
+                            <div class="text-white-50 mb-1" style="font-size:0.68rem;">
+                                {% if msg.is_from_ai %}{{ active_ai.ai_name }}{% else %}You{% endif %} &middot; {{ msg.timestamp|time:"H:i" }}
+                            </div>
+                            {{ msg.message_content }}
+                        </div>
+                    </div>
+                {% endif %}
+                {% empty %}
+                <div class="text-center text-white-50 my-auto py-5">
+                    <i class="bi bi-chat-dots fs-1 d-block mb-3 text-muted"></i>
+                    Start a conversation with {{ active_ai.ai_name }}
+                </div>
+                {% endfor %}
+
+                <!-- Typing indicator -->
+                <div id="typingIndicator" class="d-none d-flex justify-content-start">
+                    <div class="px-3 py-2 rounded-3 small"
+                         style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);">
+                        <span class="text-white-50" style="font-size:0.72rem;">{{ active_ai.ai_name }} is typing</span>
+                        <span class="ms-1 text-primary">&#9679;&#9679;&#9679;</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            {% if serea_agent and serea_agent.status == 'offline' %}
+            <div class="text-center text-white-50 small py-3 border-top border-secondary">
+                <i class="bi bi-power me-1 text-secondary"></i>
+                This agent is currently offline. Reactivate it from the AI Oversight panel.
+            </div>
+            {% else %}
+            <form method="post" class="d-flex gap-2 mt-auto" id="chatForm">
+                {% csrf_token %}
+                <input type="text" name="message" id="messageInput"
+                       class="form-control bg-dark text-white border-secondary shadow-none flex-grow-1"
+                       placeholder="Type a message to {{ active_ai.ai_name }}..."
+                       autocomplete="off" required>
+                <button type="submit" class="btn btn-primary px-4" id="sendBtn">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+        {% else %}
+        <div class="glass-panel h-100 d-flex align-items-center justify-content-center text-center">
+            <div>
+                <i class="bi bi-chat-square-dots fs-1 text-muted d-block mb-3"></i>
+                <h5 class="text-white-50">Select an AI Agent to start chatting</h5>
+                <p class="text-muted small">Your conversation history is automatically saved</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+    const chatForm = document.getElementById('chatForm');
+    if (chatForm) {
+        chatForm.addEventListener('submit', function () {
+            const indicator = document.getElementById('typingIndicator');
+            const sendBtn   = document.getElementById('sendBtn');
+            if (indicator) { indicator.classList.remove('d-none'); chatBox.scrollTop = chatBox.scrollHeight; }
+            if (sendBtn)    { sendBtn.disabled = true; sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
+        });
+    }
+
+    function respondPermission(msgId, decision, btn) {
+        const card       = document.getElementById('perm-' + msgId);
+        const csrfToken  = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        btn.disabled     = true;
+        btn.innerHTML    = '<span class="spinner-border spinner-border-sm me-1"></span>';
+        fetch('/serea/permission/' + msgId + '/respond/', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body:    JSON.stringify({ decision: decision }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            const div = card.querySelector('.perm-actions');
+            if (data.status === 'approved') {
+                div.innerHTML = '<span class="text-success small"><i class="bi bi-check-circle me-1"></i>Approved &mdash; Serea is executing the action.</span>';
+                setTimeout(() => location.reload(), 3000);
+            } else if (data.status === 'denied') {
+                div.innerHTML = '<span class="text-danger small"><i class="bi bi-x-circle me-1"></i>Denied &mdash; Serea will skip this action.</span>';
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                btn.disabled  = false;
+                btn.textContent = decision === 'approve' ? 'Approve' : 'Deny';
+                alert(data.error || 'Something went wrong.');
+            }
+        })
+        .catch(() => { btn.disabled = false; btn.textContent = decision === 'approve' ? 'Approve' : 'Deny'; });
+    }
+</script>
+{% endblock %}

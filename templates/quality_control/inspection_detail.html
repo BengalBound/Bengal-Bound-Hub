@@ -1,0 +1,49 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Inspection {{ inspection.reference }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-clipboard-check me-2" style="color:var(--hub-accent);"></i>Inspection {{ inspection.reference }}{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex gap-2 mb-4">
+  <a href="{% url 'quality_control:inspections' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+  {% if not inspection.result %}
+  <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="pass"><button type="submit" class="btn btn-sm" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e;border-radius:6px;padding:.25rem .75rem;">Pass</button></form>
+  <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="fail"><button type="submit" class="btn btn-sm" style="background:#f8717120;color:#f87171;border:1px solid #f87171;border-radius:6px;padding:.25rem .75rem;">Fail</button></form>
+  {% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 style="color:var(--hub-text);margin:0;">{{ inspection.subject }}</h5>
+          <div style="color:var(--hub-muted);font-size:.85rem;">Ref: {{ inspection.reference }}</div>
+        </div>
+        {% if inspection.result %}
+        <span class="badge" style="background:{% if inspection.result == 'pass' %}#22c55e20{% else %}#f8717120{% endif %};color:{% if inspection.result == 'pass' %}#22c55e{% else %}#f87171{% endif %};">{{ inspection.result|title }}</span>
+        {% else %}
+        <span class="badge" style="background:#fbbf2420;color:#fbbf24;">Pending</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="glass-panel p-4 mt-3">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;">Checklist</h6>
+      {% for item in checklist %}
+      <div class="d-flex justify-content-between align-items-center mb-2 p-2" style="background:#1e293b;border-radius:8px;">
+        <span style="color:var(--hub-text);">{{ item.criterion }}</span>
+        <span style="color:{% if item.passed %}#22c55e{% else %}#f87171{% endif %};">{% if item.passed %}<i class="bi bi-check-circle"></i>{% else %}<i class="bi bi-x-circle"></i>{% endif %}</span>
+      </div>
+      {% empty %}
+      <div style="color:var(--hub-muted);">No checklist items.</div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <h6 style="color:var(--hub-text);margin-bottom:1rem;">Details</h6>
+      <div class="mb-2"><span style="color:var(--hub-muted);">Date:</span> <span style="color:var(--hub-text);">{{ inspection.date }}</span></div>
+      <div class="mb-2"><span style="color:var(--hub-muted);">Inspector:</span> <span style="color:var(--hub-text);">{{ inspection.inspector|default:"—" }}</span></div>
+      <div class="mb-2"><span style="color:var(--hub-muted);">Template:</span> <span style="color:var(--hub-text);">{{ inspection.template|default:"—" }}</span></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

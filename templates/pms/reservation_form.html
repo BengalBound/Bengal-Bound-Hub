@@ -1,0 +1,53 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Reservation — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'pms:reservation_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Reservations</a></div>
+<h4 class="fw-bold mb-4"><i class="bi bi-calendar-plus me-2 text-info"></i>New Reservation</h4>
+
+<form method="post" class="card bg-dark border-secondary">
+  {% csrf_token %}
+  <div class="card-body row g-3">
+    <div class="col-12"><div class="small text-muted fw-semibold mb-1 border-bottom border-secondary pb-1">Guest</div></div>
+    <div class="col-md-6"><label class="form-label small">Select Existing Guest</label>
+      <select name="guest_id" class="form-select bg-dark text-white border-secondary">
+        <option value="">— New Guest (fill below) —</option>
+        {% for g in guests %}<option value="{{ g.pk }}">{{ g.full_name }} ({{ g.email }})</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6"><label class="form-label small">Guest Full Name <span class="text-muted small">(if new)</span></label><input type="text" name="guest_name" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">Guest Email</label><input type="email" name="guest_email" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">Guest Phone</label><input type="text" name="guest_phone" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-4"><label class="form-label small">Nationality</label><input type="text" name="guest_nationality" class="form-control bg-dark text-white border-secondary"></div>
+
+    <div class="col-12"><div class="small text-muted fw-semibold mb-1 border-bottom border-secondary pb-1 mt-2">Booking Details</div></div>
+    <div class="col-md-4"><label class="form-label small">Room Type <span class="text-danger">*</span></label>
+      <select name="room_type_id" class="form-select bg-dark text-white border-secondary" required>
+        <option value="">— Select —</option>
+        {% for rt in room_types %}<option value="{{ rt.pk }}">{{ rt.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4"><label class="form-label small">Specific Room (optional)</label>
+      <select name="room_id" class="form-select bg-dark text-white border-secondary">
+        <option value="">— Assign Later —</option>
+        {% for rm in rooms %}<option value="{{ rm.pk }}">{{ rm.room_number }}{% if rm.room_type %} ({{ rm.room_type.name }}){% endif %}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4"><label class="form-label small">Source</label>
+      <select name="source" class="form-select bg-dark text-white border-secondary">
+        {% for code, label in source_choices %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3"><label class="form-label small">Check-In <span class="text-danger">*</span></label><input type="date" name="check_in_date" class="form-control bg-dark text-white border-secondary" required></div>
+    <div class="col-md-3"><label class="form-label small">Check-Out <span class="text-danger">*</span></label><input type="date" name="check_out_date" class="form-control bg-dark text-white border-secondary" required></div>
+    <div class="col-md-2"><label class="form-label small">Adults</label><input type="number" name="adults" value="1" min="1" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-2"><label class="form-label small">Children</label><input type="number" name="children" value="0" min="0" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-md-3"><label class="form-label small">Rate / Night <span class="text-danger">*</span></label><input type="number" name="rate_per_night" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+    <div class="col-md-2"><label class="form-label small">Currency</label><input type="text" name="currency" value="USD" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+    <div class="col-12"><label class="form-label small">Notes</label><textarea name="notes" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary d-flex gap-2">
+    <button type="submit" class="btn btn-info text-dark">Create Reservation</button>
+    <a href="{% url 'pms:reservation_list' slug=biz.slug %}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

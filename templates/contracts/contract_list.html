@@ -1,0 +1,37 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Contracts — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-file-earmark-check me-2" style="color:var(--hub-accent);"></i>All Contracts{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex gap-2">
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+    <a href="?status=draft" class="btn btn-sm {% if status_filter == 'draft' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Draft</a>
+    <a href="?status=signed" class="btn btn-sm {% if status_filter == 'signed' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Signed</a>
+    <a href="?status=expired" class="btn btn-sm {% if status_filter == 'expired' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Expired</a>
+  </div>
+  <a href="{% url 'contracts:contract_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Contract</a>
+</div>
+<div class="glass-panel p-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Title</th><th>Ref</th><th>Valid From</th><th>Valid Until</th><th>Value</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for contract in contracts %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ contract.title }}</td>
+          <td style="color:var(--hub-accent);font-size:.8rem;">{{ contract.reference|default:"—" }}</td>
+          <td style="color:var(--hub-muted);">{{ contract.valid_from }}</td>
+          <td style="color:{% if contract.is_expired %}#f87171{% else %}var(--hub-muted){% endif %};">{{ contract.valid_until|default:"—" }}</td>
+          <td style="color:#38bdf8;">{{ contract.value|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if contract.status == 'signed' %}#22c55e20{% elif contract.status == 'expired' %}#f8717120{% elif contract.status == 'draft' %}#fbbf2420{% else %}#64748b20{% endif %};color:{% if contract.status == 'signed' %}#22c55e{% elif contract.status == 'expired' %}#f87171{% elif contract.status == 'draft' %}#fbbf24{% else %}#64748b{% endif %};">{{ contract.get_status_display }}</span></td>
+          <td><a href="{% url 'contracts:contract_detail' slug=biz.slug pk=contract.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:var(--hub-muted);padding:2rem;">No contracts found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

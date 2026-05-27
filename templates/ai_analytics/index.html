@@ -1,0 +1,19 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}AI Analytics — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-graph-up-arrow me-2" style="color:var(--hub-accent);"></i>AI Analytics{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_datasets|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Datasets</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ total_insights|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Insights</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ total_kpis|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">KPIs Tracked</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Analytics Suite</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'ai_analytics:datasets' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-database me-1"></i>Datasets</a>
+    <a href="{% url 'ai_analytics:insights' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-lightbulb me-1"></i>Insights</a>
+    <a href="{% url 'ai_analytics:kpis' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-speedometer2 me-1"></i>KPIs</a>
+  </div>
+</div>
+{% endblock %}

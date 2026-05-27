@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Email | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center position-relative overflow-hidden py-5">
+    <div class="position-absolute" style="top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 30%,rgba(168,85,247,0.12) 0%,transparent 60%);z-index:0;pointer-events:none;"></div>
+
+    <div class="container" style="position:relative;z-index:1;">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5 col-xl-4">
+
+                <div class="text-center mb-4 mt-5">
+                    <a href="/" class="text-decoration-none">
+                        <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.5rem;background:linear-gradient(135deg,#c084fc,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">BengalBound</span>
+                    </a>
+                </div>
+
+                <div class="glass-card p-4 p-lg-5 text-center">
+                    <!-- Icon -->
+                    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(236,72,153,0.2));display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                        <i class="bi bi-envelope-check" style="font-size:1.75rem;background:linear-gradient(135deg,#c084fc,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+                    </div>
+
+                    <h2 class="fw-bold mb-2 font-outfit" style="font-size:1.5rem;">Check your email</h2>
+                    <p class="text-white-50 small mb-1">We sent a 6-digit code to</p>
+                    {% if email %}
+                    <p class="fw-semibold mb-4" style="color:#c084fc;">{{ email }}</p>
+                    {% else %}
+                    <p class="fw-semibold mb-4" style="color:#c084fc;">your email address</p>
+                    {% endif %}
+
+                    {% if messages %}
+                    {% for m in messages %}
+                    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} bg-opacity-25 border-0 small mb-3">{{ m }}</div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'accounts:verify_otp' %}?email={{ email }}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <input
+                                type="text"
+                                name="otp"
+                                class="form-control form-control-lg bg-dark text-white border-secondary text-center shadow-none fw-bold"
+                                placeholder="000000"
+                                maxlength="6"
+                                pattern="[0-9]{6}"
+                                inputmode="numeric"
+                                autocomplete="one-time-code"
+                                required
+                                autofocus
+                                style="font-size:2rem;letter-spacing:0.5rem;border-radius:12px;"
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill py-2 fw-semibold shadow-glow">
+                            Verify &amp; Continue
+                        </button>
+                    </form>
+
+                    <p class="mt-4 mb-0" style="font-size:0.78rem;color:rgba(255,255,255,0.35);">
+                        Didn't get the email? Check your spam folder, or <a href="{% url 'accounts:register' %}" style="color:rgba(192,132,252,0.7);text-decoration:none;">try again</a>.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

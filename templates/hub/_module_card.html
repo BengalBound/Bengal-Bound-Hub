@@ -1,0 +1,80 @@
+{% load hub_tags %}
+<div class="col-md-6 col-xl-4">
+  <div class="mod-card h-100 d-flex flex-column position-relative {% if item.is_active %}mod-card--active{% elif item.is_priority %}mod-card--priority{% endif %}">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,rgba(192,132,252,0.14),rgba(56,189,248,0.1));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+        <i class="bi {{ item.obj.icon }}" style="{% if item.is_active %}color:#38bdf8;{% else %}color:var(--hub-accent);{% endif %}"></i>
+      </div>
+      <div class="d-flex gap-1 flex-wrap justify-content-end">
+        {% if item.is_active %}
+        <span style="font-size:0.62rem;background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:2px 8px;font-weight:600;">&#10003; Active</span>
+        {% endif %}
+        {% if item.is_priority and not item.is_active %}
+        <span style="font-size:0.62rem;background:rgba(192,132,252,0.1);color:#c084fc;border:1px solid rgba(192,132,252,0.25);border-radius:20px;padding:2px 8px;">&#9733; Recommended</span>
+        {% endif %}
+        {% if item.obj.is_coming_soon %}
+        <span style="font-size:0.62rem;background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);border-radius:20px;padding:2px 8px;">Soon</span>
+        {% endif %}
+        {% if item.obj.is_free and not item.is_active and not item.obj.is_coming_soon %}
+        <span style="font-size:0.62rem;background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);border-radius:20px;padding:2px 8px;">Free</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <h6 class="fw-bold mb-1" style="font-size:0.87rem;">{{ item.obj.name }}</h6>
+    {% if item.obj.tagline %}<p class="mb-1" style="color:var(--hub-accent);font-size:0.75rem;font-style:italic;">{{ item.obj.tagline }}</p>{% endif %}
+    <p class="flex-grow-1 mb-3" style="color:var(--hub-muted);font-size:0.78rem;line-height:1.55;">{{ item.obj.description|truncatewords:20 }}</p>
+
+    <!-- Footer -->
+    <div class="mt-auto pt-2" style="border-top:1px solid var(--hub-border);">
+      {% if not item.obj.is_free and item.obj.monthly_price_usd > 0 and not item.is_active %}
+      <div class="fw-bold mb-2" style="font-size:0.85rem;">${{ item.obj.monthly_price_usd }}<span style="color:var(--hub-muted);font-weight:400;font-size:0.7rem;">/mo</span></div>
+      {% endif %}
+
+      {% if item.is_active %}
+        <div class="d-flex gap-2">
+          {% if item.obj.url_namespace %}
+          {% module_url item.obj.url_namespace biz.slug as mod_open_url %}
+          <a href="{{ mod_open_url }}" class="btn btn-hub-outline btn-sm flex-grow-1" style="font-size:0.77rem;">Open <i class="bi bi-arrow-right ms-1"></i></a>
+          {% else %}
+          <span class="btn btn-hub-outline btn-sm flex-grow-1 disabled" style="font-size:0.77rem;"><i class="bi bi-check2 me-1"></i>Active</span>
+          {% endif %}
+          {% if is_owner %}
+          <form method="POST" action="{% url 'hub:hub_deactivate_module' slug=biz.slug %}">
+            {% csrf_token %}<input type="hidden" name="module_id" value="{{ item.obj.module_id }}">
+            <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:0.3rem 0.6rem;" onclick="return confirm('Deactivate {{ item.obj.name }}?')"><i class="bi bi-x-lg"></i></button>
+          </form>
+          {% endif %}
+        </div>
+
+      {% elif item.obj.is_coming_soon %}
+        <button class="btn btn-hub-outline btn-sm w-100 disabled" disabled style="font-size:0.77rem;"><i class="bi bi-clock me-1"></i>Coming Soon</button>
+
+      {% elif not item.included_in_plan %}
+        <div>
+          <p class="text-center mb-2" style="font-size:0.68rem;color:#fbbf24;"><i class="bi bi-lock me-1"></i>Requires {{ item.upgrade_to|default:"upgrade"|title }} plan</p>
+          <a href="{% url 'hub:hub_subscription' slug=biz.slug %}" class="btn btn-sm w-100" style="background:rgba(251,191,36,0.08);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);border-radius:9px;font-size:0.77rem;">
+            <i class="bi bi-arrow-up-circle me-1"></i>Upgrade Plan
+          </a>
+        </div>
+
+      {% elif not item.can_activate %}
+        <button class="btn btn-hub-outline btn-sm w-100 disabled" disabled style="font-size:0.77rem;" title="Activate required modules first"><i class="bi bi-lock me-1"></i>Requirements not met</button>
+
+      {% elif is_owner %}
+        <form method="POST" action="{% url 'hub:hub_activate_module' slug=biz.slug %}">
+          {% csrf_token %}<input type="hidden" name="module_id" value="{{ item.obj.module_id }}">
+          <button type="submit" class="btn btn-hub-primary btn-sm w-100" style="font-size:0.77rem;">
+            <i class="bi bi-plus-circle me-1"></i>{% if item.obj.is_free or item.included_in_plan %}Add Module{% else %}Activate &mdash; ${{ item.obj.monthly_price_usd }}/mo{% endif %}
+          </button>
+        </form>
+
+      {% else %}
+        <button class="btn btn-hub-outline btn-sm w-100 disabled" disabled style="font-size:0.77rem;">Owner only</button>
+      {% endif %}
+    </div>
+
+  </div>
+</div>

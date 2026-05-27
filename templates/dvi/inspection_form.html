@@ -1,0 +1,125 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Inspection — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="mb-4">
+  <a href="{% url 'dvi:home' slug=biz.slug %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i>Inspections
+  </a>
+  <h4 class="fw-bold mt-1"><i class="bi bi-clipboard2-plus me-2 text-info"></i>New Vehicle Inspection</h4>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="row g-4">
+
+    <!-- Template -->
+    <div class="col-12">
+      <div class="card bg-dark border-info">
+        <div class="card-header text-info"><i class="bi bi-layout-text-sidebar me-1"></i>Inspection Template</div>
+        <div class="card-body">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-6">
+              <select name="template_id" class="form-select bg-dark text-white border-secondary">
+                <option value="">Default ({{ default_count }}-point standard inspection)</option>
+                {% for tpl in templates %}
+                <option value="{{ tpl.pk }}">{{ tpl.name }} ({{ tpl.checkpoints|length }} checkpoints)</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6 text-muted small">
+              Select a custom template or leave blank to use the standard {{ default_count }}-point vehicle inspection checklist.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-car-front me-1"></i>Vehicle Details</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-4">
+              <label class="form-label small">Make <span class="text-danger">*</span></label>
+              <input type="text" name="vehicle_make" class="form-control bg-dark text-white border-secondary" required>
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Model</label>
+              <input type="text" name="vehicle_model" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Year</label>
+              <input type="number" name="vehicle_year" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Reg / Plate</label>
+              <input type="text" name="vehicle_reg" class="form-control bg-dark text-white border-secondary font-monospace" style="text-transform:uppercase">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Colour</label>
+              <input type="text" name="colour" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-4">
+              <label class="form-label small">Mileage</label>
+              <input type="number" name="mileage" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-12">
+              <label class="form-label small">VIN</label>
+              <input type="text" name="vin" class="form-control bg-dark text-white border-secondary font-monospace">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer & Job -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header"><i class="bi bi-person me-1"></i>Customer & Job Link</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-12">
+              <label class="form-label small">Customer Name</label>
+              <input type="text" name="customer_name" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Phone</label>
+              <input type="text" name="customer_phone" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Email</label>
+              <input type="email" name="customer_email" class="form-control bg-dark text-white border-secondary">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Job Card # (optional)</label>
+              <input type="text" name="job_card_number" class="form-control bg-dark text-white border-secondary font-monospace" placeholder="e.g. 00123">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Technician</label>
+              <select name="performed_by_id" class="form-select bg-dark text-white border-secondary">
+                <option value="">Unassigned</option>
+                {% for emp in employees %}
+                <option value="{{ emp.pk }}">{{ emp.user.get_full_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Notes</label>
+              <textarea name="notes" rows="3" class="form-control bg-dark text-white border-secondary"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 text-end">
+      <a href="{% url 'dvi:home' slug=biz.slug %}" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button type="submit" class="btn btn-info text-dark px-4">
+        <i class="bi bi-play-fill me-1"></i>Start Inspection
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}

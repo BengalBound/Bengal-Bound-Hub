@@ -1,0 +1,46 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}Assign New Task{% endblock %}
+{% block page_subtitle %}Give your AI agent a set of instructions to execute.{% endblock %}
+{% block header_actions %}<a href="{% url 'console_admin:task_management' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Back to Tasks</a>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+<div class="glass-panel p-5">
+    {% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success">{{ msg }}</div>{% endfor %}{% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label text-white-50 small fw-medium">Task Title</label>
+            <input type="text" name="title" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="e.g. Moderate social media comments for June" required>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-white-50 small fw-medium">Assign to AI Agent</label>
+                <select name="ai_employee" class="form-select bg-dark text-white border-secondary" required>
+                    <option value="">Select AI Agent</option>
+                    {% for ai in hired_ais %}<option value="{{ ai.id }}">{{ ai.ai_name }} ({{ ai.tier.get_name_display }})</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-white-50 small fw-medium">Link to Project</label>
+                <select name="project" class="form-select bg-dark text-white border-secondary" required>
+                    <option value="">Select Project</option>
+                    {% for p in projects %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="form-label text-white-50 small fw-medium">Instructions <span class="text-muted">(what should Serea do?)</span></label>
+            <textarea name="instructions" class="form-control bg-dark text-white border-secondary shadow-none" rows="6" placeholder="Describe the task in detail. The more context you provide, the better Serea will perform..." required></textarea>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary-gradient rounded-pill px-4 fw-semibold shadow-glow"><i class="bi bi-send me-2"></i>Assign Task</button>
+            <a href="{% url 'console_admin:task_management' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+        </div>
+    </form>
+</div>
+</div>
+</div>
+{% endblock %}

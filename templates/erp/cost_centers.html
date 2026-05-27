@@ -1,0 +1,60 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Cost Centers — {{ biz.name }}{% endblock %}
+{% block page_title %}Cost Centers{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{% url 'erp:dashboard' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>ERP</a>
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCCModal"><i class="bi bi-plus me-1"></i>New Cost Center</button>
+</div>
+
+{% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show mb-3">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="glass-panel p-0" style="overflow:hidden;">
+    <table class="table table-dark table-borderless mb-0" style="font-size:0.85rem;">
+        <thead><tr style="color:var(--hub-muted);border-bottom:1px solid var(--hub-border);">
+            <th class="px-4 py-3">Code</th><th>Name</th><th>Manager</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+        {% for cc in centers %}
+        <tr style="border-bottom:1px solid var(--hub-border);">
+            <td class="px-4 fw-semibold" style="color:#ec4899;">{{ cc.code }}</td>
+            <td>{{ cc.name }}</td>
+            <td class="text-white-50">{{ cc.manager.name|default:"—" }}</td>
+            <td><span class="badge" style="font-size:0.7rem;background:{% if cc.is_active %}rgba(34,197,94,0.12);color:#22c55e;{% else %}rgba(239,68,68,0.12);color:#ef4444;{% endif %}">{% if cc.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-white-50 py-5">No cost centers yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="addCCModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:#1a2332;border:1px solid var(--hub-border);">
+            <div class="modal-header" style="border-color:var(--hub-border);">
+                <h6 class="modal-title fw-bold">New Cost Center</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">{% csrf_token %}
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label text-white-50 small">Code</label><input type="text" name="code" class="form-control" style="background:#0f172a;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. CC-001" required></div>
+                <div class="mb-3"><label class="form-label text-white-50 small">Name</label><input type="text" name="name" class="form-control" style="background:#0f172a;border-color:var(--hub-border);color:var(--hub-text);" placeholder="e.g. Production Floor" required></div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Manager</label>
+                    <select name="manager_id" class="form-select" style="background:#0f172a;border-color:var(--hub-border);color:var(--hub-text);">
+                        <option value="">— None —</option>
+                        {% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-color:var(--hub-border);">
+                <button type="button" class="btn btn-hub-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-hub-primary">Create</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

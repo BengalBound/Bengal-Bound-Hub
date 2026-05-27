@@ -1,0 +1,41 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Floor Plan — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-layout-wtf me-2" style="color:var(--hub-accent);"></i>Floor Plan{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex gap-3" style="font-size:.85rem;">
+    <span><span style="display:inline-block;width:12px;height:12px;background:#22c55e;border-radius:3px;margin-right:4px;"></span>Available</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:#f87171;border-radius:3px;margin-right:4px;"></span>Occupied</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:#fbbf24;border-radius:3px;margin-right:4px;"></span>Reserved</span>
+  </div>
+  <button class="btn btn-hub-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal"><i class="bi bi-plus-lg me-1"></i>Add Table</button>
+</div>
+<div class="glass-panel p-4">
+  <div class="d-flex flex-wrap gap-3">
+    {% for table in tables %}
+    <div style="width:100px;text-align:center;cursor:pointer;" data-bs-toggle="modal" data-bs-target="#tableModal{{ table.pk }}">
+      <div style="width:80px;height:80px;border-radius:12px;background:{% if table.status == 'available' %}#22c55e20{% elif table.status == 'occupied' %}#f8717120{% else %}#fbbf2420{% endif %};border:2px solid {% if table.status == 'available' %}#22c55e{% elif table.status == 'occupied' %}#f87171{% else %}#fbbf24{% endif %};display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;">
+        <div style="color:{% if table.status == 'available' %}#22c55e{% elif table.status == 'occupied' %}#f87171{% else %}#fbbf24{% endif %};font-weight:700;font-size:1.1rem;">{{ table.number }}</div>
+        <div style="color:var(--hub-muted);font-size:.7rem;">{{ table.capacity }}p</div>
+      </div>
+      <div style="color:var(--hub-text);font-size:.8rem;margin-top:.5rem;">{{ table.status|title }}</div>
+    </div>
+    {% empty %}
+    <div style="color:var(--hub-muted);padding:2rem;">No tables configured.</div>
+    {% endfor %}
+  </div>
+</div>
+<div class="modal fade" id="addTableModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:#0f172a;border:1px solid var(--hub-border);border-radius:16px;">
+      <div class="modal-header" style="border-color:var(--hub-border);"><h5 class="modal-title" style="color:var(--hub-text);">Add Table</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post" action="?action=add_table">{% csrf_token %}<div class="modal-body">
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Table Number</label><input name="number" type="number" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Capacity</label><input name="capacity" type="number" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+        <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Section</label><input name="section" class="form-control" placeholder="e.g. Main Hall, Terrace" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      </div><div class="modal-footer" style="border-color:var(--hub-border);"><button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-hub-primary btn-sm">Add</button></div></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

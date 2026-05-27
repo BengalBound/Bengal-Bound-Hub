@@ -1,0 +1,63 @@
+{% extends 'console_admin/base_console.html' %}
+{% block page_title %}AI Training{% endblock %}
+{% block page_subtitle %}Upload documents and instructions to customize how Serea responds for your business.{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Upload Form -->
+    <div class="col-lg-5">
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold font-outfit mb-4"><i class="bi bi-upload me-2 text-primary"></i>Add Training Document</h6>
+            {% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success">{{ msg }}</div>{% endfor %}{% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-medium">Document Title</label>
+                    <input type="text" name="title" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="e.g. Tone & Brand Voice Guide" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-medium">Train for AI Agent</label>
+                    <select name="ai_employee" class="form-select bg-dark text-white border-secondary" required>
+                        <option value="">Select Agent</option>
+                        {% for ai in hired_ais %}<option value="{{ ai.id }}">{{ ai.ai_name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small fw-medium">Document Type</label>
+                    <select name="document_type" class="form-select bg-dark text-white border-secondary">
+                        {% for val, label in doc_type_choices %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-medium">Content / Instructions</label>
+                    <textarea name="content" class="form-control bg-dark text-white border-secondary shadow-none" rows="8" placeholder="Paste your training content here. This will be injected into Serea's context when processing tasks for your account..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill fw-semibold shadow-glow"><i class="bi bi-brain me-2"></i>Save Training Document</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing Documents -->
+    <div class="col-lg-7">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="fw-bold font-outfit mb-4"><i class="bi bi-collection me-2 text-primary"></i>Training Library</h6>
+            {% for doc in training_docs %}
+            <div class="glass-panel p-3 mb-3 d-flex gap-3 align-items-start">
+                <div class="rounded-2 bg-primary bg-opacity-25 p-2 flex-shrink-0"><i class="bi bi-file-text text-primary"></i></div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-white small">{{ doc.title }}</div>
+                    <div class="text-white-50" style="font-size:0.72rem;">{{ doc.get_document_type_display }} · {{ doc.ai_employee.ai_name }} · {{ doc.created_at|date:"M d, Y" }}</div>
+                    <div class="text-white-50 small mt-1">{{ doc.content|truncatechars:120 }}</div>
+                </div>
+                {% if doc.is_active %}<span class="badge bg-success bg-opacity-25 text-success flex-shrink-0">Active</span>{% else %}<span class="badge bg-secondary bg-opacity-25 text-white-50 flex-shrink-0">Inactive</span>{% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center text-white-50 py-5">
+                <i class="bi bi-book d-block fs-2 mb-2 text-muted"></i>
+                No training documents yet. Upload your first one to customize Serea's behaviour.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

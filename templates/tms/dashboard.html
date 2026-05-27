@@ -1,0 +1,133 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Transport Management — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-truck me-2 text-primary"></i>Transportation Management</h4>
+    <small class="text-muted">{{ biz.name }}</small>
+  </div>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <a href="{% url 'tms:shipment_create' slug=biz.slug %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New Shipment</a>
+    <a href="{% url 'tms:quotes' slug=biz.slug %}" class="btn btn-outline-secondary btn-sm">Freight Quotes</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Status cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center py-3">
+      <div class="fs-2 fw-bold text-warning">{{ status_counts.in_transit|default:0 }}</div>
+      <div class="small text-muted">In Transit</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center py-3">
+      <div class="fs-2 fw-bold text-info">{{ status_counts.booked|default:0 }}</div>
+      <div class="small text-muted">Booked</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center py-3">
+      <div class="fs-2 fw-bold text-success">{{ status_counts.delivered|default:0 }}</div>
+      <div class="small text-muted">Delivered</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-danger text-center py-3">
+      <div class="fs-2 fw-bold text-danger">{{ delayed }}</div>
+      <div class="small text-muted">Delayed</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Active Shipments -->
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-truck me-1"></i>Active Shipments</span>
+        <a href="{% url 'tms:shipment_list' slug=biz.slug %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if active %}
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0 align-middle small">
+            <thead class="table-secondary">
+              <tr><th>SHP #</th><th>Type</th><th>Destination</th><th>Carrier</th><th>ETA</th><th>Status</th><th>Priority</th></tr>
+            </thead>
+            <tbody>
+              {% for s in active %}
+              <tr style="cursor:pointer" onclick="location.href='{% url 'tms:shipment_detail' slug=biz.slug shipment_id=s.pk %}'">
+                <td class="font-monospace fw-bold">SHP-{{ s.shipment_number }}</td>
+                <td><span class="badge bg-secondary">{{ s.get_shipment_type_display }}</span></td>
+                <td>{{ s.destination_name|default:s.destination_address|truncatechars:30 }}</td>
+                <td>{{ s.carrier.name|default:"—" }}</td>
+                <td class="text-muted">{{ s.scheduled_delivery|date:"d M"|default:"—" }}</td>
+                <td>
+                  {% if s.status == 'in_transit' %}<span class="badge bg-warning text-dark">In Transit</span>
+                  {% elif s.status == 'out_for_delivery' %}<span class="badge bg-info">Out for Delivery</span>
+                  {% elif s.status == 'at_hub' %}<span class="badge bg-secondary">At Hub</span>
+                  {% else %}<span class="badge bg-secondary">{{ s.get_status_display }}</span>{% endif %}
+                </td>
+                <td>
+                  {% if s.priority == 'urgent' %}<span class="badge bg-danger">Urgent</span>
+                  {% elif s.priority == 'express' %}<span class="badge bg-warning text-dark">Express</span>
+                  {% else %}<span class="badge bg-secondary">Std</span>{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted"><i class="bi bi-truck display-3 mb-3 d-block"></i>No active shipments</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Carriers -->
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-building me-1"></i>Carriers</span>
+        <a href="{% url 'tms:carriers' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Manage</a>
+      </div>
+      <div class="card-body">
+        {% if carriers %}
+        {% for c in carriers %}
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary">
+          <div>
+            <div class="fw-semibold small">{{ c.name }}</div>
+            <div class="text-muted" style="font-size:0.75rem">{{ c.get_carrier_type_display }}</div>
+          </div>
+          <span class="badge bg-primary">{{ c.shipments.count }} shp</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-muted small text-center py-2">No carriers added</div>
+        {% endif %}
+        {% if access_level >= 4 %}
+        <a href="{% url 'tms:carriers' slug=biz.slug %}" class="btn btn-sm btn-outline-primary w-100 mt-2">Add Carrier</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="row g-2">
+      <div class="col-6">
+        <a href="{% url 'tms:routes' slug=biz.slug %}" class="card bg-dark border-secondary text-center py-3 text-decoration-none">
+          <i class="bi bi-map text-info d-block fs-3"></i>
+          <div class="small mt-1 text-white">Routes</div>
+        </a>
+      </div>
+      <div class="col-6">
+        <a href="{% url 'tms:quotes' slug=biz.slug %}" class="card bg-dark border-secondary text-center py-3 text-decoration-none">
+          <i class="bi bi-file-earmark-text text-success d-block fs-3"></i>
+          <div class="small mt-1 text-white">Quotes</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,351 @@
+{% extends 'console_admin/base_console.html' %}
+{% block title %}My AI Employee — Serea | BengalBound{% endblock %}
+{% block page_title %}My AI Employee{% endblock %}
+{% block page_subtitle %}Serea is your dedicated AI social media manager, working remotely for you 24/7.{% endblock %}
+
+{% block header_actions %}
+  {% if hired_ai %}
+    <a href="{% url 'console_admin:manage_ai' ai_id=hired_ai.id %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-gear me-1"></i>Manage</a>
+  {% endif %}
+  <a href="/hire-ai/" class="btn btn-outline-info btn-sm"><i class="bi bi-arrow-up-circle me-1"></i> Upgrade Tier</a>
+{% endblock %}
+
+{% block content %}
+{% if not hired_ai %}
+<!-- No AI Hired Yet -->
+<div class="glass-panel p-5 text-center">
+  <div class="mb-4" style="font-size:4rem;">🤖</div>
+  <h3 class="font-outfit fw-bold mb-2">You don't have an AI Employee yet</h3>
+  <p class="text-white-50 mb-4">Hire Serea — your dedicated AI social media moderator — and she'll start working for you right away.</p>
+  <a href="/hire-ai/" class="btn btn-primary px-5 rounded-pill py-2 shadow-glow">
+    <i class="bi bi-robot me-2"></i> Hire Serea Now
+  </a>
+</div>
+
+{% elif not serea_agent %}
+<!-- Hired but no Brain -->
+<div class="glass-panel p-5 text-center">
+  <div class="mb-3" style="font-size:3rem;">⚙️</div>
+  <h4 class="font-outfit fw-bold mb-2">Serea is being set up</h4>
+  <p class="text-white-50 mb-0">Your AI employee <strong>{{ hired_ai.ai_name }}</strong> ({{ hired_ai.tier.get_name_display }}) has been hired but her brain is still being configured by our team.<br>You'll receive a notification when she's ready.</p>
+</div>
+
+{% else %}
+
+<!-- ── Onboarding Banner ──────────────────────────────────────────────────── -->
+{% if not serea_agent.onboarding_complete %}
+<div class="alert d-flex align-items-center gap-3 mb-4 px-4 py-3"
+     style="background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:14px;">
+  <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 bg-primary bg-opacity-15"
+       style="width:42px;height:42px;">
+    <i class="bi bi-stars text-primary fs-5"></i>
+  </div>
+  <div class="flex-grow-1">
+    <div class="fw-semibold text-white mb-1">Finish setting up {{ hired_ai.ai_name }}</div>
+    <div class="text-white-50 small">
+      Connect your social media pages and share a bit about your business —
+      takes 2 minutes and makes a big difference.
+    </div>
+  </div>
+  <a href="{% url 'console_admin:serea_onboarding' %}" class="btn btn-primary btn-sm px-3 flex-shrink-0">
+    Complete Setup <i class="bi bi-arrow-right ms-1"></i>
+  </a>
+</div>
+{% endif %}
+
+<!-- ── Serea Profile Card ─────────────────────────────────────────────────── -->
+<div class="glass-panel p-4 mb-4">
+  <div class="row align-items-center g-4">
+    <div class="col-auto">
+      <div class="position-relative">
+        <div class="rounded-circle d-flex align-items-center justify-content-center"
+             style="width:80px;height:80px;background:linear-gradient(135deg,#38bdf8,#3b82f6,#8b5cf6);box-shadow:0 0 24px rgba(56,189,248,0.4);">
+          <i class="bi bi-robot text-white" style="font-size:2rem;"></i>
+        </div>
+        <!-- Status dot -->
+        <span class="position-absolute bottom-0 end-0 rounded-circle border border-dark"
+              style="width:18px;height:18px;
+                {% if serea_agent.status == 'working' %}background:#10b981;
+                {% elif serea_agent.status == 'waiting' %}background:#f59e0b;
+                {% elif serea_agent.status == 'offline' %}background:#6b7280;
+                {% else %}background:#38bdf8;{% endif %}">
+        </span>
+      </div>
+    </div>
+    <div class="col">
+      <h4 class="font-outfit fw-bold mb-1">{{ hired_ai.ai_name }}</h4>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge" style="background:linear-gradient(135deg,rgba(56,189,248,0.2),rgba(139,92,246,0.2));color:#38bdf8;border:1px solid rgba(56,189,248,0.3);">
+          {{ hired_ai.tier.get_name_display }}
+        </span>
+        <span class="badge {% if serea_agent.status == 'working' %}bg-success{% elif serea_agent.status == 'waiting' %}bg-warning text-dark{% elif serea_agent.status == 'offline' %}bg-secondary{% else %}bg-info{% endif %} bg-opacity-20">
+          <i class="bi bi-circle-fill me-1" style="font-size:0.4rem;vertical-align:middle;"></i>{{ serea_agent.get_status_display }}
+        </span>
+        <span class="text-white-50 small">Social Media Moderator</span>
+      </div>
+      {% if pending_approvals %}
+      <div class="mt-2">
+        <span class="badge bg-warning text-dark">
+          <i class="bi bi-exclamation-circle me-1"></i>{{ pending_approvals }} action{{ pending_approvals|pluralize }} waiting for your approval
+        </span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-md-4">
+      <!-- Token usage bar -->
+      <div class="small text-white-50 mb-1 d-flex justify-content-between">
+        <span>Monthly Token Usage</span>
+        <span class="text-info">{{ serea_agent.tokens_used_this_month }}{% if serea_agent.effective_token_limit %} / {{ serea_agent.effective_token_limit }}{% endif %}</span>
+      </div>
+      <div class="progress" style="height:6px;background:rgba(255,255,255,0.1);">
+        {% if serea_agent.effective_token_limit and serea_agent.effective_token_limit > 0 %}
+        <div class="progress-bar bg-info" style="width:{% widthratio serea_agent.tokens_used_this_month serea_agent.effective_token_limit 100 %}%;"></div>
+        {% else %}
+        <div class="progress-bar" style="width:10%;background:#38bdf8;"></div>
+        {% endif %}
+      </div>
+      <div class="text-white-50 mt-2" style="font-size:0.7rem;">Model: <span class="text-info">{{ serea_agent.get_ai_model_display }}</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Overview Stats ─────────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="glass-panel p-3 text-center">
+      <div class="font-outfit fw-bold fs-2 text-info">{{ mod_count }}</div>
+      <div class="text-white-50 small">Comments Moderated</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="glass-panel p-3 text-center">
+      <div class="font-outfit fw-bold fs-2 text-success">{{ content_count }}</div>
+      <div class="text-white-50 small">Posts Published</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="glass-panel p-3 text-center">
+      <div class="font-outfit fw-bold fs-2 text-primary">{{ report_count }}</div>
+      <div class="text-white-50 small">Reports Generated</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="glass-panel p-3 text-center">
+      <div class="font-outfit fw-bold fs-2 {% if pending_approvals > 0 %}text-warning{% else %}text-success{% endif %}">{{ pending_approvals }}</div>
+      <div class="text-white-50 small">Pending Approvals</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tabs ───────────────────────────────────────────────────────────────── -->
+<ul class="nav nav-pills gap-2 mb-4" id="sereaTabs">
+  <li class="nav-item">
+    <button class="nav-link active px-4" data-bs-toggle="pill" data-bs-target="#tab-chat">
+      <i class="bi bi-chat-dots me-2"></i>Chat with Serea
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link px-4" data-bs-toggle="pill" data-bs-target="#tab-logs">
+      <i class="bi bi-shield-check me-2"></i>Moderation Logs
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link px-4" data-bs-toggle="pill" data-bs-target="#tab-queue">
+      <i class="bi bi-calendar-event me-2"></i>Content Queue
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link px-4" data-bs-toggle="pill" data-bs-target="#tab-reports">
+      <i class="bi bi-file-text me-2"></i>Reports
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- Chat Tab -->
+  <div class="tab-pane fade show active" id="tab-chat">
+    <div class="glass-panel d-flex flex-column" style="height:500px;">
+      <!-- Messages Area -->
+      <div class="flex-grow-1 p-4 overflow-auto" id="chatMessages">
+        {% for msg in recent_messages %}
+        <div class="d-flex mb-3 {% if msg.sender == 'serea' %}align-items-start{% else %}align-items-start flex-row-reverse{% endif %}">
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {% if msg.sender == 'serea' %}me-2{% else %}ms-2{% endif %}"
+               style="width:32px;height:32px;{% if msg.sender == 'serea' %}background:linear-gradient(135deg,#38bdf8,#3b82f6);{% else %}background:rgba(255,255,255,0.1);{% endif %}">
+            <i class="bi {% if msg.sender == 'serea' %}bi-robot{% else %}bi-person-fill{% endif %} text-white" style="font-size:0.8rem;"></i>
+          </div>
+          <div style="max-width:70%;">
+            {% if msg.is_permission_request %}
+            <div class="p-3 rounded-3 border border-warning border-opacity-50" style="background:rgba(245,158,11,0.1);">
+              <div class="small text-warning fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Permission Request</div>
+              <div class="small text-white">{{ msg.message_text }}</div>
+              {% if msg.permission_granted is None %}
+              <div class="mt-2 d-flex gap-2">
+                <form method="post" action="/serea/permission/{{ msg.id }}/respond/" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" name="decision" value="approve" class="btn btn-success btn-sm">Approve</button>
+                </form>
+                <form method="post" action="/serea/permission/{{ msg.id }}/respond/" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" name="decision" value="deny" class="btn btn-outline-danger btn-sm">Deny</button>
+                </form>
+              </div>
+              {% elif msg.permission_granted %}
+              <div class="mt-1 small text-success"><i class="bi bi-check-circle me-1"></i>Approved</div>
+              {% else %}
+              <div class="mt-1 small text-danger"><i class="bi bi-x-circle me-1"></i>Denied</div>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="p-3 rounded-3 small {% if msg.sender == 'serea' %}text-white{% else %}text-white{% endif %}"
+                 style="{% if msg.sender == 'serea' %}background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.15);{% else %}background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);{% endif %}">
+              {{ msg.message_text }}
+            </div>
+            {% endif %}
+            <div class="text-white-50 mt-1" style="font-size:0.65rem;">{{ msg.created_at|date:"M d, H:i" }}</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-white-50 py-5">
+          <i class="bi bi-chat fs-1 d-block mb-2 opacity-25"></i>
+          Say hello to Serea! She's ready to help.
+        </div>
+        {% endfor %}
+      </div>
+      <!-- Message Input -->
+      <div class="border-top border-secondary p-3">
+        <form method="post" action="/my-ai/" class="d-flex gap-2" id="chatForm">
+          {% csrf_token %}
+          <input type="text" name="message" class="form-control bg-dark text-white border-secondary shadow-none flex-grow-1"
+                 placeholder="Message Serea…" autocomplete="off" id="chatInput">
+          <button type="submit" class="btn px-4" style="background:linear-gradient(135deg,#38bdf8,#3b82f6);">
+            <i class="bi bi-send-fill text-white"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Moderation Logs Tab -->
+  <div class="tab-pane fade" id="tab-logs">
+    <div class="glass-panel p-4">
+      {% if moderation_logs %}
+      <div class="table-responsive">
+        <table class="table table-dark table-hover table-borderless align-middle small">
+          <thead><tr class="text-white-50 text-uppercase border-bottom border-secondary">
+            <th>Platform</th><th>Comment</th><th>Action</th><th>Confidence</th><th>Sentiment</th><th>Time</th>
+          </tr></thead>
+          <tbody>
+          {% for log in moderation_logs %}
+          <tr>
+            <td>
+              <span class="badge bg-primary bg-opacity-25 text-primary">{{ log.platform }}</span>
+            </td>
+            <td class="text-white-50" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ log.comment_text|truncatechars:60 }}</td>
+            <td>
+              <span class="badge {% if log.action_taken == 'delete' %}bg-danger{% elif log.action_taken == 'reply' %}bg-success{% elif log.action_taken == 'flag' %}bg-warning text-dark{% elif log.action_taken == 'pending_approval' %}bg-warning text-dark{% else %}bg-secondary{% endif %} bg-opacity-25">
+                {{ log.get_action_taken_display }}
+              </span>
+            </td>
+            <td>
+              {% if log.confidence_score is not None %}
+              <div class="d-flex align-items-center gap-1">
+                <div style="width:40px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
+                  <div style="width:{% widthratio log.confidence_score 1 100 %}%;height:100%;background:{% if log.confidence_score >= 0.7 %}#10b981{% elif log.confidence_score >= 0.4 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                </div>
+                <span class="text-white-50">{{ log.confidence_score|floatformat:2 }}</span>
+              </div>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if log.sentiment_score is not None %}
+              <span class="{% if log.sentiment_score >= 0.6 %}text-success{% elif log.sentiment_score >= 0.4 %}text-warning{% else %}text-danger{% endif %}">
+                {{ log.sentiment_score|floatformat:2 }}
+              </span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-muted">{{ log.created_at|date:"M d, H:i" }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-white-50 py-5">
+        <i class="bi bi-shield-check fs-1 d-block mb-2 opacity-25"></i>
+        No moderation activity yet. Serea will log her actions here once she starts working.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Content Queue Tab -->
+  <div class="tab-pane fade" id="tab-queue">
+    <div class="glass-panel p-4">
+      {% if content_queue %}
+      <div class="table-responsive">
+        <table class="table table-dark table-hover table-borderless align-middle small">
+          <thead><tr class="text-white-50 text-uppercase border-bottom border-secondary">
+            <th>Title</th><th>Platform</th><th>Scheduled</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+          {% for item in content_queue %}
+          <tr>
+            <td class="text-white fw-medium">{{ item.title }}</td>
+            <td><span class="badge bg-info bg-opacity-25 text-info">{{ item.platform }}</span></td>
+            <td class="text-white-50">{{ item.post_date|date:"M d, Y H:i" }}</td>
+            <td>
+              <span class="badge {% if item.status == 'posted' %}bg-success{% elif item.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %} bg-opacity-25">
+                {{ item.get_status_display }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-white-50 py-5">
+        <i class="bi bi-calendar-event fs-1 d-block mb-2 opacity-25"></i>
+        No content queued yet. Ask Serea to draft and schedule posts for you.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Reports Tab -->
+  <div class="tab-pane fade" id="tab-reports">
+    <div class="glass-panel p-4">
+      {% if reports %}
+      {% for report in reports %}
+      <div class="mb-3 p-4 rounded-3" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="badge bg-primary bg-opacity-25 text-primary me-2">{{ report.get_report_type_display }}</span>
+            <span class="fw-semibold text-white">{{ report.title }}</span>
+          </div>
+          <span class="text-muted small">{{ report.created_at|date:"M d, Y" }}</span>
+        </div>
+        <p class="text-white-50 small mb-0" style="white-space:pre-line;">{{ report.body|truncatechars:300 }}</p>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="text-center text-white-50 py-5">
+        <i class="bi bi-file-text fs-1 d-block mb-2 opacity-25"></i>
+        No reports yet. Ask Serea for a daily briefing or weekly summary.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endif %}
+
+<script>
+  // Auto-scroll chat to bottom
+  window.addEventListener('DOMContentLoaded', () => {
+    const chat = document.getElementById('chatMessages');
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  });
+</script>
+{% endblock %}

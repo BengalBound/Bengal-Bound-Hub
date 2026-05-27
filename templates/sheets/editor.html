@@ -1,0 +1,87 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}{{ sheet.title }} — Sheets | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'sheets:sheet_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <input type="text" id="sheetTitle" value="{{ sheet.title }}" style="background:transparent;border:none;border-bottom:1px solid var(--hub-border);border-radius:0;color:var(--hub-text);font-size:1rem;font-weight:600;max-width:320px;padding:4px 0;">
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.5.0/dist/handsontable.full.min.css">
+<style>
+#spreadsheet { width:100%; }
+.handsontable { font-size: 0.82rem; }
+.handsontable td, .handsontable th { background:#1e293b !important; color:#f8fafc !important; border-color:rgba(255,255,255,0.08) !important; }
+.handsontable th { background:#0f172a !important; color:#94a3b8 !important; }
+.handsontable .current { background:rgba(192,132,252,0.15) !important; }
+.handsontable .area { background:rgba(56,189,248,0.08) !important; }
+#saveStatus { font-size:0.78rem; color:var(--hub-muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span id="saveStatus">Ready</span>
+    <div class="d-flex gap-2">
+        <button id="addRowBtn" class="btn btn-hub-outline btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Row</button>
+        <button id="addColBtn" class="btn btn-hub-outline btn-sm"><i class="bi bi-layout-three-columns me-1"></i>Add Column</button>
+        <button id="saveBtn" class="btn btn-hub-primary btn-sm"><i class="bi bi-floppy me-1"></i>Save</button>
+    </div>
+</div>
+
+<div class="glass-panel p-3" style="overflow:auto;">
+    <div id="spreadsheet"></div>
+</div>
+
+<form method="post" id="saveForm">
+    {% csrf_token %}
+    <input type="hidden" name="title" id="titleHidden" value="{{ sheet.title }}">
+    <input type="hidden" name="data" id="dataHidden">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/handsontable@14.5.0/dist/handsontable.full.min.js"></script>
+<script>
+const initialData = {{ sheet.data|safe }};
+const statusEl = document.getElementById('saveStatus');
+
+const hot = new Handsontable(document.getElementById('spreadsheet'), {
+    data: initialData.length ? initialData : [['']],
+    rowHeaders: true,
+    colHeaders: true,
+    contextMenu: true,
+    manualColumnResize: true,
+    manualRowResize: true,
+    licenseKey: 'non-commercial-and-evaluation',
+    afterChange: () => { statusEl.textContent = 'Unsaved changes'; }
+});
+
+document.getElementById('addRowBtn').addEventListener('click', () => {
+    hot.alter('insert_row_below', hot.countRows() - 1);
+});
+document.getElementById('addColBtn').addEventListener('click', () => {
+    hot.alter('insert_col_end', hot.countCols() - 1);
+});
+
+function saveSheet() {
+    statusEl.textContent = 'Saving…';
+    document.getElementById('dataHidden').value = JSON.stringify(hot.getData());
+    document.getElementById('titleHidden').value = document.getElementById('sheetTitle').value;
+    const fd = new FormData(document.getElementById('saveForm'));
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': fd.get('csrfmiddlewaretoken')},
+        body: fd
+    }).then(r => r.json()).then(() => {
+        statusEl.textContent = 'All changes saved';
+    }).catch(() => { statusEl.textContent = 'Save failed'; });
+}
+
+document.getElementById('saveBtn').addEventListener('click', saveSheet);
+
+// Auto-save every 60 seconds
+setInterval(saveSheet, 60000);
+</script>
+{% endblock %}

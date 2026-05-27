@@ -1,0 +1,19 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Payroll — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-cash-stack me-2" style="color:var(--hub-accent);"></i>Payroll{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_employees|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Employees on Payroll</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ total_payroll_this_month|default:"0" }}</div><div style="color:var(--hub-muted);font-size:.85rem;">This Month Total</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ pending_payslips|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Pending Payslips</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Payroll Tools</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'payroll:pay_periods' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-calendar3 me-1"></i>Pay Periods</a>
+    <a href="{% url 'payroll:payslips' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-receipt me-1"></i>Payslips</a>
+    <a href="{% url 'payroll:structures' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-diagram-3 me-1"></i>Pay Structures</a>
+  </div>
+</div>
+{% endblock %}

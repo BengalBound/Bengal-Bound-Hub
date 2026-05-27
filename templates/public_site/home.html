@@ -1,0 +1,992 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Layrinth-Inspired Hero Section -->
+<section class="layrinth-hero position-relative" style="padding-top: 12rem; padding-bottom: 2rem;">
+    <!-- Hero Content Overlay -->
+    <div class="container layrinth-hero-content z-3 position-relative">
+        <div class="badge-premium d-inline-flex align-items-center mb-4 fade-up">
+            <i class="bi bi-stars me-2 text-gold"></i> Custom Web Solutions & Premium Scalable Software
+        </div>
+        <h1 class="display-3 fw-bolder mb-4 fade-up pe-none" style="letter-spacing: -0.04em; line-height: 1.1;">
+            {% if hero_content %}{{ hero_content.hero_title1 }}{% else %}Premium Custom Web Development.{% endif %}
+            <br>
+            <span class="text-gradient-purple-cyan">{% if hero_content %}{{ hero_content.hero_title2 }}{% else %}Built for Scale & Performance.{% endif %}</span>
+        </h1>
+        <p class="lead text-white-50 mx-auto mb-5 font-inter fade-up delay-100" style="font-size: 1.25rem;">
+            {% if hero_content %}{{ hero_content.hero_subtitle }}{% else %}BengalBound provides leading SaaS (Software
+            as a Service) and AIaaS (AI as a Service).
+            Hire digital employees customized to save costs, increase productivity, and scale your operations
+            limitlessly.{% endif %}
+        </p>
+
+        <div class="d-flex justify-content-center gap-3 fade-up delay-200">
+            <a href="{% if hero_content %}{{ hero_content.primary_button_url }}{% else %}{% url 'public_site:consult' %}{% endif %}"
+                class="btn btn-premium fs-5 px-5 py-3 rounded-pill">
+                {% if hero_content %}{{ hero_content.primary_button_text }}{% else %}Book a Meeting{% endif %}
+            </a>
+            <a href="{% if hero_content %}{{ hero_content.secondary_button_url }}{% else %}{% url 'public_site:services' %}{% endif %}"
+                class="btn btn-outline-premium fs-5 px-5 py-3 rounded-pill bg-transparent border-white text-white"
+                style="backdrop-filter: blur(10px);">
+                {% if hero_content %}{{ hero_content.secondary_button_text }}{% else %}Explore Services{% endif %}
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Infinite Logo Marquee Section -->
+<section class="logo-marquee-section z-2">
+    <div class="container text-center mb-5">
+        <p class="text-white-50 font-inter mb-0 fs-6 fw-medium" style="letter-spacing: -0.01em;">Trusted by startups and enterprises worldwide</p>
+    </div>
+    {% if partners %}
+    <div class="marquee-container fade-in delay-200">
+        <div class="marquee-content">
+            {% for partner in partners %}
+            {% if partner.is_active %}
+            {% if partner.website %}
+            <a href="{{ partner.website }}" target="_blank" rel="noopener" class="marquee-partner-link" title="{{ partner.name }}">
+            {% else %}
+            <span class="marquee-partner-link" title="{{ partner.name }}">
+            {% endif %}
+                <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" class="marquee-partner-logo" loading="lazy">
+            {% if partner.website %}</a>{% else %}</span>{% endif %}
+            {% endif %}
+            {% endfor %}
+        </div>
+        <!-- Duplicate for seamless loop -->
+        <div class="marquee-content" aria-hidden="true">
+            {% for partner in partners %}
+            {% if partner.is_active %}
+                <span class="marquee-partner-link" title="{{ partner.name }}">
+                    <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" class="marquee-partner-logo" loading="lazy">
+                </span>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    {# Fallback static logos shown until partners are added via CMS #}
+    <div class="marquee-container fade-in delay-200">
+        <div class="marquee-content">
+            <svg class="marquee-logo" viewBox="0 0 100 32" xmlns="http://www.w3.org/2000/svg"><path d="M10,6 h12 v20 h-12 z M30,6 h12 v6 h-12 z M30,16 h12 v10 h-12 z" /><text x="50" y="22" font-family="sans-serif" font-weight="bold" font-size="18">LAYA</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 120 32" xmlns="http://www.w3.org/2000/svg"><path d="M10,26 Q10,10 20,10 T35,16 Q45,10 50,26 Z M35,16 L40,10 L45,16 Z" /><text x="55" y="22" font-family="sans-serif" font-weight="bold" font-size="18">FoxTale</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 140 32" xmlns="http://www.w3.org/2000/svg"><path d="M10,24 C10,10 20,6 30,16 C40,26 50,10 50,10 L50,24 Z" /><text x="55" y="22" font-family="sans-serif" font-weight="bold" font-size="18">Logoipsum</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 110 32" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="16" height="16" transform="rotate(45 18 16)" /><rect x="22" y="8" width="16" height="16" transform="rotate(45 30 16)" /><text x="50" y="22" font-family="sans-serif" font-weight="bold" font-size="18">CORE</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 150 32" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="3" /><circle cx="35" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="3" /><text x="55" y="22" font-family="sans-serif" font-weight="bold" font-size="18">Logoipsum</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 130 32" xmlns="http://www.w3.org/2000/svg"><polygon points="10,26 25,6 40,26" fill="none" stroke="currentColor" stroke-width="3" /><polygon points="25,26 32.5,16 40,26" /><text x="50" y="22" font-family="sans-serif" font-weight="bold" font-size="18">Vertex</text></svg>
+        </div>
+        <div class="marquee-content" aria-hidden="true">
+            <svg class="marquee-logo" viewBox="0 0 100 32" xmlns="http://www.w3.org/2000/svg"><path d="M10,6 h12 v20 h-12 z M30,6 h12 v6 h-12 z M30,16 h12 v10 h-12 z" /><text x="50" y="22" font-family="sans-serif" font-weight="bold" font-size="18">LAYA</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 120 32" xmlns="http://www.w3.org/2000/svg"><path d="M10,26 Q10,10 20,10 T35,16 Q45,10 50,26 Z M35,16 L40,10 L45,16 Z" /><text x="55" y="22" font-family="sans-serif" font-weight="bold" font-size="18">FoxTale</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 140 32" xmlns="http://www.w3.org/2000/svg"><path d="M10,24 C10,10 20,6 30,16 C40,26 50,10 50,10 L50,24 Z" /><text x="55" y="22" font-family="sans-serif" font-weight="bold" font-size="18">Logoipsum</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 110 32" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="16" height="16" transform="rotate(45 18 16)" /><rect x="22" y="8" width="16" height="16" transform="rotate(45 30 16)" /><text x="50" y="22" font-family="sans-serif" font-weight="bold" font-size="18">CORE</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 150 32" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="3" /><circle cx="35" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="3" /><text x="55" y="22" font-family="sans-serif" font-weight="bold" font-size="18">Logoipsum</text></svg>
+            <svg class="marquee-logo" viewBox="0 0 130 32" xmlns="http://www.w3.org/2000/svg"><polygon points="10,26 25,6 40,26" fill="none" stroke="currentColor" stroke-width="3" /><polygon points="25,26 32.5,16 40,26" /><text x="50" y="22" font-family="sans-serif" font-weight="bold" font-size="18">Vertex</text></svg>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Interactive Background Hub Section -->
+<section class="py-5 position-relative overflow-hidden w-100">
+    <div class="interactive-hub-container fade-in">
+        <!-- Connecting Lines SVG -->
+        <svg class="connection-lines" viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice">
+            <!-- Top Left Node -->
+            <path class="connection-path" d="M 350,240 C 500,240 550,400 700,400" />
+            <!-- Top Right Node -->
+            <path class="connection-path" d="M 1050,240 C 900,240 850,400 700,400" />
+            <!-- Bottom Left Node -->
+            <path class="connection-path" d="M 350,640 C 500,640 550,400 700,400" />
+            <!-- Bottom Right Node -->
+            <path class="connection-path" d="M 1050,640 C 900,640 850,400 700,400" />
+        </svg>
+
+        <!-- Central Glowing Sphere & Logo -->
+        <div class="sphere-container">
+            <div class="animated-sphere"></div>
+            <img src="{% static 'img/logo.png' %}" alt="BengalBound Center Node" class="center-logo">
+        </div>
+
+        {% if services %}
+        <!-- Floating Interactive Service Cards -->
+        {% for service in services|slice:":4" %}
+        <div class="floating-card 
+            {% if forloop.counter == 1 %}card-top-left
+            {% elif forloop.counter == 2 %}card-top-right
+            {% elif forloop.counter == 3 %}card-bottom-left
+            {% elif forloop.counter == 4 %}card-bottom-right
+            {% endif %} fade-up position-absolute" style="transition-delay: {{ forloop.counter0|add:2 }}00ms;">
+
+            <div class="d-flex align-items-center mb-2">
+                <i
+                    class="fs-4 text-cyan me-3 {% if service.icon_class %}{{ service.icon_class }}{% else %}bi bi-lightning-charge{% endif %}"></i>
+                <h5 class="mb-0 fw-bold text-white fs-6">{{ service.title }}</h5>
+            </div>
+            <p class="text-white-50 small mb-0 font-inter lh-sm">{{ service.description|truncatewords:15 }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</section>
+
+<!-- Dashboard/App Preview Mockup Section -->
+<section class="py-5 position-relative z-1 mb-5">
+    <div class="container fade-up delay-300">
+        <div class="position-relative mx-auto" style="max-width: 1050px;">
+            <!-- Desktop Mockup -->
+            <div class="rounded-4 overflow-hidden border border-white border-opacity-10 shadow-lg"
+                style="width: 100%; max-width: 900px; background: rgba(10,10,15,0.7); backdrop-filter: blur(20px);">
+                <!-- Mockup top bar -->
+                <div class="d-flex align-items-center p-3 border-bottom border-white border-opacity-10"
+                    style="background: rgba(0,0,0,0.5);">
+                    <div class="d-flex gap-2">
+                        <div class="rounded-circle" style="width: 12px; height: 12px; background: #ff5f56;"></div>
+                        <div class="rounded-circle" style="width: 12px; height: 12px; background: #ffbd2e;"></div>
+                        <div class="rounded-circle" style="width: 12px; height: 12px; background: #27c93f;"></div>
+                    </div>
+                </div>
+                <!-- Mockup content -->
+                <div class="p-5 text-center text-white-50 d-flex flex-column align-items-center justify-content-center"
+                    style="min-height: 500px; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 20px);">
+                    <i class="bi bi-shop fs-1 text-cyan opacity-50 mb-3 d-block anim-float"></i>
+                    <h3 class="fw-bold text-white mb-2">BredBound SaaS</h3>
+                    <p class="mb-0">Your dedicated, scalable backoffice ecosystem.</p>
+                </div>
+            </div>
+
+            <!-- Mobile Mockup -->
+            <div class="position-absolute rounded-4 overflow-hidden border border-white border-opacity-25 d-none d-lg-block"
+                style="width: 280px; height: 560px; background: rgba(5,5,8,0.9); backdrop-filter: blur(25px); bottom: -30px; right: 0; z-index: 5; box-shadow: -20px 20px 50px rgba(0,0,0,0.6);">
+                <!-- Mobile top bar (notch/camera) -->
+                <div class="d-flex justify-content-center pt-2 pb-2 border-bottom border-white border-opacity-10" style="background: rgba(0,0,0,0.8);">
+                    <div class="rounded-pill bg-black border border-white border-opacity-10" style="width: 80px; height: 20px;"></div>
+                </div>
+                <!-- Mobile content -->
+                <div class="p-4 text-center text-white-50 d-flex flex-column align-items-center justify-content-center"
+                    style="height: calc(100% - 37px); background: repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 20px);">
+                    <i class="bi bi-graph-up-arrow fs-2 text-purple opacity-75 mb-3 d-block anim-float" style="animation-delay: -1s;"></i>
+                    <h5 class="fw-bold text-white mb-2">Multi-Tenant</h5>
+                    <p class="small mb-0">Manage everything at scale.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Video Representation -->
+{% with videos|first as featured_video %}
+{% if featured_video %}
+<section class="py-5 position-relative z-2 overflow-hidden" style="background: rgba(5,5,8,0.1);">
+    <div class="container py-5 my-3">
+        <div class="row align-items-center g-5">
+
+            <!-- Left: Text -->
+            <div class="col-lg-5 fade-up">
+                <p class="text-uppercase fw-semibold mb-3" style="letter-spacing: 0.12em; font-size: 0.75rem; color: var(--bb-accent-cyan);">
+                    <i class="bi bi-play-circle me-1"></i> Live Demo
+                </p>
+                <h2 class="display-5 fw-bold mb-4" style="letter-spacing: -0.03em; line-height: 1.15;">{{ featured_video.title }}</h2>
+                <p class="text-white-50 mb-5 fs-5 lh-lg" style="font-family: var(--font-body);">
+                    {{ featured_video.description|truncatewords:25 }}
+                </p>
+                <button class="btn rounded-pill px-5 py-3 fw-semibold d-inline-flex align-items-center gap-2"
+                        style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 0.9rem;"
+                        onclick="openVideoDescModal('{{ featured_video.title|escapejs }}', '{{ featured_video.description|escapejs }}')">
+                    <i class="bi bi-stars"></i> Learn More
+                </button>
+            </div>
+
+            <!-- Right: Video player -->
+            <div class="col-lg-7 fade-up delay-200">
+                <div class="video-rep-card position-relative">
+                    <!-- Top bar -->
+                    <div class="video-rep-topbar">
+                        <div class="d-flex gap-1 me-3">
+                            <div class="rounded-circle" style="width:10px;height:10px;background:#ff5f56;"></div>
+                            <div class="rounded-circle" style="width:10px;height:10px;background:#ffbd2e;"></div>
+                            <div class="rounded-circle" style="width:10px;height:10px;background:#27c93f;"></div>
+                        </div>
+                        <div class="video-rep-tabs">
+                            <span class="video-rep-tab active">
+                                <i class="bi bi-play-fill me-1" style="font-size:0.7rem;"></i>Preview
+                            </span>
+                            <span class="video-rep-tab">
+                                <i class="bi bi-code-slash me-1" style="font-size:0.7rem;"></i>Embed
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Embedded video — JS converts URL on load -->
+                    <div class="video-rep-player" id="videoRepPlayer">
+                        {% if 'youtube' in featured_video.video_url or 'youtu.be' in featured_video.video_url %}
+                        <iframe id="videoRepFrame"
+                            data-url="{{ featured_video.video_url }}"
+                            src=""
+                            allow="autoplay; encrypted-media; picture-in-picture"
+                            allowfullscreen referrerpolicy="strict-origin-when-cross-origin"
+                            style="width:100%;height:100%;border:none;display:block;">
+                        </iframe>
+                        {% else %}
+                        <video autoplay muted loop playsinline controls style="width:100%;height:100%;object-fit:cover;display:block;">
+                            <source src="{{ featured_video.video_url }}">
+                        </video>
+                        {% endif %}
+                    </div>
+                    <!-- Glow effect -->
+                    <div class="video-rep-glow"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Learn More Modal -->
+    <div id="videoDescModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
+        <div style="background: rgba(12,12,18,0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.25rem; max-width: 580px; width: 100%; padding: 2.5rem; position: relative; backdrop-filter: blur(20px);">
+            <button onclick="closeVideoDescModal()" style="position:absolute; top:1rem; right:1.2rem; background:none; border:none; color:rgba(255,255,255,0.5); font-size:1.5rem; cursor:pointer; line-height:1;">&#x2715;</button>
+            <p style="color:var(--bb-accent-cyan); font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem;">
+                <i class="bi bi-play-circle me-1"></i> Video Representation
+            </p>
+            <h4 id="videoDescTitle" style="font-size:1.3rem; font-weight:700; margin-bottom:1.25rem; color:#fff;"></h4>
+            <p id="videoDescBody" style="color:rgba(255,255,255,0.65); line-height:1.85; font-size:0.95rem; white-space:pre-line;"></p>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endwith %}
+
+<!-- ── Business 360 Platform Showcase ── -->
+<section class="py-5 my-5 border-top border-white border-opacity-10 position-relative z-2">
+<div class="container py-5">
+    <div class="text-center mb-5 fade-up">
+        <div class="badge-premium d-inline-flex align-items-center mb-3">
+            <i class="bi bi-grid-3x3-gap me-2"></i> Business 360 Platform
+        </div>
+        <h2 class="display-5 fw-bold mb-3">Your Complete <span class="text-gradient-purple-cyan">Business Operating System</span></h2>
+        <p class="text-white-50 lead mx-auto" style="max-width:620px;">Launch your business with a full suite of modules — from POS and invoicing to docs, email, video meetings and cloud storage. Everything under one roof, tailored to your industry.</p>
+    </div>
+
+    <!-- Industry Solutions -->
+    <div class="row g-3 mb-5 justify-content-center">
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-shop" style="font-size:2rem;color:#c084fc;"></i><div class="fw-semibold mt-2 text-white small">Retail</div><div class="text-white-50" style="font-size:0.72rem;">Shop modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-gear" style="font-size:2rem;color:#38bdf8;"></i><div class="fw-semibold mt-2 text-white small">Manufacturing</div><div class="text-white-50" style="font-size:0.72rem;">Factory modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-cup-hot" style="font-size:2rem;color:#ec4899;"></i><div class="fw-semibold mt-2 text-white small">Restaurant</div><div class="text-white-50" style="font-size:0.72rem;">F&amp;B modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-building" style="font-size:2rem;color:#fbbf24;"></i><div class="fw-semibold mt-2 text-white small">Hotel</div><div class="text-white-50" style="font-size:0.72rem;">Hospitality modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-heart-pulse" style="font-size:2rem;color:#f87171;"></i><div class="fw-semibold mt-2 text-white small">Clinic</div><div class="text-white-50" style="font-size:0.72rem;">Healthcare modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-mortarboard" style="font-size:2rem;color:#22c55e;"></i><div class="fw-semibold mt-2 text-white small">School</div><div class="text-white-50" style="font-size:0.72rem;">Education modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-briefcase" style="font-size:2rem;color:#a78bfa;"></i><div class="fw-semibold mt-2 text-white small">Agency</div><div class="text-white-50" style="font-size:0.72rem;">Service modules</div></div></div>
+        <div class="col-md-3 col-6 fade-up"><div class="bento-card p-3 text-center"><i class="bi bi-box-seam" style="font-size:2rem;color:#34d399;"></i><div class="fw-semibold mt-2 text-white small">Warehouse</div><div class="text-white-50" style="font-size:0.72rem;">Logistics modules</div></div></div>
+    </div>
+
+    <!-- Module Suite Grid -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4 fade-up">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(192,132,252,0.2);">
+                <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-richtext me-2" style="color:#c084fc;"></i>Creation Suite</h5>
+                <p class="text-white-50 small mb-3">Build documents, spreadsheets, presentations, and forms — all within your business hub.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge" style="background:rgba(192,132,252,0.12);color:#c084fc;">Docs</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.12);color:#c084fc;">Sheets</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.12);color:#c084fc;">Slides</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.12);color:#c084fc;">Forms</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 fade-up delay-100">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(56,189,248,0.2);">
+                <h5 class="fw-bold mb-3"><i class="bi bi-envelope me-2" style="color:#38bdf8;"></i>Communication</h5>
+                <p class="text-white-50 small mb-3">Business email on your domain, HD video meetings, team calendar, and cloud drive — fully integrated.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;">Business Mail</span>
+                    <span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;">Video Meet</span>
+                    <span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;">Calendar</span>
+                    <span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;">Cloud Drive</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 fade-up delay-200">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(34,197,94,0.2);">
+                <h5 class="fw-bold mb-3"><i class="bi bi-cpu me-2" style="color:#22c55e;"></i>Business Ops</h5>
+                <p class="text-white-50 small mb-3">CRM, invoicing, HR, payroll, POS, inventory, task boards, and 30+ more modules for every department.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">CRM</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">Invoicing</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">HR &amp; Payroll</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">+30 more</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deployment Options -->
+    <div class="row g-4 mb-5">
+        <div class="col-12 text-center mb-2 fade-up">
+            <h5 class="fw-bold mb-1">Flexible Deployment</h5>
+            <p class="text-white-50 small">Choose how your business operates — from cloud-hosted to fully self-managed.</p>
+        </div>
+        <div class="col-md-4 fade-up">
+            <div class="bento-card p-4 text-center">
+                <i class="bi bi-cloud-fill mb-2" style="font-size:2rem;color:#38bdf8;"></i>
+                <div class="fw-semibold mb-1">Cloud Hosted</div>
+                <div class="text-white-50 small">Available on all plans. Your instance at bengalbound.io/yourbusiness</div>
+            </div>
+        </div>
+        <div class="col-md-4 fade-up delay-100">
+            <div class="bento-card p-4 text-center" style="border-color:rgba(251,191,36,0.25);">
+                <i class="bi bi-shield-lock mb-2" style="font-size:2rem;color:#fbbf24;"></i>
+                <div class="fw-semibold mb-1">IP-Locked</div>
+                <div class="text-white-50 small">Restrict access to your IP. Included in Premium, available as add-on.</div>
+            </div>
+        </div>
+        <div class="col-md-4 fade-up delay-200">
+            <div class="bento-card p-4 text-center" style="border-color:rgba(34,197,94,0.25);">
+                <i class="bi bi-server mb-2" style="font-size:2rem;color:#22c55e;"></i>
+                <div class="fw-semibold mb-1">Self-Hosted</div>
+                <div class="text-white-50 small">Deploy on your own servers. Available in Premium add-on &amp; Advance plans.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center fade-up">
+        <a href="{% url 'public_site:pricing' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill me-3">View Pricing</a>
+        <a href="{% url 'public_site:trial_request' %}" class="btn btn-outline-premium fs-5 px-5 py-3 rounded-pill">Start Free Trial</a>
+    </div>
+</div>
+</section>
+
+<!-- Features Grid (Power Features, Simple Control) -->
+{% if core_values or platform_features %}
+<section id="features" class="py-5 my-5 border-top border-white border-opacity-10 position-relative z-2">
+    <div class="container py-5">
+        <!-- Section Header -->
+        <div class="text-center mb-5 fade-up">
+            <h2 class="display-4 fw-bold mb-3" style="letter-spacing: -0.03em;">Power Features, Simple Control</h2>
+            <p class="text-white-50 fs-5 mb-0">Everything you need to build smarter websites — without the hassle.</p>
+        </div>
+
+        <!-- Bento Grid -->
+        <div class="features-bento-grid fade-up delay-100">
+
+            <!-- Card 1: Large wide card (core value 1) -->
+            {% with core_values|slice:":1" as cv1 %}{% for value in cv1 %}
+            <div class="features-bento-card features-bento-wide" style="transition-delay: 100ms;">
+                <h4 class="fw-bold mb-2">{{ value.title }}</h4>
+                <p class="text-white-50 small mb-4">{{ value.description }}</p>
+                <!-- Code editor mock -->
+                <div class="rounded-3 overflow-hidden" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.07); font-family: monospace; font-size: 0.78rem;">
+                    <div class="d-flex gap-1 p-2" style="background: rgba(255,255,255,0.03);">
+                        <div class="rounded-circle" style="width:10px;height:10px;background:#ff5f56;"></div>
+                        <div class="rounded-circle" style="width:10px;height:10px;background:#ffbd2e;"></div>
+                        <div class="rounded-circle" style="width:10px;height:10px;background:#27c93f;"></div>
+                    </div>
+                    <div class="p-3" style="line-height: 2;">
+                        <div><span class="text-white-50">1</span> &nbsp;<span style="color:#38bdf8;">import</span> <span class="text-white">{ Layout, Sidebar, Content, Navbar, Footer }</span></div>
+                        <div><span class="text-white-50">2</span> &nbsp;<span style="color:#38bdf8;">import</span> <span class="text-white">{ ThemeProvider }</span></div>
+                        <div><span class="text-white-50">3</span> &nbsp;</div>
+                        <div><span class="text-white-50">4</span> &nbsp;</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}{% endwith %}
+
+            <!-- Card 2: Top-right card (platform feature 1) -->
+            {% with platform_features|slice:":1" as pf1 %}{% for feature in pf1 %}
+            <div class="features-bento-card" style="transition-delay: 200ms;">
+                <h4 class="fw-bold mb-2">{{ feature.title }}</h4>
+                <p class="text-white-50 small mb-3">{{ feature.description }}</p>
+                <div class="d-flex align-items-center justify-content-center flex-grow-1 mt-2">
+                    <i class="{% if feature.icon_class %}{{ feature.icon_class }}{% else %}bi bi-lightning-charge{% endif %}" style="font-size: 5rem; color: rgba(0,245,212,0.55); filter: drop-shadow(0 0 30px rgba(0,245,212,0.35)); animation: floatingLogo 3s ease-in-out infinite;"></i>
+                </div>
+            </div>
+            {% endfor %}{% endwith %}
+
+            <!-- Card 3: Bottom-left (core value 2) -->
+            {% with core_values|slice:"1:2" as cv2 %}{% for value in cv2 %}
+            <div class="features-bento-card" style="transition-delay: 300ms;">
+                <h5 class="fw-bold mb-2">{{ value.title }}</h5>
+                <p class="text-white-50 small mb-3">{{ value.description }}</p>
+                <div class="mt-auto d-flex align-items-end">
+                    <i class="{% if value.icon_class %}{{ value.icon_class }}{% else %}bi bi-search{% endif %}" style="font-size: 4rem; opacity: 0.08; color: var(--bb-accent-cyan);"></i>
+                </div>
+            </div>
+            {% endfor %}{% endwith %}
+
+            <!-- Card 4: Bottom-center (platform feature 2) -->
+            {% with platform_features|slice:"1:2" as pf2 %}{% for feature in pf2 %}
+            <div class="features-bento-card" style="transition-delay: 400ms;">
+                <h5 class="fw-bold mb-2">{{ feature.title }}</h5>
+                <p class="text-white-50 small mb-3">{{ feature.description }}</p>
+                <div class="mt-auto">
+                    <button class="btn btn-sm rounded-pill px-4 py-2 fw-semibold" style="background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.25); color: var(--bb-accent-cyan); font-size: 0.8rem;">
+                        <i class="bi bi-stars me-1"></i> Generate
+                    </button>
+                </div>
+            </div>
+            {% endfor %}{% endwith %}
+
+            <!-- Card 5: Animated AI orb (bottom-right) -->
+            <div class="features-bento-card position-relative overflow-hidden" style="transition-delay: 500ms; min-height: 220px;">
+                <!-- Animated concentric rings -->
+                <div class="ai-orb-ring" style="--ring-size: 180px; --ring-delay: 0s;"></div>
+                <div class="ai-orb-ring" style="--ring-size: 130px; --ring-delay: 0.6s;"></div>
+                <div class="ai-orb-ring" style="--ring-size: 80px; --ring-delay: 1.2s;"></div>
+                <!-- Glowing core -->
+                <div class="ai-orb-core">
+                    <i class="bi bi-cpu-fill" style="font-size: 1.4rem; color: var(--bb-accent-cyan);"></i>
+                </div>
+                <!-- Label -->
+                <div class="position-absolute bottom-0 start-0 p-3">
+                    <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.2); color: var(--bb-accent-cyan); font-size: 0.7rem; letter-spacing: 0.05em;">
+                        <span class="ai-pulse-dot me-1"></span> AI ACTIVE
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Plug in & Power Up bar -->
+        <div class="features-bento-card fade-up delay-300 mt-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+            style="border-radius: 1.5rem; padding: 2rem 2.5rem;">
+            <h4 class="fw-bold mb-0 text-gradient-purple-cyan">Plug in &amp; Power Up</h4>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                {% for feature in platform_features|slice:"2:" %}
+                <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                    <i class="{% if feature.icon_class %}{{ feature.icon_class }}{% else %}bi bi-plug{% endif %} me-1"></i>{{ feature.title }}
+                </span>
+                {% empty %}
+                <span class="badge rounded-pill px-3 py-2" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">Stripe</span>
+                <span class="badge rounded-pill px-3 py-2" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">OpenAI</span>
+                <span class="badge rounded-pill px-3 py-2" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">Groq</span>
+                <span class="badge rounded-pill px-3 py-2" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">Zapier</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Process (From Start to Finish, Made Easy) -->
+{% if work_process_steps %}
+<section class="py-5 border-top border-white border-opacity-10 position-relative z-1"
+    style="background: rgba(10,10,15,0.4);">
+    <div class="container py-5 my-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5 fade-up position-sticky" style="top: 120px; align-self: flex-start;">
+                <h2 class="display-4 fw-bold mb-4" style="letter-spacing: -0.03em;">From start<br>to finish,<br><span
+                        class="text-gradient-orange-gold">made easy.</span></h2>
+                <p class="text-white-50 mb-5 text-lg pe-lg-4 fs-5">Empower your business in a few simple steps with
+                    BengalBound's AI agents. No complex setups required.</p>
+                <a href="{% url 'public_site:consult' %}" class="btn btn-outline-premium rounded-pill px-5 py-3">Start
+                    your journey</a>
+            </div>
+            <div class="col-lg-6 offset-lg-1">
+                <div class="d-flex flex-column pt-lg-2">
+                    {% for step in work_process_steps %}
+                    <div class="layrinth-process-step fade-up {% if not forloop.first %}mt-3{% endif %}"
+                        style="transition-delay: {{ forloop.counter0|add:1 }}00ms; border-top-color: rgba(255,255,255,0.05) !important;">
+                        <div class="layrinth-step-number mt-1">0{{ step.step_number }}</div>
+                        <div>
+                            <h4 class="h5 fw-bold mb-3 text-white fs-4">{{ step.title }}</h4>
+                            <p class="text-white-50 mb-0 font-inter lh-lg">{{ step.description }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Pricing (Simple Plans, Limitless Creation) -->
+{% if ai_tiers %}
+<section class="py-5 bg-black">
+    <div class="container py-5 my-5">
+        <div class="text-center mb-5 pb-4 fade-up">
+            <h2 class="display-4 fw-bold mb-3" style="letter-spacing: -0.03em;">Simple plans, <span
+                    class="text-gradient-cyan-blue">limitless creation.</span></h2>
+            <p class="text-white-50 fs-5 pb-2 w-75 mx-auto">Deploy specialized pre-built AI agents to work within your
+                custom environment.</p>
+        </div>
+
+        <div class="row justify-content-center g-4">
+            {% for tier in ai_tiers %}
+            <div class="col-xl-3 col-lg-3 col-md-6 fade-up" style="transition-delay: {{ forloop.counter0|add:1 }}00ms;">
+                <div class="layrinth-pricing-card position-relative overflow-hidden {% if forloop.counter == 2 %}border-cyan shadow-lg{% else %}glow-hover-cyan{% endif %}"
+                    {% if forloop.counter == 2 %}style="background: linear-gradient(180deg, rgba(0,245,212,0.05) 0%, var(--bb-bg-deep) 100%); border-color: rgba(0,245,212,0.3) !important; box-shadow: 0 0 40px rgba(0,245,212,0.1) !important;"
+                    {% endif %}>
+
+                    {% if forloop.counter == 2 %}
+                    <div class="position-absolute top-0 end-0 bg-gradient-purple-cyan text-white small fw-bold px-4 py-1 rounded-bl"
+                        style="border-bottom-left-radius: 1rem;">POPULAR</div>
+                    {% endif %}
+
+                    <div class="mb-4 pt-3">
+                        <div class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-2 mb-4 fs-6">{{ tier.get_name_display }}</div>
+                        <h2 class="display-3 fw-bold mb-0 text-white d-flex align-items-start"
+                            style="letter-spacing: -0.05em;">
+                            <span class="fs-3 mt-3 me-1 text-white-50">$</span>
+                            {% if tier.monthly_price_usd == 0 %}0{% else %}{{ tier.monthly_price_usd|floatformat:0 }}{% endif %}
+                            <span class="fs-6 text-white-50 align-self-end ms-1 mb-3 fw-normal font-inter">USD/mo</span>
+                        </h2>
+                        <p class="text-cyan small fw-bold mt-2 text-uppercase tracking-widest">{{ tier.get_role_display }}</p>
+                    </div>
+
+                    <p
+                        class="text-white-50 mb-4 pb-4 border-bottom border-white border-opacity-10 flex-grow-1 font-inter lh-lg">
+                        {{ tier.description }}</p>
+
+                    <ul class="list-unstyled mb-5 mt-auto font-inter">
+                        <li class="mb-3 text-white-50 d-flex align-items-center"><i
+                                class="bi bi-check2 text-cyan me-3 fs-5"></i> Full Console Access</li>
+                        <li class="mb-3 text-white-50 d-flex align-items-center"><i
+                                class="bi bi-check2 text-cyan me-3 fs-5"></i> API Integration</li>
+                        <li class="mb-3 text-white-50 d-flex align-items-center"><i
+                                class="bi bi-check2 text-cyan me-3 fs-5"></i> 24/7 AI Availability</li>
+                        <li class="text-white-50 d-flex align-items-center opacity-50"><i
+                                class="bi bi-check2 text-white me-3 fs-5"></i> Dedicated Support</li>
+                    </ul>
+
+                    {% if request.user.is_authenticated and request.user.role == 'workspace_admin' %}
+                    <a href="{% url 'workspace_admin:ai_tiers' %}" class="btn btn-sm btn-outline-warning w-100 rounded-pill py-2 mb-3 fw-bold">Configure AI Employees</a>
+                    {% endif %}
+                    <a href="{% url 'public_site:consult' %}"
+                        class="btn {% if forloop.counter == 2 %}btn-premium{% else %}btn-outline-premium border-white border-opacity-25 text-white bg-transparent{% endif %} w-100 rounded-pill py-3 fw-bold hover-opacity-75">Get
+                        Started</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Documentation Section -->
+{% if docs %}
+<section class="py-5 my-5 position-relative z-2">
+    <div class="container py-4">
+
+        <!-- Header row -->
+        <div class="d-flex flex-wrap align-items-start justify-content-between mb-4 gap-3 fade-up">
+            <div>
+                <h2 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Documentation</h2>
+                <p class="text-white-50 mb-0 small">Discover and use resources shared by our team.</p>
+            </div>
+            <!-- Filter tabs -->
+            <div class="docs-filter-bar d-flex flex-wrap gap-2">
+                <button class="docs-filter-btn active" data-filter="all">
+                    <i class="bi bi-search me-1"></i> Discover
+                </button>
+                {% for cat in doc_categories %}
+                <button class="docs-filter-btn" data-filter="{{ cat.slug }}">{{ cat.name }}</button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="docs-grid fade-up delay-100" id="docsGrid">
+            {% for doc in docs %}
+            <div class="docs-card" data-category="{{ doc.category.slug|default:'uncategorized' }}"
+                 {% if doc.youtube_url %}
+                 onclick="openYouTubeModal('{{ doc.youtube_url }}', '{{ doc.title|escapejs }}', '{{ doc.external_url|escapejs }}')"
+                 style="cursor: pointer;"
+                 {% elif doc.external_url %}
+                 onclick="window.open('{{ doc.external_url }}','_blank')"
+                 style="cursor: pointer;"
+                 {% else %}
+                 style="cursor: default;"
+                 {% endif %}>
+                <!-- Thumbnail -->
+                <div class="docs-card-thumb">
+                    {% if doc.thumbnail %}
+                        <img src="{{ doc.thumbnail.url }}" alt="{{ doc.title }}" loading="lazy">
+                    {% else %}
+                        <div class="docs-card-thumb-placeholder">
+                            <i class="bi bi-file-earmark-text" style="font-size: 2.5rem; color: rgba(0,245,212,0.3);"></i>
+                        </div>
+                    {% endif %}
+                    {% if doc.youtube_url %}
+                    <div class="docs-youtube-play">
+                        <svg viewBox="0 0 68 48" width="56" height="40">
+                            <path d="M66.5 7.7c-.8-2.9-2.9-5.2-5.8-6C55.9 0 34 0 34 0S12.1 0 7.3 1.7C4.4 2.5 2.3 4.8 1.5 7.7 0 12.4 0 24 0 24s0 11.6 1.5 16.3c.8 2.9 2.9 5.2 5.8 6C12.1 48 34 48 34 48s21.9 0 26.7-1.7c2.9-.8 5-3.1 5.8-6C68 35.6 68 24 68 24s0-11.6-1.5-16.3z" fill="#f00"/>
+                            <path d="M45 24L27 14v20" fill="#fff"/>
+                        </svg>
+                    </div>
+                    {% elif doc.external_url %}
+                    <div class="docs-card-arrow"><i class="bi bi-arrow-up-right"></i></div>
+                    {% endif %}
+                </div>
+                <!-- Meta -->
+                <div class="docs-card-meta">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if doc.author_avatar %}
+                        <img src="{{ doc.author_avatar.url }}" alt="{{ doc.author_name }}" class="docs-avatar">
+                        {% else %}
+                        <div class="docs-avatar-placeholder"><i class="bi bi-person-fill"></i></div>
+                        {% endif %}
+                        <span class="docs-author-name">{{ doc.author_name }}</span>
+                    </div>
+                    <span class="docs-view-count">
+                        <i class="bi bi-people me-1" style="font-size: 0.7rem;"></i>{{ doc.view_count|default:"0" }}
+                    </span>
+                </div>
+                <!-- Title & Excerpt -->
+                <p class="docs-card-title">
+                    {% if doc.youtube_url %}<i class="bi bi-play-circle-fill me-1" style="color: #f00; font-size: 0.85rem;"></i>{% endif %}
+                    {{ doc.title }}
+                </p>
+                {% if doc.excerpt %}
+                <p class="docs-card-excerpt">{{ doc.excerpt|truncatewords:18 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- See more CTA -->
+        <div class="text-center mt-5 fade-up delay-200">
+            <a href="#" class="btn rounded-pill px-5 py-3 fw-semibold"
+               style="background: rgba(0,245,212,0.08); border: 1px solid rgba(0,245,212,0.2); color: var(--bb-accent-cyan);">
+                See more — Login to unlock all
+            </a>
+        </div>
+    </div>
+
+    <!-- YouTube Modal -->
+    <div id="ytModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:1.25rem; padding:1rem;">
+        <button onclick="closeYouTubeModal()" style="position:absolute; top:1.2rem; right:1.5rem; background:none; border:none; color:rgba(255,255,255,0.6); font-size:1.8rem; cursor:pointer; line-height:1;" aria-label="Close">&#x2715;</button>
+        <div id="ytTitle" style="color:rgba(255,255,255,0.9); font-size:1rem; font-family:sans-serif; text-align:center; max-width:700px; padding:0 3rem; font-weight:600;"></div>
+        <div style="width:min(700px, 95vw); aspect-ratio:16/9; background:#000; border-radius:0.75rem; overflow:hidden;">
+            <iframe id="ytFrame" src="" frameborder="0"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+                style="width:100%; height:100%;"></iframe>
+        </div>
+        <a id="ytReadBtn" href="#" target="_blank"
+           style="display:none; background:rgba(0,245,212,0.1); border:1px solid rgba(0,245,212,0.3); color:var(--bb-accent-cyan); padding:0.6rem 1.8rem; border-radius:50rem; font-size:0.88rem; font-weight:600; text-decoration:none; transition:all 0.2s ease;"
+           onmouseover="this.style.background='rgba(0,245,212,0.2)'"
+           onmouseout="this.style.background='rgba(0,245,212,0.1)'">
+            <i class="bi bi-book me-2"></i>Read Documentation
+        </a>
+    </div>
+</section>
+{% endif %}
+
+<!-- FAQ Section (Questions? We've Got Answers) -->
+{% if faqs %}
+<section class="py-5 position-relative z-1 fade-in">
+    <div class="container py-5 my-5" style="max-width: 900px;">
+        <div class="text-center mb-5 pb-4 fade-up">
+            <h2 class="display-4 fw-bold mb-3" style="letter-spacing: -0.03em;">Questions? <span
+                    class="text-gradient-purple-cyan">We've got answers.</span></h2>
+        </div>
+
+        <div class="accordion accordion-flush layrinth-accordion" id="faqAccordion">
+            {% for faq in faqs %}
+            <div class="accordion-item bg-transparent border-bottom mb-0 py-3 border-white border-opacity-10 fade-up"
+                style="transition-delay: {{ forloop.counter0|add:1 }}00ms;">
+                <h2 class="accordion-header" id="heading{{ faq.id }}">
+                    <button
+                        class="accordion-button collapsed bg-transparent text-white fw-bold shadow-none py-4 px-2 fs-4"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ faq.id }}"
+                        aria-expanded="false" aria-controls="collapse{{ faq.id }}"
+                        style="font-family: var(--font-heading); padding-right: 3rem !important;">
+                        {{ faq.question }}
+                    </button>
+                </h2>
+                <div id="collapse{{ faq.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ faq.id }}"
+                    data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-white-50 pt-0 pb-4 px-2 font-inter lh-lg border-0 fs-5">
+                        {{ faq.answer|linebreaksbr }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<style>
+    .layrinth-accordion .accordion-button:not(.collapsed) {
+        color: white;
+        background-color: transparent;
+        box-shadow: none;
+    }
+
+    .layrinth-accordion .accordion-button::after {
+        filter: invert(1);
+        transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        width: 1.5rem;
+        height: 1.5rem;
+        background-size: 1.5rem;
+    }
+
+    .layrinth-accordion .accordion-button:not(.collapsed)::after {
+        filter: invert(72%) sepia(85%) saturate(3025%) hue-rotate(115deg) brightness(101%) contrast(106%);
+        transform: rotate(-180deg);
+    }
+
+    @keyframes anim-float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .anim-float {
+        animation: anim-float 3s ease-in-out infinite;
+    }
+</style>
+{% endif %}
+
+<!-- ── Security, Control & Collaboration ── -->
+<section class="py-5 border-top border-white border-opacity-10 position-relative z-2">
+<div class="container py-5">
+    <div class="text-center mb-5 fade-up">
+        <div class="badge-premium d-inline-flex align-items-center mb-3">
+            <i class="bi bi-shield-check me-2"></i> Enterprise-Grade Security
+        </div>
+        <h2 class="display-5 fw-bold mb-3">Built for <span class="text-gradient-purple-cyan">Trust & Control</span></h2>
+        <p class="text-white-50 lead mx-auto" style="max-width:560px;">Every account comes with security tools, real-time alerts, and multi-user workspace access — so your business always stays protected.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- 2FA -->
+        <div class="col-md-3 col-6 fade-up">
+            <div class="bento-card p-4 text-center h-100" style="border-color:rgba(34,197,94,0.2);">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:56px;height:56px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);">
+                    <i class="bi bi-shield-lock-fill" style="font-size:1.5rem;color:#22c55e;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Two-Factor Auth</div>
+                <div class="text-white-50 small">Protect your account with Google Authenticator or any TOTP app. One scan, zero worries.</div>
+            </div>
+        </div>
+        <!-- Notification Center -->
+        <div class="col-md-3 col-6 fade-up delay-100">
+            <div class="bento-card p-4 text-center h-100" style="border-color:rgba(251,191,36,0.2);">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:56px;height:56px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);">
+                    <i class="bi bi-bell-fill" style="font-size:1.5rem;color:#fbbf24;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Notification Center</div>
+                <div class="text-white-50 small">Real-time in-app alerts for billing, AI activity, and system events. Never miss what matters.</div>
+            </div>
+        </div>
+        <!-- Multi-workspace -->
+        <div class="col-md-3 col-6 fade-up delay-200">
+            <div class="bento-card p-4 text-center h-100" style="border-color:rgba(192,132,252,0.2);">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:56px;height:56px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.2);">
+                    <i class="bi bi-person-badge-fill" style="font-size:1.5rem;color:#c084fc;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Team Workspace</div>
+                <div class="text-white-50 small">Invite teammates as Admin, Member, or Viewer. Full role-based access control per business.</div>
+            </div>
+        </div>
+        <!-- Billing -->
+        <div class="col-md-3 col-6 fade-up delay-300">
+            <div class="bento-card p-4 text-center h-100" style="border-color:rgba(56,189,248,0.2);">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:56px;height:56px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);">
+                    <i class="bi bi-receipt-cutoff" style="font-size:1.5rem;color:#38bdf8;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Billing Portal</div>
+                <div class="text-white-50 small">Full invoice history, downloadable receipts, and one-click plan changes. Transparent pricing, always.</div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- Final CTA (Turn Your Ideas Into a Website in Seconds) -->
+<section class="py-5 position-relative overflow-hidden" style="min-height: 80vh; display: flex; align-items: center;">
+    
+    <!-- Title Area -->
+    <div class="container position-relative z-2 mb-5 pb-5 text-center" style="margin-top: -5rem;">
+        <h2 class="display-4 fw-bold mb-3 text-white" style="letter-spacing: -0.04em; max-width: 800px; margin: 0 auto; line-height: 1.15;">
+            Ready to Build Your<br>Custom Digital Experience?
+        </h2>
+        <p class="fs-5 mb-5" style="color: rgba(255,255,255,0.45);">Book a consultation and let us build your vision.</p>
+        
+        <a href="{% url 'public_site:consult' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill fw-bold shadow-lg position-relative z-3">
+            Book Your Session
+        </a>
+    </div>
+
+    <!-- Orb and Connections Layout -->
+    <div class="position-absolute w-100" style="top: 55%; left: 0; pointer-events: none;">
+        <div class="container position-relative h-100">
+            
+            <!-- Center Cyan Orb -->
+            <div class="position-absolute top-50 start-50 translate-middle" style="z-index: 0;">
+                <img src="{% static 'img/logo.png' %}" alt="AI Core" class="cta-center-orb" style="width: 380px; height: 380px; object-fit: contain; filter: drop-shadow(0 0 40px var(--bb-accent-cyan)) hue-rotate(180deg) brightness(1.5);">
+            </div>
+
+            <!-- Flow Lines (SVG) -->
+            <svg class="position-absolute top-50 start-50 translate-middle w-100 h-100" style="min-width: 1000px; z-index: -1;" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                <path d="M 200 120 C 350 120, 400 200, 500 200" fill="none" stroke="rgba(0, 245, 212, 0.2)" stroke-width="1.5" />
+                <path d="M 800 120 C 650 120, 600 200, 500 200" fill="none" stroke="rgba(0, 245, 212, 0.2)" stroke-width="1.5" />
+                <circle cx="250" cy="120" r="4" fill="var(--bb-accent-cyan)" />
+                <circle cx="750" cy="120" r="4" fill="var(--bb-accent-cyan)" />
+            </svg>
+
+            <!-- Left Block: AI Generate -->
+            <div class="position-absolute" style="top: 120px; left: 10%; transform: translate(-50%, -50%); z-index: 1;">
+                <div class="badge rounded-pill px-3 py-2 mb-3" style="background: rgba(0, 245, 212, 0.1); border: 1px solid rgba(0, 245, 212, 0.3); color: var(--bb-accent-cyan); font-size: 0.85rem;">
+                    AI Generate <span class="ms-2 d-inline-block rounded-circle" style="width:6px;height:6px;background:var(--bb-accent-cyan);"></span>
+                </div>
+                <div class="p-4" style="background: rgba(10,15,10,0.8); border: 1px solid rgba(0, 245, 212, 0.15); border-radius: 1.5rem; width: 280px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div class="d-flex align-items-center gap-2 mb-3" style="color: rgba(255,255,255,0.5);">
+                        <i class="bi bi-stars"></i> <span class="fw-semibold">Smart Layouts</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border-radius: 0.75rem; padding: 1rem;">
+                        <div class="rounded-pill mb-2" style="width: 30%; height: 6px; background: rgba(0, 245, 212, 0.2);"></div>
+                        <div class="rounded-pill mb-2" style="width: 70%; height: 6px; background: rgba(255,255,255,0.1);"></div>
+                        <div class="rounded-pill mb-4" style="width: 50%; height: 6px; background: rgba(255,255,255,0.1);"></div>
+                        
+                        <div class="btn btn-sm w-100 rounded-pill text-start px-3 py-2" style="background: rgba(0, 245, 212, 0.1); border: 1px solid rgba(0, 245, 212, 0.2); color: var(--bb-accent-cyan);">
+                            <i class="bi bi-magic me-2"></i> Generate Code
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Block: Code -->
+            <div class="position-absolute" style="top: 120px; right: 10%; transform: translate(50%, -50%); z-index: 1;">
+                <div class="badge rounded-pill px-3 py-2" style="background: rgba(0, 245, 212, 0.1); border: 1px solid rgba(0, 245, 212, 0.3); color: var(--bb-accent-cyan); font-size: 0.85rem; margin-bottom: 3.5rem;">
+                    <span class="me-2 d-inline-block rounded-circle" style="width:6px;height:6px;background:var(--bb-accent-cyan);"></span> Code
+                </div>
+                <div class="text-start font-monospace" style="font-size: 0.75rem; color: #a8a8a8; line-height: 1.7;">
+                    <span style="color: #e5c07b;">function</span> <span style="color: #61afef;">GenerateUI</span>(layout) {<br>
+                    &nbsp;&nbsp;<span style="color: #c678dd;">const</span> tree = AI.<span style="color: #61afef;">analyze</span>(layout)<br>
+                    &nbsp;&nbsp;<span style="color: #c678dd;">const</span> components = tree.<span style="color: #61afef;">build</span>()<br><br>
+                    &nbsp;&nbsp;<span style="color: #c678dd;">return</span> <span style="color: #61afef;">Render</span>(components, {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;theme: <span style="color: #98c379;">"dark"</span>,<br>
+                    &nbsp;&nbsp;<span style="color: #a8a8a8;">...</span>
+                </div>
+                
+                <div class="badge rounded-pill px-4 py-2 mt-4" style="background: rgba(0, 245, 212, 0.05); border: 1px solid rgba(0, 245, 212, 0.15); color: var(--bb-accent-cyan); font-size: 0.8rem;">
+                    <i class="bi bi-stars me-2"></i> AI Code Generated
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+<script>
+function openYouTubeModal(url, title, readUrl) {
+    // Convert any YouTube URL format to a nocookie embed URL (fixes Error 153)
+    let videoId = '';
+    const patterns = [
+        /youtube\.com\/watch\?v=([^&]+)/,
+        /youtu\.be\/([^?]+)/,
+        /youtube\.com\/embed\/([^?]+)/,
+        /youtube\.com\/shorts\/([^?]+)/,
+        /youtube-nocookie\.com\/embed\/([^?]+)/,
+    ];
+    for (const pat of patterns) {
+        const m = url.match(pat);
+        if (m) { videoId = m[1]; break; }
+    }
+    if (!videoId) { window.open(url, '_blank'); return; }
+
+    // Use youtube-nocookie.com — avoids CORS/embedding blocks on localhost
+    document.getElementById('ytFrame').src =
+        'https://www.youtube-nocookie.com/embed/' + videoId +
+        '?rel=0&modestbranding=1';
+
+    document.getElementById('ytTitle').textContent = title;
+
+    // Show "Read Documentation" button only if an external URL was provided
+    const readBtn = document.getElementById('ytReadBtn');
+    if (readUrl && readUrl.trim() !== '') {
+        readBtn.href = readUrl;
+        readBtn.style.display = 'inline-flex';
+        readBtn.style.alignItems = 'center';
+    } else {
+        readBtn.style.display = 'none';
+    }
+
+    document.getElementById('ytModal').style.display = 'flex';
+}
+
+function closeYouTubeModal() {
+    document.getElementById('ytModal').style.display = 'none';
+    document.getElementById('ytFrame').src = '';
+}
+
+// Close on backdrop click
+document.getElementById('ytModal').addEventListener('click', function(e) {
+    if (e.target === this) closeYouTubeModal();
+});
+
+// Filter logic
+(function() {
+    const filterBtns = document.querySelectorAll('.docs-filter-btn');
+    const cards      = document.querySelectorAll('#docsGrid .docs-card');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            cards.forEach(card => {
+                if (filter === 'all' || card.dataset.category === filter) {
+                    card.classList.remove('docs-hidden');
+                } else {
+                    card.classList.add('docs-hidden');
+                }
+            });
+        });
+    });
+})();
+
+// ── Video Representation: convert YouTube URL to nocookie embed ──
+(function() {
+    const frame = document.getElementById('videoRepFrame');
+    if (!frame) return;
+    const rawUrl = frame.dataset.url || '';
+    const patterns = [
+        /youtube\.com\/watch\?v=([^&]+)/,
+        /youtu\.be\/([^?]+)/,
+        /youtube\.com\/embed\/([^?]+)/,
+        /youtube\.com\/shorts\/([^?]+)/,
+    ];
+    let videoId = '';
+    for (const pat of patterns) {
+        const m = rawUrl.match(pat);
+        if (m) { videoId = m[1]; break; }
+    }
+    if (videoId) {
+        frame.src = 'https://www.youtube-nocookie.com/embed/' + videoId +
+                    '?autoplay=1&mute=1&loop=1&playlist=' + videoId +
+                    '&controls=1&rel=0&modestbranding=1';
+    }
+})();
+
+// ── Video Description Modal ──────────────────────────────────────
+function openVideoDescModal(title, body) {
+    document.getElementById('videoDescTitle').textContent = title;
+    document.getElementById('videoDescBody').textContent = body;
+    const m = document.getElementById('videoDescModal');
+    m.style.display = 'flex';
+    m.addEventListener('click', function onBd(e) {
+        if (e.target === m) { closeVideoDescModal(); m.removeEventListener('click', onBd); }
+    });
+}
+function closeVideoDescModal() {
+    document.getElementById('videoDescModal').style.display = 'none';
+}
+</script>
+{% endblock %}

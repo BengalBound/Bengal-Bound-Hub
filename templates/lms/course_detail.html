@@ -1,0 +1,179 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ course.title }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'lms:course_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Courses</a></div>
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-book me-2 text-success"></i>{{ course.title }}</h4>
+    <div class="small text-muted mt-1">
+      {% if course.code %}<span class="font-monospace">{{ course.code }}</span> · {% endif %}
+      {{ course.get_level_display }} · {{ course.get_audience_display }}
+      {% if course.instructor %} · Instructor: {{ course.instructor.user.get_full_name }}{% endif %}
+      {% if course.duration_hours %} · {{ course.duration_hours }}h{% endif %}
+    </div>
+    {% if course.description %}<div class="small text-muted mt-1">{{ course.description }}</div>{% endif %}
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    {% if course.status == 'published' %}<span class="badge bg-success fs-6">Published</span>
+    {% elif course.status == 'archived' %}<span class="badge bg-secondary fs-6">Archived</span>
+    {% else %}<span class="badge bg-warning text-dark fs-6">Draft</span>{% endif %}
+    {% if access_level >= 3 %}
+    <form method="post" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="publish">
+      <button type="submit" class="btn btn-sm {% if course.status == 'published' %}btn-outline-secondary{% else %}btn-outline-success{% endif %}">
+        {% if course.status == 'published' %}Unpublish{% else %}Publish{% endif %}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if my_enrollment %}
+<div class="alert alert-success py-2 small mb-4">
+  <i class="bi bi-bookmark-check me-1"></i>You are enrolled · Progress: {{ my_enrollment.progress_pct }}%
+  <div class="progress mt-1" style="height:4px"><div class="progress-bar bg-success" style="width:{{ my_enrollment.progress_pct }}%"></div></div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-check me-1"></i>Course Content ({{ course.lesson_count }} lessons)</span>
+        {% if access_level >= 3 %}
+        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addModuleModal">+ Module</button>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% for mod in modules %}
+        <div class="border-bottom border-secondary">
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+            <div class="fw-semibold small"><i class="bi bi-folder2 me-2 text-warning"></i>{{ mod.title }}</div>
+            {% if access_level >= 3 %}
+            <button class="btn btn-sm btn-link text-info p-0" data-bs-toggle="modal" data-bs-target="#addLessonModal{{ mod.pk }}">+ Lesson</button>
+            {% endif %}
+          </div>
+          {% if mod.lessons.all %}
+          <div class="list-group list-group-flush">
+            {% for lesson in mod.lessons.all %}
+            <div class="list-group-item bg-dark border-secondary py-2 px-4 small d-flex justify-content-between align-items-center">
+              <div>
+                {% if lesson.content_type == 'video' %}<i class="bi bi-play-circle me-2 text-danger"></i>
+                {% elif lesson.content_type == 'file' %}<i class="bi bi-file-earmark me-2 text-info"></i>
+                {% elif lesson.content_type == 'quiz' %}<i class="bi bi-question-circle me-2 text-warning"></i>
+                {% elif lesson.content_type == 'link' %}<i class="bi bi-link-45deg me-2 text-success"></i>
+                {% else %}<i class="bi bi-file-text me-2 text-muted"></i>{% endif %}
+                {{ lesson.title }}
+                {% if lesson.is_preview %}<span class="badge bg-secondary ms-1" style="font-size:0.6rem">Preview</span>{% endif %}
+              </div>
+              {% if lesson.duration_minutes %}<span class="text-muted">{{ lesson.duration_minutes }} min</span>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="px-4 py-2 text-muted small">No lessons in this module</div>
+          {% endif %}
+        </div>
+
+        <!-- Add Lesson Modal per module -->
+        {% if access_level >= 3 %}
+        <div class="modal fade" id="addLessonModal{{ mod.pk }}" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark border-secondary">
+              <div class="modal-header border-secondary"><h5 class="modal-title">Add Lesson to {{ mod.title }}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_lesson">
+                <input type="hidden" name="module_id" value="{{ mod.pk }}">
+                <div class="modal-body row g-2">
+                  <div class="col-8"><label class="form-label small">Lesson Title <span class="text-danger">*</span></label><input type="text" name="lesson_title" class="form-control bg-dark text-white border-secondary" required></div>
+                  <div class="col-4"><label class="form-label small">Content Type</label>
+                    <select name="content_type" class="form-select bg-dark text-white border-secondary">
+                      {% for code, label in content_types %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12"><label class="form-label small">Content (text or URL)</label><textarea name="content_text" rows="3" class="form-control bg-dark text-white border-secondary" placeholder="Paste text content or leave empty if using URL/file"></textarea></div>
+                  <div class="col-8"><label class="form-label small">URL</label><input type="url" name="content_url" class="form-control bg-dark text-white border-secondary"></div>
+                  <div class="col-4"><label class="form-label small">Duration (min)</label><input type="number" name="duration_minutes" class="form-control bg-dark text-white border-secondary"></div>
+                  <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_preview" id="isPreview{{ mod.pk }}"><label class="form-check-label small" for="isPreview{{ mod.pk }}">Free preview (visible without enrollment)</label></div></div>
+                </div>
+                <div class="modal-footer border-secondary">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-success">Add Lesson</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% empty %}
+        <div class="text-center text-muted py-4 small">No modules yet — add your first module</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Enroll -->
+    {% if access_level >= 3 %}
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-person-plus me-1"></i>Enrol Learner</div>
+      <div class="card-body">
+        <form method="post" class="d-flex gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="enroll">
+          <select name="learner_id" class="form-select form-select-sm bg-dark text-white border-secondary">
+            <option value="">— Select employee —</option>
+            {% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.user.get_full_name }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn btn-sm btn-success">Enrol</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Enrollments -->
+    <div class="card bg-dark border-secondary">
+      <div class="card-header small"><i class="bi bi-people me-1"></i>Enrolled ({{ enrollments.count }})</div>
+      <div class="list-group list-group-flush" style="max-height:300px;overflow-y:auto">
+        {% for e in enrollments %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>{{ e.learner.user.get_full_name }}</span>
+            <span class="badge {% if e.status == 'completed' %}bg-success{% elif e.status == 'in_progress' %}bg-info text-dark{% else %}bg-secondary{% endif %}">{{ e.get_status_display }}</span>
+          </div>
+          <div class="progress mt-1" style="height:3px"><div class="progress-bar bg-success" style="width:{{ e.progress_pct }}%"></div></div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No enrollments yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<!-- Add Module Modal -->
+<div class="modal fade" id="addModuleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Module</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_module">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Module Title <span class="text-danger">*</span></label><input type="text" name="module_title" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="module_description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Add Module</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

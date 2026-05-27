@@ -1,0 +1,28 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Booking #{{ booking.pk }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-calendar-event me-2" style="color:var(--hub-accent);"></i>Booking Detail{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="glass-panel p-4">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <h5 style="color:var(--hub-text);">Booking #{{ booking.pk }}</h5>
+        <span class="badge" style="background:{% if booking.status == 'confirmed' %}#22c55e20{% elif booking.status == 'cancelled' %}#f8717120{% else %}#fbbf2420{% endif %};color:{% if booking.status == 'confirmed' %}#22c55e{% elif booking.status == 'cancelled' %}#f87171{% else %}#fbbf24{% endif %};">{{ booking.status|title }}</span>
+      </div>
+      <dl class="row">
+        <dt class="col-sm-4" style="color:var(--hub-muted);">Client</dt><dd class="col-sm-8" style="color:var(--hub-text);">{{ booking.client_name }}</dd>
+        <dt class="col-sm-4" style="color:var(--hub-muted);">Service</dt><dd class="col-sm-8" style="color:var(--hub-text);">{{ booking.service.name }}</dd>
+        <dt class="col-sm-4" style="color:var(--hub-muted);">Date & Time</dt><dd class="col-sm-8" style="color:var(--hub-text);">{{ booking.datetime }}</dd>
+        <dt class="col-sm-4" style="color:var(--hub-muted);">Staff</dt><dd class="col-sm-8" style="color:var(--hub-text);">{{ booking.assigned_staff|default:"Unassigned" }}</dd>
+        <dt class="col-sm-4" style="color:var(--hub-muted);">Notes</dt><dd class="col-sm-8" style="color:var(--hub-text);">{{ booking.notes|default:"—" }}</dd>
+      </dl>
+      <div class="d-flex gap-2 mt-3">
+        {% if booking.status == 'pending' %}<form method="post" action="?action=confirm">{% csrf_token %}<button class="btn btn-hub-primary btn-sm">Confirm</button></form>{% endif %}
+        {% if booking.status != 'cancelled' %}<form method="post" action="?action=cancel">{% csrf_token %}<button class="btn btn-sm" style="color:#f87171;border:1px solid #f87171;border-radius:8px;background:transparent;padding:.25rem .75rem;">Cancel</button></form>{% endif %}
+        <a href="{% url 'booking:bookings' slug=biz.slug %}" class="btn btn-hub-outline btn-sm ms-auto">Back</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

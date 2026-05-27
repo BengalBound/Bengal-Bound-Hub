@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+class PlmConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'modules.plm'
+    label = 'plm'
+    verbose_name = 'PLM'

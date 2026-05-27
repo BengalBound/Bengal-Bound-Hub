@@ -1,0 +1,103 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}RE Marketing — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-megaphone me-2 text-info"></i>RE Marketing</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 're_marketing:flyer_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Flyers</a>
+    <a href="{% url 're_marketing:campaign_list' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Campaigns</a>
+    <a href="{% url 're_marketing:social_posts' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Social Posts</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.flyers }}</div>
+      <div class="small text-muted mt-1">Flyers</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-success text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.active_campaigns }}</div>
+      <div class="small text-muted mt-1">Active Campaigns</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-muted">{{ stats.campaigns }}</div>
+      <div class="small text-muted mt-1">Total Campaigns</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.social_posts }}</div>
+      <div class="small text-muted mt-1">Social Posts</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-richtext me-1"></i>Recent Flyers</span>
+        <a href="{% url 're_marketing:flyer_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info">All</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for f in recent_flyers %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="fw-semibold">{{ f.property_address|truncatechars:45 }}</div>
+          <div class="text-muted">{{ f.headline|default:"No headline" }} · {{ f.get_template_display }}</div>
+          {% if f.agent_name %}<div class="text-muted" style="font-size:0.7rem"><i class="bi bi-person me-1"></i>{{ f.agent_name }}</div>{% endif %}
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No flyers yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-envelope-open me-1"></i>Drip Campaigns</span>
+        <a href="{% url 're_marketing:campaign_list' slug=biz.slug %}" class="btn btn-sm btn-outline-info">All</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for c in campaigns %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between">
+            <div class="fw-semibold">{{ c.name }}</div>
+            <span class="badge {% if c.status == 'active' %}bg-success{% elif c.status == 'paused' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ c.get_status_display }}</span>
+          </div>
+          <div class="text-muted">{{ c.get_target_audience_display }} · {{ c.messages.count }} messages</div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No campaigns yet</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-share me-1"></i>Recent Posts</span>
+        <a href="{% url 're_marketing:social_posts' slug=biz.slug %}" class="btn btn-sm btn-outline-info">All</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for p in recent_posts %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between">
+            <div class="fw-semibold">{{ p.get_post_type_display }}</div>
+            <span class="badge {% if p.status == 'posted' %}bg-success{% elif p.status == 'scheduled' %}bg-info text-dark{% else %}bg-secondary{% endif %}">{{ p.get_status_display }}</span>
+          </div>
+          <div class="text-muted">{{ p.caption|truncatechars:50 }}</div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No posts yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

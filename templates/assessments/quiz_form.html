@@ -1,0 +1,37 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Quiz — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'assessments:quiz_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Quizzes</a></div>
+<div class="mb-4"><h4 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-warning"></i>New Quiz / Assessment</h4></div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body">
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-12"><label class="form-label">Quiz Title <span class="text-danger">*</span></label><input type="text" name="title" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-12"><label class="form-label">Course / Subject Reference</label><input type="text" name="course_ref" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Math Grade 10, Python Basics"></div>
+          <div class="col-md-4"><label class="form-label">Time Limit (minutes)</label><input type="number" name="time_limit_minutes" class="form-control bg-dark text-white border-secondary" placeholder="Leave blank = untimed"></div>
+          <div class="col-md-4"><label class="form-label">Pass Score (%)</label><input type="number" name="pass_score_pct" value="70" min="0" max="100" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label">Max Attempts</label><input type="number" name="max_attempts" value="3" min="1" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4 d-flex align-items-center pt-2">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="allow_retakes" id="allowRetakes" checked><label class="form-check-label small" for="allowRetakes">Allow retakes</label></div>
+          </div>
+          <div class="col-md-4 d-flex align-items-center pt-2">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQ"><label class="form-check-label small" for="shuffleQ">Shuffle questions</label></div>
+          </div>
+          <div class="col-md-4 d-flex align-items-center pt-2">
+            <div class="form-check"><input class="form-check-input" type="checkbox" name="show_answers_after" id="showAns" checked><label class="form-check-label small" for="showAns">Show answers after</label></div>
+          </div>
+          <div class="col-12 d-flex gap-2 justify-content-end">
+            <a href="{% url 'assessments:quiz_list' slug=biz.slug %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-warning text-dark"><i class="bi bi-check-lg me-1"></i>Create Quiz</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

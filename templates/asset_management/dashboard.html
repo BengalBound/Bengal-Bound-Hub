@@ -1,0 +1,85 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Asset Management — {{ biz.name }}{% endblock %}
+{% block page_title %}Asset Management{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#38bdf8;">{{ total_assets }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Total Assets</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#22c55e;">{{ status_counts.active|default:0 }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Active</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#fbbf24;">{{ status_counts.under_maintenance|default:0 }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Under Maintenance</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div style="font-size:1.75rem;font-weight:700;color:#ef4444;">{{ overdue_wos }}</div>
+            <div style="color:var(--hub-muted);font-size:0.8rem;">Overdue Work Orders</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Nav -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-lg-3">
+        <a href="{% url 'asset_management:asset_list' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(56,189,248,0.2);">
+            <i class="bi bi-clipboard-data" style="font-size:1.5rem;color:#38bdf8;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Asset Register</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{% url 'asset_management:work_orders' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(251,191,36,0.2);">
+            <i class="bi bi-tools" style="font-size:1.5rem;color:#fbbf24;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Work Orders</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{% url 'asset_management:asset_create' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(34,197,94,0.2);">
+            <i class="bi bi-plus-circle" style="font-size:1.5rem;color:#22c55e;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Register Asset</div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{% url 'asset_management:categories' slug=biz.slug %}" class="glass-panel p-3 d-block text-center text-decoration-none" style="border-color:rgba(192,132,252,0.2);">
+            <i class="bi bi-tags" style="font-size:1.5rem;color:#c084fc;"></i>
+            <div class="fw-semibold mt-2" style="font-size:0.8rem;">Categories</div>
+        </a>
+    </div>
+</div>
+
+<!-- Recent Work Orders -->
+<div class="glass-panel p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Recent Work Orders</h6>
+        <a href="{% url 'asset_management:work_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">View All</a>
+    </div>
+    {% if recent_wos %}
+    <div class="d-flex flex-column gap-2">
+    {% for wo in recent_wos %}
+    <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--hub-border);">
+        <span class="badge flex-shrink-0" style="font-size:0.7rem;background:{% if wo.priority == 'critical' %}rgba(239,68,68,0.15);color:#ef4444;{% elif wo.priority == 'high' %}rgba(251,191,36,0.15);color:#fbbf24;{% else %}rgba(148,163,184,0.12);color:#94a3b8;{% endif %}">{{ wo.get_priority_display }}</span>
+        <div class="flex-grow-1">
+            <div class="small fw-semibold">{{ wo.title }}</div>
+            <div style="color:var(--hub-muted);font-size:0.72rem;">{{ wo.asset.name }} · {{ wo.get_work_type_display }}</div>
+        </div>
+        <span class="badge" style="font-size:0.65rem;background:{% if wo.status == 'completed' %}rgba(34,197,94,0.12);color:#22c55e;{% elif wo.status == 'in_progress' %}rgba(56,189,248,0.12);color:#38bdf8;{% else %}rgba(148,163,184,0.12);color:#94a3b8;{% endif %}">{{ wo.get_status_display }}</span>
+        {% if wo.due_date %}<div style="color:{% if wo.due_date < today %}#ef4444{% else %}var(--hub-muted){% endif %};font-size:0.72rem;">{{ wo.due_date }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-white-50 text-center py-4 mb-0">No work orders yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Shift Planning — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-calendar-week me-2" style="color:var(--hub-accent);"></i>Shift Planning{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ stats.shifts_today|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Shifts Today</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ stats.open_periods|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Unpublished Periods</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#f87171;">{{ stats.pending_swaps|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Swap Requests</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ stats.templates|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Shift Templates</div></div></div>
+</div>
+<div class="glass-panel p-4 mb-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Shift Tools</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'shift_planning:periods' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-calendar3 me-1"></i>Schedule Periods</a>
+    <a href="{% url 'shift_planning:shift_templates' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-file-text me-1"></i>Shift Templates</a>
+    <a href="{% url 'shift_planning:swap_requests' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left-right me-1"></i>Swap Requests</a>
+  </div>
+</div>
+{% if recent_periods %}
+<div class="glass-panel p-4 mb-4">
+  <h6 style="color:var(--hub-muted);margin-bottom:1rem;">Recent Periods</h6>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Period</th><th>Week Start</th><th>Published</th><th></th></tr></thead>
+      <tbody>
+        {% for period in recent_periods %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ period.name }}</td>
+          <td style="color:var(--hub-muted);">{{ period.week_start }}</td>
+          <td>{% if period.is_published %}<span class="badge" style="background:#22c55e20;color:#22c55e;">Published</span>{% else %}<span class="badge" style="background:#fbbf2420;color:#fbbf24;">Draft</span>{% endif %}</td>
+          <td><a href="{% url 'shift_planning:schedule' slug=biz.slug period_id=period.pk %}" class="btn btn-hub-outline btn-sm">View Schedule</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% if today_shifts %}
+<div class="glass-panel p-4">
+  <h6 style="color:var(--hub-muted);margin-bottom:1rem;">Today's Shifts</h6>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Employee</th><th>Start</th><th>End</th><th>Role</th></tr></thead>
+      <tbody>
+        {% for shift in today_shifts %}
+        <tr>
+          <td style="color:var(--hub-text);">{{ shift.employee.get_full_name|default:shift.employee }}</td>
+          <td style="color:var(--hub-muted);">{{ shift.start_time }}</td>
+          <td style="color:var(--hub-muted);">{{ shift.end_time }}</td>
+          <td style="color:var(--hub-muted);">{{ shift.role|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

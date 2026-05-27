@@ -1,0 +1,218 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Evaluations — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-check-fill me-2" style="color:var(--hub-accent);"></i>Evaluations &amp; Bonus{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <select name="month" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:auto;">
+        {% for num, name in months %}<option value="{{ num }}" {% if num == period_month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <select name="year" class="form-select form-select-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);width:auto;">
+        {% for yr in years %}<option value="{{ yr }}" {% if yr == period_year %}selected{% endif %}>{{ yr }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn btn-hub-primary btn-sm">Filter</button>
+    </form>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-hub-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addForm"><i class="bi bi-plus-lg me-1"></i>New Evaluation</button>
+    <a href="{% url 'factory_ops:kpi_templates' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-bar-chart-steps me-1"></i>KPI Templates</a>
+    <a href="{% url 'factory_ops:index' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  </div>
+</div>
+
+<!-- Add Form -->
+<div class="collapse mb-4" id="addForm">
+  <div class="glass-panel p-4">
+    <h6 class="mb-3" style="color:var(--hub-accent);">New Evaluation</h6>
+    <form method="post" id="evalForm">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Employee</label>
+          <select name="employee_id" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);" id="empSelect">
+            <option value="">— Select or type below —</option>
+            {% for emp in employees %}<option value="{{ emp.pk }}" data-salary="{{ emp.salary }}" data-role="{{ emp.designation }}">{{ emp.name }} ({{ emp.designation }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Or Enter Name Manually</label>
+          <input type="text" name="employee_name" class="form-control" placeholder="Name" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small">Role</label>
+          <input type="text" name="role" id="roleField" class="form-control" placeholder="Role / Designation" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Period Month</label>
+          <select name="period_month" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for num, name in months %}<option value="{{ num }}" {% if num == period_month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Period Year</label>
+          <select name="period_year" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            {% for yr in years %}<option value="{{ yr }}" {% if yr == period_year %}selected{% endif %}>{{ yr }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Monthly Salary (BDT)</label>
+          <input type="number" name="salary_ref" id="salaryField" value="0" step="100" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small">Evaluated By</label>
+          <input type="text" name="evaluated_by" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white-50 small">KPI Template</label>
+          <select name="template_id" id="tplSelect" class="form-select" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+            <option value="">— No template —</option>
+            {% for tpl in templates %}<option value="{{ tpl.pk }}" data-criteria="{{ tpl.criteria|safe }}">{{ tpl.role }} ({{ tpl.department }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-white-50 small">Notes</label>
+          <input type="text" name="notes" class="form-control" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);">
+        </div>
+      </div>
+
+      <!-- Dynamic score rows -->
+      <div id="scoreSection" class="mb-3" style="display:none;">
+        <h6 class="mb-2" style="color:var(--hub-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;">Scores (0 – 100)</h6>
+        <div id="scoreRows"></div>
+      </div>
+
+      <button type="submit" class="btn btn-hub-primary">Save Evaluation</button>
+    </form>
+  </div>
+</div>
+
+<!-- Evaluations Table -->
+{% if evals %}
+<div class="glass-panel p-0">
+  <table class="table table-dark table-hover mb-0" style="font-size:.82rem;">
+    <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+      <th>Employee</th><th>Role</th><th>Template</th><th>Weighted Score</th><th>Bonus</th><th>Status</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for ev in evals %}
+      <tr style="border-color:var(--border);">
+        <td style="color:var(--hub-text);font-weight:600;">{{ ev.employee_name }}</td>
+        <td class="text-white-50">{{ ev.role|default:"—" }}</td>
+        <td class="text-white-50">{{ ev.template.role|default:"—" }}</td>
+        <td>
+          <span style="font-size:1.1rem;font-weight:700;color:{% if ev.weighted_score >= 80 %}#22c55e{% elif ev.weighted_score >= 60 %}#fbbf24{% else %}#f87171{% endif %};">{{ ev.weighted_score }}%</span>
+        </td>
+        <td>
+          <span style="color:#22c55e;font-weight:600;">{{ ev.bonus_amount|floatformat:0 }} BDT</span>
+          <span class="text-white-50 small">({{ ev.bonus_pct|floatformat:1 }}%)</span>
+        </td>
+        <td>
+          <span class="badge" style="font-size:.68rem;background:{% if ev.status == 'approved' %}rgba(34,197,94,0.15);color:#22c55e{% elif ev.status == 'submitted' %}rgba(56,189,248,0.15);color:#38bdf8{% else %}rgba(255,255,255,0.08);color:var(--hub-muted){% endif %};">{{ ev.get_status_display }}</span>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            {% if ev.status != 'approved' %}
+            <form method="post" class="d-inline">{% csrf_token %}
+              <input type="hidden" name="action" value="approve"><input type="hidden" name="pk" value="{{ ev.pk }}">
+              <button type="submit" class="btn btn-sm" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:#22c55e;font-size:.7rem;">Approve</button>
+            </form>
+            {% endif %}
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.05);border-color:var(--border);color:var(--hub-muted);font-size:.7rem;" data-bs-toggle="modal" data-bs-target="#detailModal{{ ev.pk }}">Details</button>
+            <form method="post" class="d-inline" onsubmit="return confirm('Delete?')">{% csrf_token %}
+              <input type="hidden" name="action" value="delete"><input type="hidden" name="pk" value="{{ ev.pk }}">
+              <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.08);border-color:rgba(248,113,113,0.25);color:#f87171;font-size:.7rem;"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Detail Modals -->
+{% for ev in evals %}
+<div class="modal fade" id="detailModal{{ ev.pk }}" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background:var(--surface-1);border-color:var(--border);">
+      <div class="modal-header" style="border-color:var(--border);">
+        <h5 class="modal-title" style="color:var(--hub-text);">{{ ev.employee_name }} — {{ ev.period_month }}/{{ ev.period_year }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-6"><span class="text-white-50 small">Weighted Score</span><div style="font-size:1.4rem;font-weight:700;color:var(--hub-accent);">{{ ev.weighted_score }}%</div></div>
+          <div class="col-6"><span class="text-white-50 small">Bonus Amount</span><div style="font-size:1.4rem;font-weight:700;color:#22c55e;">{{ ev.bonus_amount|floatformat:0 }} BDT</div></div>
+        </div>
+        {% if ev.scores %}
+        <table class="table table-dark table-sm" style="font-size:.8rem;">
+          <thead><tr style="color:var(--hub-muted);border-color:var(--border);">
+            <th>Criterion</th><th>Weight</th><th>Score</th><th>Remarks</th>
+          </tr></thead>
+          <tbody>
+            {% for s in ev.scores %}
+            <tr style="border-color:var(--border);">
+              <td>{{ s.name }}</td>
+              <td class="text-white-50">{{ s.weight }}</td>
+              <td><span style="color:{% if s.score >= 80 %}#22c55e{% elif s.score >= 60 %}#fbbf24{% else %}#f87171{% endif %};">{{ s.score }}</span></td>
+              <td class="text-white-50">{{ s.remarks|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+        {% if ev.notes %}<p class="text-white-50 small mt-2">{{ ev.notes }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="glass-panel p-5 text-center text-white-50">
+  <i class="bi bi-person-check-fill" style="font-size:2rem;opacity:.3;"></i>
+  <p class="mt-2 mb-0">No evaluations for this period.</p>
+</div>
+{% endif %}
+
+<script>
+const empSelect  = document.getElementById('empSelect');
+const tplSelect  = document.getElementById('tplSelect');
+const scoreSection = document.getElementById('scoreSection');
+const scoreRows  = document.getElementById('scoreRows');
+const salaryField = document.getElementById('salaryField');
+const roleField  = document.getElementById('roleField');
+
+empSelect.addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  const salary = opt.dataset.salary;
+  const role   = opt.dataset.role;
+  if (salary) salaryField.value = salary;
+  if (role) roleField.value = role;
+});
+
+tplSelect.addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  const raw = opt.dataset.criteria;
+  scoreRows.innerHTML = '';
+  if (!raw) { scoreSection.style.display = 'none'; return; }
+  let criteria;
+  try { criteria = JSON.parse(raw.replace(/&quot;/g, '"').replace(/&#x27;/g, "'")); } catch(e) { return; }
+  if (!criteria.length) { scoreSection.style.display = 'none'; return; }
+  criteria.forEach(function(c) {
+    const row = document.createElement('div');
+    row.className = 'row g-2 mb-2 align-items-center';
+    row.innerHTML = `
+      <div class="col-md-4"><span style="color:var(--hub-text);font-size:.85rem;">${c.name}</span><span class="text-white-50 ms-2 small">w:${c.weight}</span></div>
+      <div class="col-md-2"><input type="number" name="score" value="0" min="0" max="100" step="1" class="form-control form-control-sm" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><input type="text" name="score_remarks" class="form-control form-control-sm" placeholder="Remarks" style="background:var(--surface-2);border-color:var(--border);color:var(--hub-text);"></div>`;
+    scoreRows.appendChild(row);
+  });
+  scoreSection.style.display = 'block';
+});
+</script>
+{% endblock %}

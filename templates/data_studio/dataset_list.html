@@ -1,0 +1,89 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Datasets — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-table me-2 text-info"></i>Datasets</h4>
+  {% if access_level >= 3 %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-info text-dark" data-bs-toggle="modal" data-bs-target="#csvModal"><i class="bi bi-filetype-csv me-1"></i>Import CSV</button>
+    <button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#manualModal"><i class="bi bi-plus-lg me-1"></i>New Dataset</button>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Name</th><th>Source</th><th>Rows</th><th>Columns</th><th>Description</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for ds in datasets %}
+          <tr style="cursor:pointer" onclick="location.href='{% url 'data_studio:dataset_detail' slug=biz.slug dataset_id=ds.pk %}'">
+            <td class="fw-semibold">{{ ds.name }}</td>
+            <td>
+              {% if ds.source == 'csv' %}<span class="badge bg-info text-dark">CSV</span>
+              {% elif ds.source == 'json' %}<span class="badge bg-warning text-dark">JSON</span>
+              {% else %}<span class="badge bg-secondary">Manual</span>{% endif %}
+            </td>
+            <td>{{ ds.row_count }}</td>
+            <td>{{ ds.col_count }}</td>
+            <td class="text-muted">{{ ds.description|default:"—"|truncatechars:50 }}</td>
+            <td class="text-muted">{{ ds.updated_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No datasets — import a CSV or create one manually</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 3 %}
+<!-- CSV Import Modal -->
+<div class="modal fade" id="csvModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title"><i class="bi bi-filetype-csv me-2"></i>Import CSV</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_csv">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-12"><label class="form-label small">CSV File <span class="text-danger">*</span></label><input type="file" name="csv_file" accept=".csv" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12 text-muted small">First row must be column headers. UTF-8 encoding recommended.</div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Import</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Create Modal -->
+<div class="modal fade" id="manualModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Dataset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_manual">
+        <div class="modal-body row g-2">
+          <div class="col-12"><label class="form-label small">Name <span class="text-danger">*</span></label><input type="text" name="name" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-12"><label class="form-label small">Description</label><textarea name="description" rows="2" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-12"><label class="form-label small">Column Headers <span class="text-danger">*</span></label><input type="text" name="columns" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Date, Revenue, Cost, Region" required></div>
+          <div class="col-12 text-muted small">Enter column names separated by commas.</div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

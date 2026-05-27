@@ -1,0 +1,560 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}{{ board.name }} | {{ biz.name }} | BengalBound{% endblock %}
+{% block page_title %}
+<a href="{% url 'task_board:board_list' slug=biz.slug %}" class="text-white-50 text-decoration-none small me-2"><i class="bi bi-kanban me-1"></i>Boards</a>
+<span class="text-white-50 me-2">/</span>
+<span class="fw-semibold">{{ board.name }}</span>
+{% endblock %}
+
+{% block content_class %}p-0{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.css">
+<style>
+:root {
+    --col-w: 300px;
+    --col-gap: 12px;
+}
+.kanban-wrap {
+    display: flex;
+    gap: var(--col-gap);
+    overflow-x: auto;
+    padding: 1rem 1.25rem 2rem;
+    align-items: flex-start;
+    min-height: calc(100vh - 120px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.kanban-wrap::-webkit-scrollbar { height: 6px; }
+.kanban-wrap::-webkit-scrollbar-track { background: transparent; }
+.kanban-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+.kanban-col {
+    width: var(--col-w);
+    min-width: var(--col-w);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 140px);
+}
+.col-header {
+    background: rgba(15,23,42,0.7);
+    border: 1px solid var(--hub-border);
+    border-radius: 12px 12px 0 0;
+    padding: 0.65rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: default;
+}
+.col-header .col-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.col-body {
+    background: rgba(15,23,42,0.4);
+    border: 1px solid var(--hub-border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 0.5rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.05) transparent;
+    min-height: 60px;
+}
+.col-body.over-limit { border-color: rgba(239,68,68,0.4); }
+
+.kanban-card {
+    background: rgba(30,41,59,0.9);
+    border: 1px solid var(--hub-border);
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 0.45rem;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s;
+    position: relative;
+}
+.kanban-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.4); transform: translateY(-1px); }
+.kanban-card.sortable-ghost { opacity: 0.4; }
+.kanban-card.sortable-drag { box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+
+.card-color-bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 10px 0 0 10px;
+}
+.card-label-dot { width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+.card-add-form { display: none; }
+.card-add-form.active { display: block; }
+
+.add-card-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--hub-muted);
+    padding: 0.4rem;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+    cursor: pointer;
+    margin-top: 0.25rem;
+}
+.add-card-btn:hover { border-color: var(--hub-accent); color: var(--hub-accent); background: rgba(192,132,252,0.05); }
+
+.add-col-btn {
+    width: var(--col-w);
+    min-width: var(--col-w);
+    background: rgba(15,23,42,0.3);
+    border: 2px dashed rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: var(--hub-muted);
+    padding: 1rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    align-self: flex-start;
+}
+.add-col-btn:hover { border-color: var(--hub-accent); color: var(--hub-accent); background: rgba(192,132,252,0.05); }
+
+/* Color chips */
+.cc-red    { background:#ef4444 }
+.cc-orange { background:#f97316 }
+.cc-yellow { background:#eab308 }
+.cc-green  { background:#22c55e }
+.cc-teal   { background:#14b8a6 }
+.cc-blue   { background:#3b82f6 }
+.cc-indigo { background:#6366f1 }
+.cc-purple { background:#a855f7 }
+.cc-pink   { background:#ec4899 }
+.cc-gray   { background:#6b7280 }
+
+.overdue-badge { font-size:0.65rem; background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:5px; padding:1px 6px; }
+.due-badge { font-size:0.65rem; background:rgba(234,179,8,0.15); color:#eab308; border:1px solid rgba(234,179,8,0.3); border-radius:5px; padding:1px 6px; }
+
+.limit-badge { font-size:0.65rem; padding:1px 6px; border-radius:5px; }
+.limit-ok { background:rgba(34,197,94,0.15); color:#22c55e; }
+.limit-warn { background:rgba(239,68,68,0.15); color:#ef4444; }
+
+/* Activity panel */
+.activity-panel {
+    width: 280px; min-width: 280px;
+    background: rgba(15,23,42,0.7);
+    border: 1px solid var(--hub-border);
+    border-radius: 12px;
+    padding: 1rem;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    align-self: flex-start;
+    flex-shrink: 0;
+}
+.activity-item { font-size: 0.78rem; color: var(--hub-muted); border-bottom: 1px solid rgba(255,255,255,0.04); padding: 0.4rem 0; }
+.activity-item:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toolbar -->
+<div class="px-4 pt-3 pb-2 d-flex align-items-center justify-content-between border-bottom" style="border-color:var(--hub-border)!important;">
+    <div class="d-flex align-items-center gap-3">
+        <span class="badge text-white px-3 py-1" style="background: var(--board-color, rgba(192,132,252,0.2)); border-radius:8px; font-size:0.75rem;">
+            {{ board.lists.count }} lists · {{ board.get_card_count }} cards
+        </span>
+        {% if is_owner %}
+        <button class="btn btn-hub-outline btn-sm" data-bs-toggle="modal" data-bs-target="#labelModal">
+            <i class="bi bi-tags me-1"></i>Labels
+        </button>
+        <form method="POST" action="{% url 'task_board:board_archive' slug=biz.slug board_id=board.id %}" class="d-inline" onsubmit="return confirm('Archive this board?')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-hub-outline btn-sm text-danger-emphasis"><i class="bi bi-archive me-1"></i>Archive</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-hub-outline btn-sm" id="toggleActivity">
+            <i class="bi bi-clock-history me-1"></i>Activity
+        </button>
+    </div>
+</div>
+
+<!-- Kanban + Activity panel wrapper -->
+<div class="d-flex" style="overflow:hidden;">
+<!-- Kanban Board -->
+<div class="kanban-wrap flex-grow-1" id="kanbanBoard">
+
+{% for bl in lists %}
+<div class="kanban-col" data-list-id="{{ bl.id }}">
+    <!-- Column Header -->
+    <div class="col-header">
+        <div class="col-name" id="col-name-{{ bl.id }}" ondblclick="startRenameCol({{ bl.id }})">{{ bl.name }}</div>
+        {% if bl.task_limit > 0 %}
+        <span class="limit-badge {% if bl.is_over_limit %}limit-warn{% else %}limit-ok{% endif %}">
+            {{ bl.card_count }}/{{ bl.task_limit }}
+        </span>
+        {% else %}
+        <span class="text-white-50" style="font-size:0.72rem;">{{ bl.card_count }}</span>
+        {% endif %}
+        <div class="dropdown ms-1">
+            <button class="btn p-0 border-0 text-white-50" data-bs-toggle="dropdown" style="background:transparent; line-height:1; font-size:0.8rem;"><i class="bi bi-three-dots-vertical"></i></button>
+            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" style="background:#1e293b; border:1px solid var(--hub-border); font-size:0.8rem; min-width:160px;">
+                <li><a class="dropdown-item" href="#" onclick="startRenameCol({{ bl.id }})"><i class="bi bi-pencil me-2"></i>Rename</a></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#limitModal{{ bl.id }}"><i class="bi bi-speedometer2 me-2"></i>Set Limit</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Rename Input (hidden by default) -->
+    <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary shadow-none d-none col-rename-input"
+        id="col-rename-{{ bl.id }}" value="{{ bl.name }}"
+        onblur="submitRenameCol({{ bl.id }})"
+        onkeydown="if(event.key==='Enter')this.blur(); if(event.key==='Escape'){cancelRenameCol({{ bl.id }})}"
+        style="border-radius:8px; font-size:0.85rem; font-weight:600;">
+
+    <!-- Cards -->
+    <div class="col-body {% if bl.is_over_limit %}over-limit{% endif %}" id="col-body-{{ bl.id }}">
+        {% for card in bl.cards.all %}
+        {% if not card.is_archived %}
+        <div class="kanban-card" data-card-id="{{ card.id }}" onclick="openCard({{ card.id }})">
+            {% if card.color %}
+            <div class="card-color-bar cc-{{ card.color }}"></div>
+            {% endif %}
+            <div class="ps-{% if card.color %}2{% else %}0{% endif %}">
+                <!-- Labels -->
+                {% if card.card_labels.all %}
+                <div class="d-flex flex-wrap gap-1 mb-1">
+                    {% for cl in card.card_labels.all %}
+                    <span class="card-label-dot" style="background:{{ cl.label.color }};" title="{{ cl.label.name }}"></span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="fw-medium" style="font-size:0.85rem; line-height:1.35;">{{ card.title }}</div>
+
+                <!-- Meta row -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2" style="font-size:0.72rem; color:var(--hub-muted);">
+                    {% if card.due_date %}
+                    <span class="{% if card.is_overdue %}overdue-badge{% else %}due-badge{% endif %}">
+                        <i class="bi bi-calendar2 me-1"></i>{{ card.due_date|date:"M d" }}
+                    </span>
+                    {% endif %}
+                    {% with progress=card.checklist_progress %}
+                    {% if progress.0 > 0 %}
+                    <span><i class="bi bi-check2-square me-1"></i>{{ progress.1 }}/{{ progress.0 }}</span>
+                    {% endif %}
+                    {% endwith %}
+                    {% if card.assignees.all %}
+                    <span><i class="bi bi-person me-1"></i>{{ card.assignees.count }}</span>
+                    {% endif %}
+                    {% if card.story_points %}
+                    <span class="ms-auto"><i class="bi bi-diamond me-1"></i>{{ card.story_points }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Add Card -->
+    <div class="px-1 pb-1 mt-1">
+        <div class="card-add-form" id="add-form-{{ bl.id }}">
+            <textarea class="form-control bg-dark text-white border-secondary shadow-none mb-1"
+                id="add-input-{{ bl.id }}" rows="2" placeholder="Card title..."
+                style="border-radius:8px; font-size:0.85rem; resize:none;"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitCard({{ bl.id }});}if(event.key==='Escape'){cancelAddCard({{ bl.id }});}"></textarea>
+            <div class="d-flex gap-1">
+                <button class="btn btn-hub-primary btn-sm flex-grow-1" onclick="submitCard({{ bl.id }})">Add Card</button>
+                <button class="btn btn-hub-outline btn-sm" onclick="cancelAddCard({{ bl.id }})"><i class="bi bi-x"></i></button>
+            </div>
+        </div>
+        <button class="add-card-btn" id="add-btn-{{ bl.id }}" onclick="showAddCard({{ bl.id }})">
+            <i class="bi bi-plus me-1"></i>Add card
+        </button>
+    </div>
+</div>
+
+<!-- Set Limit Modal for this column -->
+<div class="modal fade" id="limitModal{{ bl.id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="background:#1e293b; border:1px solid var(--hub-border); border-radius:14px;">
+            <div class="modal-header border-0"><h6 class="modal-title fw-bold">Set WIP Limit — {{ bl.name }}</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <label class="form-label small text-white-50">Max cards (0 = unlimited)</label>
+                <input type="number" id="limit-input-{{ bl.id }}" class="form-control bg-dark text-white border-secondary shadow-none" value="{{ bl.task_limit }}" min="0" max="999">
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-hub-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-hub-primary btn-sm px-3" onclick="setLimit({{ bl.id }})" data-bs-dismiss="modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Add New Column -->
+<div>
+    <div class="add-col-btn text-center" id="addColBtn" onclick="showAddCol()">
+        <i class="bi bi-plus-lg d-block mb-1" style="font-size:1.25rem;"></i>Add list
+    </div>
+    <div class="d-none" id="addColForm" style="width:var(--col-w);">
+        <input type="text" id="newColName" class="form-control bg-dark text-white border-secondary shadow-none mb-2"
+            placeholder="List name..." style="border-radius:10px;"
+            onkeydown="if(event.key==='Enter')submitNewCol(); if(event.key==='Escape')cancelAddCol();">
+        <div class="d-flex gap-2">
+            <button class="btn btn-hub-primary btn-sm flex-grow-1" onclick="submitNewCol()">Add List</button>
+            <button class="btn btn-hub-outline btn-sm" onclick="cancelAddCol()"><i class="bi bi-x"></i></button>
+        </div>
+    </div>
+</div>
+
+</div><!-- /kanban-wrap -->
+
+<!-- Activity Panel (hidden by default) -->
+<div class="activity-panel d-none me-3 mt-3" id="activityPanel">
+    <div class="fw-semibold mb-3" style="font-size:0.85rem;"><i class="bi bi-clock-history me-2" style="color:var(--hub-accent);"></i>Activity</div>
+    {% for act in activities %}
+    <div class="activity-item">
+        <span style="color:var(--hub-text); font-weight:500;">{{ act.author.get_full_name|default:act.author.email }}</span>
+        {{ act.description }}
+        <div style="font-size:0.68rem; opacity:0.5; margin-top:2px;">{{ act.created_at|timesince }} ago</div>
+    </div>
+    {% empty %}
+    <div class="text-white-50 small text-center py-3">No activity yet.</div>
+    {% endfor %}
+</div>
+</div><!-- /flex wrapper -->
+
+<!-- Label Manager Modal -->
+<div class="modal fade" id="labelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1e293b; border:1px solid var(--hub-border); border-radius:16px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-tags me-2"></i>Board Labels</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% for lbl in labels %}
+                <div class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:var(--hub-border)!important;">
+                    <span style="width:20px;height:20px;border-radius:5px;background:{{ lbl.color }};display:inline-block;"></span>
+                    <span class="fw-medium" style="font-size:0.9rem;">{{ lbl.name }}</span>
+                </div>
+                {% empty %}
+                <p class="text-white-50 small mb-3">No labels yet.</p>
+                {% endfor %}
+                <form class="mt-3 d-flex gap-2 align-items-end" onsubmit="createLabel(event)">
+                    {% csrf_token %}
+                    <div class="flex-grow-1">
+                        <label class="form-label small text-white-50">New Label</label>
+                        <input type="text" id="newLabelName" class="form-control form-control-sm bg-dark text-white border-secondary shadow-none" placeholder="Label name" required>
+                    </div>
+                    <div>
+                        <label class="form-label small text-white-50">Color</label>
+                        <input type="color" id="newLabelColor" class="form-control form-control-color bg-dark border-secondary" value="#3b82f6" style="width:42px; height:36px; padding:2px;">
+                    </div>
+                    <button type="submit" class="btn btn-hub-primary btn-sm px-3">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+const SLUG = "{{ biz.slug }}";
+const BOARD_ID = {{ board.id }};
+const CSRF = "{{ csrf_token }}";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function post(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest'},
+        body: data instanceof FormData ? data : JSON.stringify(data),
+    }).then(r => r.json());
+}
+
+function postForm(url, data) {
+    const fd = new FormData();
+    for (const k in data) fd.append(k, data[k]);
+    return post(url, fd);
+}
+
+// ── Card Quick-Add ────────────────────────────────────────────────────────────
+
+function showAddCard(listId) {
+    document.getElementById(`add-btn-${listId}`).classList.add('d-none');
+    const form = document.getElementById(`add-form-${listId}`);
+    form.classList.add('active');
+    document.getElementById(`add-input-${listId}`).focus();
+}
+
+function cancelAddCard(listId) {
+    document.getElementById(`add-form-${listId}`).classList.remove('active');
+    document.getElementById(`add-btn-${listId}`).classList.remove('d-none');
+    document.getElementById(`add-input-${listId}`).value = '';
+}
+
+function submitCard(listId) {
+    const title = document.getElementById(`add-input-${listId}`).value.trim();
+    if (!title) return;
+    postForm(`/hub/${SLUG}/board/lists/${listId}/cards/create/`, {title})
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            addCardToDOM(data, listId);
+            cancelAddCard(listId);
+        });
+}
+
+function addCardToDOM(card, listId) {
+    const body = document.getElementById(`col-body-${listId}`);
+    const div = document.createElement('div');
+    div.className = 'kanban-card';
+    div.dataset.cardId = card.id;
+    div.onclick = () => openCard(card.id);
+    div.innerHTML = `<div class="fw-medium" style="font-size:0.85rem;">${card.title}</div>`;
+    body.appendChild(div);
+    updateColCount(listId);
+}
+
+// ── Card Detail Navigation ────────────────────────────────────────────────────
+
+function openCard(cardId) {
+    window.location.href = `/hub/${SLUG}/board/cards/${cardId}/`;
+}
+
+// ── Rename Column ─────────────────────────────────────────────────────────────
+
+function startRenameCol(listId) {
+    document.getElementById(`col-name-${listId}`).classList.add('d-none');
+    const inp = document.getElementById(`col-rename-${listId}`);
+    inp.classList.remove('d-none');
+    inp.focus();
+    inp.select();
+}
+
+function cancelRenameCol(listId) {
+    document.getElementById(`col-name-${listId}`).classList.remove('d-none');
+    document.getElementById(`col-rename-${listId}`).classList.add('d-none');
+}
+
+function submitRenameCol(listId) {
+    const inp = document.getElementById(`col-rename-${listId}`);
+    const name = inp.value.trim();
+    if (!name) { cancelRenameCol(listId); return; }
+    postForm(`/hub/${SLUG}/board/lists/${listId}/update/`, {name})
+        .then(data => {
+            if (data.ok) {
+                document.getElementById(`col-name-${listId}`).textContent = data.name;
+                inp.value = data.name;
+            }
+            cancelRenameCol(listId);
+        });
+}
+
+// ── WIP Limit ─────────────────────────────────────────────────────────────────
+
+function setLimit(listId) {
+    const limit = document.getElementById(`limit-input-${listId}`).value;
+    postForm(`/hub/${SLUG}/board/lists/${listId}/update/`, {task_limit: limit});
+}
+
+// ── Add New Column ────────────────────────────────────────────────────────────
+
+function showAddCol() {
+    document.getElementById('addColBtn').classList.add('d-none');
+    document.getElementById('addColForm').classList.remove('d-none');
+    document.getElementById('newColName').focus();
+}
+function cancelAddCol() {
+    document.getElementById('addColBtn').classList.remove('d-none');
+    document.getElementById('addColForm').classList.add('d-none');
+    document.getElementById('newColName').value = '';
+}
+function submitNewCol() {
+    const name = document.getElementById('newColName').value.trim();
+    if (!name) return;
+    postForm(`/hub/${SLUG}/board/${BOARD_ID}/lists/create/`, {name})
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            window.location.reload();
+        });
+}
+
+// ── Drag & Drop with SortableJS ───────────────────────────────────────────────
+
+function updateColCount(listId) {
+    const body = document.getElementById(`col-body-${listId}`);
+    const count = body.querySelectorAll('.kanban-card').length;
+    const nameEl = document.querySelector(`[data-list-id="${listId}"] .col-header .text-white-50`);
+    if (nameEl) nameEl.textContent = count;
+}
+
+document.querySelectorAll('.col-body').forEach(colBody => {
+    Sortable.create(colBody, {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        handle: '.kanban-card',
+        onEnd(evt) {
+            // Collect all list states and send bulk reorder
+            const payload = {};
+            document.querySelectorAll('.col-body').forEach(cb => {
+                const listId = cb.id.replace('col-body-', '');
+                payload[listId] = Array.from(cb.querySelectorAll('.kanban-card')).map(c => c.dataset.cardId);
+            });
+            post(`/hub/${SLUG}/board/cards/reorder/`, payload);
+        }
+    });
+});
+
+// Column reorder
+Sortable.create(document.getElementById('kanbanBoard'), {
+    animation: 150,
+    handle: '.col-header',
+    filter: '.add-col-btn',
+    draggable: '.kanban-col',
+    onEnd() {
+        const order = Array.from(document.querySelectorAll('.kanban-col')).map(c => c.dataset.listId);
+        post(`/hub/${SLUG}/board/lists/reorder/`, {order});
+    }
+});
+
+// ── Activity Panel ────────────────────────────────────────────────────────────
+
+document.getElementById('toggleActivity').addEventListener('click', () => {
+    document.getElementById('activityPanel').classList.toggle('d-none');
+});
+
+// ── Label Creation ────────────────────────────────────────────────────────────
+
+function createLabel(e) {
+    e.preventDefault();
+    const name = document.getElementById('newLabelName').value.trim();
+    const color = document.getElementById('newLabelColor').value;
+    if (!name) return;
+    postForm(`/hub/${SLUG}/board/${BOARD_ID}/labels/create/`, {name, color})
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            document.getElementById('newLabelName').value = '';
+            // Append to label list in modal
+            const labelList = document.querySelector('#labelModal .modal-body');
+            const div = document.createElement('div');
+            div.className = 'd-flex align-items-center gap-3 py-2 border-bottom';
+            div.style.borderColor = 'var(--hub-border)';
+            div.innerHTML = `<span style="width:20px;height:20px;border-radius:5px;background:${data.color};display:inline-block;"></span><span class="fw-medium" style="font-size:0.9rem;">${data.name}</span>`;
+            labelList.insertBefore(div, labelList.querySelector('p') || labelList.querySelector('form'));
+        });
+}
+</script>
+{% endblock %}

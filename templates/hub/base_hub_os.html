@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BengalBound Hub | BengalBound{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .sidebar { min-height: 100vh; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(16px); border-right: 1px solid rgba(255,255,255,0.05); border-right: 2px solid rgba(236, 72, 153, 0.2); }
+        .nav-link.active { background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1)); border-right: 2px solid #ec4899; color: #ec4899 !important; }
+        .nav-link:hover:not(.active) { background: rgba(255,255,255,0.03); color: #fff !important; }
+        .glass-panel { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Hub Sidebar -->
+        <nav class="sidebar p-3 d-flex flex-column" style="width: 260px;">
+            <a href="{% url 'hub:hub_landing' %}" class="text-decoration-none text-white fs-4 fw-bold font-outfit mb-4 mt-2 px-2" style="background: linear-gradient(135deg, #c084fc, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                BengalBound Hub
+            </a>
+
+            <div class="px-2 mb-4">
+                <span class="badge bg-dark border border-secondary text-white-50 w-100 py-2 d-flex justify-content-between align-items-center">
+                    <span class="text-start text-truncate">{{ tenant.name }}</span>
+                    <i class="bi bi-chevron-expand ms-2"></i>
+                </span>
+            </div>
+            
+            <ul class="nav nav-pills flex-column mb-auto gap-1">
+                <li class="nav-item">
+                    <a href="{% url 'hub:hub_landing' %}" class="nav-link text-white-50 px-3 py-2 rounded-3 active">
+                        <i class="bi bi-grid-1x2 me-2"></i> System OS
+                    </a>
+                </li>
+                {% if tenant %}
+                <li class="nav-item">
+                    <a href="{% url 'hub:hub_members' slug=tenant.slug %}" class="nav-link text-white-50 px-3 py-2 rounded-3">
+                        <i class="bi bi-person-badge me-2"></i> Team Members
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Dynamic Sub-Modules Navigation -->
+                {% if 'pos' in active_bb_modules %}
+                <li class="nav-item mt-3 mb-1">
+                    <span class="text-uppercase text-muted" style="font-size: 0.65rem; letter-spacing: 1px; padding-left: 1rem; font-weight: 700;">Retail</span>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white-50 px-3 py-2 rounded-3">
+                        <i class="bi bi-cart-check me-2"></i> Point of Sale
+                    </a>
+                </li>
+                {% endif %}
+
+                {% if 'payroll' in active_bb_modules %}
+                <li class="nav-item mt-3 mb-1">
+                    <span class="text-uppercase text-muted" style="font-size: 0.65rem; letter-spacing: 1px; padding-left: 1rem; font-weight: 700;">Human Resources</span>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white-50 px-3 py-2 rounded-3">
+                        <i class="bi bi-people me-2"></i> Payroll
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% if 'inventory' in active_bb_modules %}
+                <li class="nav-item mt-3 mb-1">
+                    <span class="text-uppercase text-muted" style="font-size: 0.65rem; letter-spacing: 1px; padding-left: 1rem; font-weight: 700;">Logistics</span>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white-50 px-3 py-2 rounded-3">
+                        <i class="bi bi-boxes me-2"></i> Inventory Matrix
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% if 'crm' in active_bb_modules %}
+                <li class="nav-item">
+                    <a href="#" class="nav-link text-white-50 px-3 py-2 rounded-3">
+                        <i class="bi bi-postcard-heart me-2"></i> CRM Direct
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <hr class="border-secondary mt-4 mb-3">
+            <a href="{% url 'console_admin:dashboard' %}" class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center mb-2">
+                <i class="bi bi-arrow-left"></i> Exit to Main Console
+            </a>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow-1 p-4 overflow-auto" style="height: 100vh;">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom border-secondary">
+                <div>
+                    <h1 class="h3 font-outfit fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p class="text-white-50 small mb-0">{% block page_subtitle %}Central management for {{ tenant.name }}{% endblock %}</p>
+                </div>
+            </div>
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

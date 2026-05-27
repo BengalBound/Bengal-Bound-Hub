@@ -1,0 +1,108 @@
+{% extends 'console_admin/base_console.html' %}
+{% block title %}Billing — BengalBound Console{% endblock %}
+{% block page_title %}Billing & Payments{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="glass p-3">
+      <div class="text-muted small mb-1">Current Plan</div>
+      {% if current_sub %}
+        <div class="fw-bold text-white fs-5">{{ current_sub.tier.name }}</div>
+        <div class="small" style="color:var(--muted);">
+          Renews {{ current_sub.end_date|date:"M d, Y" }}
+        </div>
+        <span class="badge mt-2" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
+          {{ current_sub.get_status_display }}
+        </span>
+      {% else %}
+        <div class="text-muted">No active plan</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="glass p-3">
+      <div class="text-muted small mb-1">Total Paid</div>
+      <div class="fw-bold text-white fs-5">${{ total_paid|floatformat:2 }}</div>
+      <div class="small" style="color:var(--muted);">{{ orders.count }} payment{{ orders.count|pluralize }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="glass p-3 d-flex flex-column gap-2">
+      <a href="{% url 'console_admin:billing_plan_change' %}" class="btn btn-sm" style="background:linear-gradient(135deg,#c084fc,#818cf8);color:#fff;border:none;border-radius:8px;">
+        <i class="bi bi-arrow-up-circle me-1"></i> Change Plan
+      </a>
+      <a href="{% url 'console_admin:totp_setup' %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border);border-radius:8px;">
+        <i class="bi bi-shield-lock me-1"></i> Security (2FA)
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="glass p-4">
+  <h6 class="fw-semibold mb-3">Payment History</h6>
+  {% if subscriptions %}
+  <div class="table-responsive">
+    <table class="table table-dark table-hover table-sm mb-0" style="color:var(--text);">
+      <thead style="color:var(--muted);">
+        <tr>
+          <th>Plan</th>
+          <th>Period</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in subscriptions %}
+        <tr>
+          <td class="fw-semibold">{{ sub.tier.name }}</td>
+          <td class="small text-muted">{{ sub.start_date|date:"M d, Y" }} – {{ sub.end_date|date:"M d, Y" }}</td>
+          <td>${{ sub.tier.price_monthly|floatformat:2 }}</td>
+          <td>
+            <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);font-size:0.65rem;">
+              {{ sub.get_status_display }}
+            </span>
+          </td>
+          <td class="text-end">
+            <a href="{% url 'console_admin:billing_invoice_detail' sub_id=sub.pk %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:0.72rem;">
+              <i class="bi bi-receipt me-1"></i>Receipt
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="text-center py-5" style="color:var(--muted);">
+      <i class="bi bi-receipt fs-2 mb-2 d-block"></i>
+      No billing history yet.
+    </div>
+  {% endif %}
+</div>
+
+{% if orders %}
+<div class="glass p-4 mt-3">
+  <h6 class="fw-semibold mb-3">Crypto / NowPayments Orders</h6>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover table-sm mb-0" style="color:var(--text);">
+      <thead style="color:var(--muted);">
+        <tr><th>Order #</th><th>Amount</th><th>Currency</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td class="fw-mono small">{{ order.nowpayments_order_id|default:order.pk }}</td>
+          <td>{{ order.amount_usd|floatformat:2 }}</td>
+          <td class="text-muted">{{ order.currency|default:"USD" }}</td>
+          <td><span class="badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2);font-size:0.65rem;">{{ order.status }}</span></td>
+          <td class="text-muted small">{{ order.created_at|date:"M d, Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

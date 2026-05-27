@@ -1,0 +1,26 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ campaign.name }} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-send me-2" style="color:var(--hub-accent);"></i>{{ campaign.name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="glass-panel p-4">
+      <div class="mb-3"><span class="badge" style="background:{% if campaign.status == 'sent' %}#22c55e20{% else %}#fbbf2420{% endif %};color:{% if campaign.status == 'sent' %}#22c55e{% else %}#fbbf24{% endif %};">{{ campaign.status|title }}</span></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 text-center" style="border-right:1px solid var(--hub-border);"><div style="font-size:1.5rem;font-weight:700;color:#38bdf8;">{{ campaign.sent_count|default:0 }}</div><div style="color:var(--hub-muted);font-size:.75rem;">Sent</div></div>
+        <div class="col-6 text-center"><div style="font-size:1.5rem;font-weight:700;color:#22c55e;">{{ campaign.open_count|default:0 }}</div><div style="color:var(--hub-muted);font-size:.75rem;">Opened</div></div>
+      </div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">List</div><div style="color:var(--hub-text);">{{ campaign.email_list.name }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Subject</div><div style="color:var(--hub-text);">{{ campaign.subject }}</div></div>
+      <div class="mb-2"><div style="color:var(--hub-muted);font-size:.8rem;">Sent At</div><div style="color:var(--hub-text);">{{ campaign.sent_at|default:"Not sent" }}</div></div>
+      {% if campaign.status == 'draft' %}<a href="{% url 'email_marketing:campaign_create' slug=biz.slug %}?edit={{ campaign.pk }}" class="btn btn-hub-primary btn-sm w-100 mt-2">Edit Campaign</a>{% endif %}
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="glass-panel p-4">
+      <h5 style="color:var(--hub-text);margin-bottom:1rem;">Email Preview</h5>
+      <div style="background:#fff;padding:1.5rem;border-radius:8px;color:#000;">{{ campaign.body|safe }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

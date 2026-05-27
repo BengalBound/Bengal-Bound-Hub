@@ -1,0 +1,121 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Housekeeping — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'hospitality_ops:home' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Hospitality Ops</a></div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-broom me-2 text-info"></i>Housekeeping</h4>
+  {% if access_level >= 2 %}<button class="btn btn-info text-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal"><i class="bi bi-plus-lg me-1"></i>Add Task</button>{% endif %}
+</div>
+
+<div class="mb-3 d-flex gap-2 flex-wrap">
+  <form method="get" class="d-flex gap-2">
+    <input type="date" name="date" value="{{ filter_date|date:'Y-m-d' }}" class="form-control form-control-sm bg-dark text-white border-secondary" style="width:auto" onchange="this.form.submit()">
+    <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:auto" onchange="this.form.submit()">
+      <option value="">All Statuses</option>
+      <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+      <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+      <option value="done" {% if status_filter == 'done' %}selected{% endif %}>Done</option>
+      <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
+    </select>
+  </form>
+</div>
+
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover mb-0 align-middle small">
+        <thead class="table-secondary"><tr><th>Room</th><th>Task Type</th><th>Priority</th><th>Assigned To</th><th>Status</th><th>Completed</th>{% if access_level >= 2 %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for t in tasks %}
+          <tr>
+            <td class="fw-semibold">{{ t.room_identifier }}</td>
+            <td><span class="badge bg-dark border border-secondary">{{ t.get_task_type_display }}</span></td>
+            <td>
+              <span class="badge
+                {% if t.priority == 'urgent' %}bg-danger
+                {% elif t.priority == 'high' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}" style="font-size:0.65rem">{{ t.get_priority_display }}</span>
+            </td>
+            <td class="text-muted">{% if t.assigned_to %}{{ t.assigned_to.user.get_full_name|default:t.assigned_to.user.email }}{% else %}—{% endif %}</td>
+            <td>
+              <span class="badge
+                {% if t.status == 'done' %}bg-success
+                {% elif t.status == 'in_progress' %}bg-warning text-dark
+                {% elif t.status == 'skipped' %}bg-secondary
+                {% else %}bg-dark border border-secondary{% endif %}">{{ t.get_status_display }}</span>
+            </td>
+            <td class="text-muted">{% if t.completed_at %}{{ t.completed_at|date:"H:i" }}{% else %}—{% endif %}</td>
+            {% if access_level >= 2 %}
+            <td>
+              {% if t.status != 'done' %}
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="task_id" value="{{ t.pk }}">
+                <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:auto;font-size:0.7rem" onchange="this.form.submit()">
+                  <option value="pending" {% if t.status == 'pending' %}selected{% endif %}>Pending</option>
+                  <option value="in_progress" {% if t.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                  <option value="done">Mark Done</option>
+                  <option value="skipped">Skip</option>
+                </select>
+              </form>
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No housekeeping tasks for this date</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addTaskModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Add Housekeeping Task</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_task">
+        <div class="modal-body row g-2">
+          <div class="col-md-4"><label class="form-label small">Room / Location <span class="text-danger">*</span></label><input type="text" name="room_identifier" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Task Type</label>
+            <select name="task_type" class="form-select bg-dark text-white border-secondary">
+              <option value="checkout_clean">Checkout Clean</option>
+              <option value="stayover_service">Stayover Service</option>
+              <option value="turndown">Turndown</option>
+              <option value="deep_clean">Deep Clean</option>
+              <option value="inspection">Inspection</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Priority</label>
+            <select name="priority" class="form-select bg-dark text-white border-secondary">
+              <option value="low">Low</option>
+              <option value="normal" selected>Normal</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Scheduled Date <span class="text-danger">*</span></label><input type="date" name="scheduled_date" value="{{ filter_date|date:'Y-m-d' }}" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-6"><label class="form-label small">Assign To</label>
+            <select name="assigned_to" class="form-select bg-dark text-white border-secondary">
+              <option value="">— Unassigned —</option>
+              {% for e in employees %}<option value="{{ e.pk }}">{{ e.user.get_full_name|default:e.user.email }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label small">Notes</label><input type="text" name="notes" class="form-control bg-dark text-white border-secondary"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Add Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

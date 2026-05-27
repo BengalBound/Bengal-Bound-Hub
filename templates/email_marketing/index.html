@@ -1,0 +1,20 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Email Marketing — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-envelope-paper me-2" style="color:var(--hub-accent);"></i>Email Marketing{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="row g-4 mb-4">
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:var(--hub-accent);">{{ total_campaigns|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Campaigns</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#38bdf8;">{{ total_subscribers|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Subscribers</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#22c55e;">{{ sent_campaigns|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Sent</div></div></div>
+  <div class="col-md-3"><div class="stat-card text-center glass-panel p-4"><div style="font-size:2rem;font-weight:700;color:#fbbf24;">{{ total_lists|default:0 }}</div><div style="color:var(--hub-muted);font-size:.85rem;">Lists</div></div></div>
+</div>
+<div class="glass-panel p-4">
+  <h5 style="color:var(--hub-text);margin-bottom:1.5rem;">Quick Access</h5>
+  <div class="d-flex gap-3 flex-wrap">
+    <a href="{% url 'email_marketing:campaign_list' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-send me-1"></i>Campaigns</a>
+    <a href="{% url 'email_marketing:email_lists' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-list-ul me-1"></i>Email Lists</a>
+    <a href="{% url 'email_marketing:email_lists' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-people me-1"></i>Subscribers</a>
+  </div>
+</div>
+{% endblock %}

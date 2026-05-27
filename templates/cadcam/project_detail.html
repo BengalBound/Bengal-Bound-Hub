@@ -1,0 +1,59 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ project.name }} — CAD/CAM{% endblock %}
+{% block page_title %}{{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex gap-3 align-items-center">
+    <a href="{% url 'cadcam:home' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left me-1"></i>Projects</a>
+    <span class="badge" style="font-size:0.78rem;background:rgba(56,189,248,0.12);color:#38bdf8;">{{ project.get_tool_display }}</span>
+    <span class="badge" style="font-size:0.78rem;background:{% if project.status == 'active' %}rgba(34,197,94,0.12);color:#22c55e;{% else %}rgba(148,163,184,0.12);color:#94a3b8;{% endif %}">{{ project.get_status_display }}</span>
+</div>
+
+{% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show mb-3">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+{% if project.description %}
+<div class="glass-panel p-3 mb-4 text-white-50 small">{{ project.description }}</div>
+{% endif %}
+
+<!-- Upload Form -->
+<div class="glass-panel p-4 mb-4">
+    <h6 class="fw-bold mb-3">Upload File</h6>
+    <form method="post" enctype="multipart/form-data" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-4"><label class="form-label text-white-50 small">File</label><input type="file" name="file" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-4"><label class="form-label text-white-50 small">Filename (if blank, uses file name)</label><input type="text" name="filename" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-2">
+            <label class="form-label text-white-50 small">Format</label>
+            <select name="format" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                {% for val, label in formats %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2"><label class="form-label text-white-50 small">Version</label><input type="text" name="version" value="1.0" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+        <div class="col-md-10"><input type="text" name="description" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" placeholder="Description (optional)"></div>
+        <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-hub-primary w-100">Upload</button></div>
+    </form>
+</div>
+
+<!-- Files List -->
+<div class="glass-panel p-0" style="overflow:hidden;">
+    <table class="table table-dark table-borderless mb-0" style="font-size:0.85rem;">
+        <thead><tr style="color:var(--hub-muted);border-bottom:1px solid var(--hub-border);">
+            <th class="px-4 py-3">Filename</th><th>Format</th><th>Version</th><th>Description</th><th>Uploaded</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% for f in files %}
+        <tr style="border-bottom:1px solid var(--hub-border);">
+            <td class="px-4 fw-semibold"><i class="bi bi-file-earmark-code me-2" style="color:#38bdf8;"></i>{{ f.filename }}</td>
+            <td><span class="badge" style="font-size:0.65rem;background:rgba(192,132,252,0.12);color:#c084fc;">{{ f.get_format_display }}</span></td>
+            <td class="text-white-50">v{{ f.version }}</td>
+            <td class="text-white-50">{{ f.description|default:"—" }}</td>
+            <td style="color:var(--hub-muted);">{{ f.uploaded_at|date:"M d Y" }}</td>
+            <td class="pe-4">{% if f.file %}<a href="{{ f.file.url }}" target="_blank" class="btn btn-hub-outline btn-sm">Download</a>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-white-50 py-5">No files uploaded yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

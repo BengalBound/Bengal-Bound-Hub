@@ -1,0 +1,19 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{% if lead %}Edit Lead{% else %}New Lead{% endif %} — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-funnel me-2" style="color:var(--hub-accent);"></i>{% if lead %}Edit Lead{% else %}New Lead{% endif %}{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:600px;">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Name</label><input name="name" value="{{ lead.name|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Email</label><input type="email" name="email" value="{{ lead.email|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Phone</label><input name="phone" value="{{ lead.phone|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Company</label><input name="company" value="{{ lead.company|default:'' }}" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Source</label><select name="source" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="website">Website</option><option value="referral">Referral</option><option value="social">Social Media</option><option value="cold_call">Cold Call</option><option value="event">Event</option><option value="other">Other</option></select></div>
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Stage</label><select name="stage" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"><option value="new">New</option><option value="contacted">Contacted</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="converted">Converted</option><option value="lost">Lost</option></select></div>
+      <div class="col-12"><label class="form-label" style="color:var(--hub-muted);">Notes</label><textarea name="notes" rows="4" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ lead.notes|default:'' }}</textarea></div>
+    </div>
+    <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-hub-primary btn-sm">Save</button><a href="{% url 'leads:lead_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a></div>
+  </form>
+</div>
+{% endblock %}

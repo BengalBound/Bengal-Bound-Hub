@@ -1,0 +1,89 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Settings | {{ biz.name }}{% endblock %}
+{% block page_title %}Business Settings{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="glass-panel p-4 p-lg-5">
+            <h5 class="fw-bold mb-4">Business Profile</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-semibold">Business Name</label>
+                    <input type="text" name="name" value="{{ biz.name }}" class="form-control" required style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-semibold">Tagline</label>
+                    <input type="text" name="tagline" value="{{ biz.tagline }}" class="form-control" style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small fw-semibold">Business Email</label>
+                        <input type="email" name="business_email" value="{{ biz.business_email }}" class="form-control" style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-white-50 small fw-semibold">Phone Number</label>
+                        <input type="text" name="business_phone" value="{{ biz.business_phone }}" class="form-control" style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-semibold">Address</label>
+                    <textarea name="business_address" rows="3" class="form-control" style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">{{ biz.business_address }}</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-semibold">Logo</label>
+                    {% if biz.logo %}<div class="mb-2"><img src="{{ biz.logo.url }}" style="height:60px;border-radius:8px;" alt="Current logo"></div>{% endif %}
+                    <input type="file" name="logo" accept="image/*" class="form-control" style="background:rgba(255,255,255,0.04);border-color:var(--hub-border);color:var(--hub-text);border-radius:10px;">
+                </div>
+
+                <button type="submit" class="btn btn-hub-primary px-5 py-2">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <!-- Plan info -->
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold mb-3">Installation Plan</h6>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:44px;height:44px;border-radius:12px;background:{% if biz.installation_type == 'cloud' %}rgba(56,189,248,0.1){% elif biz.installation_type == 'ip_locked' %}rgba(251,191,36,0.1){% else %}rgba(34,197,94,0.1){% endif %};display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+                    <i class="bi {% if biz.installation_type == 'cloud' %}bi-cloud text-info{% elif biz.installation_type == 'ip_locked' %}bi-shield-lock text-warning{% else %}bi-server text-success{% endif %}"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold">{{ biz.get_installation_type_display }}</div>
+                    <small style="color:var(--hub-muted);">{{ biz.slug }}</small>
+                </div>
+            </div>
+            {% if biz.installation_type == 'ip_locked' %}
+            <a href="{% url 'hub:hub_ip_access' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100">Manage IP Allowlist <i class="bi bi-arrow-right ms-1"></i></a>
+            {% elif biz.installation_type == 'self_hosted' %}
+            <a href="{% url 'hub:hub_sync' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100">Sync & Backdoor Settings <i class="bi bi-arrow-right ms-1"></i></a>
+            {% endif %}
+        </div>
+
+        <!-- Connector App -->
+        {% if biz.installation_type != 'cloud' %}
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold mb-2">Connector App</h6>
+            <p style="color:var(--hub-muted);font-size:0.82rem;">Generate tokens for remote access from any network.</p>
+            <a href="{% url 'hub:hub_connector' slug=biz.slug %}" class="btn btn-hub-outline btn-sm w-100">Manage Tokens <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+        {% endif %}
+
+        <!-- Business slug -->
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold mb-2">Dashboard URL</h6>
+            <code style="color:var(--hub-accent);font-size:0.82rem;">/hub/{{ biz.slug }}/</code>
+            <p class="mt-2 mb-0" style="color:var(--hub-muted);font-size:0.78rem;">This is your business's permanent dashboard link. Share with your team.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

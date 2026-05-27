@@ -1,0 +1,106 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}{{ reservation.reservation_number }} — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'pms:reservation_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Reservations</a></div>
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-calendar-check me-2 text-info"></i>{{ reservation.reservation_number }}</h4>
+    <div class="small text-muted mt-1">{{ reservation.guest.full_name }} · {{ reservation.check_in_date|date:"d M Y" }} → {{ reservation.check_out_date|date:"d M Y" }} ({{ reservation.nights }} nights)</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <span class="badge {% if reservation.status == 'checked_in' %}bg-success{% elif reservation.status == 'checked_out' %}bg-secondary{% elif reservation.status == 'cancelled' %}bg-danger{% elif reservation.status == 'no_show' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %} fs-6">{{ reservation.get_status_display }}</span>
+    {% if access_level >= 2 %}
+    {% if reservation.status == 'confirmed' %}
+    <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="check_in"><button type="submit" class="btn btn-sm btn-success">Check In</button></form>
+    {% elif reservation.status == 'checked_in' %}
+    <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="check_out"><button type="submit" class="btn btn-sm btn-secondary">Check Out</button></form>
+    {% endif %}
+    {% if reservation.status not in 'checked_out,cancelled' %}
+    <form method="post" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="cancel"><button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this reservation?')">Cancel</button></form>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary mb-3">
+      <div class="card-header small"><i class="bi bi-info-circle me-1"></i>Details</div>
+      <div class="card-body small">
+        <div class="row g-2">
+          <div class="col-6 text-muted">Guest</div><div class="col-6">{{ reservation.guest.full_name }}</div>
+          {% if reservation.guest.email %}<div class="col-6 text-muted">Email</div><div class="col-6">{{ reservation.guest.email }}</div>{% endif %}
+          {% if reservation.guest.phone %}<div class="col-6 text-muted">Phone</div><div class="col-6">{{ reservation.guest.phone }}</div>{% endif %}
+          {% if reservation.guest.nationality %}<div class="col-6 text-muted">Nationality</div><div class="col-6">{{ reservation.guest.nationality }}</div>{% endif %}
+          <div class="col-6 text-muted">Room Type</div><div class="col-6">{{ reservation.room_type.name|default:"—" }}</div>
+          <div class="col-6 text-muted">Room #</div><div class="col-6 font-monospace">{{ reservation.room.room_number|default:"TBA" }}</div>
+          <div class="col-6 text-muted">Check-In</div><div class="col-6">{{ reservation.check_in_date|date:"d M Y" }}</div>
+          <div class="col-6 text-muted">Check-Out</div><div class="col-6">{{ reservation.check_out_date|date:"d M Y" }}</div>
+          <div class="col-6 text-muted">Nights</div><div class="col-6">{{ reservation.nights }}</div>
+          <div class="col-6 text-muted">Adults</div><div class="col-6">{{ reservation.adults }}{% if reservation.children %} + {{ reservation.children }} child{% endif %}</div>
+          <div class="col-6 text-muted">Rate/Night</div><div class="col-6">{{ reservation.currency }} {{ reservation.rate_per_night|floatformat:0 }}</div>
+          <div class="col-6 text-muted">Total</div><div class="col-6 text-info fw-bold">{{ reservation.currency }} {{ reservation.total_amount|floatformat:0 }}</div>
+          <div class="col-6 text-muted">Source</div><div class="col-6">{{ reservation.get_source_display }}</div>
+        </div>
+        {% if reservation.notes %}<div class="mt-3 pt-2 border-top border-secondary small text-muted" style="white-space:pre-line">{{ reservation.notes }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-receipt me-1"></i>Folio Charges</span>
+        {% if access_level >= 2 %}<button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#addChargeModal">+ Charge</button>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-dark table-sm mb-0 align-middle small">
+            <thead class="table-secondary"><tr><th>Type</th><th>Description</th><th>Amount</th><th>Posted</th></tr></thead>
+            <tbody>
+              {% for c in folio_charges %}
+              <tr>
+                <td><span class="badge bg-dark border border-secondary">{{ c.get_charge_type_display }}</span></td>
+                <td>{{ c.description }}</td>
+                <td class="text-info fw-bold">{{ c.currency }} {{ c.amount|floatformat:2 }}</td>
+                <td class="text-muted">{{ c.posted_at|date:"d M Y H:i" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-3">No charges posted</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if access_level >= 2 %}
+<div class="modal fade" id="addChargeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border-secondary">
+      <div class="modal-header border-secondary"><h5 class="modal-title">Post Folio Charge</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_charge">
+        <div class="modal-body row g-2">
+          <div class="col-md-6"><label class="form-label small">Charge Type</label>
+            <select name="charge_type" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in charge_type_choices %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Amount <span class="text-danger">*</span></label><input type="number" name="amount" step="0.01" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label small">Currency</label><input type="text" name="currency" value="{{ reservation.currency }}" maxlength="5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-12"><label class="form-label small">Description <span class="text-danger">*</span></label><input type="text" name="description" class="form-control bg-dark text-white border-secondary" required></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-info text-dark">Post Charge</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

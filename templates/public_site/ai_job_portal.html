@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Hire AI Employees | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block">AI Job Portal</span>
+            <h1 class="display-5 fw-bold font-outfit">Find Your <span class="text-gradient-purple-cyan">AI Employee</span></h1>
+            <p class="lead text-white-50 w-75 mx-auto">Browse our roster of AI specialists by role and seniority. Each agent is powered by Serea's engine and tailored to your workflow.</p>
+        </div>
+
+        <!-- Filters -->
+        <form method="get" class="row g-3 justify-content-center mb-5 fade-up delay-100">
+            <div class="col-md-4">
+                <select name="role" class="form-control-premium w-100" style="appearance: auto; background-color: var(--bb-bg-surface) !important;">
+                    <option value="" class="bg-dark">All Roles</option>
+                    {% for value, label in role_choices %}
+                    <option value="{{ value }}" class="bg-dark" {% if search_role == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="level" class="form-control-premium w-100" style="appearance: auto; background-color: var(--bb-bg-surface) !important;">
+                    <option value="" class="bg-dark">All Levels</option>
+                    {% for value, label in level_choices %}
+                    <option value="{{ value }}" class="bg-dark" {% if search_level == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-premium w-100 py-3"><i class="bi bi-search me-1"></i> Search</button>
+            </div>
+            {% if search_role or search_level %}
+            <div class="col-md-1">
+                <a href="{% url 'public_site:ai_job_portal' %}" class="btn btn-outline-premium w-100 py-3" title="Clear"><i class="bi bi-x-lg"></i></a>
+            </div>
+            {% endif %}
+        </form>
+
+        <!-- Results Grid -->
+        <div class="row g-4">
+            {% for tier in tiers %}
+            <div class="col-md-6 col-lg-3 fade-up" style="transition-delay: {{ forloop.counter0|add:2 }}00ms;">
+                <div class="bento-card glow-hover-cyan p-4 h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge-premium">{{ tier.get_name_display }}</span>
+                        <span class="badge bg-transparent text-white-50 small border border-secondary border-opacity-25">{{ tier.get_role_display }}</span>
+                    </div>
+                    <h5 class="fw-bold font-outfit mb-1">Serea AI</h5>
+                    <p class="text-white-50 small mb-4 flex-grow-1">{{ tier.description }}</p>
+                    <ul class="list-unstyled text-white-50 small mb-4">
+                        <li class="mb-2"><i class="bi bi-cpu me-2 text-gradient-purple-cyan"></i>{{ tier.token_limit|default:"Unlimited" }} tokens/mo</li>
+                        <li><i class="bi bi-tag me-2 text-gradient-purple-cyan"></i>
+                            {% if tier.monthly_price_usd == 0 %}<span class="text-white fw-bold">Free</span>
+                            {% else %}<strong class="text-white">${{ tier.monthly_price_usd }}</strong>/month{% endif %}
+                        </li>
+                    </ul>
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'console_admin:hire_ai' %}?tier={{ tier.id }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
+                            <i class="bi bi-robot me-1"></i> Hire This Agent
+                        </a>
+                    {% else %}
+                        <a href="{% url 'account_signup' %}?next={% url 'console_admin:hire_ai' %}%3Ftier={{ tier.id }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
+                            <i class="bi bi-robot me-1"></i> Create Account to Hire
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5 fade-up">
+                <i class="bi bi-search fs-1 text-white-50 d-block mb-3"></i>
+                <h5 class="text-white-50">No AI agents match your filters.</h5>
+                <a href="{% url 'public_site:ai_job_portal' %}" class="btn btn-outline-premium mt-3">View All Agents</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

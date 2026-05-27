@@ -1,0 +1,44 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Projects — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-diagram-3 me-2" style="color:var(--hub-accent);"></i>All Projects{% endblock %}
+{% block content %}
+{% if messages %}{% for msg in messages %}<div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">All</a>
+    <a href="?status=planning" class="btn btn-sm {% if status_filter == 'planning' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Planning</a>
+    <a href="?status=active" class="btn btn-sm {% if status_filter == 'active' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Active</a>
+    <a href="?status=on_hold" class="btn btn-sm {% if status_filter == 'on_hold' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">On Hold</a>
+    <a href="?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-hub-primary{% else %}btn-hub-outline{% endif %}">Completed</a>
+  </div>
+  <a href="{% url 'projects:project_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Project</a>
+</div>
+<div class="glass-panel p-4">
+  <div class="table-responsive">
+    <table class="table table-dark table-hover">
+      <thead><tr><th>Project</th><th>Client</th><th>Priority</th><th>Progress</th><th>Tasks</th><th>Due</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for project in projects %}
+        <tr>
+          <td style="color:var(--hub-text);font-weight:500;">{{ project.name }}</td>
+          <td style="color:var(--hub-muted);">{{ project.client_name|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if project.priority == 'critical' %}#f8717120{% elif project.priority == 'high' %}#fbbf2420{% elif project.priority == 'medium' %}#38bdf820{% else %}#64748b20{% endif %};color:{% if project.priority == 'critical' %}#f87171{% elif project.priority == 'high' %}#fbbf24{% elif project.priority == 'medium' %}#38bdf8{% else %}#64748b{% endif %};">{{ project.get_priority_display }}</span></td>
+          <td style="min-width:100px;">
+            <div style="background:var(--hub-border);border-radius:4px;height:6px;">
+              <div style="width:{{ project.progress_pct }}%;background:{% if project.progress_pct == 100 %}#22c55e{% else %}var(--hub-accent){% endif %};height:6px;border-radius:4px;"></div>
+            </div>
+            <div style="color:var(--hub-muted);font-size:.72rem;margin-top:2px;">{{ project.progress_pct }}%</div>
+          </td>
+          <td style="color:#38bdf8;">{{ project.tasks.count }}</td>
+          <td style="color:{% if project.end_date and project.end_date < today and project.status != 'completed' %}#f87171{% else %}var(--hub-muted){% endif %};">{{ project.end_date|default:"—" }}</td>
+          <td><span class="badge" style="background:{% if project.status == 'active' %}#22c55e20{% elif project.status == 'completed' %}#38bdf820{% elif project.status == 'on_hold' %}#fbbf2420{% elif project.status == 'cancelled' %}#f8717120{% else %}#64748b20{% endif %};color:{% if project.status == 'active' %}#22c55e{% elif project.status == 'completed' %}#38bdf8{% elif project.status == 'on_hold' %}#fbbf24{% elif project.status == 'cancelled' %}#f87171{% else %}#64748b{% endif %};">{{ project.get_status_display }}</span></td>
+          <td><a href="{% url 'projects:project_detail' slug=biz.slug pk=project.pk %}" class="btn btn-hub-outline btn-sm">Open</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center" style="color:var(--hub-muted);padding:2rem;">No projects found. <a href="{% url 'projects:project_create' slug=biz.slug %}" style="color:var(--hub-accent);">Create one</a>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'community_forum/base_forum.html' %}
+{% block title %}Moderation Panel | BengalBound Community{% endblock %}
+
+{% block content %}
+<div class="mb-5 border-bottom border-secondary pb-4">
+    <h1 class="h2 font-outfit fw-bold text-white mb-1"><i class="bi bi-shield-check me-2 text-primary"></i>Moderation Panel</h1>
+    <p class="text-white-50 small">Workspace Admin view — manage flagged content, topics, and Serea's moderation log.</p>
+</div>
+
+{% if messages %}{% for msg in messages %}<div class="alert border-0 small bg-success bg-opacity-25 text-success mb-3">{{ msg }}</div>{% endfor %}{% endif %}
+
+<ul class="nav nav-tabs border-secondary mb-4" id="modTab">
+    <li class="nav-item"><a class="nav-link active text-white border-secondary" data-bs-toggle="tab" href="#flagged-tab">🚩 Flagged Posts {% if flagged_posts.count %}<span class="badge bg-danger ms-1">{{ flagged_posts.count }}</span>{% endif %}</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#topics-tab">📌 Topics</a></li>
+    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#log-tab">📋 Moderation Log</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- Flagged Posts -->
+    <div class="tab-pane fade show active" id="flagged-tab">
+        {% for post in flagged_posts %}
+        <div class="glass-card p-4 mb-3 border border-danger border-opacity-25">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="badge bg-danger bg-opacity-25 text-danger me-2">🚩 Flagged by Serea</span>
+                    {% if post.is_hidden %}<span class="badge bg-secondary bg-opacity-25 text-muted">Hidden</span>{% endif %}
+                    {% if post.is_escalated %}<span class="badge bg-warning bg-opacity-25 text-warning ms-1">Escalated</span>{% endif %}
+                </div>
+                <small class="text-muted">{{ post.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+            <div class="mb-2">
+                <div class="fw-semibold text-white small">{{ post.author.email }} in "{{ post.topic.title }}"</div>
+                <p class="text-white-50 small mt-1">{{ post.content }}</p>
+                {% if post.ai_flag_reason %}<div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning small py-2 mt-2"><i class="bi bi-robot me-1"></i>{{ post.ai_flag_reason }}</div>{% endif %}
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                {% if post.is_hidden %}
+                <form method="post">{% csrf_token %}
+                    <input type="hidden" name="action" value="restore_post">
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button class="btn btn-sm btn-outline-success rounded-pill px-3"><i class="bi bi-check-circle me-1"></i>Restore Post</button>
+                </form>
+                {% else %}
+                <form method="post">{% csrf_token %}
+                    <input type="hidden" name="action" value="hide_post">
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3"><i class="bi bi-eye-slash me-1"></i>Hide Post</button>
+                </form>
+                {% endif %}
+                <a href="{% url 'topic_detail' post.topic.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" target="_blank">View Topic</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-white-50 py-5">
+            <i class="bi bi-shield-check d-block fs-2 mb-2 text-success"></i>
+            No flagged content. Serea has everything under control!
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Topics Management -->
+    <div class="tab-pane fade" id="topics-tab">
+        <div class="glass-panel p-4">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover table-borderless table-sm align-middle">
+                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary">
+                        <th>Topic</th><th>Type</th><th>Creator</th><th>Status</th><th>Actions</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for topic in all_topics %}
+                        <tr>
+                            <td class="text-white small fw-semibold">{{ topic.title|truncatechars:50 }}</td>
+                            <td>
+                                {% if topic.topic_type == 'question' %}<span class="badge bg-primary bg-opacity-25 text-primary">❓ Question</span>
+                                {% elif topic.topic_type == 'article' %}<span class="badge bg-info bg-opacity-25 text-info">📰 Article</span>
+                                {% else %}<span class="badge bg-warning bg-opacity-25 text-warning">🐛 Problem</span>{% endif %}
+                            </td>
+                            <td class="text-white-50 small">{{ topic.creator.email }}</td>
+                            <td>
+                                {% if topic.is_locked %}<span class="badge bg-danger bg-opacity-25 text-danger me-1">Locked</span>{% endif %}
+                                {% if topic.is_pinned %}<span class="badge bg-warning bg-opacity-25 text-warning me-1">Pinned</span>{% endif %}
+                                {% if topic.is_solved %}<span class="badge bg-success bg-opacity-25 text-success">Solved</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <form method="post" class="d-inline">{% csrf_token %}
+                                        <input type="hidden" name="action" value="pin_topic">
+                                        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+                                        <button class="btn btn-xs btn-outline-warning rounded-pill px-2 py-0" style="font-size:0.7rem;" title="{% if topic.is_pinned %}Unpin{% else %}Pin{% endif %}">
+                                            <i class="bi bi-pin{% if topic.is_pinned %}-angle-fill{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" class="d-inline">{% csrf_token %}
+                                        <input type="hidden" name="action" value="lock_topic">
+                                        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+                                        <button class="btn btn-xs btn-outline-danger rounded-pill px-2 py-0" style="font-size:0.7rem;" title="{% if topic.is_locked %}Unlock{% else %}Lock{% endif %}">
+                                            <i class="bi bi-{% if topic.is_locked %}unlock{% else %}lock{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    {% if topic.topic_type == 'question' and not topic.is_solved %}
+                                    <form method="post" class="d-inline">{% csrf_token %}
+                                        <input type="hidden" name="action" value="mark_solved">
+                                        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+                                        <button class="btn btn-xs btn-outline-success rounded-pill px-2 py-0" style="font-size:0.7rem;" title="Mark Solved">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Moderation Log -->
+    <div class="tab-pane fade" id="log-tab">
+        <div class="glass-panel p-4">
+            {% for log in recent_logs %}
+            <div class="d-flex align-items-start gap-3 py-2 border-bottom border-secondary">
+                <span class="badge {% if 'ai' in log.action %}bg-primary{% else %}bg-secondary{% endif %} bg-opacity-25 {% if 'ai' in log.action %}text-primary{% else %}text-white-50{% endif %} flex-shrink-0" style="font-size:0.68rem;">{{ log.get_action_display }}</span>
+                <div class="flex-grow-1">
+                    <span class="text-white-50 small">{{ log.actor }}</span>
+                    {% if log.reason %} — <span class="text-muted small">{{ log.reason|truncatechars:80 }}</span>{% endif %}
+                </div>
+                <small class="text-muted flex-shrink-0">{{ log.timestamp|date:"M d, H:i" }}</small>
+            </div>
+            {% empty %}
+            <div class="text-center text-white-50 py-4">No moderation actions recorded yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

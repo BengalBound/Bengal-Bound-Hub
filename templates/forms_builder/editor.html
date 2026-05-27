@@ -1,0 +1,138 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}{{ form.title }} — Form Builder | {{ biz.name }}{% endblock %}
+{% block page_title %}
+<div class="d-flex align-items-center gap-3">
+    <a href="{% url 'forms_builder:form_list' slug=biz.slug %}" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <span>{{ form.title }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Form Settings -->
+    <div class="col-lg-4">
+        <div class="glass-panel p-4 mb-3">
+            <div class="fw-semibold mb-3 small">Form Settings</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_form">
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Title</label>
+                    <input type="text" name="title" value="{{ form.title }}" class="form-control form-control-sm"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 small">Description</label>
+                    <textarea name="description" rows="2" class="form-control form-control-sm"
+                              style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{{ form.description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="d-flex align-items-center gap-2 small">
+                        <input type="checkbox" name="accepts_responses" value="1" {% if form.accepts_responses %}checked{% endif %}> Accept responses
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-hub-primary btn-sm w-100">Save Settings</button>
+            </form>
+        </div>
+        <div class="glass-panel p-3" style="border-color:rgba(192,132,252,0.2);">
+            <div class="text-white-50 small mb-1"><i class="bi bi-link me-1"></i>Public link:</div>
+            <div style="font-size:0.75rem;word-break:break-all;color:var(--hub-accent);">/f/{{ form.slug }}/</div>
+            <div class="mt-2 d-flex gap-2">
+                <a href="{% url 'forms_builder:form_responses' slug=biz.slug pk=form.pk %}" class="btn btn-hub-outline btn-sm flex-grow-1">
+                    <i class="bi bi-bar-chart-line me-1"></i>{{ form.responses.count }} Response{{ form.responses.count|pluralize }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fields -->
+    <div class="col-lg-8">
+        <!-- Existing fields -->
+        {% for field in fields %}
+        <div class="glass-panel p-3 mb-2 d-flex justify-content-between align-items-start gap-3">
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fw-semibold small">{{ field.label }}</span>
+                    {% if field.is_required %}<span style="color:#ef4444;font-size:0.7rem;">Required</span>{% endif %}
+                </div>
+                <span style="font-size:0.7rem;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;padding:1px 6px;">{{ field.get_field_type_display }}</span>
+                {% if field.help_text %}<div class="text-white-50" style="font-size:0.72rem;margin-top:4px;">{{ field.help_text }}</div>{% endif %}
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_field">
+                <input type="hidden" name="field_id" value="{{ field.pk }}">
+                <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:6px;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+
+        <!-- Add Field -->
+        <div class="glass-panel p-4 mt-3" style="border-style:dashed;">
+            <div class="fw-semibold small mb-3"><i class="bi bi-plus-circle me-1" style="color:var(--hub-accent);"></i>Add Field</div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_field">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-5">
+                        <input type="text" name="label" class="form-control form-control-sm" placeholder="Field label"
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+                    <div class="col-md-4">
+                        <select name="field_type" class="form-select form-select-sm" id="fieldTypeSelect"
+                                style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                            {% for val, label in field_types %}
+                            <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="d-flex align-items-center gap-2 small mt-1">
+                            <input type="checkbox" name="is_required" value="1"> Required
+                        </label>
+                    </div>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <input type="text" name="placeholder" class="form-control form-control-sm" placeholder="Placeholder text"
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" name="help_text" class="form-control form-control-sm" placeholder="Help text"
+                               style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    </div>
+                </div>
+                <div id="optionsRow" class="mb-2" style="display:none;">
+                    <input type="text" id="optionsInput" class="form-control form-control-sm" placeholder="Options: comma-separated, e.g. Option A, Option B"
+                           style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">
+                    <input type="hidden" name="options" id="optionsHidden" value="[]">
+                </div>
+                <button type="submit" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Add Field</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const sel = document.getElementById('fieldTypeSelect');
+const optRow = document.getElementById('optionsRow');
+const optInput = document.getElementById('optionsInput');
+const optHidden = document.getElementById('optionsHidden');
+
+function toggleOptions() {
+    const needs = ['select', 'radio', 'checkbox_multi'].includes(sel.value);
+    optRow.style.display = needs ? 'block' : 'none';
+}
+sel.addEventListener('change', toggleOptions);
+
+document.querySelector('form:last-of-type').addEventListener('submit', () => {
+    if (optInput.value.trim()) {
+        optHidden.value = JSON.stringify(optInput.value.split(',').map(s => s.trim()).filter(Boolean));
+    }
+});
+</script>
+{% endblock %}

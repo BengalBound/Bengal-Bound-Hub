@@ -1,0 +1,86 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Rate Manager — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2 text-info"></i>Revenue & Rate Management</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'rate_manager:seasons' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Seasons</a>
+    <a href="{% url 'rate_manager:base_rates' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Base Rates</a>
+    <a href="{% url 'rate_manager:yield_rules' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Yield Rules</a>
+    <a href="{% url 'rate_manager:special_offers' slug=biz.slug %}" class="btn btn-sm btn-outline-secondary">Offers</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.seasons }}</div>
+      <div class="small text-muted mt-1">Seasons</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="display-6 fw-bold text-success">{{ stats.base_rates }}</div>
+      <div class="small text-muted mt-1">Base Rates</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-warning text-center p-3">
+      <div class="display-6 fw-bold text-warning">{{ stats.active_rules }}</div>
+      <div class="small text-muted mt-1">Active Yield Rules</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card bg-dark border-info text-center p-3">
+      <div class="display-6 fw-bold text-info">{{ stats.active_offers }}</div>
+      <div class="small text-muted mt-1">Active Offers</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar2-range me-1"></i>Current Seasons</span>
+        <a href="{% url 'rate_manager:seasons' slug=biz.slug %}" class="btn btn-sm btn-outline-info">Manage</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for s in recent_seasons %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between">
+            <div><div class="fw-semibold">{{ s.name }}</div><div class="text-muted">{{ s.start_date|date:"d M Y" }} – {{ s.end_date|date:"d M Y" }}</div></div>
+            <div class="text-end"><span class="badge bg-dark border border-secondary">{{ s.get_season_type_display }}</span><div class="text-info mt-1">×{{ s.rate_multiplier }}</div></div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No seasons configured</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-gift me-1"></i>Active Offers</span>
+        <a href="{% url 'rate_manager:special_offers' slug=biz.slug %}" class="btn btn-sm btn-outline-info">Manage</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for o in recent_offers %}
+        <div class="list-group-item bg-dark border-secondary py-2 px-3 small">
+          <div class="d-flex justify-content-between">
+            <div><div class="fw-semibold">{{ o.name }}</div><div class="text-muted">{{ o.valid_from|date:"d M" }} – {{ o.valid_to|date:"d M Y" }}</div></div>
+            <div class="text-end">
+              <span class="badge bg-success">{{ o.discount_value }}{% if o.discount_type == 'percent' %}%{% else %} off{% endif %}</span>
+              {% if o.promo_code %}<div class="font-monospace text-muted" style="font-size:0.65rem">{{ o.promo_code }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="list-group-item bg-dark border-secondary text-muted small text-center py-3">No active offers</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

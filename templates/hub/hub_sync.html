@@ -1,0 +1,106 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Sync Settings | {{ biz.name }}{% endblock %}
+{% block page_title %}Self-Hosted Sync{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-7">
+
+        <div class="glass-panel p-4 mb-4" style="border-color:rgba(34,197,94,0.2);">
+            <div class="d-flex gap-3 align-items-start">
+                <i class="bi bi-arrow-repeat text-success fs-4 mt-1"></i>
+                <div>
+                    <h6 class="fw-bold mb-1">Backdoor Cloud Sync</h6>
+                    <p class="mb-0" style="color:var(--hub-muted);font-size:0.85rem;">Your self-hosted instance syncs with the BengalBound cloud for AI services, module updates, and backup. Use the sync token below in your server's configuration file.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sync Token -->
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold mb-1">Sync Token</h6>
+            <p style="color:var(--hub-muted);font-size:0.82rem;" class="mb-3">Include this in your self-hosted server's <code>config.env</code> as <code>BENGALBOUND_SYNC_TOKEN</code>.</p>
+            <div class="d-flex gap-2 mb-3">
+                <code class="p-3 flex-grow-1" style="background:rgba(255,255,255,0.04);border:1px solid var(--hub-border);border-radius:10px;color:var(--hub-accent);word-break:break-all;font-size:0.78rem;">{{ biz.sync_token|default:"Not generated yet" }}</code>
+                <button onclick="navigator.clipboard.writeText('{{ biz.sync_token }}')" class="btn btn-hub-outline px-3" title="Copy"><i class="bi bi-clipboard"></i></button>
+            </div>
+            <form method="POST" action="{% url 'hub:hub_regenerate_sync_token' slug=biz.slug %}" onsubmit="return confirm('Regenerate token? Your self-hosted server will need to be updated with the new token.')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-hub-outline btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Regenerate Token</button>
+            </form>
+        </div>
+
+        <!-- Sync API Info -->
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold mb-3">Sync Endpoint</h6>
+            <div class="mb-3">
+                <small style="color:var(--hub-muted);">Your server should POST to:</small>
+                <code class="d-block mt-1 p-2" style="background:rgba(255,255,255,0.04);border:1px solid var(--hub-border);border-radius:8px;font-size:0.78rem;color:var(--hub-accent);">POST /hub/api/sync/</code>
+            </div>
+            <div>
+                <small style="color:var(--hub-muted);">With header:</small>
+                <code class="d-block mt-1 p-2" style="background:rgba(255,255,255,0.04);border:1px solid var(--hub-border);border-radius:8px;font-size:0.78rem;color:#38bdf8;">X-Sync-Token: &lt;your-sync-token&gt;</code>
+            </div>
+        </div>
+
+        <!-- Sync Log -->
+        <div class="glass-panel p-0 overflow-hidden">
+            <div class="p-4" style="border-bottom:1px solid var(--hub-border);">
+                <h6 class="fw-bold mb-0">Sync History</h6>
+            </div>
+            {% if recent_logs %}
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless mb-0" style="font-size:0.82rem;">
+                    <thead><tr style="color:var(--hub-muted);border-bottom:1px solid var(--hub-border);">
+                        <th class="px-4 py-3">Type</th><th class="py-3">Status</th><th class="py-3">Records</th><th class="py-3">Started</th><th class="py-3">Duration</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr style="border-bottom:1px solid var(--hub-border);">
+                            <td class="px-4 py-3">{{ log.get_sync_type_display }}</td>
+                            <td class="py-3"><span class="badge {% if log.status == 'success' %}bg-success{% elif log.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %} bg-opacity-25">{{ log.get_status_display }}</span></td>
+                            <td class="py-3" style="color:var(--hub-muted);">{{ log.records_synced }}</td>
+                            <td class="py-3" style="color:var(--hub-muted);">{{ log.started_at|date:"M d, H:i" }}</td>
+                            <td class="py-3" style="color:var(--hub-muted);">
+                                {% if log.completed_at %}{{ log.started_at|timesince:log.completed_at }}{% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-5 text-center"><p style="color:var(--hub-muted);">No sync history yet.</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="glass-panel p-4 mb-4">
+            <h6 class="fw-bold mb-3">Last Sync</h6>
+            {% if biz.last_synced_at %}
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="fw-semibold">{{ biz.last_synced_at|date:"M d, Y H:i" }}</span>
+            </div>
+            {% else %}
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-circle text-secondary"></i>
+                <span style="color:var(--hub-muted);">No sync completed yet.</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="glass-panel p-4">
+            <h6 class="fw-bold mb-3">What Gets Synced</h6>
+            <ul style="color:var(--hub-muted);font-size:0.82rem;line-height:1.9;padding-left:1.2rem;">
+                <li>Module configuration and updates</li>
+                <li>AI Employee (Serea) model updates</li>
+                <li>Subscription and billing status</li>
+                <li>Platform security patches</li>
+            </ul>
+            <p style="color:var(--hub-muted);font-size:0.78rem;">Your business data (customers, transactions, employees) <strong style="color:var(--hub-text);">never leaves your server</strong> unless you explicitly enable a backup sync.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}Assets — {{ biz.name }}{% endblock %}
+{% block page_title %}Asset Register{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <form class="d-flex gap-2 flex-wrap align-items-center">
+        <select name="status" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);width:auto;" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            {% for val, label in statuses %}<option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select name="category" class="form-select form-select-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);width:auto;" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}<option value="{{ cat.pk }}" {% if category_filter == cat.pk|stringformat:'s' %}selected{% endif %}>{{ cat.name }}</option>{% endfor %}
+        </select>
+    </form>
+    {% if access_level >= 5 %}
+    <a href="{% url 'asset_management:asset_create' slug=biz.slug %}" class="btn btn-hub-primary btn-sm"><i class="bi bi-plus me-1"></i>Register Asset</a>
+    {% endif %}
+</div>
+
+<div class="glass-panel p-0" style="overflow:hidden;">
+    <table class="table table-dark table-borderless mb-0" style="font-size:0.85rem;">
+        <thead><tr style="color:var(--hub-muted);border-bottom:1px solid var(--hub-border);">
+            <th class="px-4 py-3">Tag</th><th>Name</th><th>Category</th><th>Location</th><th>Assigned To</th><th>Condition</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% for asset in assets %}
+        <tr style="border-bottom:1px solid var(--hub-border);">
+            <td class="px-4 fw-semibold" style="color:#38bdf8;">{{ asset.asset_tag }}</td>
+            <td>{{ asset.name }}{% if asset.serial_number %}<div style="color:var(--hub-muted);font-size:0.72rem;">S/N: {{ asset.serial_number }}</div>{% endif %}</td>
+            <td class="text-white-50">{{ asset.category.name|default:"—" }}</td>
+            <td class="text-white-50">{{ asset.location|default:"—" }}</td>
+            <td class="text-white-50">{{ asset.assigned_to.name|default:"—" }}</td>
+            <td><span class="badge" style="font-size:0.65rem;background:{% if asset.condition == 'excellent' %}rgba(34,197,94,0.12);color:#22c55e;{% elif asset.condition == 'good' %}rgba(56,189,248,0.12);color:#38bdf8;{% elif asset.condition == 'fair' %}rgba(251,191,36,0.12);color:#fbbf24;{% else %}rgba(239,68,68,0.12);color:#ef4444;{% endif %}">{{ asset.get_condition_display }}</span></td>
+            <td><span class="badge" style="font-size:0.65rem;background:{% if asset.status == 'active' %}rgba(34,197,94,0.12);color:#22c55e;{% elif asset.status == 'under_maintenance' %}rgba(251,191,36,0.12);color:#fbbf24;{% elif asset.status == 'retired' or asset.status == 'disposed' %}rgba(239,68,68,0.12);color:#ef4444;{% else %}rgba(148,163,184,0.12);color:#94a3b8;{% endif %}">{{ asset.get_status_display }}</span></td>
+            <td class="pe-4"><a href="{% url 'asset_management:asset_detail' slug=biz.slug asset_id=asset.pk %}" class="btn btn-hub-outline btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-white-50 py-5">No assets registered yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

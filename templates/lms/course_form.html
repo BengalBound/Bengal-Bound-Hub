@@ -1,0 +1,50 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Course — {{ biz.name }}{% endblock %}
+{% block hub_content %}
+<div class="mb-3"><a href="{% url 'lms:course_list' slug=biz.slug %}" class="text-muted text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Courses</a></div>
+<div class="mb-4"><h4 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-success"></i>New Course</h4></div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body">
+        <form method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-md-8"><label class="form-label">Course Title <span class="text-danger">*</span></label><input type="text" name="title" class="form-control bg-dark text-white border-secondary" required></div>
+          <div class="col-md-4"><label class="form-label">Course Code</label><input type="text" name="code" class="form-control bg-dark text-white border-secondary font-monospace" placeholder="e.g. CS101"></div>
+          <div class="col-12"><label class="form-label">Description</label><textarea name="description" rows="3" class="form-control bg-dark text-white border-secondary"></textarea></div>
+          <div class="col-md-6"><label class="form-label">Instructor</label>
+            <select name="instructor_id" class="form-select bg-dark text-white border-secondary">
+              <option value="">— Unassigned —</option>
+              {% for emp in employees %}<option value="{{ emp.pk }}">{{ emp.user.get_full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Category</label><input type="text" name="category" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Science, IT, Languages"></div>
+          <div class="col-md-4"><label class="form-label">Level</label>
+            <select name="level" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in levels %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label">Audience</label>
+            <select name="audience" class="form-select bg-dark text-white border-secondary">
+              {% for code, label in audiences %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4"><label class="form-label">Duration (hours)</label><input type="number" name="duration_hours" step="0.5" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4"><label class="form-label">Pass Score (%)</label><input type="number" name="pass_score_pct" value="70" min="0" max="100" class="form-control bg-dark text-white border-secondary"></div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="is_self_paced" id="selfPaced" checked><label class="form-check-label small" for="selfPaced">Self-paced</label></div>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="certificate_on_completion" id="certCheck"><label class="form-check-label small" for="certCheck">Certificate on completion</label></div>
+          </div>
+          <div class="col-12 d-flex gap-2 justify-content-end">
+            <a href="{% url 'lms:course_list' slug=biz.slug %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Create Course</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

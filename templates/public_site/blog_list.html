@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BengalBound | Blog & Insights{% endblock %}
+
+{% block content %}
+<section class="py-5 position-relative z-1" style="padding-top: 10rem !important; padding-bottom: 5rem;">
+    <!-- Background Accents -->
+    <div class="position-absolute w-100 h-100 top-0 start-0 z-n1 overflow-hidden" style="pointer-events: none;">
+        <div class="position-absolute" style="top: -10%; left: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(157, 78, 221, 0.15) 0%, transparent 70%); filter: blur(60px);"></div>
+        <div class="position-absolute" style="top: 30%; right: -5%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(0, 245, 212, 0.1) 0%, transparent 70%); filter: blur(60px);"></div>
+    </div>
+
+    <div class="container position-relative z-2">
+        <!-- Header -->
+        <div class="text-center mb-5 pb-3 fade-up">
+            <div class="badge-premium d-inline-flex align-items-center mb-3">
+                <i class="bi bi-journal-richtext me-2"></i> Insights & News
+            </div>
+            <h1 class="display-3 fw-bold mb-4" style="letter-spacing: -0.04em;">
+                The <span class="text-gradient-purple-cyan">BengalBound</span> Blog
+            </h1>
+            <p class="lead text-white-50 mx-auto font-inter" style="max-width: 650px;">
+                Discover the latest strategies, updates, and deep dives into AI-powered workspaces and scalable business platforms.
+            </p>
+        </div>
+
+        <!-- Blog Grid -->
+        {% if posts %}
+        <div class="row g-4 fade-up delay-100">
+            {% for post in posts %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <a href="{% url 'public_site:blog_detail' slug=post.slug %}" class="text-decoration-none h-100 d-block">
+                    <div class="bento-card h-100 d-flex flex-column p-0 overflow-hidden group hover-scale" style="transition: all 0.3s ease;">
+                        
+                        <!-- Image placeholder/Header -->
+                        <div class="position-relative w-100" style="height: 200px; background: linear-gradient(135deg, rgba(157,78,221,0.2) 0%, rgba(0,245,212,0.1) 100%);">
+                            <!-- Category Badge -->
+                            {% if post.category %}
+                            <div class="position-absolute top-0 start-0 m-3">
+                                <span class="badge rounded-pill" style="background: rgba(10, 10, 15, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); color: var(--bb-accent-cyan);">
+                                    {{ post.category.name }}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center opacity-50">
+                                <i class="bi bi-image" style="font-size: 3rem; color: rgba(255,255,255,0.2);"></i>
+                            </div>
+                        </div>
+
+                        <!-- Content Area -->
+                        <div class="p-4 d-flex flex-column flex-grow-1" style="background: rgba(10, 10, 15, 0.6); backdrop-filter: blur(10px);">
+                            <div class="d-flex align-items-center gap-2 mb-3 text-white-50 small font-inter">
+                                <span><i class="bi bi-calendar-event me-1"></i> {{ post.created_at|date:"M d, Y" }}</span>
+                                <span class="mx-1">•</span>
+                                <span><i class="bi bi-person me-1"></i> {{ post.author.get_full_name|default:post.author.username|default:"BengalBound Team" }}</span>
+                            </div>
+                            
+                            <h4 class="fw-bold mb-3 text-white lh-base">{{ post.title }}</h4>
+                            
+                            <p class="text-white-50 font-inter small mb-4 flex-grow-1">
+                                {{ post.content|striptags|truncatewords:20 }}
+                            </p>
+                            
+                            <div class="mt-auto d-flex align-items-center text-cyan fw-semibold" style="font-size: 0.9rem;">
+                                Read Article <i class="bi bi-arrow-right ms-2 transition-transform"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5 fade-up delay-100">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4" style="width: 80px; height: 80px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                <i class="bi bi-pen text-white-50" style="font-size: 2rem;"></i>
+            </div>
+            <h3 class="fw-bold text-white mb-2">No posts yet</h3>
+            <p class="text-white-50">We are currently preparing some amazing content. Check back soon!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+    /* Hover effects for blog cards */
+    .hover-scale .transition-transform {
+        transition: transform 0.3s ease;
+    }
+    .hover-scale:hover .transition-transform {
+        transform: translateX(5px);
+    }
+    .hover-scale:hover .position-relative {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

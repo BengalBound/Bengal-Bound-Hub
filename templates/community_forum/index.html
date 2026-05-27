@@ -1,0 +1,32 @@
+{% extends 'community_forum/base_forum.html' %}
+
+{% block title %}Categories | BengalBound Community{% endblock %}
+
+{% block content %}
+<div class="mb-5 border-bottom border-secondary pb-4">
+    <h1 class="h2 font-outfit fw-bold text-white mb-2">Community Forums</h1>
+    <p class="text-white-50">Discuss AI Workloads, WaaS configurations, and platform updates with the BengalBound community.</p>
+</div>
+
+<div class="row g-4">
+    {% for category in categories %}
+    <div class="col-12">
+        <a href="{% url 'category_detail' category.slug %}" class="text-decoration-none">
+            <div class="glass-card p-4 forum-card h-100 d-flex align-items-center justify-content-between">
+                <div>
+                    <h3 class="h5 fw-bold text-primary mb-1">{{ category.name }}</h3>
+                    <p class="text-white-50 mb-0 small">{{ category.description }}</p>
+                </div>
+                <div class="text-end text-white-50 small ms-4 border-start border-secondary ps-4">
+                    <div class="mb-1"><i class="bi bi-chat-right-text me-1"></i> {{ category.topics.count }} Topics</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-white-50">No forum categories available yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

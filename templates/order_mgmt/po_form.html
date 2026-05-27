@@ -1,0 +1,30 @@
+{% extends 'hub/base_hub.html' %}
+{% block title %}New Purchase Order — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-file-plus me-2" style="color:var(--hub-accent);"></i>New Purchase Order{% endblock %}
+{% block content %}
+<div class="glass-panel p-4" style="max-width:900px;">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3 mb-4">
+      <div class="col-md-6"><label class="form-label" style="color:var(--hub-muted);">Vendor</label><select name="vendor" class="form-select" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);">{% for v in vendors %}<option value="{{ v.pk }}">{{ v.name }}</option>{% endfor %}</select></div>
+      <div class="col-md-3"><label class="form-label" style="color:var(--hub-muted);">Order Date</label><input type="date" name="date" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" required></div>
+      <div class="col-md-3"><label class="form-label" style="color:var(--hub-muted);">Expected Delivery</label><input type="date" name="expected_delivery" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></div>
+    </div>
+    <h6 style="color:var(--hub-accent);margin-bottom:1rem;">Line Items</h6>
+    <div class="table-responsive mb-4">
+      <table class="table table-dark">
+        <thead><tr><th>Item</th><th>Qty</th><th>Unit Cost</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><input name="item[]" class="form-control form-control-sm" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></td>
+            <td><input type="number" name="qty[]" class="form-control form-control-sm" value="1" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></td>
+            <td><input type="number" step="0.01" name="cost[]" class="form-control form-control-sm" value="0.00" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></td>
+            <td><input type="number" step="0.01" name="line_total[]" class="form-control form-control-sm" value="0.00" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);" readonly></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mb-3"><label class="form-label" style="color:var(--hub-muted);">Notes</label><textarea name="notes" rows="3" class="form-control" style="background:#1e293b;border-color:var(--hub-border);color:var(--hub-text);"></textarea></div>
+    <div class="d-flex gap-2"><button type="submit" class="btn btn-hub-primary btn-sm">Create PO</button><a href="{% url 'order_mgmt:purchase_orders' slug=biz.slug %}" class="btn btn-hub-outline btn-sm">Cancel</a></div>
+  </form>
+</div>
+{% endblock %}
