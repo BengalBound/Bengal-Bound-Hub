@@ -72,6 +72,26 @@ console_admin/             # Customer console — AI hire, billing, projects
 community_forum/           # Community forum (community.* subdomain)
 booking_calendar/          # Appointment model for public site consult flow
 serea/                     # AI runtime — LiteLLM chat, Facebook/Instagram webhooks
+agents/                    # 30 AI agent sub-apps
+  management/commands/
+    seed_agents.py         # python manage.py seed_agents
+  utils.py                 # agent_chat() — single shared LiteLLM call wrapper
+  <name>/                  # One folder per agent (aria, atlas, babel … voice_receptionist)
+    models.py              # Domain models, FK → 'bredbound.BusinessInstance'
+    views.py               # DRF ViewSets
+    serializers.py
+    urls.py
+    migrations/
+  voice_receptionist/      # Extended engine (telephony stack)
+    ai_engine.py           # Call AI processor
+    twilio_handler.py      # Twilio call/SMS handling
+    scheduler.py           # In-call task scheduler
+    permissions.py         # Human-in-the-loop permission flow
+    calendar_sync.py       # Google Calendar integration
+    spam_filter.py         # Caller spam scoring
+    notifications.py       # Post-call notifications
+    google_voice.py        # Google Voice bridge
+    analytics.py           # Call analytics
 ```
 
 ---
@@ -194,9 +214,11 @@ BusinessInstance (tenant)
 
 ---
 
-## Serea AI Engine
+## AI Engines
 
-Serea is the AI backbone served via `serea/` app.
+### Serea — Shared AI Runtime (`serea/`)
+
+Serea is the central AI backbone. All 28 standard agents call through it via `agents/utils.py:agent_chat()`.
 
 - **Model router**: LiteLLM proxy at `LITELLM_BASE_URL` — abstracts over Groq, OpenAI, and OpenRouter
 - **Task models** (configurable via env):
@@ -212,6 +234,22 @@ Serea is the AI backbone served via `serea/` app.
 - **Webhooks**: Facebook Messenger (`/serea/webhook/facebook/`) and Instagram (`/serea/webhook/instagram/`)
 - **Celery Beat schedules**: monitor (10 min), content (5 min), briefing (daily), reports (daily)
 - **Human-in-the-loop**: `POST /serea/permission/<id>/respond/` — client approves or denies agent permission requests
+- **Shared call wrapper**: `agents/utils.py:agent_chat(messages, model)` — the only way to call AI from any agent
+
+### Voice Receptionist — Telephony Engine (`agents/voice_receptionist/`)
+
+Voice Receptionist is the one agent with its own engine stack, because it handles real-time phone calls rather than request/response API calls.
+
+- **`ai_engine.py`**: Real-time call processor — transcribes speech, generates responses, routes intents
+- **`twilio_handler.py`**: Twilio call lifecycle — inbound/outbound calls, SMS, call recording
+- **`scheduler.py`**: In-call task queue — schedules follow-ups, callbacks, and post-call summaries
+- **`permissions.py`**: Human-in-the-loop — agent pauses and asks staff before taking sensitive actions
+- **`calendar_sync.py`**: Google Calendar integration — books appointments directly from a call
+- **`spam_filter.py`**: Caller scoring — flags robocalls and known spam numbers before answering
+- **`notifications.py`**: Post-call notifications — Slack/email summary to the assigned staff member
+- **`google_voice.py`**: Google Voice bridge — forwards calls from GV numbers into the pipeline
+- **`analytics.py`**: Call analytics — duration, resolution rate, missed-call tracking
+- **Hub URL**: `/hub/<slug>/agents/voice-receptionist/`
 
 ---
 
@@ -220,6 +258,9 @@ Serea is the AI backbone served via `serea/` app.
 ```bash
 # Seed all 60+ modules into ModuleCatalog
 python manage.py seed_modules
+
+# Seed AgentCatalog (30 AI agents)
+python manage.py seed_agents
 
 # Standard Django
 python manage.py migrate
@@ -274,14 +315,14 @@ Set `DATABASE_URL` in the environment. The production settings file configures P
 1. **Template UI only** — all views render Django templates. There is no REST API layer yet. Integration with Next.js or Flutter requires DRF serialisers to be added per resource.
 2. **Suite-first URL inconsistency** — modules mounted as `hub/<module>/<slug>/` (ERP, MES, etc.) do not receive `request.current_business` from middleware; they must read slug from URL kwargs instead.
 3. **NowPayments billing** — console billing uses NowPayments (crypto). Stripe integration is planned for the next sprint.
-4. **Test coverage is thin** — only `tests/test_auth.py` and `tests/test_serea_logic.py` exist. Full test suite is a next sprint item.
+4. **Test coverage is partial** — `tests/test_serea_logic.py`, `serea/tests.py`, and `agents/voice_receptionist/tests/` (39 tests) exist. Coverage for the other 28 agents is a next sprint item.
 5. **`requirements.txt` is pinned to Django 4.2** — `walkthrough.md` mentions Django 6.x which is an error in that document; the actual installed version is Django 4.2 (LTS).
 
 ---
 
-## AI Agent Marketplace (In Progress)
+## AI Agent Marketplace
 
-30 specialist AI employees are being migrated into this project from our agent codebase. Each agent is a Django sub-app under `agents/` with domain models, DRF views, and LiteLLM-routed AI calls.
+30 specialist AI employees, each a Django sub-app under `agents/` with domain models, DRF ViewSets, and LiteLLM-routed AI calls via `agents/utils.py:agent_chat()`.
 
 | Category | Agents |
 |----------|--------|
@@ -289,13 +330,12 @@ Set `DATABASE_URL` in the environment. The production settings file configures P
 | Sales & CRM | Crux (CRM Manager), Lead Hunter (B2B Prospector) |
 | Finance | Cash (Payroll), Payload (Procurement), Reporting Bot |
 | HR | Hera (HR Agent), Nexus (L&D) |
-| Marketing | Content Architect, Oracle (SEO), Luma (Brand & PR), Pulse (Market Research) |
+| Marketing | Content Architect, Oracle (SEO), Luma (Brand & PR), Pulse (Market Research), Serea Content |
 | Operations | Atlas (Executive Assistant), Flux (Supply Chain), Tempo (Events) |
 | Analytics | Nova (Data Scientist), Clarity (Feedback), Scout (Competitor Intel) |
 | Technology | Kai (DevOps), Shield (IT Helpdesk) |
 | Specialist | Sage (Legal), Dox (Technical Writer), Babel (Translation), Realt (Real Estate), MediBook, Merch, Voice Receptionist |
 
-**Setup** (after Sprint A lands):
 ```bash
 python manage.py seed_agents    # Seeds AgentCatalog with all 30 agents
 ```
@@ -309,10 +349,10 @@ See [walkthrough.md](walkthrough.md) for the full sprint plan.
 
 | Sprint | Work | Status |
 |--------|------|--------|
-| A | AgentCatalog model + seed_agents command | Planned |
-| B | Domain models for all 30 agents | Planned |
-| C | LiteLLM AI call layer (`agents/utils.py`) | Planned |
-| D | DRF API layer per agent | Planned |
+| A | AgentCatalog model + seed_agents command | ✅ Done |
+| B | Domain models for all 30 agents | ✅ Done |
+| C | LiteLLM AI call layer (`agents/utils.py`) | ✅ Done |
+| D | DRF API layer per agent | ✅ Done |
 | E | Console UI — marketplace, hire flow, chat | Planned |
 | F | Inspector compliance middleware | Planned |
 | G | Stripe billing (alongside NowPayments) | Planned |
