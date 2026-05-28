@@ -190,6 +190,9 @@ urlpatterns = [
     path('hub/<slug:slug>/agents/tempo/', include('agents.tempo.urls', namespace='tempo')),
     path('hub/<slug:slug>/agents/voice-receptionist/', include('agents.voice_receptionist.urls', namespace='voice_receptionist')),
     path('hub/<slug:slug>/agents/content-strategist/', include('agents.content_strategist.urls', namespace='content_strategist')),
+    path('hub/<slug:slug>/agents/sylvia/', include('agents.pitch_presenter.urls', namespace='pitch_presenter')),
+    path('hub/<slug:slug>/agents/scribe/', include('agents.scribe.urls', namespace='scribe')),
+    path('hub/<slug:slug>/agents/chloe/', include('agents.video_concierge.urls', namespace='video_concierge')),
 ]
 
 if settings.DEBUG:

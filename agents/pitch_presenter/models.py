@@ -3,7 +3,7 @@ from django.db import models
 
 class VideoPitch(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organization = models.ForeignKey("hub.BusinessInstance", on_delete=models.CASCADE, related_name="video_pitches", null=True, blank=True)
+    organization = models.ForeignKey("bredbound.BusinessInstance", on_delete=models.CASCADE, related_name="video_pitches", null=True, blank=True)
     title = models.CharField(max_length=255)
     
     # Inputs

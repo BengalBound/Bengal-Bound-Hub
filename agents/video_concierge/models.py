@@ -3,7 +3,7 @@ from django.db import models
 
 class VideoSession(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organization = models.ForeignKey("hub.BusinessInstance", on_delete=models.CASCADE, related_name="video_sessions", null=True, blank=True)
+    organization = models.ForeignKey("bredbound.BusinessInstance", on_delete=models.CASCADE, related_name="video_sessions", null=True, blank=True)
     client_name = models.CharField(max_length=200, blank=True)
     
     # Meeting Context

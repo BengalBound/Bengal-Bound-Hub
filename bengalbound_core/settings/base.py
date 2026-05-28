@@ -97,6 +97,9 @@ INSTALLED_APPS = [
     'agents.tempo',
     'agents.voice_receptionist',
     'agents.content_strategist',
+    'agents.pitch_presenter',
+    'agents.scribe',
+    'agents.video_concierge',
 
 
     # Modules — Project Management
@@ -497,9 +500,15 @@ CELERY_BEAT_SCHEDULE = {
     'vr-daily-digest':          {'task': 'agents.voice_receptionist.daily_call_digest',               'schedule': 86400},
     'vr-spam-cleanup':          {'task': 'agents.voice_receptionist.spam_blocklist_cleanup',          'schedule': 604800},
     'vr-weekly-report':         {'task': 'agents.voice_receptionist.weekly_analytics_report',         'schedule': 604800},
+
+    # ── Video Concierge (Chloe) — AI Video Support ────────────────────────────
+    'chloe-daily-digest':       {'task': 'agents.video_concierge.daily_session_digest', 'schedule': 86400},
 }
 
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Public-facing site URL — used for permission request emails and notification links
+SITE_URL = env('SITE_URL', default='http://localhost:1234')
 
 # ── Django Axes ───────────────────────────────────────────────────────────────
 AXES_FAILURE_LIMIT = 5

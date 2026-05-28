@@ -3,7 +3,7 @@ from django.db import models
 
 class Meeting(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organization = models.ForeignKey("hub.BusinessInstance", on_delete=models.CASCADE, related_name="meetings", null=True, blank=True)
+    organization = models.ForeignKey("bredbound.BusinessInstance", on_delete=models.CASCADE, related_name="scribe_meetings", null=True, blank=True)
     title = models.CharField(max_length=255)
     meeting_url = models.URLField(blank=True)
     
