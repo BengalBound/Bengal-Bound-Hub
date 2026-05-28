@@ -1,0 +1,26 @@
+[build]
+  publish = "marketing"
+  ignore = "exit 0"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[redirects]]
+  from = "/agents"
+  to = "/#agents"
+  status = 301
+
+[[redirects]]
+  from = "/modules"
+  to = "/#modules"
+  status = 301
+
+[[redirects]]
+  from = "/pricing"
+  to = "/#pricing"
+  status = 301
