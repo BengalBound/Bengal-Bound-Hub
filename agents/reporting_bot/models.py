@@ -1,5 +1,4 @@
 from django.db import models
-from hub.models import BusinessInstance
 
 
 class ReportConfig(models.Model):
