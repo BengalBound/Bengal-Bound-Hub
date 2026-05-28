@@ -490,6 +490,13 @@ CELERY_BEAT_SCHEDULE = {
     'tempo-reminders':          {'task': 'agents.tempo.event_reminder_dispatch',    'schedule': 86400},
     'tempo-generate-plans':     {'task': 'agents.tempo.auto_generate_event_plans',  'schedule': 86400},
     'tempo-rsvp-followup':      {'task': 'agents.tempo.rsvp_followup',              'schedule': 86400},
+
+    # ── Voice Receptionist — Phone AI ─────────────────────────────────────────
+    'vr-reminders-2h':          {'task': 'agents.voice_receptionist.send_appointment_reminders_2h',   'schedule': 900},   # every 15 min
+    'vr-reminders-24h':         {'task': 'agents.voice_receptionist.send_appointment_reminders_24h',  'schedule': 3600},  # hourly
+    'vr-daily-digest':          {'task': 'agents.voice_receptionist.daily_call_digest',               'schedule': 86400},
+    'vr-spam-cleanup':          {'task': 'agents.voice_receptionist.spam_blocklist_cleanup',          'schedule': 604800},
+    'vr-weekly-report':         {'task': 'agents.voice_receptionist.weekly_analytics_report',         'schedule': 604800},
 }
 
 CELERY_TASK_EAGER_PROPAGATES = True
