@@ -124,3 +124,37 @@ def daily_call_digest():
     )
     logger.info("voice_receptionist.daily_call_digest: %s", list(stats))
     return list(stats)
+
+
+@shared_task(name="agents.voice_receptionist.translate_call_transcript")
+def translate_call_transcript(call_id: str):
+    """
+    Background task triggered after a call ends.
+    Fetches the raw (native language) transcript and translates it to English using the LLM.
+    """
+    from agents.voice_receptionist.models import Call
+    from agents.utils import agent_chat
+    
+    try:
+        call = Call.objects.get(id=call_id)
+        if not call.transcript:
+            return "No transcript to translate."
+        
+        prompt = f"Translate the following raw phone call transcript into English. Output ONLY the English translation.\n\n{call.transcript}"
+        messages = [
+            {"role": "system", "content": "You are a professional translator. Translate all input text accurately into English."},
+            {"role": "user", "content": prompt}
+        ]
+        
+        english_translation = agent_chat(messages)
+        
+        call.english_transcript = english_translation
+        call.save(update_fields=["english_transcript"])
+        logger.info("voice_receptionist.translate_call_transcript: successfully translated call %s", call_id)
+        return True
+    except Call.DoesNotExist:
+        logger.error("voice_receptionist.translate_call_transcript: Call %s not found", call_id)
+        return False
+    except Exception as exc:
+        logger.error("voice_receptionist.translate_call_transcript call %s error: %s", call_id, exc)
+        return False

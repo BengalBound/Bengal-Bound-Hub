@@ -147,6 +147,7 @@ class Call(models.Model):
     caller_name     = models.CharField(max_length=200, blank=True)
     status          = models.CharField(max_length=20, choices=CallStatus.choices, default=CallStatus.ONGOING)
     transcript      = models.TextField(blank=True)
+    english_transcript = models.TextField(blank=True, help_text="Auto-translated to English after call completion")
     recording_url   = models.URLField(blank=True)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
     started_at      = models.DateTimeField(default=timezone.now)

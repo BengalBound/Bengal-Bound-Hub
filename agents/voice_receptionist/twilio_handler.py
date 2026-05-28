@@ -331,6 +331,15 @@ def _finalize_call(call_sid: str, status: str):
     transcript = "\n".join(lines)
     Call.objects.filter(call_sid=call_sid).update(transcript=transcript)
     clear_call_session(call_sid)
+    
+    # Trigger background translation to English
+    try:
+        call_obj = Call.objects.filter(call_sid=call_sid).first()
+        if call_obj and transcript.strip():
+            from .tasks import translate_call_transcript
+            translate_call_transcript.delay(str(call_obj.id))
+    except Exception as e:
+        logger.error("Failed to trigger translation task for call %s: %s", call_sid, e)
 
 
 def _confirm_booking(call_sid: str, session: dict, business):
