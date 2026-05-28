@@ -6,9 +6,9 @@ import django
 django.setup()
 
 from django.test import Client
-from hub.models import Business
+from hub.models import BusinessInstance
 
-biz = Business.objects.filter(slug='company-one-1').first()
+biz = BusinessInstance.objects.filter(slug='company-one-1').first()
 if biz and biz.owner:
     client = Client(SERVER_NAME='127.0.0.1')
     try:

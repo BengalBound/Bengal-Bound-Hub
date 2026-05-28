@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'simple_history',
     'django_otp',
     'django_otp.plugins.otp_totp',
+    'rest_framework',
 
     # Custom apps
     'accounts',
@@ -65,6 +66,38 @@ INSTALLED_APPS = [
     'serea',
     'booking_calendar',
     'hub.apps.HubConfig',
+    'agents',
+    'agents.aria',
+    'agents.crux',
+    'agents.mira',
+    'agents.lead_hunter',
+    'agents.atlas',
+    'agents.babel',
+    'agents.cash',
+    'agents.clarity',
+    'agents.concierge',
+    'agents.content_architect',
+    'agents.dox',
+    'agents.flux',
+    'agents.hera',
+    'agents.kai',
+    'agents.luma',
+    'agents.medibook',
+    'agents.merch',
+    'agents.nexus',
+    'agents.nova',
+    'agents.oracle',
+    'agents.payload',
+    'agents.pulse',
+    'agents.realt',
+    'agents.reporting_bot',
+    'agents.sage',
+    'agents.scout',
+    'agents.shield',
+    'agents.tempo',
+    'agents.voice_receptionist',
+    'agents.serea_content',
+
 
     # Modules — Project Management
     'modules.projects',
@@ -271,6 +304,7 @@ USE_TZ = True
 # ── Static & media ────────────────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -286,20 +320,21 @@ OPENAI_API_KEY             = env('OPENAI_API_KEY', default='')
 OPENROUTER_API_KEY         = env('OPENROUTER_API_KEY', default='')
 GOOGLE_SERVICE_ACCOUNT_JSON = env('GOOGLE_SERVICE_ACCOUNT_JSON', default='')
 
-FACEBOOK_WEBHOOK_VERIFY_TOKEN = env('FACEBOOK_WEBHOOK_VERIFY_TOKEN')  # required
+FACEBOOK_WEBHOOK_VERIFY_TOKEN = env('FACEBOOK_WEBHOOK_VERIFY_TOKEN', default='')
 FACEBOOK_APP_ID             = env('FACEBOOK_CLIENT_ID', default='')
 FACEBOOK_APP_SECRET         = env('FACEBOOK_CLIENT_SECRET', default='')
 FACEBOOK_OAUTH_REDIRECT_URI = env('FACEBOOK_OAUTH_REDIRECT_URI', default='')
 
 # ── LiteLLM ───────────────────────────────────────────────────────────────────
 LITELLM_BASE_URL   = env('LITELLM_BASE_URL',   default='https://ai.neurolinkit.com/v1')
-LITELLM_MASTER_KEY = env('LITELLM_MASTER_KEY')  # required
+LITELLM_MASTER_KEY = env('LITELLM_MASTER_KEY', default='')
 SEREA_TASK_MODELS  = {
     'chat':       env('SEREA_MODEL_CHAT',       default='neural-chat'),
     'moderation': env('SEREA_MODEL_MODERATION', default='dolphin-mistral'),
     'content':    env('SEREA_MODEL_CONTENT',    default='glm4'),
     'analysis':   env('SEREA_MODEL_ANALYSIS',   default='qwen2.5-coder'),
     'quick':      env('SEREA_MODEL_QUICK',      default='phi4-mini'),
+    'gemini':     env('GEMINI_MODEL',           default='gemini/gemini-1.5-flash'),
 }
 
 # ── Encryption ────────────────────────────────────────────────────────────────
@@ -336,7 +371,6 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
 # ── Django Axes ───────────────────────────────────────────────────────────────

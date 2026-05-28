@@ -230,7 +230,7 @@ class TestSereaTools(TestCase):
             agent_id=str(self.agent.pk),
             context='I want to delete a spam comment. Confidence: 0.5',
         )
-        self.assertIn('Permission request posted', result)
+        self.assertIn('Permission request sent', result)
         perm_msg = ConversationMessage.objects.filter(
             agent=self.agent, is_permission_request=True
         ).first()
@@ -378,8 +378,8 @@ class TestSereaTools(TestCase):
         self.assertIn('Never delete', instr.instruction_text)
 
     def test_tool_count(self):
-        """Ensure all 15 tools are registered."""
-        self.assertEqual(len(TOOLS), 15)
+        """Ensure all 31 tools are registered."""
+        self.assertEqual(len(TOOLS), 31)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -504,67 +504,28 @@ class TestTokenManagement(TestCase):
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TestSereaBrainLLMSelection(TestCase):
-    """Checks the correct LLM class is selected based on model name."""
+    """Checks that SereaBrain correctly configures ChatOpenAI for LiteLLM routing."""
 
     def setUp(self):
         self.user = _make_user('brain@example.com')
-
-    def _agent(self, model, **kwargs):
-        return SereaAgent.objects.create(
+        self.agent = SereaAgent.objects.create(
             tenant=self.user,
             tier='entry',
-            ai_model=model,
+            ai_model='neural-chat',
             token_limit_override=0,
             status='idle',
-            **kwargs,
         )
 
-    def test_groq_model_uses_chatgroq(self):
-        agent = self._agent('llama3-70b-8192', groq_api_key='gk-xxx')
-        with patch('serea.logic.ChatGroq') as MockGroq:
-            MockGroq.return_value = MagicMock()
-            brain = SereaBrain(agent_id=agent.pk)
-            MockGroq.assert_called_once()
-            call_kwargs = MockGroq.call_args.kwargs
-            self.assertEqual(call_kwargs['model_name'], 'llama3-70b-8192')
-
-    def test_openrouter_model_detected_by_slash(self):
-        agent = self._agent(
-            'meta-llama/llama-3.3-70b-instruct:free',
-            openrouter_api_key='or-xxx',
-        )
-        with patch('serea.logic.ChatGroq'), \
-             patch('builtins.__import__', wraps=__import__) as mock_import:
-            try:
-                from langchain_openai import ChatOpenAI
-                with patch('langchain_openai.ChatOpenAI') as MockOpenAI:
-                    MockOpenAI.return_value = MagicMock()
-                    brain = SereaBrain(agent_id=agent.pk)
-                    MockOpenAI.assert_called_once()
-                    call_kwargs = MockOpenAI.call_args.kwargs
-                    self.assertIn('openrouter.ai', call_kwargs.get('openai_api_base', ''))
-            except ImportError:
-                self.skipTest('langchain-openai not installed')
-
-    def test_missing_groq_key_raises_value_error(self):
-        agent = self._agent('llama3-8b-8192', groq_api_key=None)
-        with patch.dict(os.environ, {}, clear=True), \
-             patch('django.conf.settings.GROQ_API_KEY', '', create=True):
-            with self.assertRaises(ValueError) as ctx:
-                SereaBrain(agent_id=agent.pk)
-            self.assertIn('Groq API key', str(ctx.exception))
-
-    def test_missing_openrouter_key_raises_value_error(self):
-        agent = self._agent('meta-llama/llama-3.1-8b-instruct:free')
-        try:
-            from langchain_openai import ChatOpenAI  # noqa
-        except ImportError:
-            self.skipTest('langchain-openai not installed')
-        with patch.dict(os.environ, {}, clear=True):
-            os.environ.pop('OPENROUTER_API_KEY', None)
-            with self.assertRaises(ValueError) as ctx:
-                SereaBrain(agent_id=agent.pk)
-            self.assertIn('OpenRouter API key', str(ctx.exception))
+    def test_litellm_chatopenai_selected_with_correct_settings(self):
+        from django.conf import settings
+        with patch('langchain_openai.ChatOpenAI') as MockChatOpenAI:
+            MockChatOpenAI.return_value = MagicMock()
+            brain = SereaBrain(agent_id=self.agent.pk)
+            llm = brain.llm
+            MockChatOpenAI.assert_called_once()
+            call_kwargs = MockChatOpenAI.call_args.kwargs
+            self.assertEqual(call_kwargs['openai_api_base'], settings.LITELLM_BASE_URL)
+            self.assertEqual(call_kwargs['openai_api_key'], settings.LITELLM_MASTER_KEY)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -1,9 +1,12 @@
 """
-hub_tags — custom template tags for the BredBound hub sidebar.
+hub_tags — custom template tags for the BengalBound Hub sidebar.
 
 Provides `module_url` which safely resolves a module's landing URL given its
 url_namespace and the business slug. If the namespace / view-name doesn't exist
 (e.g. module not yet fully implemented) it returns '#' instead of crashing.
+
+IMPORTANT: Keep MODULE_URL_MAP in sync with _MODULE_URL_MAP in
+hub/context_processors.py — both must reference the same view names.
 """
 from django import template
 from django.urls import reverse, NoReverseMatch
@@ -18,21 +21,21 @@ MODULE_URL_MAP = {
     'task_board':        ('task_board:board_list',      True),
     'team_chat':         ('team_chat:channel_list',     True),
     # CRM & Sales
-    'crm':               ('crm:contact_list',           True),
-    'leads':             ('leads:lead_list',             True),
-    'invoicing':         ('invoicing:invoice_list',     True),
-    'contracts':         ('contracts:contract_list',    True),
+    'crm':               ('crm:index',                  True),
+    'leads':             ('leads:index',                True),
+    'invoicing':         ('invoicing:index',            True),
+    'contracts':         ('contracts:index',            True),
     # HR & People
-    'hr':                ('hr:employee_list',           True),
-    'payroll':           ('payroll:payroll_home',       True),
-    'recruitment':       ('recruitment:home',           True),
-    'attendance':        ('attendance:home',            True),
-    'shift_planning':    ('shift_planning:home',        True),
-    'training':          ('training:home',              True),
-    'expense':           ('expense:home',               True),
+    'hr':                ('hr:index',                   True),
+    'payroll':           ('payroll:index',              True),
+    'recruitment':       ('recruitment:index',          True),
+    'attendance':        ('attendance:index',           True),
+    'shift_planning':    ('shift_planning:index',       True),
+    'training':          ('training:index',             True),
+    'expense':           ('expense:index',              True),
     # Finance
-    'accounting':        ('accounting:home',            True),
-    'budgeting':         ('budgeting:home',             True),
+    'accounting':        ('accounting:index',           True),
+    'budgeting':         ('budgeting:index',            True),
     'financials':        ('financials:index',           True),
     # Project Management
     'projects':          ('projects:index',             True),
@@ -58,10 +61,10 @@ MODULE_URL_MAP = {
     'documents':         ('documents:home',            True),
     'website':           ('website:home',              True),
     # Intelligence
-    'reports':           ('reports:home',              True),
-    'ai_analytics':      ('ai_analytics:home',        True),
-    'ai_assistant':      ('ai_assistant:home',        True),
-    'dashboard_pro':     ('dashboard_pro:home',        True),
+    'reports':           ('reports:index',             True),
+    'ai_analytics':      ('ai_analytics:index',       True),
+    'ai_assistant':      ('ai_assistant:index',       True),
+    'dashboard_pro':     ('dashboard_pro:index',       True),
     # Creation Suite
     'docs':              ('docs:doc_list',             True),
     'sheets':            ('sheets:sheet_list',         True),

@@ -20,6 +20,7 @@ ALL_MODULES = [
         'monthly_price_usd': '9.99',
         'applicable_to': ['shop', 'retail_chain', 'wholesale', 'restaurant', 'station', 'hotel', 'other'],
         'display_order': 10,
+        'url_namespace': 'pos',
     },
     {
         'module_id': 'inventory',
@@ -32,6 +33,7 @@ ALL_MODULES = [
         'monthly_price_usd': '9.99',
         'applicable_to': ['all'],
         'display_order': 11,
+        'url_namespace': 'inventory',
     },
     {
         'module_id': 'order_mgmt',
@@ -44,6 +46,7 @@ ALL_MODULES = [
         'monthly_price_usd': '7.99',
         'applicable_to': ['all'],
         'display_order': 12,
+        'url_namespace': 'order_mgmt',
     },
     {
         'module_id': 'table_mgmt',
@@ -56,6 +59,7 @@ ALL_MODULES = [
         'monthly_price_usd': '7.99',
         'applicable_to': ['restaurant', 'hotel'],
         'display_order': 13,
+        'url_namespace': 'table_mgmt',
     },
     {
         'module_id': 'delivery',
@@ -83,6 +87,7 @@ ALL_MODULES = [
         'monthly_price_usd': '12.99',
         'applicable_to': ['all'],
         'display_order': 20,
+        'url_namespace': 'accounting',
     },
     {
         'module_id': 'invoicing',
@@ -95,6 +100,7 @@ ALL_MODULES = [
         'monthly_price_usd': '0.00',
         'applicable_to': ['all'],
         'display_order': 21,
+        'url_namespace': 'invoicing',
     },
     {
         'module_id': 'payroll',
@@ -108,6 +114,7 @@ ALL_MODULES = [
         'applicable_to': ['all'],
         'requires_modules': ['hr'],
         'display_order': 22,
+        'url_namespace': 'payroll',
     },
     {
         'module_id': 'expense',
@@ -120,6 +127,7 @@ ALL_MODULES = [
         'monthly_price_usd': '0.00',
         'applicable_to': ['all'],
         'display_order': 23,
+        'url_namespace': 'expense',
     },
     {
         'module_id': 'budgeting',
@@ -147,6 +155,7 @@ ALL_MODULES = [
         'monthly_price_usd': '0.00',
         'applicable_to': ['all'],
         'display_order': 30,
+        'url_namespace': 'hr',
     },
     {
         'module_id': 'attendance',
@@ -160,6 +169,7 @@ ALL_MODULES = [
         'applicable_to': ['all'],
         'requires_modules': ['hr'],
         'display_order': 31,
+        'url_namespace': 'attendance',
     },
     {
         'module_id': 'recruitment',
@@ -200,6 +210,7 @@ ALL_MODULES = [
         'monthly_price_usd': '9.99',
         'applicable_to': ['all'],
         'display_order': 40,
+        'url_namespace': 'crm',
     },
     {
         'module_id': 'leads',
@@ -213,6 +224,7 @@ ALL_MODULES = [
         'applicable_to': ['all'],
         'requires_modules': ['crm'],
         'display_order': 41,
+        'url_namespace': 'leads',
     },
     {
         'module_id': 'ecommerce',
@@ -240,6 +252,7 @@ ALL_MODULES = [
         'applicable_to': ['shop', 'retail_chain', 'restaurant', 'hotel', 'station', 'other'],
         'requires_modules': ['crm'],
         'display_order': 43,
+        'url_namespace': 'loyalty',
     },
 
     # ── Communication ─────────────────────────────────────────────────────────
@@ -267,6 +280,7 @@ ALL_MODULES = [
         'monthly_price_usd': '0.00',
         'applicable_to': ['all'],
         'display_order': 51,
+        'url_namespace': 'announcements',
     },
     {
         'module_id': 'email_marketing',
@@ -294,6 +308,7 @@ ALL_MODULES = [
         'monthly_price_usd': '14.99',
         'applicable_to': ['factory'],
         'display_order': 60,
+        'url_namespace': 'production',
     },
     {
         'module_id': 'bom',
@@ -307,6 +322,7 @@ ALL_MODULES = [
         'applicable_to': ['factory'],
         'requires_modules': ['inventory'],
         'display_order': 61,
+        'url_namespace': 'bom',
     },
     {
         'module_id': 'quality_control',
@@ -319,6 +335,7 @@ ALL_MODULES = [
         'monthly_price_usd': '9.99',
         'applicable_to': ['factory', 'warehouse'],
         'display_order': 62,
+        'url_namespace': 'quality_control',
     },
     {
         'module_id': 'maintenance',
@@ -345,6 +362,7 @@ ALL_MODULES = [
         'applicable_to': ['factory', 'restaurant', 'hotel', 'warehouse', 'station'],
         'requires_modules': ['hr'],
         'display_order': 64,
+        'url_namespace': 'shift_planning',
     },
 
     # ── Analytics & Reports ───────────────────────────────────────────────────
@@ -359,6 +377,7 @@ ALL_MODULES = [
         'monthly_price_usd': '0.00',
         'applicable_to': ['all'],
         'display_order': 70,
+        'url_namespace': 'reports',
     },
     {
         'module_id': 'dashboard_pro',
@@ -386,6 +405,7 @@ ALL_MODULES = [
         'monthly_price_usd': '0.00',
         'applicable_to': ['all'],
         'display_order': 80,
+        'url_namespace': 'documents',
     },
     {
         'module_id': 'contracts',
@@ -413,6 +433,7 @@ ALL_MODULES = [
         'monthly_price_usd': '19.99',
         'applicable_to': ['all'],
         'display_order': 90,
+        'url_namespace': 'ai_assistant',
     },
     {
         'module_id': 'ai_analytics',
@@ -440,6 +461,7 @@ ALL_MODULES = [
         'monthly_price_usd': '12.99',
         'applicable_to': ['all'],
         'display_order': 100,
+        'url_namespace': 'website',
     },
     {
         'module_id': 'booking',
@@ -452,6 +474,7 @@ ALL_MODULES = [
         'monthly_price_usd': '7.99',
         'applicable_to': ['clinic', 'hotel', 'agency', 'school', 'restaurant', 'other'],
         'display_order': 101,
+        'url_namespace': 'booking',
     },
 
     # ── Project Management ────────────────────────────────────────────────────
@@ -1001,6 +1024,129 @@ ALL_MODULES = [
         'applicable_to': ['all'],
         'display_order': 870,
         'url_namespace': 'data_collection',
+    },
+
+    # ── Creation Suite ────────────────────────────────────────────────────────
+    {
+        'module_id': 'docs',
+        'name': 'Collaborative Documents',
+        'tagline': 'Write, share, and collaborate on business documents.',
+        'description': 'Rich-text business documents with version history, sharing, and team collaboration.',
+        'category': 'documents',
+        'icon': 'bi-file-earmark-richtext',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 82,
+        'url_namespace': 'docs',
+    },
+    {
+        'module_id': 'sheets',
+        'name': 'Spreadsheets',
+        'tagline': 'Business spreadsheets built into your hub.',
+        'description': 'Create and manage spreadsheets for budgets, planning, and data tracking — shared with your team.',
+        'category': 'documents',
+        'icon': 'bi-table',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 83,
+        'url_namespace': 'sheets',
+    },
+    {
+        'module_id': 'slides',
+        'name': 'Presentations',
+        'tagline': 'Create and deliver presentations from your dashboard.',
+        'description': 'Build slide decks for client presentations, training, and internal briefings.',
+        'category': 'documents',
+        'icon': 'bi-easel',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 84,
+        'url_namespace': 'slides',
+    },
+    {
+        'module_id': 'forms_builder',
+        'name': 'Form Builder',
+        'tagline': 'Build and publish forms with a public submission link.',
+        'description': 'Drag-and-drop form builder for surveys, registrations, and intake forms. Public submissions at /f/<slug>/ — no login required.',
+        'category': 'documents',
+        'icon': 'bi-ui-checks',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 85,
+        'url_namespace': 'forms_builder',
+    },
+
+    # ── Communication & Productivity ──────────────────────────────────────────
+    {
+        'module_id': 'business_mail',
+        'name': 'Business Mail',
+        'tagline': 'Unified mailbox for your whole team.',
+        'description': 'Team email inbox, compose, send, and manage business correspondence within your hub.',
+        'category': 'communication',
+        'icon': 'bi-envelope-at',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 53,
+        'url_namespace': 'business_mail',
+    },
+    {
+        'module_id': 'video_meet',
+        'name': 'Video Meetings',
+        'tagline': 'Schedule and host video meetings from your dashboard.',
+        'description': 'Create meeting rooms, schedule sessions, and collaborate with your team via video.',
+        'category': 'communication',
+        'icon': 'bi-camera-video',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 54,
+        'url_namespace': 'video_meet',
+    },
+    {
+        'module_id': 'cloud_drive',
+        'name': 'Cloud Drive',
+        'tagline': 'Secure file storage tied to your business quota.',
+        'description': 'Upload, organise, and share files with your team. Storage usage tracks against your plan quota.',
+        'category': 'documents',
+        'icon': 'bi-cloud-arrow-up',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 81,
+        'url_namespace': 'cloud_drive',
+    },
+    {
+        'module_id': 'business_calendar',
+        'name': 'Business Calendar',
+        'tagline': 'Shared calendar for your team — events, deadlines, and meetings.',
+        'description': 'Company-wide and team-specific calendars, event creation, and scheduling.',
+        'category': 'communication',
+        'icon': 'bi-calendar3',
+        'is_free': True,
+        'monthly_price_usd': '0.00',
+        'applicable_to': ['all'],
+        'display_order': 55,
+        'url_namespace': 'business_calendar',
+    },
+
+    # ── Finance (supplementary) ───────────────────────────────────────────────
+    {
+        'module_id': 'financials',
+        'name': 'Financial Statements',
+        'tagline': 'P&L, balance sheet, and management accounts.',
+        'description': 'Generate and export financial statements, submit expense reports, and get a consolidated financial dashboard.',
+        'category': 'finance',
+        'icon': 'bi-file-earmark-bar-graph',
+        'is_free': False,
+        'monthly_price_usd': '9.99',
+        'applicable_to': ['all'],
+        'display_order': 25,
+        'url_namespace': 'financials',
     },
 ]
 

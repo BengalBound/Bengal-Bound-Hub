@@ -157,6 +157,38 @@ urlpatterns = [
 
     path('hub/', include('hub.urls', namespace='hub')),
     path('serea/', include('serea.urls', namespace='serea')),
+
+    # AI Agents REST APIs
+    path('hub/<slug:slug>/agents/aria/', include('agents.aria.urls', namespace='aria')),
+    path('hub/<slug:slug>/agents/crux/', include('agents.crux.urls', namespace='crux')),
+    path('hub/<slug:slug>/agents/mira/', include('agents.mira.urls', namespace='mira')),
+    path('hub/<slug:slug>/agents/lead-hunter/', include('agents.lead_hunter.urls', namespace='lead_hunter')),
+    path('hub/<slug:slug>/agents/atlas/', include('agents.atlas.urls', namespace='atlas')),
+    path('hub/<slug:slug>/agents/babel/', include('agents.babel.urls', namespace='babel')),
+    path('hub/<slug:slug>/agents/cash/', include('agents.cash.urls', namespace='cash')),
+    path('hub/<slug:slug>/agents/clarity/', include('agents.clarity.urls', namespace='clarity')),
+    path('hub/<slug:slug>/agents/concierge/', include('agents.concierge.urls', namespace='concierge')),
+    path('hub/<slug:slug>/agents/content-architect/', include('agents.content_architect.urls', namespace='content_architect')),
+    path('hub/<slug:slug>/agents/dox/', include('agents.dox.urls', namespace='dox')),
+    path('hub/<slug:slug>/agents/flux/', include('agents.flux.urls', namespace='flux')),
+    path('hub/<slug:slug>/agents/hera/', include('agents.hera.urls', namespace='hera')),
+    path('hub/<slug:slug>/agents/kai/', include('agents.kai.urls', namespace='kai')),
+    path('hub/<slug:slug>/agents/luma/', include('agents.luma.urls', namespace='luma')),
+    path('hub/<slug:slug>/agents/medibook/', include('agents.medibook.urls', namespace='medibook')),
+    path('hub/<slug:slug>/agents/merch/', include('agents.merch.urls', namespace='merch')),
+    path('hub/<slug:slug>/agents/nexus/', include('agents.nexus.urls', namespace='nexus')),
+    path('hub/<slug:slug>/agents/nova/', include('agents.nova.urls', namespace='nova')),
+    path('hub/<slug:slug>/agents/oracle/', include('agents.oracle.urls', namespace='oracle')),
+    path('hub/<slug:slug>/agents/payload/', include('agents.payload.urls', namespace='payload')),
+    path('hub/<slug:slug>/agents/pulse/', include('agents.pulse.urls', namespace='pulse')),
+    path('hub/<slug:slug>/agents/realt/', include('agents.realt.urls', namespace='realt')),
+    path('hub/<slug:slug>/agents/reporting-bot/', include('agents.reporting_bot.urls', namespace='reporting_bot')),
+    path('hub/<slug:slug>/agents/sage/', include('agents.sage.urls', namespace='sage')),
+    path('hub/<slug:slug>/agents/scout/', include('agents.scout.urls', namespace='scout')),
+    path('hub/<slug:slug>/agents/shield/', include('agents.shield.urls', namespace='shield')),
+    path('hub/<slug:slug>/agents/tempo/', include('agents.tempo.urls', namespace='tempo')),
+    path('hub/<slug:slug>/agents/voice-receptionist/', include('agents.voice_receptionist.urls', namespace='voice_receptionist')),
+    path('hub/<slug:slug>/agents/serea-content/', include('agents.serea_content.urls', namespace='serea_content')),
 ]
 
 if settings.DEBUG:

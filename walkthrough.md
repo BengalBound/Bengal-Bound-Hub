@@ -1,58 +1,63 @@
-# BengalBound-HUB walkthrough
+# BengalBound HUB — Codebase Walkthrough
 
-This document maps the **BengalBound-HUB** codebase: a **Django 6** multi-surface product that combines a marketing **public site**, internal **workspace** and **console** admin areas, a **community** forum, per-tenant **business hubs** (“BredBound”), and a large catalog of optional **`modules.*`** domain apps (CRM, MES, PMS, education, retail, and more).
+This document maps the **BengalBound-HUB** codebase: a **Django 4.2 LTS** multi-surface product that combines a marketing **public site**, internal **workspace** and **console** admin areas, a **community** forum, per-tenant **business hubs**, a large catalog of optional **`modules.*`** domain apps, and an **AI Agent Marketplace** of 30 specialist agents.
 
 ---
 
 ## Executive summary
 
-- **What you are building**: A modular **SaaS-style business operating system**. Each end customer has a **`BusinessInstance`** (slug, industry type, storage, optional IP lock / self-hosted sync). They activate capabilities from a **`ModuleCatalog`**; active installs are **`TenantModule`** rows. Employees are **`BusinessEmployee`** records with rich roles, optional **`CustomPosition`** for granular permissions, and optional **`accessible_modules`** restrictions.
-- **How users reach it**: One Django project serves multiple “surfaces” via **`SubdomainRoutingMiddleware`** (different root URLconfs). Day-to-day operations for a company live under **`/hub/<business_slug>/…`** (and several suites under **`/hub/<suite-prefix>/<business_slug>/…`**).
-- **What makes it large**: Dozens of Django apps under [`modules/`](modules/)—each can carry `models`, `urls`, `views`, `templates`, and migrations. The authoritative list of installed apps is [`bengalbound_core/settings.py`](bengalbound_core/settings.py) (`INSTALLED_APPS`).
+- **What you are building**: A modular **SaaS-style business operating system**. Each end customer has a **`BusinessInstance`** (slug, industry type, storage, optional IP lock / self-hosted sync). They activate capabilities from a **`ModuleCatalog`**; active installs are **`TenantModule`** rows. Employees are **`BusinessEmployee`** records with rich roles, optional **`CustomPosition`** for granular permissions, and optional `accessible_modules` restrictions.
+- **How users reach it**: One Django project serves multiple "surfaces" via **`SubdomainRoutingMiddleware`** (different root URLconfs). Day-to-day operations for a company live under **`/hub/<business_slug>/…`** (and several suites under **`/hub/<suite-prefix>/<business_slug>/…`**).
+- **What makes it large**: Dozens of Django apps under [`modules/`](modules/) — each can carry `models`, `urls`, `views`, `templates`, and migrations. The authoritative list of installed apps is in [`bengalbound_core/settings/base.py`](bengalbound_core/settings/base.py) (`INSTALLED_APPS`).
+- **AI layer**: Serea runtime routes all AI via LiteLLM proxy. A separate **`agents/`** app (in progress — see §Agent Migration Plan) will add 30 specialist AI employees: Aria (Support), Crux (CRM), Hera (HR), Cash (Payroll), and 26 more.
 
 ---
 
-## Tech stack (from runtime configuration)
+## Tech stack
 
 | Area | Details |
 |------|---------|
-| Framework | Django **6.x** ([`bengalbound_core/settings.py`](bengalbound_core/settings.py)); file header comments may still mention Django 4.2 docs. |
+| Framework | Django **4.2 LTS** (`bengalbound_core/settings/base.py`); ignore any comments mentioning Django 6.x — those are documentation errors. |
 | Auth | **django-allauth** (email login, mandatory email verification) + social providers (Google, Facebook, GitHub). Custom user: **`accounts.User`** (`AUTH_USER_MODEL`). |
-| DB | Default **SQLite** at `BASE_DIR / 'db.sqlite3'`. Production can override via environment (not shown in the excerpted settings). |
-| Config | **`python-dotenv`** loads [`.env`](.env) at project root (create locally; not committed here). |
-| Static / media | `STATICFILES_DIRS = BASE_DIR / 'static'`, `MEDIA_ROOT` under `media/`. |
-| Background work | **Celery** with dev-friendly in-memory / eager defaults; optional Beat schedule (commented examples for Serea). |
-| AI (“Serea”) | Env keys: `GROQ_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON`. Facebook webhook verify: `FACEBOOK_WEBHOOK_VERIFY_TOKEN`. |
+| DB | Default **SQLite** at `BASE_DIR / 'db.sqlite3'`. Production overrides via `DATABASE_URL` env var using `dj-database-url`. |
+| Config | **`django-environ`** loads `.env` at project root (copy from `.env.example`; not committed). Settings split into `base.py` / `development.py` / `production.py`. |
+| Static / media | `STATICFILES_DIRS = BASE_DIR / 'static'`, `STATIC_ROOT = BASE_DIR / 'staticfiles'`, `MEDIA_ROOT` under `media/`. |
+| Background work | **Celery** with dev-friendly in-memory / eager defaults. Production uses Redis broker. Beat schedule runs 4 Serea AI tasks. |
+| AI ("Serea") | LiteLLM proxy at `LITELLM_BASE_URL`. Env keys: `GROQ_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`. Facebook webhook: `FACEBOOK_WEBHOOK_VERIFY_TOKEN`. All keys are optional in dev (server starts without them). |
 
-### `requirements.txt` (important)
+### `requirements.txt`
 
-The file [`requirements.txt`](requirements.txt) in this workspace is **not a valid pip requirements list** at the time of writing—it contains a **deployment / Nixpacks / Docker build log** (clone output, `pip` transcript, etc.). **Restore a real pinned dependency file** from version control or your deployment pipeline before onboarding or CI installs.
+[`requirements.txt`](requirements.txt) is a standard pinned dependency file. Key packages: `Django==4.2.*`, `celery`, `django-allauth`, `django-axes`, `django-otp`, `django-simple-history`, `django-encrypted-model-fields`, `litellm`, `dj-database-url`, `django-environ`.
 
 ---
 
-## Repository layout (spine)
+## Repository layout
 
 | Path | Role |
 |------|------|
-| [`manage.py`](manage.py) | Django entry; `DJANGO_SETTINGS_MODULE=bengalbound_core.settings`. |
-| [`bengalbound_core/settings.py`](bengalbound_core/settings.py) | Installed apps, middleware, templates, auth, Celery, AI keys. |
-| [`bengalbound_core/urls.py`](bengalbound_core/urls.py) | Primary URL table: public site, workspace/console paths on main host, **all hub module includes**, Serea, admin. |
-| [`bengalbound_core/middleware.py`](bengalbound_core/middleware.py) | **`SubdomainRoutingMiddleware`** — switches `request.urlconf` per dev hostname. |
-| [`bengalbound_core/workspace_urls.py`](bengalbound_core/workspace_urls.py) | Workspace-only routes + Django admin on workspace host. |
-| [`bengalbound_core/console_urls.py`](bengalbound_core/console_urls.py) | Console dashboard, Serea includes under `serea/`, **partial** hub includes (`bredbound`, task board, chat). |
+| [`manage.py`](manage.py) | Django entry; defaults to `bengalbound_core.settings.development`. |
+| [`bengalbound_core/settings/base.py`](bengalbound_core/settings/base.py) | All shared config — installed apps, middleware, auth, Celery, AI keys. No secrets. |
+| [`bengalbound_core/settings/development.py`](bengalbound_core/settings/development.py) | Debug overrides, console email backend, eager Celery. |
+| [`bengalbound_core/settings/production.py`](bengalbound_core/settings/production.py) | HTTPS, HSTS, secure cookies, PostgreSQL via DATABASE_URL. |
+| [`bengalbound_core/urls.py`](bengalbound_core/urls.py) | Primary URL table: public site, workspace/console paths, **all hub module includes**, Serea, admin. |
+| [`bengalbound_core/middleware.py`](bengalbound_core/middleware.py) | **`SubdomainRoutingMiddleware`** — switches `request.urlconf` per hostname. |
+| [`bengalbound_core/workspace_urls.py`](bengalbound_core/workspace_urls.py) | Workspace-only routes + Django admin. |
+| [`bengalbound_core/console_urls.py`](bengalbound_core/console_urls.py) | Console dashboard, Serea includes, partial hub includes. |
 | [`bengalbound_core/community_urls.py`](bengalbound_core/community_urls.py) | Community forum surface. |
-| [`bredbound/`](bredbound/) | **Hub core**: businesses, modules, subscriptions, employees, connector tokens, sync API. |
-| [`bredbound/middleware.py`](bredbound/middleware.py) | **`BusinessAccessMiddleware`** — resolves `request.current_business` for `/hub/<slug>/…` (see caveat below). |
-| [`bredbound/context_processors.py`](bredbound/context_processors.py) | Injects hub sidebar data and resolves module landing URLs via `_MODULE_URL_MAP`. |
-| [`bredbound/templatetags/hub_tags.py`](bredbound/templatetags/hub_tags.py) | Template tag `module_url` with a parallel **`MODULE_URL_MAP`** (keep in sync with context processor). |
-| [`accounts/`](accounts/) | Custom `User`, workspace/customer profiles. |
-| [`public_site/`](public_site/) | Marketing pages, trial/consult flows; uses `booking_calendar` models where relevant. |
-| [`workspace_admin/`](workspace_admin/) | Internal ops: CMS, AI oversight, hub plan/subscription management, forum moderation. |
-| [`console_admin/`](console_admin/) | Customer “console”: AI workforce, billing webhooks, Serea chat entry points. |
-| [`community_forum/`](community_forum/) | Forum app for `community.*` host. |
-| [`serea/`](serea/) | AI agent HTTP endpoints: chat send/history, Facebook webhook, permission responses. |
-| [`modules/`](modules/) | Optional domain Django apps (see catalog below). |
-| [`templates/`](templates/) | Global template dir; many hub screens under `templates/bredbound/`. |
+| [`hub/`](hub/) | **Hub core app** — app label `bredbound`. Businesses, modules, subscriptions, employees, connector tokens, sync API. |
+| [`hub/middleware.py`](hub/middleware.py) | **`BusinessAccessMiddleware`** — resolves `request.current_business` for `/hub/<slug>/…` (see caveat below). |
+| [`hub/context_processors.py`](hub/context_processors.py) | `hub_context` — injects hub sidebar data and resolves module landing URLs via `_MODULE_URL_MAP`. |
+| [`hub/templatetags/hub_tags.py`](hub/templatetags/hub_tags.py) | Template tag `module_url` — parallel `MODULE_URL_MAP`. Keep in sync with context processor. |
+| [`accounts/`](accounts/) | Custom `User`, workspace and customer profiles. |
+| [`public_site/`](public_site/) | Marketing site; integrates `booking_calendar.Appointment` for consult/trial flows. |
+| [`workspace_admin/`](workspace_admin/) | Internal admin UI, CMS, AI workforce config, hub pricing. |
+| [`console_admin/`](console_admin/) | Customer console: AI hiring, billing webhooks, Serea chat entry. |
+| [`community_forum/`](community_forum/) | Forum threads for community subdomain. |
+| [`booking_calendar/`](booking_calendar/) | Appointment model (used from `public_site`). |
+| [`serea/`](serea/) | AI runtime endpoints and Facebook/Instagram webhook. |
+| [`agents/`](agents/) | *(In progress)* 30 specialist AI employee apps — see §Agent Migration Plan. |
+| [`modules/`](modules/) | Optional domain Django apps — see catalog below. |
+| [`templates/`](templates/) | Global template dir; many hub screens under `templates/hub/`. |
 
 ---
 
@@ -67,296 +72,299 @@ The file [`requirements.txt`](requirements.txt) in this workspace is **not a val
 | `community.localhost` | `bengalbound_core.community_urls` |
 | anything else | default **`ROOT_URLCONF`** → [`bengalbound_core/urls.py`](bengalbound_core/urls.py) |
 
-[`CSRF_TRUSTED_ORIGINS`](bengalbound_core/settings.py) includes `http://localhost:1234` and matching `workspace` / `console` / `community` hosts—run the dev server on **port 1234** to match, or update settings.
+`CSRF_TRUSTED_ORIGINS` includes `http://localhost:1234` and matching subdomain hosts — run the dev server on **port 1234**, or update settings.
 
-### Mermaid: high-level HTTP flow
+### High-level HTTP flow
 
-```mermaid
-flowchart LR
-  browser[Browser]
-  submw[SubdomainRoutingMiddleware]
-  rootUrls[ROOT_URLconf_urls]
-  wsUrls[workspace_urls]
-  coUrls[console_urls]
-  bizmw[BusinessAccessMiddleware]
-  views[Views_and_templates]
-
-  browser --> submw
-  submw -->|default_host| rootUrls
-  submw -->|workspace_host| wsUrls
-  submw -->|console_host| coUrls
-  rootUrls --> bizmw
-  bizmw --> views
+```
+Browser
+  └── SubdomainRoutingMiddleware
+        ├── workspace.localhost → workspace_urls.py
+        ├── console.localhost   → console_urls.py
+        ├── community.localhost → community_urls.py
+        └── (default)          → urls.py
+                                    └── /hub/<slug>/... → BusinessAccessMiddleware
+                                                           └── Views + Templates
 ```
 
 ---
 
 ## Hub URLs: two mounting styles
 
-[`bengalbound_core/urls.py`](bengalbound_core/urls.py) mixes:
+[`bengalbound_core/urls.py`](bengalbound_core/urls.py) mixes two patterns:
 
-1. **Business-first** paths — `hub/<slug:slug>/<segment>/…`  
-   Example: `hub/acme-corp/crm/…` → CRM under slug **`acme-corp`**.
+1. **Business-first** — `hub/<slug:slug>/<segment>/…`  
+   Example: `hub/acme-corp/crm/` → CRM under slug `acme-corp`.
 
-2. **Suite-first** paths — `hub/<segment>/…` (no business slug in the *outer* include)  
-   Example: `hub/mes/<slug:slug>/…` → MES URLs; the inner [`modules/mes/urls.py`](modules/mes/urls.py) defines `<slug:slug>/` after the `hub/mes/` prefix.
+2. **Suite-first** — `hub/<segment>/…` (no business slug in the outer include)  
+   Example: `hub/mes/<slug:slug>/…` → MES URLs; inner [`modules/mes/urls.py`](modules/mes/urls.py) defines `<slug:slug>/`.
 
-**`BusinessAccessMiddleware` caveat** ([`bredbound/middleware.py`](bredbound/middleware.py)): it treats **the first path segment after `hub/`** as the business slug. For `hub/acme-corp/crm/` that is correct (`acme-corp`). For `hub/mes/acme-corp/` it interprets **`mes`** as the slug and will **not** attach `request.current_business` for the real company (unless a business literally has slug `mes`). Suite-first modules still receive the real slug via **URL kwargs** in their views; only middleware-injected `current_business` / context processor defaults that depend on it may differ for those routes.
+**`BusinessAccessMiddleware` caveat** ([`hub/middleware.py`](hub/middleware.py)): it treats **the first path segment after `hub/`** as the business slug. For `hub/acme-corp/crm/` that is correct. For `hub/mes/acme-corp/` it would read `mes` as the slug — which is wrong. A `_SKIP_SEGMENTS` frozenset in the middleware prevents this by passing through known suite-first prefixes unchanged. Suite-first modules receive the real slug via **URL kwargs** in their views.
+
+Suite-first prefixes: `erp`, `mes`, `plm`, `cadcam`, `assets`, `workshop`, `dms`, `dvi`, `tms`, `wms`, `data-studio`, `process-mapper`, `sis`, `lms`, `assessments`, `timetable`, `parent-portal`, `properties`, `deals`, `commission`, `re-marketing`, `re-portal`, `omnichannel`, `planogram`, `product-catalog`, `b2b`, `store-ops`.
 
 ---
 
-## BredBound domain model (core product concepts)
+## Hub domain model
 
-Defined mainly in [`bredbound/models.py`](bredbound/models.py):
+Defined in [`hub/models.py`](hub/models.py). The app folder is `hub/` but **Django app label is `bredbound`** (set in `hub/apps.py`). All ForeignKeys in every module reference `'bredbound.BusinessInstance'` — this is intentional; changing it would break the migration graph.
 
-- **`BusinessInstance`**: tenant; `slug`, `business_type`, `installation_type` (`cloud` / `ip_locked` / `self_hosted`), quotas, `allowed_ips`, `sync_token`, branding fields.
-- **`ModuleCatalog`**: productized module metadata (`module_id`, pricing, `applicable_to` JSON, `requires_modules`, `url_namespace`, flags).
-- **`TenantModule`**: activation of a catalog row for a business (`tier`, `config` JSON).
-- **`BusinessEmployee`**, **`CustomPosition`**, **`ConnectorSession`**, **`SyncLog`**: people, custom titles, remote connector tokens, self-hosted sync audit.
-- **`INDUSTRY_MODULE_PRIORITY`**: suggested module order per `business_type`.
-- **`HubPlanConfig`** and related subscription models (further down the same file): workspace-admin configurable tiers.
+```
+BusinessInstance                        ← One per tenant / company
+  ├── owner: FK(User)
+  ├── slug: unique URL key
+  ├── business_type: 40+ choices
+  ├── installation_type: cloud / ip_locked / self_hosted
+  ├── storage_used_mb / storage_limit_mb
+  ├── allowed_ips: JSONField            ← IP-lock enforcement
+  ├── sync_token                        ← Self-hosted sync token
+  └── history: HistoricalRecords        ← Full audit trail
 
-Catalog rows are seeded by:
+ModuleCatalog                           ← Marketplace entry for each module
+  ├── module_id: unique slug
+  ├── category, icon, pricing
+  ├── applicable_to: JSONField          ← Which business types can activate
+  ├── requires_modules: JSONField       ← Dependency chain
+  └── url_namespace                     ← Django URL namespace for sidebar routing
 
-```bash
-python manage.py seed_modules
+TenantModule                            ← Activation of a module for a tenant
+  ├── business: FK(BusinessInstance)
+  ├── module: FK(ModuleCatalog)
+  ├── tier: free / basic / pro / enterprise
+  └── config: JSONField
+
+BusinessEmployee                        ← Staff member
+  ├── business: FK(BusinessInstance)
+  ├── user: FK(User) nullable
+  ├── role: 50+ choices
+  ├── access_level: 1–9
+  ├── custom_position: FK(CustomPosition)
+  └── accessible_modules: JSONField     ← Empty = all access
+
+AgentCatalog                           ← (In progress) AI agent marketplace entries
+  └── mirrors ModuleCatalog pattern, seeded by `python manage.py seed_agents`
 ```
 
-([`bredbound/management/commands/seed_modules.py`](bredbound/management/commands/seed_modules.py) — `update_or_create` by `module_id`.)
+Catalog rows are seeded by:
+```bash
+python manage.py seed_modules     # 60+ business modules
+python manage.py seed_agents      # 30 AI agents (in progress)
+```
 
-**Linking modules in the UI**: [`hub_context`](bredbound/context_processors.py) builds `hub_active_module_items` using **`ModuleCatalog.url_namespace`** and **`_MODULE_URL_MAP`**. If `url_namespace` is blank in the database, the resolved URL is `'#'` and the dashboard may treat the module as not yet navigable. A subset of entries in `seed_modules` explicitly sets `url_namespace`; for full navigation coverage, catalog rows should carry namespaces aligned with Django URL **namespaces** in [`bengalbound_core/urls.py`](bengalbound_core/urls.py).
+**Linking modules in the UI**: `hub_context` builds `hub_active_module_items` using `ModuleCatalog.url_namespace` and `_MODULE_URL_MAP`. If `url_namespace` is blank in the database, the resolved URL is `'#'`. Every routable module in `seed_modules` now carries a `url_namespace` — sidebar navigation is fully functional after seeding.
 
 ---
 
-## Primary URL map (main `ROOT_URLCONF`)
+## Primary URL map
 
-Below, **`{slug}`** means your `BusinessInstance.slug`.
+`{slug}` = your `BusinessInstance.slug`.
 
 | Prefix | Namespace / area | Notes |
-|--------|------------------|--------|
-| `/` | [`public_site`](public_site/urls.py) | Marketing, trial, affiliates. |
+|--------|------------------|-------|
+| `/` | `public_site` | Marketing, trial, affiliates |
 | `/admin/` | Django admin | |
-| `/accounts/` | allauth + [`accounts`](accounts/urls.py) | |
-| `/workspace/` | [`workspace_admin`](workspace_admin/urls.py) | On main host; workspace *subdomain* also mounts workspace stack at `/`. |
-| `/console/` | [`console_admin`](console_admin/urls.py) | |
-| `/community/` | [`community_forum`](community_forum/urls.py) | |
-| `/hub/` | [`bredbound`](bredbound/urls.py) | Landing, create business, per-slug dashboard, module store, employees, settings, connector, subscription, `hub/api/sync/`. |
-| `/hub/{slug}/board/` … | `task_board`, `team_chat`, … | Most slug-first modules (see table in next section). |
-| `/hub/erp/{slug}/` … | `erp` | Suite-first include. |
-| `/hub/mes/{slug}/` … | `mes` | Includes MES API webhook at `api/scanner/webhook/`. |
-| `/hub/plm/{slug}/` … | `plm` | |
-| `/hub/cadcam/` … | `cadcam` | |
-| `/hub/assets/` … | `asset_management` | |
-| `/hub/workshop/` … | `workshop` | Automotive. |
-| `/hub/dms/` … | `dms` | |
-| `/hub/dvi/` … | `dvi` | |
-| `/hub/tms/` … | `tms` | |
-| `/hub/wms/` … | `wms` | |
-| `/hub/data-studio/` … | `data_studio` | |
-| `/hub/process-mapper/` … | `process_mapper` | |
-| `/hub/sis/` … | `sis` | Education. |
-| `/hub/lms/` … | `lms` | |
-| `/hub/assessments/` … | `assessments` | |
-| `/hub/timetable/` … | `timetable` | |
-| `/hub/parent-portal/` … | `parent_portal` | |
-| `/hub/properties/` … | `property_listings` | Real estate. |
-| `/hub/deals/` … | `deal_flow` | |
-| `/hub/commission/` … | `commission` | |
-| `/hub/re-marketing/` … | `re_marketing` | |
-| `/hub/re-portal/` … | `re_client_portal` | |
-| `/hub/omnichannel/` … | `omnichannel` | Retail. |
-| `/hub/planogram/` … | `planogram` | |
-| `/hub/product-catalog/` … | `product_catalog` | |
-| `/hub/b2b/` … | `b2b_portal` | |
-| `/hub/store-ops/` … | `store_ops` | |
-| `/hub/{slug}/pms/` … | `pms`, `channel_manager`, `rate_manager`, `travel_crm`, `group_bookings`, `travel_desk`, `hospitality_ops` | Travel & accommodation (slug-first). |
-| `/hub/{slug}/care/` … | `care_manager`, `garden_ops`, `data_collection` | Personal care / garden / data collection. |
-| `/f/<form_slug>/` | `forms_builder` public | [`form_public`](modules/forms_builder/views.py) — no business slug. |
-| `/serea/` | [`serea`](serea/urls.py) | Agent chat, logs, Facebook webhook. |
+| `/accounts/` | allauth + `accounts` | |
+| `/workspace/` | `workspace_admin` | Main host; workspace subdomain also mounts at `/` |
+| `/console/` | `console_admin` | |
+| `/community/` | `community_forum` | |
+| `/hub/` | `bredbound` | Landing, create, per-slug dashboard, store, employees, settings, connector, subscription |
+| `/hub/{slug}/board/` | `task_board`, `team_chat` | Slug-first collaboration |
+| `/hub/erp/{slug}/` | `erp` | Suite-first |
+| `/hub/mes/{slug}/` | `mes` | Suite-first; includes scanner webhook |
+| `/hub/plm/{slug}/` | `plm` | Suite-first |
+| `/hub/cadcam/` | `cadcam` | Suite-first |
+| `/hub/assets/` | `asset_management` | Suite-first |
+| `/hub/workshop/` | `workshop` | Suite-first |
+| `/hub/dms/` | `dms` | Suite-first |
+| `/hub/dvi/` | `dvi` | Suite-first |
+| `/hub/tms/` | `tms` | Suite-first |
+| `/hub/wms/` | `wms` | Suite-first |
+| `/hub/data-studio/` | `data_studio` | Suite-first |
+| `/hub/process-mapper/` | `process_mapper` | Suite-first |
+| `/hub/sis/` | `sis` | Suite-first — Education |
+| `/hub/lms/` | `lms` | Suite-first |
+| `/hub/assessments/` | `assessments` | Suite-first |
+| `/hub/timetable/` | `timetable` | Suite-first |
+| `/hub/parent-portal/` | `parent_portal` | Suite-first |
+| `/hub/properties/` | `property_listings` | Suite-first — Real estate |
+| `/hub/deals/` | `deal_flow` | Suite-first |
+| `/hub/commission/` | `commission` | Suite-first |
+| `/hub/re-marketing/` | `re_marketing` | Suite-first |
+| `/hub/re-portal/` | `re_client_portal` | Suite-first |
+| `/hub/omnichannel/` | `omnichannel` | Suite-first — Retail |
+| `/hub/planogram/` | `planogram` | Suite-first |
+| `/hub/product-catalog/` | `product_catalog` | Suite-first |
+| `/hub/b2b/` | `b2b_portal` | Suite-first |
+| `/hub/store-ops/` | `store_ops` | Suite-first |
+| `/hub/{slug}/pms/` | `pms`, `channel_manager`, `rate_manager`, `travel_crm`, `group_bookings`, `travel_desk`, `hospitality_ops` | Slug-first — Travel |
+| `/hub/{slug}/care/` | `care_manager`, `garden_ops`, `data_collection` | Slug-first |
+| `/f/<form_slug>/` | `forms_builder` public | No business slug |
+| `/serea/` | `serea` | Agent chat, logs, Facebook webhook |
 
-[`console_urls`](bengalbound_core/console_urls.py) additionally mounts **`/hub/`** (bredbound + board + chat) on the console host so operators can open a subset of hub URLs from the console subdomain.
+`console_urls` additionally mounts `/hub/` (bredbound + board + chat) on the console host.
 
 ---
 
 ## `modules.*` catalog
 
-All of the following are registered in **`INSTALLED_APPS`** ([`bengalbound_core/settings.py`](bengalbound_core/settings.py)). Each package typically provides **`models.py`**, **`urls.py`** (with `app_name` matching the URL namespace), **`views.py`**, and often **`templates/<app_label>/`**. Schema changes live in **`migrations/`** per app.
+All apps are registered in `INSTALLED_APPS`. Each provides `models.py`, `urls.py` (with `app_name` matching URL namespace), `views.py`, and `templates/<app_label>/`. Schema changes live in `migrations/` per app.
 
 ### Collaboration
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.task_board`](modules/task_board/) | Kanban / tasks for a business slug. |
-| [`modules.team_chat`](modules/team_chat/) | Team channels / chat. |
+| App | Role |
+|-----|------|
+| `modules.task_board` | Kanban / tasks per business |
+| `modules.team_chat` | Team channels |
 
 ### CRM and sales
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.crm`](modules/crm/) | Contacts, deals, activities. |
-| [`modules.leads`](modules/leads/) | Lead capture and pipeline. |
-| [`modules.invoicing`](modules/invoicing/) | Invoices and billing UI. |
-| [`modules.contracts`](modules/contracts/) | Contract records / workflow. |
+| App | Role |
+|-----|------|
+| `modules.crm` | Contacts, deals, activities |
+| `modules.leads` | Lead capture and pipeline |
+| `modules.invoicing` | Invoices and billing UI |
+| `modules.contracts` | Contract records / workflow |
 
 ### HR and people
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.hr`](modules/hr/) | Core HR records. |
-| [`modules.payroll`](modules/payroll/) | Payroll (often depends on HR in seed data). |
-| [`modules.recruitment`](modules/recruitment/) | Hiring pipeline. |
-| [`modules.attendance`](modules/attendance/) | Time and attendance. |
-| [`modules.shift_planning`](modules/shift_planning/) | Rosters / shifts. |
-| [`modules.training`](modules/training/) | Training programs. |
-| [`modules.expense`](modules/expense/) | Expense claims. |
+| App | Role |
+|-----|------|
+| `modules.hr` | Core HR records |
+| `modules.payroll` | Payroll |
+| `modules.recruitment` | Hiring pipeline |
+| `modules.attendance` | Time and attendance |
+| `modules.shift_planning` | Rosters / shifts |
+| `modules.training` | Training programs |
+| `modules.expense` | Expense claims |
 
 ### Finance
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.accounting`](modules/accounting/) | GL / bookkeeping style screens. |
-| [`modules.budgeting`](modules/budgeting/) | Budgets and planning. |
-| [`modules.financials`](modules/financials/) | Financial statements / reporting. |
+| App | Role |
+|-----|------|
+| `modules.accounting` | GL / bookkeeping |
+| `modules.budgeting` | Budgets and planning |
+| `modules.financials` | Financial statements |
 
 ### Operations and supply
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.inventory`](modules/inventory/) | Stock, products, lots / labels (evolving schema). |
-| [`modules.order_mgmt`](modules/order_mgmt/) | Sales / purchase orders. |
-| [`modules.bom`](modules/bom/) | Bill of materials. |
-| [`modules.production`](modules/production/) | Manufacturing orders, consumption. |
-| [`modules.quality_control`](modules/quality_control/) | QC inspections. |
-| [`modules.maintenance`](modules/maintenance/) | Asset maintenance work. |
-| [`modules.delivery`](modules/delivery/) | Delivery logistics (may be flagged “coming soon” in catalog seed). |
+| App | Role |
+|-----|------|
+| `modules.inventory` | Stock, products, lots |
+| `modules.order_mgmt` | Sales / purchase orders |
+| `modules.bom` | Bill of materials |
+| `modules.production` | Manufacturing orders |
+| `modules.quality_control` | QC inspections |
+| `modules.maintenance` | Asset maintenance |
+| `modules.delivery` | Delivery logistics |
 
 ### Commerce
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.pos`](modules/pos/) | Point of sale. |
-| [`modules.ecommerce`](modules/ecommerce/) | Online storefront flows. |
-| [`modules.loyalty`](modules/loyalty/) | Loyalty programs. |
-| [`modules.booking`](modules/booking/) | Reservations / bookings. |
-| [`modules.table_mgmt`](modules/table_mgmt/) | Restaurant / hotel tables. |
+| App | Role |
+|-----|------|
+| `modules.pos` | Point of sale |
+| `modules.ecommerce` | Online storefront |
+| `modules.loyalty` | Loyalty programs |
+| `modules.booking` | Reservations |
+| `modules.table_mgmt` | Restaurant / hotel tables |
 
 ### Marketing and comms
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.email_marketing`](modules/email_marketing/) | Campaigns. |
-| [`modules.announcements`](modules/announcements/) | Internal announcements. |
-| [`modules.documents`](modules/documents/) | Document management. |
-| [`modules.website`](modules/website/) | Site / page builder hooks. |
+| App | Role |
+|-----|------|
+| `modules.email_marketing` | Campaigns |
+| `modules.announcements` | Internal announcements |
+| `modules.documents` | Document management |
+| `modules.website` | Site / page builder hooks |
 
 ### Intelligence
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.reports`](modules/reports/) | Reporting dashboards. |
-| [`modules.ai_analytics`](modules/ai_analytics/) | AI-assisted analytics. |
-| [`modules.ai_assistant`](modules/ai_assistant/) | In-product assistant. |
-| [`modules.dashboard_pro`](modules/dashboard_pro/) | Advanced dashboarding. |
+| App | Role |
+|-----|------|
+| `modules.reports` | Reporting dashboards |
+| `modules.ai_analytics` | AI-assisted analytics |
+| `modules.ai_assistant` | In-product assistant |
+| `modules.dashboard_pro` | Advanced dashboarding |
 
 ### Creation suite
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.docs`](modules/docs/) | Collaborative documents. |
-| [`modules.sheets`](modules/sheets/) | Spreadsheets. |
-| [`modules.slides`](modules/slides/) | Presentations. |
-| [`modules.forms_builder`](modules/forms_builder/) | Form builder + public submit at `/f/<slug>/`. |
+| App | Role |
+|-----|------|
+| `modules.docs` | Collaborative documents |
+| `modules.sheets` | Spreadsheets |
+| `modules.slides` | Presentations |
+| `modules.forms_builder` | Form builder + public submit at `/f/<slug>/` |
 
 ### Communication and productivity
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.business_mail`](modules/business_mail/) | Mailbox UI. |
-| [`modules.video_meet`](modules/video_meet/) | Meetings. |
-| [`modules.cloud_drive`](modules/cloud_drive/) | File storage UI tied to quota. |
-| [`modules.business_calendar`](modules/business_calendar/) | Shared calendars. |
+| App | Role |
+|-----|------|
+| `modules.business_mail` | Mailbox UI |
+| `modules.video_meet` | Meetings |
+| `modules.cloud_drive` | File storage UI |
+| `modules.business_calendar` | Shared calendars |
 
 ### Manufacturing and industrial
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.erp`](modules/erp/) | ERP dashboard, ledger, journals, POs. |
-| [`modules.mes`](modules/mes/) | Manufacturing execution, work centers, scanner API. |
-| [`modules.plm`](modules/plm/) | Product lifecycle. |
-| [`modules.cadcam`](modules/cadcam/) | CAD/CAM integration surface. |
-| [`modules.asset_management`](modules/asset_management/) | Industrial assets / tooling. |
+| App | Role |
+|-----|------|
+| `modules.erp` | ERP dashboard, ledger, journals |
+| `modules.mes` | Manufacturing execution, work centers |
+| `modules.plm` | Product lifecycle |
+| `modules.cadcam` | CAD/CAM integration |
+| `modules.asset_management` | Industrial assets / tooling |
 
 ### Automotive
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.workshop`](modules/workshop/) | Workshop / garage. |
-| [`modules.dms`](modules/dms/) | Dealer management. |
-| [`modules.dvi`](modules/dvi/) | Digital vehicle inspection. |
+| App | Role |
+|-----|------|
+| `modules.workshop` | Workshop / garage |
+| `modules.dms` | Dealer management |
+| `modules.dvi` | Digital vehicle inspection |
 
 ### Logistics
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.tms`](modules/tms/) | Transportation management. |
-| [`modules.wms`](modules/wms/) | Warehouse management. |
+| App | Role |
+|-----|------|
+| `modules.tms` | Transportation management |
+| `modules.wms` | Warehouse management |
 
 ### Consulting and analytics
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.data_studio`](modules/data_studio/) | Datasets / exploration. |
-| [`modules.process_mapper`](modules/process_mapper/) | Process mapping. |
+| App | Role |
+|-----|------|
+| `modules.data_studio` | Datasets / exploration |
+| `modules.process_mapper` | Process mapping |
 
 ### Education
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.sis`](modules/sis/) | Student information. |
-| [`modules.lms`](modules/lms/) | Courses / learning. |
-| [`modules.assessments`](modules/assessments/) | Quizzes / tests. |
-| [`modules.timetable`](modules/timetable/) | Scheduling. |
-| [`modules.parent_portal`](modules/parent_portal/) | Parent / guardian portal. |
+| App | Role |
+|-----|------|
+| `modules.sis` | Student information |
+| `modules.lms` | Courses / learning |
+| `modules.assessments` | Quizzes / tests |
+| `modules.timetable` | Scheduling |
+| `modules.parent_portal` | Parent / guardian portal |
 
 ### Real estate
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.property_listings`](modules/property_listings/) | Listings. |
-| [`modules.deal_flow`](modules/deal_flow/) | Transaction pipeline. |
-| [`modules.commission`](modules/commission/) | Commissions. |
-| [`modules.re_marketing`](modules/re_marketing/) | RE marketing. |
-| [`modules.re_client_portal`](modules/re_client_portal/) | Client portal. |
+| App | Role |
+|-----|------|
+| `modules.property_listings` | Listings |
+| `modules.deal_flow` | Transaction pipeline |
+| `modules.commission` | Commissions |
+| `modules.re_marketing` | RE marketing |
+| `modules.re_client_portal` | Client portal |
 
 ### Retail and wholesale
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.omnichannel`](modules/omnichannel/) | Omnichannel retail. |
-| [`modules.planogram`](modules/planogram/) | Shelf planning. |
-| [`modules.product_catalog`](modules/product_catalog/) | PIM-style catalog. |
-| [`modules.b2b_portal`](modules/b2b_portal/) | B2B ordering portal. |
-| [`modules.store_ops`](modules/store_ops/) | Store operations. |
+| App | Role |
+|-----|------|
+| `modules.omnichannel` | Omnichannel retail |
+| `modules.planogram` | Shelf planning |
+| `modules.product_catalog` | PIM-style catalog |
+| `modules.b2b_portal` | B2B ordering portal |
+| `modules.store_ops` | Store operations |
 
 ### Travel and accommodation
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.pms`](modules/pms/) | Property management system. |
-| [`modules.channel_manager`](modules/channel_manager/) | OTA channel connectivity. |
-| [`modules.rate_manager`](modules/rate_manager/) | Rates / restrictions. |
-| [`modules.travel_crm`](modules/travel_crm/) | Travel-specific CRM. |
-| [`modules.group_bookings`](modules/group_bookings/) | Groups / tours. |
-| [`modules.travel_desk`](modules/travel_desk/) | Agency desk workflows. |
-| [`modules.hospitality_ops`](modules/hospitality_ops/) | Day-to-day hospitality operations. |
+| App | Role |
+|-----|------|
+| `modules.pms` | Property management system |
+| `modules.channel_manager` | OTA channel connectivity |
+| `modules.rate_manager` | Rates / restrictions |
+| `modules.travel_crm` | Travel-specific CRM |
+| `modules.group_bookings` | Groups / tours |
+| `modules.travel_desk` | Agency desk |
+| `modules.hospitality_ops` | Day-to-day hospitality ops |
 
 ### Personal care, home, and garden
-
-| App | Role (summary) |
-|-----|----------------|
-| [`modules.care_manager`](modules/care_manager/) | Care scheduling / clients. |
-| [`modules.garden_ops`](modules/garden_ops/) | Garden / field operations. |
-| [`modules.data_collection`](modules/data_collection/) | Field data capture. |
+| App | Role |
+|-----|------|
+| `modules.care_manager` | Care scheduling / clients |
+| `modules.garden_ops` | Garden / field operations |
+| `modules.data_collection` | Field data capture |
 
 ---
 
@@ -364,56 +372,178 @@ All of the following are registered in **`INSTALLED_APPS`** ([`bengalbound_core/
 
 | App | Role |
 |-----|------|
-| [`accounts`](accounts/) | `AbstractUser` subclass, roles, workspace vs customer profiles. |
-| [`public_site`](public_site/) | Marketing site; integrates models like **`booking_calendar.Appointment`** for consult/trial flows. |
-| [`workspace_admin`](workspace_admin/) | Internal admin UI, CMS, Serea config, hub pricing/subscriptions. |
-| [`console_admin`](console_admin/) | Customer console: AI hiring, chat, NowPayments webhook, daily reports. |
-| [`community_forum`](community_forum/) | Forum threads for community subdomain. |
-| [`booking_calendar`](booking_calendar/) | Appointment model support (no dedicated URLconf in root; used from `public_site`). |
-| [`serea`](serea/) | AI runtime endpoints and Facebook webhook (see [`serea/urls.py`](serea/urls.py)). |
+| `accounts` | `AbstractUser` subclass, roles, workspace vs customer profiles |
+| `public_site` | Marketing site; uses `booking_calendar.Appointment` for consult/trial flows |
+| `workspace_admin` | Internal admin UI, CMS, Serea config, hub pricing |
+| `console_admin` | Customer console: AI hiring, billing, projects, Serea chat |
+| `community_forum` | Forum threads for community subdomain |
+| `booking_calendar` | Appointment model (no dedicated URLconf in root; used from `public_site`) |
+| `serea` | AI runtime endpoints and Facebook webhook |
 
 ---
 
-## Serea (AI engine)
+## Serea AI engine
 
-- **URLs**: [`serea/urls.py`](serea/urls.py) — permission responses, chat send/history, moderation logs, **`webhook/facebook/`**.
-- **Console integration**: [`console_admin/urls.py`](console_admin/urls.py) mounts `path('serea/', include('serea.urls'))` **without** app namespace repetition (uses `serea` app names inside).
-- **Configuration**: API keys and service account JSON in settings; workspace has **`serea-config/`** routes for agent setup.
+- **URLs**: `serea/urls.py` — permission responses, chat send/history, moderation logs, `webhook/facebook/`.
+- **Console integration**: `console_admin/urls.py` mounts `path('serea/', include('serea.urls'))`.
+- **LiteLLM routing**:
 
----
+```python
+SEREA_TASK_MODELS = {
+    'chat':       'neural-chat',
+    'moderation': 'dolphin-mistral',
+    'content':    'glm4',
+    'analysis':   'qwen2.5-coder',
+    'quick':      'phi4-mini',
+}
+```
 
-## Local development (quick start)
+All AI calls go through the LiteLLM proxy (`LITELLM_BASE_URL`). **Never call Groq, OpenAI, or Gemini directly** — always use the proxy.
 
-1. Create **`.env`** with at least `SECRET_KEY`, optionally `DEBUG=True`, `ALLOWED_HOSTS`, email and AI keys as needed.
-2. **Python environment**: install dependencies from a **valid** requirements file (see warning above).
-3. Run migrations: `python manage.py migrate`
-4. Seed module catalog: `python manage.py seed_modules`
-5. Create superuser if needed: `python manage.py createsuperuser`
-6. Run dev server on a port matching **`CSRF_TRUSTED_ORIGINS`** (e.g. `python manage.py runserver 0.0.0.0:1234`).
-7. Map **`workspace.localhost`**, **`console.localhost`**, **`community.localhost`** to `127.0.0.1` in your OS hosts file for subdomain testing.
-
----
-
-## URL namespace verification (`urls.py` ↔ seed ↔ hub maps)
-
-- **Django route namespaces** come from `include(..., namespace='…')` in [`bengalbound_core/urls.py`](bengalbound_core/urls.py). Each `modules.<pkg>.urls` should set matching `app_name`.
-- **`seed_modules` explicit `url_namespace`**: only these catalog keys are written in [`bredbound/management/commands/seed_modules.py`](bredbound/management/commands/seed_modules.py):  
-  `team_chat`, `task_board`, `erp`, `mes`, `plm`, `cadcam`, `asset_management`, `tms`, `wms`, `data_studio`, `process_mapper`, `property_listings`, `deal_flow`, `commission`, `re_marketing`, `re_client_portal`, `omnichannel`, `planogram`, `product_catalog`, `b2b_portal`, `store_ops`, `sis`, `lms`, `assessments`, `timetable`, `parent_portal`, `workshop`, `dms`, `dvi`, `pms`, `channel_manager`, `rate_manager`, `travel_crm`, `group_bookings`, `travel_desk`, `hospitality_ops`, `care_manager`, `garden_ops`, `data_collection`.  
-  Most **slug-first** business modules (e.g. `crm`, `inventory`, `pos`) have **no** `url_namespace` in the seed dict; with the model default (`''`), [`hub_context`](bredbound/context_processors.py) resolves their **Open** link to `'#'` until `url_namespace` is populated in the database (e.g. set to the same string as the Django namespace / `module_id`).
-- **Landing view names**: [`bredbound/context_processors.py`](bredbound/context_processors.py) `_MODULE_URL_MAP` uses names like `crm:index`, `inventory:index`, etc. [`bredbound/templatetags/hub_tags.py`](bredbound/templatetags/hub_tags.py) `MODULE_URL_MAP` still references some older names (e.g. `crm:contact_list`)—**treat the context processor as authoritative** for the hub sidebar until the two maps are deduplicated.
-
-## Maintenance notes (for contributors)
-
-1. **`_MODULE_URL_MAP` vs `MODULE_URL_MAP`**: [`bredbound/context_processors.py`](bredbound/context_processors.py) and [`bredbound/templatetags/hub_tags.py`](bredbound/templatetags/hub_tags.py) duplicate routing metadata—**keep them aligned** (today they differ on some keys, e.g. CRM entry view name).
-2. **`ModuleCatalog.url_namespace`**: Should match keys used in those maps and Django URL namespaces from [`bengalbound_core/urls.py`](bengalbound_core/urls.py). Extend `seed_modules` (or a data migration) so every routable `module_id` gets a non-empty `url_namespace` when it matches a mounted namespace.
-3. **`.claude/settings.json`**: Claude Code permission metadata only—not product documentation.
+- **Celery Beat**: monitor (10 min), content (5 min), briefing (daily), reports (daily).
+- **Human-in-the-loop**: `POST /serea/permission/<id>/respond/` — approve or deny agent actions.
 
 ---
 
-## Claude / tooling metadata
+## Local development quick start
 
-[`.claude/settings.json`](.claude/settings.json) records allowed shell patterns (migrations, `seed_modules`, etc.). [`.claude/settings.local.json`](.claude/settings.local.json) is a small local override. Neither defines application behavior.
+```bash
+# 1. Create .env
+cp .env.example .env
+# Edit .env — only SECRET_KEY is required
+
+# 2. Install dependencies
+python -m venv .venv
+.venv\Scripts\activate         # Windows
+# source .venv/bin/activate    # macOS / Linux
+pip install -r requirements.txt
+
+# 3. Migrate and seed
+python manage.py migrate
+python manage.py seed_modules  # Populates ModuleCatalog
+
+# 4. Create superuser
+python manage.py createsuperuser
+
+# 5. Run on port 1234 (required for CSRF)
+python manage.py runserver 0.0.0.0:1234
+
+# 6. Add to OS hosts file for subdomain testing
+# 127.0.0.1  workspace.localhost
+# 127.0.0.1  console.localhost
+# 127.0.0.1  community.localhost
+```
 
 ---
 
-*Generated to match the repository layout and key files as of the walkthrough authoring pass. For line-accurate behavior, follow the linked source files.*
+## URL namespace verification
+
+- **Django route namespaces** come from `include(..., namespace='…')` in `bengalbound_core/urls.py`. Each `modules.<pkg>.urls` should set matching `app_name`.
+- **`seed_modules` `url_namespace`**: All routable modules now carry a `url_namespace` aligned with their Django URL namespace (fixed in review pass). After running `seed_modules`, all sidebar links resolve correctly — no `'#'` placeholders for navigable modules.
+- **Landing view names**: `hub/context_processors.py` `_MODULE_URL_MAP` is the authoritative source. `hub/templatetags/hub_tags.py` `MODULE_URL_MAP` is kept in sync (fixed in review pass — previously 14 names were wrong).
+
+---
+
+## Maintenance notes
+
+1. **`_MODULE_URL_MAP` vs `MODULE_URL_MAP`**: Both `hub/context_processors.py` and `hub/templatetags/hub_tags.py` define routing metadata. Keep them aligned — they were out of sync historically but are now reconciled.
+2. **`ModuleCatalog.url_namespace`**: Must match Django URL namespaces and `_MODULE_URL_MAP` keys. All navigable modules in `seed_modules` now carry the correct value.
+3. **`hub/` folder, `bredbound` label**: The Django app folder is `hub/`. The app label (and DB table prefix) is `bredbound`. Do not rename either.
+4. **Suite-first `_SKIP_SEGMENTS`**: If you add a new suite-first module, add its URL prefix to `_SKIP_SEGMENTS` in `hub/middleware.py` to prevent the middleware from misreading it as a business slug.
+
+---
+
+## Agent Migration Plan (TO-DO)
+
+The 30 specialist AI agents from our product line are being migrated into this project. This is the active development track.
+
+### Source
+Our agent implementations live at:
+`d:\Bengal bound\Bengal Bound.worktrees\agents-constitutional-fox\api/agents/`
+
+Each agent sub-app follows this pattern:
+- `models.py` — domain models with FK to `organizations.Organization` (must be replaced with FK to `'bredbound.BusinessInstance'`)
+- `views.py` — DRF ViewSets using `ai_chat()` from `core.ai_provider` (must route through LiteLLM instead)
+- `serializers.py`, `urls.py`, `apps.py`, `migrations/`
+
+### The 30 agents
+
+| Agent | Role | Category |
+|-------|------|----------|
+| Aria | Customer Support Specialist | Support |
+| Atlas | Executive Assistant | Operations |
+| Babel | Translation & Localisation | Communication |
+| Cash | Payroll Processing | Finance |
+| Clarity | Customer Feedback Analysis | Analytics |
+| Concierge | Front-door Receptionist | Operations |
+| Content Architect | Editorial Planning | Marketing |
+| Crux | CRM Manager | Sales |
+| Dox | Technical Writer | Documents |
+| Flux | Supply Chain Manager | Operations |
+| Hera | HR Agent | HR |
+| Kai | DevOps Assistant | Technology |
+| Lead Hunter | B2B Prospector | Sales |
+| Luma | Brand & PR | Marketing |
+| MediBook | Medical Scheduler | Healthcare |
+| Merch | eCommerce Manager | Commerce |
+| Mira | Customer Success | Support |
+| Nexus | Learning & Development | HR |
+| Nova | Data Analyst | Analytics |
+| Oracle | SEO Strategist | Marketing |
+| Payload | Procurement Manager | Operations |
+| Pulse | Market Research | Analytics |
+| Realt | Real Estate Assistant | Real Estate |
+| Reporting Bot | Automated Reporting | Analytics |
+| Sage | Legal Reviewer | Legal |
+| Scout | Competitor Intelligence | Analytics |
+| Serea (Content) | Content Strategist | Marketing |
+| Shield | IT Helpdesk | Technology |
+| Tempo | Events Manager | Operations |
+| Voice Receptionist | Phone AI Receptionist | Communication |
+
+### Sprint plan
+
+**Sprint A — Foundation** *(start here)*
+- [ ] Create `agents/` Django app
+- [ ] `AgentCatalog` model (mirrors `ModuleCatalog`)
+- [ ] `seed_agents` management command (seeds all 30)
+- [ ] Extend `HiredAIEmployee` with `agent_catalog` FK
+- [ ] Add Gemini to LiteLLM `SEREA_TASK_MODELS`
+- [ ] Add `GEMINI_API_KEY` to `.env.example`
+
+**Sprint B — Domain models**
+- [ ] Port each agent's domain models to `agents/<name>/models.py`
+- [ ] Replace `organization` FKs with `'bredbound.BusinessInstance'`
+- [ ] Priority order: Aria, Crux, Mira, Lead Hunter → Cash, Payload → Hera, Nexus → rest
+
+**Sprint C — AI call layer**
+- [ ] Create `agents/utils.py` with LiteLLM wrapper (`agent_chat()`)
+- [ ] Port all agent views to use `agent_chat()` instead of `ai_chat()`
+
+**Sprint D — DRF API layer**
+- [ ] Add `djangorestframework` (check requirements.txt)
+- [ ] Per-agent: `serializers.py`, `views.py` (DRF ViewSets)
+- [ ] Mount under `hub/<slug>/api/agents/<name>/`
+
+**Sprint E — Console UI**
+- [ ] Agent marketplace browse page in `console_admin/`
+- [ ] Hire flow (`HiredAIEmployee` create view)
+- [ ] Per-agent chat interface using `ConversationMessage`
+
+**Sprint F — Inspector middleware**
+- [ ] Port `api/inspector/` from worktree as new `inspector/` app
+- [ ] Add to `MIDDLEWARE` in `base.py`
+- [ ] `ComplianceRule` model + `seed_compliance_rules` command
+
+**Sprint G — Stripe billing**
+- [ ] Port `api/billing/` from worktree
+- [ ] Add `stripe` to requirements
+- [ ] Plan model tied to `BusinessSubscription` tiers
+
+**Sprint H — Auth bridge**
+- [ ] Add `firebase_uid` field to `accounts/models.py`
+- [ ] Auth view accepting Firebase ID token → allauth user sync
+
+---
+
+*Walkthrough reflects the `dev` branch as of 2026-05-26. For line-accurate behavior, follow the linked source files.*

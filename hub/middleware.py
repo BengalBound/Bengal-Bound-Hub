@@ -32,8 +32,21 @@ class BusinessAccessMiddleware:
             return self.get_response(request)
 
         slug = parts[1]
-        # Skip non-slug paths like 'create', 'api'
-        if slug in ('create', 'api'):
+        # Skip well-known non-slug path segments.
+        # 'create' and 'api' are hub-level actions; the rest are suite-first
+        # module prefixes mounted as hub/<prefix>/<slug>/ in ROOT_URLCONF —
+        # those modules receive the real slug via URL kwargs, not middleware.
+        _SKIP_SEGMENTS = frozenset([
+            'create', 'api',
+            'erp', 'mes', 'plm', 'cadcam', 'assets',
+            'workshop', 'dms', 'dvi',
+            'tms', 'wms',
+            'data-studio', 'process-mapper',
+            'sis', 'lms', 'assessments', 'timetable', 'parent-portal',
+            'properties', 'deals', 'commission', 're-marketing', 're-portal',
+            'omnichannel', 'planogram', 'product-catalog', 'b2b', 'store-ops',
+        ])
+        if slug in _SKIP_SEGMENTS:
             return self.get_response(request)
 
         try:

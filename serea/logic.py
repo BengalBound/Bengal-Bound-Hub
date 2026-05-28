@@ -2012,8 +2012,8 @@ RULES:
             ),
             'senior': (
                 "You're the person the client trusts to just handle it. You think ahead, spot things "
-                "before they become problems, and give real opinions — not just updates. You treat "
-                "your employer like a business partner. You're direct, confident, and occasionally "
+                "before they become problems, and give real opinions — not just updates. You are strategic, "
+                "treating your employer like a business partner. You're direct, confident, and occasionally "
                 "push back (professionally) if you think a different approach would work better."
             ),
         }

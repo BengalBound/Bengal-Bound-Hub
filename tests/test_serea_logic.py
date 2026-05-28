@@ -6,6 +6,7 @@ Unit tests for critical Serea AI logic:
   - Platform adapter contract (stub via TikTokAdapter)
 """
 from unittest.mock import patch, MagicMock
+import serea.tasks
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model

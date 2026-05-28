@@ -39,10 +39,14 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = True
 
-# ── Database — swap to postgres in prod ───────────────────────────────────────
-# Uncomment and set DATABASE_URL in the server environment:
-# import dj_database_url
-# DATABASES = {'default': dj_database_url.config(conn_max_age=600, ssl_require=True)}
+# ── Database — PostgreSQL in production ──────────────────────────────────────
+# Set DATABASE_URL in the server environment, e.g.:
+#   postgres://user:password@host:5432/bengalbound
+import dj_database_url
+_db_url = env('DATABASE_URL', default='')
+if _db_url:
+    DATABASES = {'default': dj_database_url.config(default=_db_url, conn_max_age=600, ssl_require=True)}
+# If DATABASE_URL is not set, falls back to base.py SQLite (not recommended for production).
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOGGING = {

@@ -61,6 +61,7 @@ class AIEmployeeTier(models.Model):
 class HiredAIEmployee(models.Model):
     employer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hired_ais')
     tier = models.ForeignKey(AIEmployeeTier, on_delete=models.SET_NULL, null=True)
+    agent_catalog = models.ForeignKey('agents.AgentCatalog', on_delete=models.SET_NULL, null=True, blank=True, related_name='hired_instances')
     ai_name = models.CharField(max_length=100, default="Serea")
     tokens_used_this_month = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
