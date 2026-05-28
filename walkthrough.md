@@ -9,7 +9,7 @@ This document maps the **BengalBound-HUB** codebase: a **Django 4.2 LTS** multi-
 - **What you are building**: A modular **SaaS-style business operating system**. Each end customer has a **`BusinessInstance`** (slug, industry type, storage, optional IP lock / self-hosted sync). They activate capabilities from a **`ModuleCatalog`**; active installs are **`TenantModule`** rows. Employees are **`BusinessEmployee`** records with rich roles, optional **`CustomPosition`** for granular permissions, and optional `accessible_modules` restrictions.
 - **How users reach it**: One Django project serves multiple "surfaces" via **`SubdomainRoutingMiddleware`** (different root URLconfs). Day-to-day operations for a company live under **`/hub/<business_slug>/…`** (and several suites under **`/hub/<suite-prefix>/<business_slug>/…`**).
 - **What makes it large**: Dozens of Django apps under [`modules/`](modules/) — each can carry `models`, `urls`, `views`, `templates`, and migrations. The authoritative list of installed apps is in [`bengalbound_core/settings/base.py`](bengalbound_core/settings/base.py) (`INSTALLED_APPS`).
-- **AI layer**: Serea runtime routes all AI via LiteLLM proxy. A separate **`agents/`** app (in progress — see §Agent Migration Plan) will add 30 specialist AI employees: Aria (Support), Crux (CRM), Hera (HR), Cash (Payroll), and 26 more.
+- **AI layer**: Serea runtime routes all AI via LiteLLM proxy. The **`agents/`** package hosts 30 specialist AI employees — Aria (Support), Crux (CRM), Hera (HR), Cash (Payroll), Serea Content (Marketing), Voice Receptionist, and 24 more — all fully migrated with domain models, DRF ViewSets, and migrations.
 
 ---
 
@@ -55,7 +55,7 @@ This document maps the **BengalBound-HUB** codebase: a **Django 4.2 LTS** multi-
 | [`community_forum/`](community_forum/) | Forum threads for community subdomain. |
 | [`booking_calendar/`](booking_calendar/) | Appointment model (used from `public_site`). |
 | [`serea/`](serea/) | AI runtime endpoints and Facebook/Instagram webhook. |
-| [`agents/`](agents/) | *(In progress)* 30 specialist AI employee apps — see §Agent Migration Plan. |
+| [`agents/`](agents/) | 30 specialist AI employee apps — fully migrated. Each sub-app has `models.py`, `views.py`, `serializers.py`, `urls.py`, `migrations/`. Seeded via `python manage.py seed_agents`. |
 | [`modules/`](modules/) | Optional domain Django apps — see catalog below. |
 | [`templates/`](templates/) | Global template dir; many hub screens under `templates/hub/`. |
 
@@ -148,7 +148,7 @@ AgentCatalog                           ← (In progress) AI agent marketplace en
 Catalog rows are seeded by:
 ```bash
 python manage.py seed_modules     # 60+ business modules
-python manage.py seed_agents      # 30 AI agents (in progress)
+python manage.py seed_agents      # Seeds all 30 AI agents into AgentCatalog
 ```
 
 **Linking modules in the UI**: `hub_context` builds `hub_active_module_items` using `ModuleCatalog.url_namespace` and `_MODULE_URL_MAP`. If `url_namespace` is blank in the database, the resolved URL is `'#'`. Every routable module in `seed_modules` now carries a `url_namespace` — sidebar navigation is fully functional after seeding.
@@ -453,17 +453,16 @@ python manage.py runserver 0.0.0.0:1234
 
 ---
 
-## Agent Migration Plan (TO-DO)
+## Agent Migration — Completed
 
-The 30 specialist AI agents from our product line are being migrated into this project. This is the active development track.
+All 30 specialist AI agents have been migrated into this project (branch: `dev`, commit: `7c27051`).
 
-### Source
-Our agent implementations live at:
+### Source (read-only reference)
 `d:\Bengal bound\Bengal Bound.worktrees\agents-constitutional-fox\api/agents/`
 
 Each agent sub-app follows this pattern:
-- `models.py` — domain models with FK to `organizations.Organization` (must be replaced with FK to `'bredbound.BusinessInstance'`)
-- `views.py` — DRF ViewSets using `ai_chat()` from `core.ai_provider` (must route through LiteLLM instead)
+- `models.py` — domain models with FK to `'bredbound.BusinessInstance'`
+- `views.py` — DRF ViewSets using `agent_chat()` from `agents.utils` (routes through LiteLLM)
 - `serializers.py`, `urls.py`, `apps.py`, `migrations/`
 
 ### The 30 agents
@@ -501,32 +500,31 @@ Each agent sub-app follows this pattern:
 | Tempo | Events Manager | Operations |
 | Voice Receptionist | Phone AI Receptionist | Communication |
 
-### Sprint plan
+### Sprint summary
 
-**Sprint A — Foundation** *(start here)*
-- [ ] Create `agents/` Django app
-- [ ] `AgentCatalog` model (mirrors `ModuleCatalog`)
-- [ ] `seed_agents` management command (seeds all 30)
-- [ ] Extend `HiredAIEmployee` with `agent_catalog` FK
-- [ ] Add Gemini to LiteLLM `SEREA_TASK_MODELS`
-- [ ] Add `GEMINI_API_KEY` to `.env.example`
+**Sprint A — Foundation** ✅
+- [x] Create `agents/` Django app with `AgentCatalog` model
+- [x] `seed_agents` management command (seeds all 30 into `AgentCatalog`)
+- [x] Extend `HiredAIEmployee` with `agent_catalog` FK
+- [x] Gemini added to `SEREA_TASK_MODELS`; `GEMINI_API_KEY` in `.env.example`
 
-**Sprint B — Domain models**
-- [ ] Port each agent's domain models to `agents/<name>/models.py`
-- [ ] Replace `organization` FKs with `'bredbound.BusinessInstance'`
-- [ ] Priority order: Aria, Crux, Mira, Lead Hunter → Cash, Payload → Hera, Nexus → rest
+**Sprint B — Domain models** ✅
+- [x] All 30 agents ported to `agents/<name>/models.py` with FK to `'bredbound.BusinessInstance'`
+- [x] Initial migrations created and applied for all 30 agents
 
-**Sprint C — AI call layer**
-- [ ] Create `agents/utils.py` with LiteLLM wrapper (`agent_chat()`)
-- [ ] Port all agent views to use `agent_chat()` instead of `ai_chat()`
+**Sprint C — AI call layer** ✅
+- [x] `agents/utils.py` — `agent_chat()` wrapper calling LiteLLM proxy
+- [x] All agent views use `agent_chat()` (no direct model provider calls)
 
-**Sprint D — DRF API layer**
-- [ ] Add `djangorestframework` (check requirements.txt)
-- [ ] Per-agent: `serializers.py`, `views.py` (DRF ViewSets)
-- [ ] Mount under `hub/<slug>/api/agents/<name>/`
+**Sprint D — DRF API layer** ✅
+- [x] All 30 agents: `serializers.py`, `views.py` (DRF ViewSets), `urls.py`
+- [x] Mounted under `hub/<slug>/agents/<name>/` in root urlconf
+- [x] `voice_receptionist` auth fixed — replaced Firebase dependency with DRF `SessionAuthentication`
+- [x] `serea_content` agent created (was missing from source; built from scratch)
 
-**Sprint E — Console UI**
+**Sprint E — Console UI** (next)
 - [ ] Agent marketplace browse page in `console_admin/`
+- [ ] Per-agent dashboard views in hub templates
 - [ ] Hire flow (`HiredAIEmployee` create view)
 - [ ] Per-agent chat interface using `ConversationMessage`
 
