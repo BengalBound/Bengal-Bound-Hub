@@ -1,16 +1,18 @@
 import json
 import requests
 from django.conf import settings
-from .toolkit import UNIVERSAL_TOOLS, execute_tool
+
 
 def agent_chat(messages: list, model: str = None) -> str:
     """
     Send messages to the LiteLLM proxy and return the assistant reply.
     This is the ONLY correct way to call any AI model in this project.
-    Now equipped with the Universal Toolkit loop for internet/API access.
+    Equipped with the Universal Toolkit loop for internet/API access.
     """
+    from .toolkit import UNIVERSAL_TOOLS, execute_tool  # lazy — avoids startup curl_cffi load
+
     model = model or settings.SEREA_TASK_MODELS.get("chat", "neural-chat")
-    
+
     # Inject tool awareness into the system prompt automatically
     messages_copy = list(messages)
     for m in messages_copy:

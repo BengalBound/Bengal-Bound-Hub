@@ -1,12 +1,10 @@
 import json
 import logging
-import requests
 import re
 import time
+import requests
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
-from bs4 import BeautifulSoup
-from duckduckgo_search import DDGS
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +48,7 @@ def check_robots_txt(url: str, user_agent: str) -> tuple:
 def search_web(query: str, max_results: int = 5) -> str:
     """Search the internet using DuckDuckGo."""
     try:
+        from duckduckgo_search import DDGS
         results = DDGS().text(query, max_results=max_results)
         if not results:
             return "No results found."
@@ -82,7 +81,8 @@ def scrape_website(url: str) -> str:
         # 3. Compliance: Clear Identification
         response = requests.get(url, timeout=15, headers={"User-Agent": USER_AGENT})
         response.raise_for_status()
-        
+
+        from bs4 import BeautifulSoup
         soup = BeautifulSoup(response.text, "html.parser")
         
         for element in soup(["script", "style", "header", "footer", "nav"]):
