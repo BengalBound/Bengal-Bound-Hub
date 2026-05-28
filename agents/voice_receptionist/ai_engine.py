@@ -106,6 +106,8 @@ Your job:
 4. Confirm all collected details with the caller before finalizing.
 5. Be concise — this is a phone call. Keep responses under 2 sentences per turn.
 
+CRITICAL INSTRUCTION: You MUST speak to the caller in their native language! The business is configured with language code: {business_profile.language_code}. All your spoken responses (`response_text`) MUST be in this language.
+
 ALWAYS respond with valid JSON only. No prose outside JSON.
 JSON format:
 {{
