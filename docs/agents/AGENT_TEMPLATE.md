@@ -1,25 +1,29 @@
-# BengalBound Agent — Python Template
+# BengalBound Agent — Full Mini-Platform Template
 
-This document shows the exact file-by-file pattern every agent app must follow in the BengalBound HUB project. Use it as a copy-paste starting point when implementing any of the 30 agents.
+Every agent in BengalBound HUB is a **self-contained mini-platform**, not just a task runner. This template shows the exact file structure and code patterns required.
 
-Replace `<name>` with the agent slug (e.g. `aria`), `<Name>` with the class name (e.g. `Aria`), and `<NAME>` with the constant prefix (e.g. `ARIA`).
+Replace `<name>` (lowercase, underscored) · `<Name>` (PascalCase) · `<slug>` (hyphenated, matches AgentCatalog slug).
 
 ---
 
-## Directory structure
+## Directory Structure
 
 ```
-agents/
-  <name>/
+agents/<name>/
+  __init__.py
+  apps.py           ← AppConfig with ready() to wire signals
+  engine.py         ← AI brain: SYSTEM_PROMPT + domain methods + PermissionRequired
+  tasks.py          ← Autonomous Celery tasks on their own schedule
+  signals.py        ← Auto-provisions AgentInstance when business hires this agent
+  admin.py          ← Django admin for domain models + AgentLog inline
+  webhooks.py       ← Inbound webhook handler (external → agent event routing)
+  models.py         ← Domain models (FK → 'bredbound.BusinessInstance')
+  serializers.py    ← DRF serializers
+  views.py          ← DRF ViewSets
+  urls.py           ← app_name = '<name>'
+  migrations/
     __init__.py
-    apps.py
-    models.py
-    serializers.py
-    views.py
-    urls.py
-    admin.py
-    migrations/
-      __init__.py
+    0001_initial.py
 ```
 
 ---
@@ -33,56 +37,262 @@ from django.apps import AppConfig
 class <Name>Config(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "agents.<name>"
-    verbose_name = "<Name> Agent"
+    verbose_name = "<Name> — <Role>"
+
+    def ready(self):
+        import agents.<name>.signals  # noqa
+```
+
+---
+
+## `engine.py`
+
+The AI brain. Always includes `PermissionRequired` for human-in-the-loop flow. Every method accepts an optional `instance` param and logs to `AgentLog`.
+
+```python
+import json
+from django.conf import settings
+from agents.utils import agent_chat
+
+
+class PermissionRequired(Exception):
+    """Raised when agent confidence is below threshold — requires human approval."""
+    def __init__(self, context: str, option_a: str, option_b: str = ''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
+
+
+SYSTEM_PROMPT = """You are <Name>, BengalBound's <Role>.
+
+[Describe capabilities, domain knowledge, and working principles here.]
+
+Tone: [professional/warm/analytical/etc.]"""
+
+
+class <Name>Engine:
+    SYSTEM_PROMPT = SYSTEM_PROMPT
+    CONFIDENCE_THRESHOLD = 0.8  # Below this → raises PermissionRequired
+
+    def primary_action(self, domain_object, instance=None) -> dict:
+        prompt = f"""[Task-specific prompt using domain_object fields.]
+
+Return JSON: {{
+  "result": "...",
+  "confidence": 0.0-1.0,
+  "needs_human": boolean
+}}"""
+
+        messages = [
+            {"role": "system", "content": self.SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        raw = agent_chat(messages)
+        try:
+            result = json.loads(raw)
+        except json.JSONDecodeError:
+            result = {"result": raw, "confidence": 0.5, "needs_human": True}
+
+        # Log to AgentLog before raising
+        if instance:
+            from agents.models import AgentLog
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"primary_action #{domain_object.pk}",
+                outcome='pending' if result.get('needs_human') else 'success',
+                detail=json.dumps(result),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'neural-chat'),
+            )
+
+        if result.get('confidence', 1.0) < self.CONFIDENCE_THRESHOLD:
+            raise PermissionRequired(
+                context=f"Unsure about action on #{domain_object.pk}: confidence {result['confidence']}",
+                option_a="Approve the suggested action.",
+                option_b="Deny and assign to a human.",
+            )
+
+        return result
+```
+
+---
+
+## `tasks.py`
+
+Always loads `AgentInstance` per-business at task start. Catches `PermissionRequired` and sends email notification. Never hard-codes business IDs.
+
+```python
+import logging
+from celery import shared_task
+
+logger = logging.getLogger(__name__)
+
+
+@shared_task(name="agents.<name>.primary_batch_task")
+def primary_batch_task():
+    from agents.<name>.models import DomainModel
+    from agents.<name>.engine import <Name>Engine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+    from agents.platform.email_notify import EmailAdapter
+
+    catalog = AgentCatalog.objects.filter(slug='<slug>').first()
+    if not catalog:
+        return 0
+
+    engine = <Name>Engine()
+    processed = 0
+
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        items = DomainModel.objects.filter(business=instance.business, status='pending')
+        for item in items:
+            try:
+                result = engine.primary_action(item, instance=instance)
+                # Apply result to domain model
+                processed += 1
+            except PermissionRequired as pr:
+                req = AgentPermissionRequest.objects.create(
+                    instance=instance,
+                    context=pr.context,
+                    option_a=pr.option_a,
+                    option_b=pr.option_b,
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+
+                # Notify business owner
+                emails = _get_owner_emails(instance)
+                EmailAdapter(instance).send_permission_request(req, emails)
+            except Exception as exc:
+                logger.error("agents.<name>.primary_batch_task item %s: %s", item.pk, exc)
+
+    logger.info("agents.<name>.primary_batch_task: processed %d items", processed)
+    return processed
+
+
+def _get_owner_emails(instance) -> list:
+    try:
+        if hasattr(instance.business, 'owner') and instance.business.owner.email:
+            return [instance.business.owner.email]
+        if hasattr(instance.business, 'users'):
+            return [u.email for u in instance.business.users.all() if u.email]
+    except Exception:
+        pass
+    return ['admin@bengalbound.com']
+```
+
+---
+
+## `signals.py`
+
+Auto-provisions an `AgentInstance` when a business hires this agent via `HiredAIEmployee`.
+
+```python
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from workspace_admin.models import HiredAIEmployee
+from agents.models import AgentInstance
+
+
+@receiver(post_save, sender=HiredAIEmployee)
+def provision_<name>_instance(sender, instance, created, **kwargs):
+    if not getattr(instance, 'agent_catalog', None) or instance.agent_catalog.slug != '<slug>':
+        return
+    if instance.is_active:
+        business = instance.employer.owned_businesses.first()
+        if not business:
+            return
+        obj, is_new = AgentInstance.objects.get_or_create(
+            business=business,
+            catalog=instance.agent_catalog,
+            defaults={'hired_employee': instance, 'status': 'idle'},
+        )
+        if not is_new and obj.status == 'offline':
+            obj.status = 'idle'
+            obj.save(update_fields=['status'])
+    else:
+        AgentInstance.objects.filter(hired_employee=instance).update(status='offline')
+```
+
+---
+
+## `admin.py`
+
+```python
+from django.contrib import admin
+from agents.<name>.models import DomainModel
+
+
+@admin.register(DomainModel)
+class DomainModelAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'business', 'status', 'created_at']
+    list_filter = ['status']
+    search_fields = ['business__name']
+```
+
+---
+
+## `webhooks.py`
+
+Called by the universal inbound webhook receiver at `POST /agents/webhook/<token>/`.
+
+```python
+def handle_event(event_type: str, payload: dict, instance):
+    """Route inbound webhook payload to the agent's engine."""
+    from agents.<name>.models import DomainModel
+    from agents.<name>.engine import <Name>Engine
+
+    engine = <Name>Engine()
+    if event_type == 'webhook_event':
+        # Create domain model from payload, run engine
+        obj = DomainModel.objects.create(
+            business=instance.business,
+            # map payload fields here
+        )
+        try:
+            engine.primary_action(obj, instance=instance)
+        except Exception:
+            pass
+
+
+def handle_permission_resume(perm_request, instance):
+    """
+    Optional hook — called by resume_after_permission task after human approves/denies.
+    Implement this to execute the approved action rather than waiting for next beat cycle.
+    """
+    if perm_request.decision != 'approved':
+        return
+    # Re-run the action that was pending
 ```
 
 ---
 
 ## `models.py`
 
-Domain models specific to this agent. All FKs point to `'bredbound.BusinessInstance'`.
-
 ```python
+import uuid
 from django.db import models
-from django.conf import settings
+from core.models import BaseModel  # provides created_at, updated_at
 
 
-class <Name>Task(models.Model):
-    """Primary work unit for the <Name> agent."""
-
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("in_progress", "In Progress"),
-        ("completed", "Completed"),
-        ("failed", "Failed"),
-    ]
-
+class DomainModel(BaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     business = models.ForeignKey(
-        "bredbound.BusinessInstance",
+        'bredbound.BusinessInstance',   # NEVER 'hub.BusinessInstance'
         on_delete=models.CASCADE,
-        related_name="<name>_tasks",
+        related_name='<name>_items',
     )
-    # Add domain-specific fields here, e.g.:
-    # title = models.CharField(max_length=255)
-    # description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    ai_response = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="<name>_tasks",
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('processing', 'Processing'),
+                 ('completed', 'Completed'), ('failed', 'Failed')],
+        default='pending',
     )
+    ai_output = models.TextField(blank=True)
 
     class Meta:
-        app_label = "agents_<name>"
-        ordering = ["-created_at"]
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"<Name>Task #{self.pk} [{self.status}]"
+        return f"<Name> #{self.pk} [{self.status}]"
 ```
 
 ---
@@ -91,80 +301,53 @@ class <Name>Task(models.Model):
 
 ```python
 from rest_framework import serializers
-from .models import <Name>Task
+from .models import DomainModel
 
 
-class <Name>TaskSerializer(serializers.ModelSerializer):
+class DomainModelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = <Name>Task
-        fields = "__all__"
-        read_only_fields = ("ai_response", "created_at", "updated_at")
+        model = DomainModel
+        fields = '__all__'
+        read_only_fields = ['id', 'ai_output', 'created_at', 'updated_at']
 ```
 
 ---
 
 ## `views.py`
 
-All agent views use `agent_chat()` from `agents.utils` — never call any AI provider directly.
-
 ```python
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from hub.models import BusinessInstance, BusinessEmployee
-from agents.utils import agent_chat
-from .models import <Name>Task
-from .serializers import <Name>TaskSerializer
-
-_<NAME>_SYSTEM_PROMPT = """
-You are <Name>, a specialist AI assistant for BengalBound HUB.
-
-[DESCRIBE THE AGENT'S ROLE, PERSONALITY, AND RESPONSIBILITIES HERE]
-
-Always be professional, accurate, and business-focused.
-"""
-
-_<NAME>_MODEL = "neural-chat"   # Override with 'gemini/gemini-1.5-flash' for complex tasks
+from .models import DomainModel
+from .serializers import DomainModelSerializer
 
 
-class <Name>TaskViewSet(viewsets.ModelViewSet):
-    serializer_class = <Name>TaskSerializer
+class DomainModelViewSet(viewsets.ModelViewSet):
+    serializer_class = DomainModelSerializer
+    permission_classes = [IsAuthenticated]
+
+    def _get_business(self):
+        return get_object_or_404(BusinessInstance, slug=self.kwargs['slug'])
 
     def get_queryset(self):
-        slug = self.kwargs.get("slug")
-        business = get_object_or_404(BusinessInstance, slug=slug)
-        return <Name>Task.objects.filter(business=business)
+        business = self._get_business()
+        get_object_or_404(BusinessEmployee, business=business, user=self.request.user)
+        return DomainModel.objects.filter(business=business)
 
     def perform_create(self, serializer):
-        slug = self.kwargs.get("slug")
-        business = get_object_or_404(BusinessInstance, slug=slug)
-        serializer.save(business=business, created_by=self.request.user)
+        serializer.save(business=self._get_business())
 
-    @action(detail=True, methods=["post"], url_path="process")
+    @action(detail=True, methods=['post'])
     def process(self, request, slug=None, pk=None):
-        """Run the <Name> agent on this task."""
-        task = self.get_object()
-
-        messages = [
-            {"role": "system", "content": _<NAME>_SYSTEM_PROMPT},
-            {"role": "user", "content": str(task)},  # Customise this
-        ]
-
-        try:
-            response = agent_chat(messages, model=_<NAME>_MODEL)
-            task.ai_response = response
-            task.status = "completed"
-            task.save(update_fields=["ai_response", "status", "updated_at"])
-            return Response({"response": response, "status": "completed"})
-        except Exception as exc:
-            task.status = "failed"
-            task.save(update_fields=["status", "updated_at"])
-            return Response(
-                {"error": str(exc)},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+        obj = self.get_object()
+        from agents.<name>.tasks import primary_batch_task
+        primary_batch_task.delay()  # or pass obj.pk if task is per-item
+        return Response({'status': 'queued'})
 ```
 
 ---
@@ -174,142 +357,98 @@ class <Name>TaskViewSet(viewsets.ModelViewSet):
 ```python
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import <Name>TaskViewSet
+from .views import DomainModelViewSet
 
-app_name = "<name>"
+app_name = '<name>'
 
 router = DefaultRouter()
-router.register(r"tasks", <Name>TaskViewSet, basename="<name>-task")
+router.register(r'items', DomainModelViewSet, basename='items')
 
-urlpatterns = [
-    path("", include(router.urls)),
-]
+urlpatterns = [path('', include(router.urls))]
 ```
 
 ---
 
-## `admin.py`
+## Register the Agent
 
+**1. `bengalbound_core/settings/base.py`** — add to `INSTALLED_APPS`:
 ```python
-from django.contrib import admin
-from .models import <Name>Task
-
-
-@admin.register(<Name>Task)
-class <Name>TaskAdmin(admin.ModelAdmin):
-    list_display = ("pk", "business", "status", "created_at")
-    list_filter = ("status",)
-    search_fields = ("business__name",)
-    readonly_fields = ("ai_response", "created_at", "updated_at")
+'agents.<name>',
 ```
 
----
-
-## `migrations/__init__.py`
-
+**2. `bengalbound_core/settings/base.py`** — add to `CELERY_BEAT_SCHEDULE`:
 ```python
+'<name>-primary-task': {'task': 'agents.<name>.primary_batch_task', 'schedule': 86400},
 ```
 
----
-
-## `agents/utils.py` (shared — create once)
-
+**3. `bengalbound_core/urls.py`** — mount URL:
 ```python
-import json
-import requests
-from django.conf import settings
-from .toolkit import UNIVERSAL_TOOLS, execute_tool
-
-def agent_chat(messages: list, model: str = None) -> str:
-    """
-    Send messages to the LiteLLM proxy and return the assistant reply.
-    Now equipped with the Universal Toolkit loop for autonomous internet/API access.
-    """
-    model = model or settings.SEREA_TASK_MODELS.get("chat", "neural-chat")
-    
-    # Inject tool awareness into the system prompt automatically
-    messages_copy = list(messages)
-    for m in messages_copy:
-        if m.get("role") == "system":
-            instruction = "\n\n[SYSTEM]: You are an autonomous AI. You have access to tools that can search the internet, scrape websites, and call APIs. Use them whenever you need real-time information or external data."
-            if instruction not in m.get("content", ""):
-                m["content"] += instruction
-            break
-            
-    for _ in range(5):  # Max 5 tool iterations
-        resp = requests.post(
-            f"{settings.LITELLM_BASE_URL}/chat/completions",
-            headers={"Authorization": f"Bearer {settings.LITELLM_MASTER_KEY}"},
-            json={"model": model, "messages": messages_copy, "tools": UNIVERSAL_TOOLS},
-            timeout=45,
-        )
-        resp.raise_for_status()
-        
-        message = resp.json()["choices"][0]["message"]
-        
-        if message.get("tool_calls"):
-            messages_copy.append(message)
-            for tc in message["tool_calls"]:
-                tool_name = tc["function"]["name"]
-                try:
-                    arguments = json.loads(tc["function"]["arguments"])
-                except json.JSONDecodeError:
-                    arguments = {}
-                    
-                result = execute_tool(tool_name, arguments)
-                messages_copy.append({
-                    "role": "tool",
-                    "name": tool_name,
-                    "tool_call_id": tc["id"],
-                    "content": str(result)
-                })
-        else:
-            return message.get("content", "")
-            
-    return "Error: Exceeded maximum tool call iterations."
+path('hub/<slug:slug>/agents/<slug>/', include('agents.<name>.urls', namespace='<name>')),
 ```
 
----
-
-## Register the app
-
-In `bengalbound_core/settings/base.py`, add to `INSTALLED_APPS`:
-```python
-"agents.<name>",
-```
-
----
-
-## Mount the URL
-
-In `bengalbound_core/urls.py`, inside the `hub/<slug>/` block:
-```python
-path("hub/<slug:slug>/agents/<name>/", include("agents.<name>.urls")),
-```
-
----
-
-## Seed entry
-
-In `agents/management/commands/seed_agents.py`, add to `AGENTS`:
+**4. `agents/management/commands/seed_agents.py`** — add to `AGENTS` list:
 ```python
 {
     "name": "<Name>",
-    "slug": "<name>",
-    "role": "<One-line role description>",
+    "slug": "<slug>",
+    "role": "<One-line role>",
     "description": "<2-3 sentence description>",
-    "system_prompt": _<NAME>_SYSTEM_PROMPT,   # import from views
+    "system_prompt": "",   # populated from engine.SYSTEM_PROMPT at runtime
     "category": "<Category>",
     "tier_required": "entry",
     "icon": "",
 },
 ```
 
+**5. Create and apply migration:**
+```bash
+python manage.py makemigrations <name>
+python manage.py migrate
+python manage.py seed_agents
+```
+
 ---
 
-## Key constraints (repeat for every agent)
+## Deploying an Agent Externally
 
-1. FK to tenant: `"bredbound.BusinessInstance"` — never `"hub.BusinessInstance"`
-2. AI calls: `agent_chat()` from `agents.utils` — never direct Groq/OpenAI/Gemini
-3. View signature: all views accept `slug` kwarg and verify business + employee access
-4. App label: set in `apps.py` as `"agents.<name>"` (hyphenated slugs become underscored: `lead_hunter`)
+Any agent can be used by external systems without being inside a BengalBound module.
+
+### Option 1 — REST API
+```bash
+# Get agent output via REST
+POST /hub/<business-slug>/agents/<agent-slug>/items/
+Authorization: Token <your-token>
+Content-Type: application/json
+{"field": "value"}
+```
+
+### Option 2 — Inbound Webhook
+```python
+# Register a webhook endpoint
+AgentWebhookEndpoint.objects.create(
+    instance=agent_instance,
+    source='your-system',
+    url_token='<unique-256bit-token>',
+    secret='<hmac-key>',
+)
+
+# External system posts to:
+# POST /agents/webhook/<token>/
+# X-Hub-Signature-256: sha256=<hmac>
+```
+
+### Option 3 — Standalone Celery Task
+Set `AgentInstance.status = 'idle'` and the agent's Celery Beat tasks fire automatically on schedule, reading from whatever `AgentIntegration` credentials are stored.
+
+---
+
+## Critical Rules
+
+| Rule | Detail |
+|------|--------|
+| FK to tenant | Always `'bredbound.BusinessInstance'` — never `'hub.BusinessInstance'` |
+| AI calls | Always `agent_chat()` from `agents.utils` — never direct OpenAI/Groq/Gemini |
+| View pattern | All views accept `slug` kwarg, verify business + employee access |
+| App name | `apps.py` name = `"agents.<name>"` (hyphens become underscores) |
+| Migrations | Create with `makemigrations <name>`, not `makemigrations agents` |
+| Permission flow | Raise `PermissionRequired` for confidence < threshold, never silently act |
