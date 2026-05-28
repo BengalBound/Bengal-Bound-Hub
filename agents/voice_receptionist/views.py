@@ -1,5 +1,3 @@
-from django.shortcuts import get_object_or_404
-from hub.models import BusinessInstance, BusinessEmployee
 """
 voice_receptionist/views.py
 ------------------------------
@@ -44,6 +42,17 @@ logger = logging.getLogger(__name__)
 
 class FirebaseAuthMixin:
     authentication_classes = [FirebaseAuthentication]
+
+    def dispatch(self, request, *args, **kwargs):
+        # Strip the hub slug — VR uses its own BusinessProfile, not hub's BusinessInstance
+        kwargs.pop("slug", None)
+        return super().dispatch(request, *args, **kwargs)
+
+    def _get_business(self):
+        try:
+            return self.request.user.voice_profile.business
+        except AttributeError:
+            return None
 
 
 # ---------------------------------------------------------------------------

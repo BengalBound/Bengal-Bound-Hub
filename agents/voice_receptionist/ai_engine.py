@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from core.ai_provider import ai_chat
+from agents.utils import ai_chat
 
 logger = logging.getLogger(__name__)
 

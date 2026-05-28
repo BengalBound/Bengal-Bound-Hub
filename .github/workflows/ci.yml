@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    env:
+      DJANGO_SETTINGS_MODULE: bengalbound_core.settings.development
+      SECRET_KEY: ci-insecure-key-for-testing-only
+      DATABASE_URL: sqlite:///./test_db.sqlite3
+      LITELLM_BASE_URL: http://localhost:4000
+      LITELLM_MASTER_KEY: sk-test
+      DEBUG: "True"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check Django configuration
+        run: python manage.py check
+
+      - name: Check for pending migrations
+        run: python manage.py migrate --check
+
+      - name: Run tests
+        run: python manage.py test --verbosity=2 --parallel
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install lint tools
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check . --select E,F,W --ignore E501,W503
+
+  deploy-dev:
+    name: Deploy → dev server
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Notify deployment (placeholder)
+        run: |
+          echo "✅ All checks passed on dev branch."
+          echo "Wire in your deploy step here (e.g. Railway, Fly.io, SSH deploy, or Docker push)."
+
+  deploy-prod:
+    name: Deploy → production
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Notify production deployment (placeholder)
+        run: |
+          echo "🚀 Deploying main branch to production."
+          echo "Wire in your production deploy step here."

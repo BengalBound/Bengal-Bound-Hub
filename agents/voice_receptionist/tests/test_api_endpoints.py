@@ -2,7 +2,7 @@
 voice_receptionist/tests/test_api_endpoints.py
 ------------------------------------------------
 Integration tests for all DRF API endpoints.
-Uses Django's APIClient with mocked Firebase auth.
+URL base: /hub/<slug>/agents/voice-receptionist/
 """
 
 from django.contrib.auth import get_user_model
@@ -17,11 +17,15 @@ from ..models import (
 
 User = get_user_model()
 
+# VR is mounted at /hub/<slug>/agents/voice-receptionist/ in the root urlconf.
+# The slug is just a routing segment; VR views use their own BusinessProfile model.
+BASE = "/hub/test-biz/agents/voice-receptionist"
+
 
 def make_admin_client():
-    """Create a test user + UserProfile with admin role and return an authenticated APIClient."""
+    """Create a test user + VR UserProfile with admin role and return an authenticated APIClient."""
     user = User.objects.create_user(username="firebase-admin-uid", email="admin@test.com")
-    biz  = BusinessProfile.objects.create(
+    biz = BusinessProfile.objects.create(
         firebase_uid="firebase-admin-uid",
         business_name="API Test Biz",
         business_type=BusinessType.SALON,
@@ -31,7 +35,6 @@ def make_admin_client():
     UserProfile.objects.create(user=user, firebase_uid="firebase-admin-uid", role="admin", business=biz)
 
     client = APIClient()
-    # Bypass Firebase verification — force-authenticate the test user
     client.force_authenticate(user=user)
     return client, user, biz
 
@@ -41,17 +44,17 @@ class BusinessProfileAPITest(TestCase):
         self.client, self.user, self.biz = make_admin_client()
 
     def test_list_profiles(self):
-        response = self.client.get("/api/v1/voice/profile/")
+        response = self.client.get(f"{BASE}/profile/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_profile(self):
-        response = self.client.get(f"/api/v1/voice/profile/{self.biz.id}/")
+        response = self.client.get(f"{BASE}/profile/{self.biz.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["business_name"], "API Test Biz")
 
     def test_update_profile(self):
         response = self.client.patch(
-            f"/api/v1/voice/profile/{self.biz.id}/",
+            f"{BASE}/profile/{self.biz.id}/",
             {"agent_name": "Bella"},
             format="json",
         )
@@ -60,7 +63,7 @@ class BusinessProfileAPITest(TestCase):
         self.assertEqual(self.biz.agent_name, "Bella")
 
     def test_voices_endpoint(self):
-        response = self.client.get("/api/v1/voice/profile/voices/")
+        response = self.client.get(f"{BASE}/profile/voices/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response.data, list)
 
@@ -80,7 +83,7 @@ class AppointmentAPITest(TestCase):
         }
         with patch("agents.voice_receptionist.calendar_sync.create_appointment_event", return_value="fake_event_id"), \
              patch("agents.voice_receptionist.notifications.notify_appointment"):
-            response = self.client.post("/api/v1/voice/appointments/", payload, format="json")
+            response = self.client.post(f"{BASE}/appointments/", payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Appointment.objects.count(), 1)
 
@@ -92,9 +95,8 @@ class AppointmentAPITest(TestCase):
             service_type="Color",
             scheduled_at=timezone.now() + timezone.timedelta(days=2),
         )
-        response = self.client.get("/api/v1/voice/appointments/")
+        response = self.client.get(f"{BASE}/appointments/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Handle both paginated and non-paginated responses
         data = response.data if isinstance(response.data, list) else response.data.get("results", [])
         self.assertEqual(len(data), 1)
 
@@ -106,7 +108,7 @@ class AppointmentAPITest(TestCase):
             service_type="Nails",
             scheduled_at=timezone.now() + timezone.timedelta(days=3),
         )
-        response = self.client.get("/api/v1/voice/appointments/upcoming/")
+        response = self.client.get(f"{BASE}/appointments/upcoming/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_booking_past_date_rejected(self):
@@ -118,7 +120,7 @@ class AppointmentAPITest(TestCase):
             "scheduled_at": (timezone.now() - timezone.timedelta(hours=1)).isoformat(),
             "status": "confirmed",
         }
-        response = self.client.post("/api/v1/voice/appointments/", payload, format="json")
+        response = self.client.post(f"{BASE}/appointments/", payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -128,12 +130,12 @@ class CallAPITest(TestCase):
 
     def test_list_calls(self):
         Call.objects.create(business=self.biz, call_sid="CAlist001", caller_phone="+1555")
-        response = self.client.get("/api/v1/voice/calls/")
+        response = self.client.get(f"{BASE}/calls/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_active_calls_endpoint(self):
         Call.objects.create(business=self.biz, call_sid="CAactive001", caller_phone="+1556", status="ongoing")
-        response = self.client.get("/api/v1/voice/calls/active/")
+        response = self.client.get(f"{BASE}/calls/active/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data), 1)
 
@@ -143,7 +145,7 @@ class AnalyticsAPITest(TestCase):
         self.client, self.user, self.biz = make_admin_client()
 
     def test_analytics_endpoint(self):
-        response = self.client.get("/api/v1/voice/analytics/?range=30")
+        response = self.client.get(f"{BASE}/analytics/?range=30")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("total_calls", response.data)
         self.assertIn("booking_rate_pct", response.data)

@@ -1,0 +1,248 @@
+{
+  "entities": [
+    {
+      "name": "Design System",
+      "type": "DesignToken",
+      "observations": [
+        "Uses strict 8px grid layout spacing.",
+        "Relies on modern typography from Google Fonts: Outfit (headings) and Inter (body).",
+        "Theme default is high-contrast premium Dark Mode; Light Mode available via toggles.",
+        "Employs 12px border radius for content cards, 8px for form inputs, 999px for status badges.",
+        "Restricted transition animations: 200ms for micro-interactions, 300ms for page routing."
+      ]
+    },
+    {
+      "name": "UX Philosophy",
+      "type": "Concept",
+      "observations": [
+        "Core rule: Can a non-technical business owner perform this task in under 60 seconds?",
+        "Zero learning curve: Every blank state includes a clear CTA button.",
+        "One tap navigation: Always back to Dashboard via logo, with sidebar/tab bar sticky.",
+        "Instant feedback: Responsive skeleton screens for loading, slide-in top success/error toast alerts.",
+        "Forgiveness design: Mutating actions have a 5-second instant undo option, data goes to Archive."
+      ]
+    },
+    {
+      "name": "Master UX Index",
+      "type": "Index",
+      "observations": [
+        "Single source of truth located at docs/design/MASTER_UX_INDEX.md.",
+        "Maps all 25 screens across Marketing, Portal, Compliance, Web, and Phase 2 agent specifications."
+      ]
+    },
+    {
+      "name": "Mega Admin Panel",
+      "type": "Page",
+      "observations": [
+        "Unified backoffice console supporting roles for CEO, CTO, IT Admin, Engineer, and Sales.",
+        "Permits direct system prompt overrides tuning, VPS scaling triggers, and Stripe billing logs monitoring."
+      ]
+    },
+    {
+      "name": "Marketing Website",
+      "type": "Page",
+      "observations": [
+        "Public marketing pages routed in Django templates under root.",
+        "Contains Homepage Landing page showcasing core Compliant AI employees.",
+        "Contains /agents catalog containing interactive category department chips and status indicator dots.",
+        "Contains /pricing Stripe-wired plan matrix (Free BDT 0, Growth BDT 5,000, Enterprise).",
+        "Includes /login and /signup django-allauth federated auth gates."
+      ]
+    },
+    {
+      "name": "Client Portal Console",
+      "type": "Page",
+      "observations": [
+        "Main user interface accessible at /dashboard path.",
+        "Uses responsive split sidebar layout with contextual upper navigation bar.",
+        "Features multi-tenant organization dropdown switcher mapping active company schemas.",
+        "Aggregates total running agents, compliance watchdog health percentage, and live activity feeds."
+      ]
+    },
+    {
+      "name": "Veritas Onboarding",
+      "type": "Feature",
+      "observations": [
+        "Client identity verification module accessible at /dashboard/veritas.",
+        "Structured as a 3-step wizard (Business registration details -> PDF Document Dropzone -> Verification).",
+        "Triggers OCR compliance indexing parser on document attachment."
+      ]
+    },
+    {
+      "name": "Inspector Watchdog",
+      "type": "Service",
+      "observations": [
+        "Real-time middleware auditing 40+ global regulations including GDPR, HIPAA, and EU AI Act.",
+        "Pre-execution interceptor on all non-GET mutating actions.",
+        "Automatically redacts PII and logs audit tracks to django db."
+      ]
+    },
+    {
+      "name": "Voice Receptionist Panel",
+      "type": "Page",
+      "observations": [
+        "Sub-dashboard dedicated to managing virtual phone receptionists.",
+        "Visualizes Twilio virtual phone numbers and call volume tracking charts.",
+        "Includes right-anchored full transcription drawer displaying AI call summary logs."
+      ]
+    },
+    {
+      "name": "Serea Campaign Console",
+      "type": "Page",
+      "observations": [
+        "Sub-panel managing copywriter campaigns and scheduled blogs.",
+        "Contains inline editing widgets for draft modifications, A/B optimization trigger buttons."
+      ]
+    },
+    {
+      "name": "Web Approvals Feed",
+      "type": "Page",
+      "observations": [
+        "Web screen built on Django templates with action buttons.",
+        "Allows user to approve or reject compliance alerts via button clicks.",
+        "Maintains database synchronization via Django SSE and connectivity warnings."
+      ]
+    },
+    {
+      "name": "Lead Hunter Dashboard",
+      "type": "Page",
+      "observations": [
+        "Outreach sequencer panel matching search terms with target company leads.",
+        "Monitors lead reply rates, trigger automations and coordinates with Serea briefs."
+      ]
+    },
+    {
+      "name": "Content Architect Dashboard",
+      "type": "Page",
+      "observations": [
+        "SEO strategic outline brief creator.",
+        "Manages search vol indices, position indicators, and keyword difficulties."
+      ]
+    },
+    {
+      "name": "Aria Support Console",
+      "type": "Page",
+      "observations": [
+        "Customer helpdesk interface and escalation queue controller."
+      ]
+    },
+    {
+      "name": "Kai DevOps Console",
+      "type": "Page",
+      "observations": [
+        "System performance visualizer plotting memory meters, Docker toggles, and live audit warnings."
+      ]
+    },
+    {
+      "name": "Hera HR Panel",
+      "type": "Page",
+      "observations": [
+        "Leave requests queue and employee onboarding contractor checklister."
+      ]
+    },
+    {
+      "name": "Nova Data Analyst Dashboard",
+      "type": "Page",
+      "observations": [
+        "Natural-language query compiler generating structured database SQL statements and line plots."
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "Design System",
+      "to": "UX Philosophy",
+      "type": "realizes"
+    },
+    {
+      "from": "Master UX Index",
+      "to": "Marketing Website",
+      "type": "indexes"
+    },
+    {
+      "from": "Master UX Index",
+      "to": "Client Portal Console",
+      "type": "indexes"
+    },
+    {
+      "from": "Master UX Index",
+      "to": "Mega Admin Panel",
+      "type": "indexes"
+    },
+    {
+      "from": "Master UX Index",
+      "to": "Design System",
+      "type": "governed_by"
+    },
+    {
+      "from": "Marketing Website",
+      "to": "Client Portal Console",
+      "type": "routes_to"
+    },
+    {
+      "from": "Mega Admin Panel",
+      "to": "Design System",
+      "type": "governed_by"
+    },
+    {
+      "from": "Mega Admin Panel",
+      "to": "Inspector Watchdog",
+      "type": "monitored_by"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Veritas Onboarding",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Voice Receptionist Panel",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Serea Campaign Console",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Lead Hunter Dashboard",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Content Architect Dashboard",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Aria Support Console",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Kai DevOps Console",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Hera HR Panel",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Nova Data Analyst Dashboard",
+      "type": "contains"
+    },
+    {
+      "from": "Client Portal Console",
+      "to": "Inspector Watchdog",
+      "type": "audited_by"
+    },
+    {
+      "from": "Web Approvals Feed",
+      "to": "Inspector Watchdog",
+      "type": "moderates"
+    }
+  ]
+}
