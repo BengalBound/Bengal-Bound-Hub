@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Mira, BengalBound's AI Customer Success Manager.
 
@@ -27,7 +35,7 @@ Health score components: login frequency (30%), feature usage (30%), open ticket
 class MiraEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def health_assessment(self, client_health) -> dict:
+    def health_assessment(self, client_health, instance=None) -> dict:
         prompt = f"""Assess this customer health record and recommend action.
 
 Health Score: {client_health.health_score}/100
@@ -53,11 +61,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"assessment": raw, "churn_risk": client_health.risk_level, "recommended_actions": [], "key_issues": []}
+            res = {"assessment": raw, "churn_risk": client_health.risk_level, "recommended_actions": [], "key_issues": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"health_assessment for {client_health.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("churn_risk") == "critical":
+                raise PermissionRequired(
+                    context=f"CRITICAL churn risk detected for customer. Issues: {', '.join(res.get('key_issues', []))}",
+                    option_a="Approve immediate high-priority intervention",
+                    option_b="Deny (Handle via standard workflow)"
+                )
+        return res
 
-    def draft_email(self, business_name: str, email_type: str, context: dict = None) -> dict:
+    def draft_email(self, business_name: str, email_type: str, context: dict = None, instance=None) -> dict:
         context_text = "\n".join(f"{k}: {v}" for k, v in (context or {}).items())
         email_guides = {
             "onboarding": "Welcome and guide through first value moment. Include 3 quick wins.",
@@ -90,11 +115,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"subject": f"[{email_type.title()}] {business_name}", "body": raw}
+            res = {"subject": f"[{email_type.title()}] {business_name}", "body": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"draft_email {email_type}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def expansion_opportunity(self, client_health, current_plan: str) -> dict:
+    def expansion_opportunity(self, client_health, current_plan: str, instance=None) -> dict:
         prompt = f"""Identify expansion opportunity for this customer.
 
 Current Plan: {current_plan}
@@ -117,6 +152,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"ready_for_expansion": False, "opportunity_type": "none", "recommended_timing": raw}
+            res = {"ready_for_expansion": False, "opportunity_type": "none", "recommended_timing": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"expansion_opportunity for {client_health.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

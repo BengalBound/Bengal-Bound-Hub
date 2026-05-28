@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Babel, BengalBound's AI Translation Specialist.
 
@@ -26,8 +34,10 @@ Supported domains: legal, medical, financial, technical, marketing, general"""
 class BabelEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def translate(self, job) -> list:
+    def translate(self, job, instance=None) -> list:
         results = []
+        low_quality_detected = False
+        flagged_segments_detected = False
         for target_lang in job.target_languages:
             prompt = f"""Translate the following text from {job.source_language} to {target_lang}.
 
@@ -52,11 +62,32 @@ Return JSON with:
                 data = json.loads(raw)
             except json.JSONDecodeError:
                 data = {"translated_text": raw, "quality_score": 0.7, "cultural_notes": [], "flagged_segments": []}
+                
+            if data.get("quality_score", 1.0) < 0.6:
+                low_quality_detected = True
+            if data.get("flagged_segments"):
+                flagged_segments_detected = True
 
             results.append({"language": target_lang, **data})
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"translate job {job.pk}",
+                outcome='success',
+                detail=json.dumps(results),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if low_quality_detected or flagged_segments_detected:
+                raise PermissionRequired(
+                    context=f"Low quality or flagged segments in translation job {job.pk}.",
+                    option_a="Approve translation",
+                    option_b="Send for manual review"
+                )
         return results
 
-    def detect_language(self, text: str) -> str:
+    def detect_language(self, text: str, instance=None) -> str:
         prompt = f"""Detect the language of this text and return ONLY the ISO 639-1 code (e.g. "en", "fr", "bn").
 
 Text: {text[:500]}"""
@@ -64,9 +95,18 @@ Text: {text[:500]}"""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages).strip().lower()[:5]
+        res = agent_chat(messages).strip().lower()[:5]
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="detect_language",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def quality_review(self, source: str, translation: str, source_lang: str, target_lang: str) -> dict:
+    def quality_review(self, source: str, translation: str, source_lang: str, target_lang: str, instance=None) -> dict:
         prompt = f"""Review this translation for quality.
 
 Source ({source_lang}): {source[:1000]}
@@ -83,11 +123,21 @@ Return JSON with:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"score": 0.8, "issues": [], "suggested_corrections": []}
+            res = {"score": 0.8, "issues": [], "suggested_corrections": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="quality_review",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def domain_glossary(self, text: str, domain: str) -> list:
+    def domain_glossary(self, text: str, domain: str, instance=None) -> list:
         prompt = f"""Extract domain-specific terms from this {domain} text that need consistent translation.
 
 Text: {text[:2000]}
@@ -100,6 +150,16 @@ Return a JSON array of objects: {{"term": "original term", "domain": "{domain}",
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="domain_glossary",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

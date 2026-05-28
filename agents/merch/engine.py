@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Merch, BengalBound's AI eCommerce Manager.
 
@@ -27,7 +35,7 @@ Platforms: shopify, woocommerce, daraz, facebook, custom"""
 class MerchEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def optimise_listing(self, product) -> dict:
+    def optimise_listing(self, product, instance=None) -> dict:
         platform_tips = {
             "shopify": "SEO-optimised, storytelling style, 150-300 words",
             "woocommerce": "Feature-benefit format, include specs, SEO keyword rich",
@@ -64,11 +72,29 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"ai_description": raw, "ai_price": float(product.price), "pricing_rationale": "", "tags": []}
+            res = {"ai_description": raw, "ai_price": float(product.price), "pricing_rationale": "", "tags": []}
 
-    def sales_analysis(self, store, products: list) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"optimise_listing for {product.sku}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            # If changing price, ask permission
+            if res.get("ai_price") and float(res["ai_price"]) != float(product.price):
+                raise PermissionRequired(
+                    context=f"Merch wants to change price for {product.title} from {product.price} to {res['ai_price']}. Reason: {res.get('pricing_rationale')}",
+                    option_a=f"Approve price change to {res['ai_price']}",
+                    option_b="Deny (Keep current price)"
+                )
+        return res
+
+    def sales_analysis(self, store, products: list, instance=None) -> str:
         product_summary = "\n".join(
             f"- {p.title}: {p.units_sold_30d} sold, stock: {p.stock_quantity}, price: {p.price}"
             for p in products[:20]
@@ -88,9 +114,18 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"sales_analysis for {store.store_name}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def reorder_recommendation(self, product) -> dict:
+    def reorder_recommendation(self, product, instance=None) -> dict:
         prompt = f"""Generate a reorder recommendation for this product.
 
 Product: {product.title}
@@ -113,6 +148,23 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"should_reorder": product.stock_quantity < product.reorder_threshold, "recommended_quantity": 100, "urgency": "medium", "reasoning": raw}
+            res = {"should_reorder": product.stock_quantity < product.reorder_threshold, "recommended_quantity": 100, "urgency": "medium", "reasoning": raw}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"reorder_recommendation for {product.sku}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("should_reorder") and res.get("urgency") in ["high", "critical"]:
+                raise PermissionRequired(
+                    context=f"Critical low stock for {product.title}. Recommended reorder: {res.get('recommended_quantity')} units. Reason: {res.get('reasoning')}",
+                    option_a=f"Approve creating purchase order for {res.get('recommended_quantity')} units",
+                    option_b="Deny"
+                )
+        return res

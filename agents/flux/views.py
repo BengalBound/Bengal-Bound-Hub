@@ -42,7 +42,8 @@ class SupplierViewSet(viewsets.ModelViewSet):
     def forecast(self, request, pk=None):
         """POST /api/v1/flux/suppliers/<pk>/forecast/ — AI writes supplier summary and reorder recommendation."""
         supplier = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Supplier: {supplier.name}\n"
             f"Country: {supplier.country}\n"

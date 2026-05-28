@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Lead Hunter, BengalBound's AI B2B Prospecting Specialist.
 
@@ -27,7 +35,7 @@ ICP signals: hiring in relevant roles, funding rounds, product launches, tech st
 class LeadHunterEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def score_prospect(self, prospect) -> dict:
+    def score_prospect(self, prospect, instance=None) -> dict:
         prompt = f"""Score this B2B prospect for outreach priority.
 
 Company: {prospect.company_name}
@@ -53,11 +61,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"score": 50, "icp_fit": "average", "intent_signals": [], "ai_summary": raw, "priority": "medium"}
+            res = {"score": 50, "icp_fit": "average", "intent_signals": [], "ai_summary": raw, "priority": "medium"}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"score_prospect for {prospect.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("score", 0) >= 90 or res.get("priority") == "high":
+                raise PermissionRequired(
+                    context=f"High-priority lead detected: {prospect.company_name}. Score: {res.get('score')}. Summary: {res.get('ai_summary')}",
+                    option_a="Approve immediate high-priority outreach",
+                    option_b="Deny (Nurture in standard queue)"
+                )
+        return res
 
-    def draft_outreach(self, prospect, sequence_step: int = 1, channel: str = "email") -> str:
+    def draft_outreach(self, prospect, sequence_step: int = 1, channel: str = "email", instance=None) -> str:
         step_instructions = {
             1: "First touch: introduce yourself and the value proposition. Use their specific company context.",
             2: "Follow-up: reference the first message briefly. Add a different angle or social proof.",
@@ -80,9 +105,18 @@ Write ONLY the message body. For email: include subject line prefixed with 'SUBJ
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"draft_outreach step {sequence_step} for {prospect.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def build_sequence(self, prospect, sequence_name: str) -> list:
+    def build_sequence(self, prospect, sequence_name: str, instance=None) -> list:
         prompt = f"""Build a complete outreach sequence for this prospect.
 
 Company: {prospect.company_name}
@@ -108,11 +142,21 @@ Create 5 touches: day 1, 3, 7, 14, 21."""
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"build_sequence for {prospect.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def objection_response(self, objection: str, prospect_context: str) -> str:
+    def objection_response(self, objection: str, prospect_context: str, instance=None) -> str:
         prompt = f"""Write a response to this sales objection.
 
 Objection: {objection}
@@ -128,4 +172,13 @@ Keep it to 3-4 sentences maximum."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="objection_response",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

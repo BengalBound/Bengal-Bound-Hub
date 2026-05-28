@@ -61,7 +61,8 @@ class RFQViewSet(viewsets.ModelViewSet):
     def evaluate(self, request, pk=None):
         """POST /api/v1/payload/rfqs/<pk>/evaluate/ — AI writes vendor recommendation."""
         rfq = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"RFQ Title: {rfq.title}\n"
             f"Description: {rfq.description}\n"

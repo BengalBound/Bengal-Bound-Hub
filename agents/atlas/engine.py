@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Atlas, BengalBound's AI Executive Assistant.
 
@@ -25,7 +33,7 @@ Tone: Concise, professional, strategic. Like a Chief of Staff."""
 class AtlasEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_briefing(self, meeting) -> dict:
+    def generate_briefing(self, meeting, instance=None) -> dict:
         prompt = f"""Generate an executive briefing for this upcoming meeting.
 
 Meeting: {meeting.meeting_title}
@@ -45,11 +53,28 @@ Return JSON with:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"talking_points": [], "ai_briefing": raw, "pre_meeting_prep": [], "risks": []}
+            res = {"talking_points": [], "ai_briefing": raw, "pre_meeting_prep": [], "risks": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_briefing for {meeting.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("risks") and len(res.get("risks")) > 0:
+                raise PermissionRequired(
+                    context=f"Risks identified in meeting briefing: {', '.join(res.get('risks', []))}",
+                    option_a="Acknowledge risks and prepare",
+                    option_b="Reschedule meeting to address risks first"
+                )
+        return res
 
-    def extract_tasks(self, text: str, source: str = "meeting") -> list:
+    def extract_tasks(self, text: str, source: str = "meeting", instance=None) -> list:
         prompt = f"""Extract all action items from this {source} text.
 
 Text:
@@ -67,11 +92,21 @@ Return a JSON array of objects, each with:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="extract_tasks",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def prioritize_tasks(self, tasks: list) -> str:
+    def prioritize_tasks(self, tasks: list, instance=None) -> str:
         task_list = "\n".join(f"- {t.get('title', str(t))} [{t.get('priority', 'medium')}]" for t in tasks[:20])
         prompt = f"""The executive has these open tasks. Prioritise and create an action plan.
 
@@ -90,9 +125,18 @@ Be specific and decisive."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="prioritize_tasks",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def morning_briefing(self, tasks: list, meetings: list) -> str:
+    def morning_briefing(self, tasks: list, meetings: list, instance=None) -> str:
         task_summary = "\n".join(f"- {t.title} [{t.priority}] due {t.due_date}" for t in tasks[:10])
         meeting_summary = "\n".join(f"- {m.meeting_title} at {m.scheduled_at}" for m in meetings[:5])
 
@@ -110,4 +154,13 @@ Write a 3-paragraph morning briefing: (1) today's schedule, (2) top priorities t
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="morning_briefing",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

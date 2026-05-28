@@ -9,28 +9,39 @@ def morning_briefing():
     from django.utils import timezone
     from datetime import timedelta
     from agents.atlas.models import ExecTask, MeetingBrief
-    from agents.atlas.engine import AtlasEngine
-    from hub.models import BusinessInstance
+    from agents.atlas.engine import AtlasEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='atlas')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = AtlasEngine()
     today = timezone.now().date()
     tomorrow = today + timedelta(days=1)
     processed = 0
 
-    for business in BusinessInstance.objects.filter(is_active=True):
-        tasks = list(ExecTask.objects.filter(business=business, status__in=["open", "in_progress"])
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        tasks = list(ExecTask.objects.filter(business=instance.business, status__in=["open", "in_progress"])
                      .order_by("priority", "due_date")[:10])
-        meetings = list(MeetingBrief.objects.filter(business=business,
+        meetings = list(MeetingBrief.objects.filter(business=instance.business,
                                                      scheduled_at__date__range=[today, tomorrow]))
         if not tasks and not meetings:
             continue
         try:
-            engine.morning_briefing(tasks, meetings)
+            engine.morning_briefing(tasks, meetings, instance=instance)
             processed += 1
+        except PermissionRequired as pr:
+            AgentPermissionRequest.objects.create(
+                instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+            )
+            instance.status = 'waiting'
+            instance.save(update_fields=['status'])
         except Exception as exc:
-            logger.error("atlas.morning_briefing business %s: %s", business.slug, exc)
+            logger.error("atlas.morning_briefing instance %s: %s", instance.pk, exc)
 
-    logger.info("atlas.morning_briefing: processed %d businesses", processed)
+    logger.info("atlas.morning_briefing: processed %d instances", processed)
     return processed
 
 

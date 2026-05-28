@@ -64,7 +64,8 @@ class EmailTriageViewSet(viewsets.ModelViewSet):
     def triage(self, request, pk=None):
         """POST /api/v1/concierge/emails/<pk>/triage/ — AI-classifies category + priority."""
         email = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         messages = [
             {
                 "role": "user",

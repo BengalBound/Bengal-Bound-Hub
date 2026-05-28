@@ -5,3 +5,6 @@ class ReportingBotConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "agents.reporting_bot"
     verbose_name = "Reporting Bot — Automated Reports"
+
+    def ready(self):
+        import agents.reporting_bot.signals  # noqa

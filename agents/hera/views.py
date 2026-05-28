@@ -42,7 +42,8 @@ class PolicyQueryViewSet(viewsets.ModelViewSet):
     def answer(self, request, pk=None):
         """POST /api/v1/hera/queries/<pk>/answer/ — AI answers the HR policy question."""
         query = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         try:
             answer = ai_chat(
                 system_prompt=_HERA_PROMPT,

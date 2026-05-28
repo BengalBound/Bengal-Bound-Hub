@@ -61,7 +61,8 @@ class PayrollRunViewSet(viewsets.ModelViewSet):
     def calculate(self, request, pk=None):
         """POST /api/v1/cash/payroll-runs/<pk>/calculate/ — AI writes payroll summary."""
         run = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Month: {run.month}\n"
             f"Employees: {run.employee_count}\n"

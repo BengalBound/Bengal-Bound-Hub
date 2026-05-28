@@ -43,7 +43,8 @@ class TranslationJobViewSet(viewsets.ModelViewSet):
     def translate(self, request, pk=None):
         """POST /api/v1/babel/jobs/<pk>/translate/ — AI translates to all target languages."""
         job = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         try:
             job.status = "processing"
             job.save()

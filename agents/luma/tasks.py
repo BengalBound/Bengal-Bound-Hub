@@ -7,25 +7,42 @@ logger = logging.getLogger(__name__)
 @shared_task(name="agents.luma.scan_unanalysed_mentions")
 def scan_unanalysed_mentions():
     from agents.luma.models import BrandMention
-    from agents.luma.engine import LumaEngine
+    from agents.luma.engine import LumaEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='luma')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = LumaEngine()
-    unanalysed = BrandMention.objects.filter(ai_summary="")
     processed = 0
 
-    for mention in unanalysed:
-        try:
-            result = engine.analyse_mention(mention)
-            mention.sentiment = result.get("sentiment", mention.sentiment)
-            mention.urgency = result.get("urgency", mention.urgency)
-            mention.ai_summary = result.get("ai_summary", "")
-            mention.save(update_fields=["sentiment", "urgency", "ai_summary"])
-            processed += 1
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        unanalysed = BrandMention.objects.filter(business=instance.business, ai_summary="")
+        for mention in unanalysed:
+            try:
+                result = engine.analyse_mention(mention, instance=instance)
+                mention.sentiment = result.get("sentiment", mention.sentiment)
+                mention.urgency = result.get("urgency", mention.urgency)
+                mention.ai_summary = result.get("ai_summary", "")
+                mention.save(update_fields=["sentiment", "urgency", "ai_summary"])
+                processed += 1
+            except PermissionRequired as pr:
+                # We save what we have first
+                if "sentiment" in locals().get('result', {}):
+                    mention.sentiment = locals()['result'].get("sentiment", mention.sentiment)
+                    mention.urgency = locals()['result'].get("urgency", mention.urgency)
+                    mention.ai_summary = locals()['result'].get("ai_summary", "")
+                    mention.save(update_fields=["sentiment", "urgency", "ai_summary"])
 
-            if result.get("urgency") == "crisis":
-                logger.critical("LUMA CRISIS ALERT: %s — %s", mention.source, mention.title)
-        except Exception as exc:
-            logger.error("luma.scan_unanalysed_mentions mention %s: %s", mention.pk, exc)
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("luma.scan_unanalysed_mentions mention %s: %s", mention.pk, exc)
 
     logger.info("luma.scan_unanalysed_mentions: processed %d mentions", processed)
     return processed

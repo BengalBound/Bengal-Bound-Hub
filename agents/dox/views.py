@@ -44,7 +44,8 @@ class DocumentationProjectViewSet(viewsets.ModelViewSet):
     def generate(self, request, pk=None):
         """POST /api/v1/dox/projects/<pk>/generate/ — AI generates a DocPage draft."""
         project = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Project: {project.name}\n"
             f"Doc Type: {project.doc_type}\n"

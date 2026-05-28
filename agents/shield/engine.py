@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Shield, BengalBound's AI IT Helpdesk Specialist.
 
@@ -27,7 +35,7 @@ Issue categories: hardware, software, network, access, email, other"""
 class ShieldEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def resolve_ticket(self, ticket, kb_articles: list = None) -> dict:
+    def resolve_ticket(self, ticket, kb_articles: list = None, instance=None) -> dict:
         kb_context = ""
         if kb_articles:
             kb_context = "\nRelevant KB Articles:\n" + "\n".join(
@@ -65,11 +73,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"ai_solution": raw, "ai_confidence": 0.5, "should_auto_resolve": False, "escalation_reason": "Unable to parse AI response"}
+            res = {"ai_solution": raw, "ai_confidence": 0.5, "should_auto_resolve": False, "escalation_reason": "Unable to parse AI response"}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"resolve_ticket for ticket {ticket.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if ticket.priority == "urgent":
+                raise PermissionRequired(
+                    context=f"URGENT ticket detected: {ticket.title}. Escalation reason: {res.get('escalation_reason')}",
+                    option_a="Approve immediate page to on-call IT",
+                    option_b="Deny (Wait for normal SLA)"
+                )
+        return res
 
-    def sla_assessment(self, ticket) -> dict:
+    def sla_assessment(self, ticket, instance=None) -> dict:
         from django.utils import timezone
 
         sla_hours = {"urgent": 1, "high": 4, "medium": 24, "low": 48}
@@ -78,15 +103,25 @@ Return JSON:
         breached = age_hours > sla_limit
         remaining = max(0, sla_limit - age_hours)
 
-        return {
+        result = {
             "breached": breached,
             "age_hours": round(age_hours, 1),
             "sla_limit_hours": sla_limit,
             "remaining_hours": round(remaining, 1),
             "urgency": "critical" if breached else ("warning" if remaining < 2 else "ok"),
         }
+        
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"sla_assessment for ticket {ticket.pk}",
+                outcome='success',
+                detail=json.dumps(result),
+                model_used="rule-engine",
+            )
+        return result
 
-    def generate_kb_article(self, ticket, resolution: str) -> dict:
+    def generate_kb_article(self, ticket, resolution: str, instance=None) -> dict:
         prompt = f"""Create a knowledge base article from this resolved IT ticket.
 
 Issue Title: {ticket.title}
@@ -109,6 +144,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"title": ticket.title, "category": ticket.category, "problem": ticket.description, "solution": resolution, "tags": []}
+            res = {"title": ticket.title, "category": ticket.category, "problem": ticket.description, "solution": resolution, "tags": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_kb_article for ticket {ticket.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

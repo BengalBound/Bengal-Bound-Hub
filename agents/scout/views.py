@@ -47,7 +47,8 @@ class CompetitorViewSet(viewsets.ModelViewSet):
     def analyze(self, request, pk=None):
         """POST /api/v1/scout/competitors/<pk>/analyze/ — AI creates a CompetitorChange."""
         competitor = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Competitor: {competitor.name}\n"
             f"Website: {competitor.website}\n"

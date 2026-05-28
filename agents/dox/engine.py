@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Dox, BengalBound's AI Technical Writer.
 
@@ -27,7 +35,7 @@ Doc types: api, user_manual, sop, wiki, changelog, code_docs"""
 class DoxEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_page(self, project, page) -> str:
+    def generate_page(self, project, page, instance=None) -> str:
         type_instructions = {
             "api": "Include: endpoint, method, auth, request params, response schema, example request+response, error codes",
             "user_manual": "Include: overview, step-by-step instructions, screenshots (described), FAQs, troubleshooting",
@@ -54,9 +62,25 @@ Write complete, production-ready documentation in Markdown format."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_page for {page.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
 
-    def review_and_improve(self, content: str, doc_type: str) -> dict:
+            if project.doc_type == "sop":
+                raise PermissionRequired(
+                    context=f"Standard Operating Procedure (SOP) drafted: {page.title}. Requires review.",
+                    option_a="Approve and publish SOP",
+                    option_b="Deny and flag for human revision"
+                )
+        return res
+
+    def review_and_improve(self, content: str, doc_type: str, instance=None) -> dict:
         prompt = f"""Review and improve this {doc_type} documentation.
 
 Current content:
@@ -77,11 +101,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"improved_content": content, "issues_found": [], "improvements_made": [], "clarity_score": 70, "completeness_score": 70}
+            res = {"improved_content": content, "issues_found": [], "improvements_made": [], "clarity_score": 70, "completeness_score": 70}
 
-    def generate_changelog(self, version: str, changes: list) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="review_and_improve",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
+
+    def generate_changelog(self, version: str, changes: list, instance=None) -> str:
         changes_text = "\n".join(f"- {c}" for c in changes)
         prompt = f"""Generate a user-facing changelog entry.
 
@@ -98,9 +132,18 @@ Use plain language — this is for end users, not developers."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_changelog {version}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def scan_for_outdated(self, page, days_old: int) -> dict:
+    def scan_for_outdated(self, page, days_old: int, instance=None) -> dict:
         prompt = f"""Assess if this documentation page is likely outdated.
 
 Title: {page.title}
@@ -123,6 +166,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"likely_outdated": days_old > 90, "reasons": [], "sections_to_review": [], "update_priority": "low"}
+            res = {"likely_outdated": days_old > 90, "reasons": [], "sections_to_review": [], "update_priority": "low"}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"scan_for_outdated {page.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

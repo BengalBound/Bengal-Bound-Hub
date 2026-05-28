@@ -5,3 +5,6 @@ class CashConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "agents.cash"
     verbose_name = "Cash — Payroll Agent"
+
+    def ready(self):
+        import agents.cash.signals  # noqa

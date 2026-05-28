@@ -63,7 +63,8 @@ class IncidentViewSet(viewsets.ModelViewSet):
     def analyze(self, request, pk=None):
         """POST /api/v1/kai/incidents/<pk>/analyze/ — AI performs root cause analysis."""
         incident = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = f"Title: {incident.title}\nSeverity: {incident.severity}\nDescription: {incident.description}"
         try:
             raw = ai_chat(

@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Reporting Bot, BengalBound's AI Automated Reporting Specialist.
 
@@ -27,7 +35,7 @@ Report frequency: weekly, biweekly, monthly"""
 class ReportingBotEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_narrative(self, report, config) -> str:
+    def generate_narrative(self, report, config, instance=None) -> str:
         kpis_text = json.dumps(config.kpis, indent=2) if config.kpis else "KPIs not configured"
         sources_text = ", ".join(config.data_sources) if config.data_sources else "Not specified"
 
@@ -53,9 +61,18 @@ Write in clear, executive-friendly language."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_narrative {report.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def anomaly_highlight(self, kpi_name: str, current_value: float, previous_value: float, target: float = None) -> dict:
+    def anomaly_highlight(self, kpi_name: str, current_value: float, previous_value: float, target: float = None, instance=None) -> dict:
         change_pct = ((current_value - previous_value) / previous_value * 100) if previous_value else 0
         target_text = f"Target: {target}" if target else "No target set"
 
@@ -82,11 +99,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"is_anomaly": abs(change_pct) > 15, "severity": "significant" if abs(change_pct) > 15 else "minor", "explanation": raw, "action_required": False}
+            res = {"is_anomaly": abs(change_pct) > 15, "severity": "significant" if abs(change_pct) > 15 else "minor", "explanation": raw, "action_required": False}
 
-    def executive_summary(self, report, kpi_results: list) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"anomaly_highlight for {kpi_name}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            if res.get("severity") == "critical":
+                raise PermissionRequired(
+                    context=f"CRITICAL anomaly detected in KPI: {kpi_name}. Reason: {res.get('explanation')}",
+                    option_a="Acknowledge and flag to executive team",
+                    option_b="Ignore anomaly"
+                )
+        return res
+
+    def executive_summary(self, report, kpi_results: list, instance=None) -> str:
         kpi_text = "\n".join(
             f"- {k.get('name', 'KPI')}: {k.get('value', 'N/A')} (prev: {k.get('previous', 'N/A')})"
             for k in kpi_results[:10]
@@ -103,4 +137,13 @@ Write ONLY 3 sentences: (1) overall business performance verdict, (2) most impor
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"executive_summary {report.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

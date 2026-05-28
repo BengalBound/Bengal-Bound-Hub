@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Cash, BengalBound's AI Payroll Processor.
 
@@ -26,7 +34,7 @@ Jurisdiction: Bangladesh (BDT, income tax slabs, PF rules apply by default)"""
 class CashEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_payroll_summary(self, run) -> str:
+    def generate_payroll_summary(self, run, instance=None) -> str:
         prompt = f"""Generate an executive payroll summary for this payroll run.
 
 Period: {run.month}
@@ -46,9 +54,18 @@ Write a concise executive summary covering:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_payroll_summary for run {run.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def calculate_net_pay(self, employee) -> dict:
+    def calculate_net_pay(self, employee, instance=None) -> dict:
         prompt = f"""Calculate net pay for this employee.
 
 Name: {employee.name}
@@ -72,11 +89,21 @@ Return JSON with: gross, tax, pf_deduction, net, calculation_steps (list of stri
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"gross": 0, "tax": 0, "pf_deduction": 0, "net": 0, "calculation_steps": [raw]}
+            res = {"gross": 0, "tax": 0, "pf_deduction": 0, "net": 0, "calculation_steps": [raw]}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"calculate_net_pay for employee {employee.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def anomaly_check(self, current_run, previous_totals: dict) -> list:
+    def anomaly_check(self, current_run, previous_totals: dict, instance=None) -> list:
         prompt = f"""Check this payroll run for anomalies by comparing to previous period.
 
 Current Period: {current_run.month}
@@ -95,11 +122,29 @@ List any anomalies as JSON array of objects:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"anomaly_check for run {current_run.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            has_critical = any(a.get("severity") == "critical" for a in res)
+            if has_critical:
+                raise PermissionRequired(
+                    context=f"CRITICAL Payroll Anomalies detected for {current_run.month}. E.g.: {res[0].get('anomaly')}",
+                    option_a="Approve and proceed with payroll processing",
+                    option_b="Deny (Hold payroll for manual review)"
+                )
+        return res
 
-    def compliance_check(self, employee) -> dict:
+    def compliance_check(self, employee, instance=None) -> dict:
         prompt = f"""Review this employee record for payroll compliance issues.
 
 Employee: {employee.name}
@@ -120,6 +165,16 @@ Return JSON with:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"compliant": True, "issues": [], "recommendations": []}
+            res = {"compliant": True, "issues": [], "recommendations": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"compliance_check for employee {employee.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

@@ -21,11 +21,11 @@ django-simple-history==3.11.0
 django-widget-tweaks==1.5.1
 groq==0.37.1
 httpx==0.28.1
-langchain==1.2.11
-langchain-core==1.2.18
-langchain-groq==1.1.2
-langchain-openai==1.1.11
-langgraph==1.1.0
+langchain>=1.2.11
+langchain-core>=1.4.0
+langchain-groq>=1.1.2
+langchain-openai>=1.1.11
+langgraph>=1.2.2
 openai==2.26.0
 Pillow>=10.0
 python-dotenv==1.2.2

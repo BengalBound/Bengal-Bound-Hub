@@ -49,7 +49,8 @@ class LegalDocumentViewSet(viewsets.ModelViewSet):
     def review(self, request, pk=None):
         """POST /api/v1/sage/documents/<pk>/review/ — AI reviews legal document."""
         doc = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Document: {doc.name}\n"
             f"Type: {doc.document_type}\n"

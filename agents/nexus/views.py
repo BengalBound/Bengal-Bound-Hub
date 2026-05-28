@@ -43,7 +43,8 @@ class CourseViewSet(viewsets.ModelViewSet):
     def generate(self, request, pk=None):
         """POST /api/v1/nexus/courses/<pk>/generate/ — AI generates course modules."""
         course = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Course: {course.title}\n"
             f"Type: {course.course_type}\n"

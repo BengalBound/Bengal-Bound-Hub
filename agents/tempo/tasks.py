@@ -9,56 +9,83 @@ def event_reminder_dispatch():
     from django.utils import timezone
     from datetime import timedelta
     from agents.tempo.models import Event, Attendee
-    from agents.tempo.engine import TempoEngine
+    from agents.tempo.engine import TempoEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='tempo')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = TempoEngine()
     now = timezone.now()
     dispatched = 0
 
-    # 2-week reminders
     two_weeks = now + timedelta(weeks=2)
-    for event in Event.objects.filter(status__in=["planning", "confirmed"],
-                                       date__date=two_weeks.date()):
-        attendees = Attendee.objects.filter(event=event, rsvp_status="confirmed")
-        try:
-            message = engine.attendee_message(event, "reminder_2week", attendees.count())
-            logger.info("Tempo: 2-week reminder drafted for '%s' (%d attendees)", event.name, attendees.count())
-            dispatched += 1
-        except Exception as exc:
-            logger.error("tempo.event_reminder_dispatch event %s (2wk): %s", event.pk, exc)
-
-    # Day-before reminders
     tomorrow = now + timedelta(days=1)
-    for event in Event.objects.filter(status__in=["planning", "confirmed"],
-                                       date__date=tomorrow.date()):
-        attendees = Attendee.objects.filter(event=event, rsvp_status="confirmed")
-        try:
-            message = engine.attendee_message(event, "reminder_1day", attendees.count())
-            logger.info("Tempo: day-before reminder drafted for '%s'", event.name)
-            dispatched += 1
-        except Exception as exc:
-            logger.error("tempo.event_reminder_dispatch event %s (1day): %s", event.pk, exc)
+
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        events_2wk = Event.objects.filter(business=instance.business, status__in=["planning", "confirmed"], date__date=two_weeks.date())
+        for event in events_2wk:
+            attendees = Attendee.objects.filter(event=event, rsvp_status="confirmed")
+            try:
+                message = engine.attendee_message(event, "reminder_2week", attendees.count(), instance=instance)
+                logger.info("Tempo: 2-week reminder drafted for '%s'", event.name)
+                dispatched += 1
+            except PermissionRequired as pr:
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("tempo.event_reminder_dispatch event %s (2wk): %s", event.pk, exc)
+                
+        events_1day = Event.objects.filter(business=instance.business, status__in=["planning", "confirmed"], date__date=tomorrow.date())
+        for event in events_1day:
+            attendees = Attendee.objects.filter(event=event, rsvp_status="confirmed")
+            try:
+                message = engine.attendee_message(event, "reminder_1day", attendees.count(), instance=instance)
+                logger.info("Tempo: day-before reminder drafted for '%s'", event.name)
+                dispatched += 1
+            except PermissionRequired as pr:
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("tempo.event_reminder_dispatch event %s (1day): %s", event.pk, exc)
 
     logger.info("tempo.event_reminder_dispatch: dispatched %d reminders", dispatched)
     return dispatched
+
+
 
 
 @shared_task(name="agents.tempo.auto_generate_event_plans")
 def auto_generate_event_plans():
     from agents.tempo.models import Event
     from agents.tempo.engine import TempoEngine
+    from agents.models import AgentInstance, AgentCatalog
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='tempo')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = TempoEngine()
-    without_plan = Event.objects.filter(ai_plan="", status__in=["planning", "confirmed"])
     generated = 0
 
-    for event in without_plan:
-        try:
-            event.ai_plan = engine.generate_event_plan(event)
-            event.save(update_fields=["ai_plan"])
-            generated += 1
-        except Exception as exc:
-            logger.error("tempo.auto_generate_event_plans event %s: %s", event.pk, exc)
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        without_plan = Event.objects.filter(business=instance.business, ai_plan="", status__in=["planning", "confirmed"])
+        for event in without_plan:
+            try:
+                event.ai_plan = engine.generate_event_plan(event, instance=instance)
+                event.save(update_fields=["ai_plan"])
+                generated += 1
+            except Exception as exc:
+                logger.error("tempo.auto_generate_event_plans event %s: %s", event.pk, exc)
 
     logger.info("tempo.auto_generate_event_plans: generated %d plans", generated)
     return generated

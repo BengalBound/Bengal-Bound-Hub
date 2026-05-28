@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Bengal bound\\\\dev-backoffice\\\\agents\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Bengal bound\\\\dev-backoffice\" -Recurse -Filter \"serea*\" -Directory)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

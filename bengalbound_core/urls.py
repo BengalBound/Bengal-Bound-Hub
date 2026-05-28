@@ -157,6 +157,7 @@ urlpatterns = [
 
     path('hub/', include('hub.urls', namespace='hub')),
     path('serea/', include('serea.urls', namespace='serea')),
+    path('agents/', include('agents.urls')),
 
     # AI Agents REST APIs
     path('hub/<slug:slug>/agents/aria/', include('agents.aria.urls', namespace='aria')),

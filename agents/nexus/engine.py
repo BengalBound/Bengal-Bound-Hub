@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Nexus, BengalBound's AI Learning & Development Coordinator.
 
@@ -27,7 +35,7 @@ Course types: onboarding, technical, compliance, soft_skills"""
 class NexusEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_course(self, course) -> dict:
+    def generate_course(self, course, instance=None) -> dict:
         prompt = f"""Design a complete course for this learning brief.
 
 Course: {course.title}
@@ -62,11 +70,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"modules": [], "total_duration_hours": course.duration_hours, "prerequisites": []}
+            res = {"modules": [], "total_duration_hours": course.duration_hours, "prerequisites": []}
 
-    def learning_path(self, employee_name: str, role: str, goals: str) -> list:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_course {course.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            if course.is_mandatory:
+                raise PermissionRequired(
+                    context=f"Mandatory course generated: {course.title}. Requires compliance/HR review.",
+                    option_a="Approve and publish course",
+                    option_b="Deny and request revision"
+                )
+        return res
+
+    def learning_path(self, employee_name: str, role: str, goals: str, instance=None) -> list:
         prompt = f"""Create a personalised learning path.
 
 Employee: {employee_name}
@@ -89,11 +114,21 @@ Return a JSON array of recommended courses in priority order:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
 
-    def generate_assessment(self, course_title: str, topics: list) -> list:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="learning_path",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
+
+    def generate_assessment(self, course_title: str, topics: list, instance=None) -> list:
         topics_text = "\n".join(f"- {t}" for t in topics)
         prompt = f"""Generate a knowledge assessment for this course.
 
@@ -117,6 +152,16 @@ Return a JSON array of 10 assessment questions:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_assessment for {course_title}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are MediBook, BengalBound's AI Medical Scheduler.
 
@@ -27,7 +35,7 @@ Clinical awareness: flag symptoms that may indicate emergencies. This does not r
 class MediBookEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_appointment_notes(self, appointment) -> str:
+    def generate_appointment_notes(self, appointment, instance=None) -> str:
         prompt = f"""Generate pre-consultation notes for this appointment.
 
 Doctor: Dr. {appointment.doctor.name} ({appointment.doctor.specialty})
@@ -47,9 +55,18 @@ Write in clinical but accessible language."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_appointment_notes for appt {appointment.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def reminder_message(self, appointment, hours_before: int) -> dict:
+    def reminder_message(self, appointment, hours_before: int, instance=None) -> dict:
         prompt = f"""Write an appointment reminder for {hours_before} hours before the appointment.
 
 Patient: {appointment.patient_name}
@@ -72,11 +89,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"sms_text": f"Reminder: appt with Dr {appointment.doctor.name} at {appointment.scheduled_at}", "email_body": raw, "urgency": "routine"}
+            res = {"sms_text": f"Reminder: appt with Dr {appointment.doctor.name} at {appointment.scheduled_at}", "email_body": raw, "urgency": "routine"}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"reminder_message for appt {appointment.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def reschedule_suggestion(self, appointment, reason: str) -> str:
+    def reschedule_suggestion(self, appointment, reason: str, instance=None) -> str:
         prompt = f"""A patient needs to reschedule this appointment.
 
 Patient: {appointment.patient_name}
@@ -94,9 +121,18 @@ Write a professional rescheduling response that:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"reschedule_suggestion for appt {appointment.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def triage_urgency(self, reason: str, specialty: str) -> dict:
+    def triage_urgency(self, reason: str, specialty: str, instance=None) -> dict:
         prompt = f"""Triage the urgency of this medical appointment request.
 
 Reason for visit: {reason}
@@ -118,6 +154,23 @@ IMPORTANT: If this indicates a medical emergency, set urgency_level to 'emergenc
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"urgency_level": "routine", "recommended_timeframe": "within 1 week", "red_flags": [], "triage_notes": raw}
+            res = {"urgency_level": "routine", "recommended_timeframe": "within 1 week", "red_flags": [], "triage_notes": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="triage_urgency",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("urgency_level") == "emergency":
+                raise PermissionRequired(
+                    context=f"Emergency medical urgency flagged for reason: '{reason}'. Red flags: {res.get('red_flags')}",
+                    option_a="Approve immediately notifying patient to seek emergency care",
+                    option_b="Deny (Handle internally)"
+                )
+        return res

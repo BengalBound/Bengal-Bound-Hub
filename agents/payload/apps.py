@@ -5,3 +5,6 @@ class PayloadConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "agents.payload"
     verbose_name = "Payload — Procurement Agent"
+
+    def ready(self):
+        import agents.payload.signals  # noqa

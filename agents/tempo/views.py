@@ -42,7 +42,8 @@ class EventViewSet(viewsets.ModelViewSet):
     def plan(self, request, pk=None):
         """POST /api/v1/tempo/events/<pk>/plan/ — AI generates full event plan."""
         event = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Event: {event.name}\n"
             f"Type: {event.event_type}\n"

@@ -46,7 +46,8 @@ class WebsiteViewSet(viewsets.ModelViewSet):
     def audit(self, request, pk=None):
         """POST /api/v1/oracle/websites/<pk>/audit/ — AI generates 5 SEOIssues."""
         website = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Domain: {website.domain}\n"
             f"CMS: {website.cms}"

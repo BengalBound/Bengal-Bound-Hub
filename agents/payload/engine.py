@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Payload, BengalBound's AI Procurement Manager.
 
@@ -25,7 +33,7 @@ Principles:
 class PayloadEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def evaluate_rfq(self, rfq, vendors: list) -> dict:
+    def evaluate_rfq(self, rfq, vendors: list, instance=None) -> dict:
         vendor_context = "\n".join(
             f"- {v.name} (score: {v.performance_score or 'N/A'}, terms: {v.payment_terms or 'Unknown'}, country: {v.country or 'Unknown'})"
             for v in vendors
@@ -61,11 +69,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"recommended_vendor": "Requires human review", "ai_recommendation": raw, "vendor_ranking": [], "negotiation_points": []}
+            res = {"recommended_vendor": "Requires human review", "ai_recommendation": raw, "vendor_ranking": [], "negotiation_points": [], "risk_flags": []}
 
-    def assess_vendor(self, vendor) -> dict:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"evaluate_rfq {rfq.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            if res.get("risk_flags") and len(res.get("risk_flags")) > 0:
+                raise PermissionRequired(
+                    context=f"Procurement risk flags identified in RFQ {rfq.title}: {', '.join(res.get('risk_flags', []))}",
+                    option_a="Acknowledge risks and proceed with vendor",
+                    option_b="Deny and issue new RFQ"
+                )
+        return res
+
+    def assess_vendor(self, vendor, instance=None) -> dict:
         prompt = f"""Assess this vendor's overall performance and suitability.
 
 Vendor: {vendor.name}
@@ -91,11 +116,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"overall_score": 50, "status_recommendation": "active", "strengths": [], "risks": [], "recommended_actions": []}
+            res = {"overall_score": 50, "status_recommendation": "active", "strengths": [], "risks": [], "recommended_actions": []}
 
-    def draft_rfq(self, title: str, description: str, budget_range: str, deadline: str) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"assess_vendor {vendor.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
+
+    def draft_rfq(self, title: str, description: str, budget_range: str, deadline: str, instance=None) -> str:
         prompt = f"""Draft a professional Request for Quotation (RFQ) document.
 
 Title: {title}
@@ -115,4 +150,13 @@ Include:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="draft_rfq",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

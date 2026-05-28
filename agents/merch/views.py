@@ -61,7 +61,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     def optimize(self, request, pk=None):
         """POST /api/v1/merch/products/<pk>/optimize/ — AI rewrites description and suggests price."""
         product = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Product: {product.title}\n"
             f"SKU: {product.sku}\n"

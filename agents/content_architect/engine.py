@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Content Architect, BengalBound's AI Editorial Planner.
 
@@ -27,7 +35,7 @@ Content channels: blog, email, social (LinkedIn/Facebook/Instagram/Twitter), vid
 class ContentArchitectEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_content(self, entry) -> str:
+    def generate_content(self, entry, instance=None) -> str:
         channel_guides = {
             "blog": "Long-form, SEO-optimised, 800-1200 words, include H2 subheadings",
             "email": "Subject line + preview text + body, scannable, one primary CTA",
@@ -52,9 +60,18 @@ Write complete, publish-ready content. Include all elements required for this ch
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_content for {entry.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def plan_calendar(self, calendar) -> list:
+    def plan_calendar(self, calendar, instance=None) -> list:
         prompt = f"""Build a detailed content calendar for this campaign.
 
 Calendar: {calendar.name}
@@ -81,11 +98,28 @@ Return a JSON array of content entries:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"plan_calendar for {calendar.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if len(res) > 5:
+                raise PermissionRequired(
+                    context=f"Large content calendar generated with {len(res)} pieces of content.",
+                    option_a="Approve and schedule all content",
+                    option_b="Deny (Discard and tweak prompt)"
+                )
+        return res
 
-    def optimise_for_seo(self, content: str, target_keyword: str) -> dict:
+    def optimise_for_seo(self, content: str, target_keyword: str, instance=None) -> dict:
         prompt = f"""Optimise this content for the target keyword: "{target_keyword}"
 
 Content:
@@ -108,11 +142,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"optimised_content": content, "seo_score": 50, "improvements_made": []}
+            res = {"optimised_content": content, "seo_score": 50, "improvements_made": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="optimise_for_seo",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def repurpose_content(self, content: str, source_channel: str, target_channels: list) -> dict:
+    def repurpose_content(self, content: str, source_channel: str, target_channels: list, instance=None) -> dict:
         prompt = f"""Repurpose this {source_channel} content for: {', '.join(target_channels)}
 
 Original content:
@@ -127,6 +171,16 @@ For each target channel, write a complete repurposed version. Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {ch: raw for ch in target_channels}
+            res = {ch: raw for ch in target_channels}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="repurpose_content",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

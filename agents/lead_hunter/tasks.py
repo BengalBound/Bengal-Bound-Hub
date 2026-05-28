@@ -7,21 +7,40 @@ logger = logging.getLogger(__name__)
 @shared_task(name="agents.lead_hunter.score_new_prospects")
 def score_new_prospects():
     from agents.lead_hunter.models import Prospect
-    from agents.lead_hunter.engine import LeadHunterEngine
+    from agents.lead_hunter.engine import LeadHunterEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='lead_hunter')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = LeadHunterEngine()
-    unscored = Prospect.objects.filter(score=0, status="new")
     processed = 0
 
-    for prospect in unscored:
-        try:
-            result = engine.score_prospect(prospect)
-            prospect.score = result.get("score", 50)
-            prospect.ai_summary = result.get("ai_summary", "")
-            prospect.save(update_fields=["score", "ai_summary"])
-            processed += 1
-        except Exception as exc:
-            logger.error("lead_hunter.score_new_prospects prospect %s: %s", prospect.pk, exc)
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        unscored = Prospect.objects.filter(business=instance.business, score=0, status="new")
+        for prospect in unscored:
+            try:
+                result = engine.score_prospect(prospect, instance=instance)
+                prospect.score = result.get("score", 50)
+                prospect.ai_summary = result.get("ai_summary", "")
+                prospect.save(update_fields=["score", "ai_summary"])
+                processed += 1
+            except PermissionRequired as pr:
+                # Save partial data if possible
+                if "result" in locals():
+                    prospect.score = locals()['result'].get("score", 50)
+                    prospect.ai_summary = locals()['result'].get("ai_summary", "")
+                    prospect.save(update_fields=["score", "ai_summary"])
+
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("lead_hunter.score_new_prospects prospect %s: %s", prospect.pk, exc)
 
     logger.info("lead_hunter.score_new_prospects: scored %d prospects", processed)
     return processed

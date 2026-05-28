@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Clarity, BengalBound's AI Feedback Analyst.
 
@@ -27,7 +35,7 @@ Analysis types: NPS, CSAT, feature requests, exit surveys, employee engagement, 
 class ClarityEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def extract_themes(self, responses: list, survey_name: str) -> list:
+    def extract_themes(self, responses: list, survey_name: str, instance=None) -> list:
         response_text = "\n".join(f"- {r}" for r in responses[:100])
         prompt = f"""Analyse these survey responses from "{survey_name}" and extract key themes.
 
@@ -51,11 +59,21 @@ Return a JSON array of theme objects:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="extract_themes",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def analyse_theme(self, theme) -> dict:
+    def analyse_theme(self, theme, instance=None) -> dict:
         prompt = f"""Deeply analyse this feedback theme.
 
 Theme: {theme.theme}
@@ -79,11 +97,28 @@ Return as JSON: {{"analysis": "...", "root_cause": "...", "business_impact": "..
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"analysis": raw, "urgency": "medium", "recommendations": []}
+            res = {"analysis": raw, "urgency": "medium", "recommendations": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"analyse_theme for {theme.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("urgency") == "critical":
+                raise PermissionRequired(
+                    context=f"CRITICAL feedback theme detected: {theme.theme}. Analysis: {res.get('analysis')}",
+                    option_a="Acknowledge and assign owners",
+                    option_b="Deny priority (mark as false alarm)"
+                )
+        return res
 
-    def sentiment_score(self, text: str) -> dict:
+    def sentiment_score(self, text: str, instance=None) -> dict:
         prompt = f"""Score the sentiment of this feedback.
 
 Text: {text[:1000]}
@@ -96,11 +131,21 @@ Return JSON: {{"sentiment": "positive|neutral|negative", "score": float -1 to 1,
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"sentiment": "neutral", "score": 0.0, "emotions": [], "intensity": "low"}
+            res = {"sentiment": "neutral", "score": 0.0, "emotions": [], "intensity": "low"}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="sentiment_score",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def weekly_insight_report(self, themes: list, period: str) -> str:
+    def weekly_insight_report(self, themes: list, period: str, instance=None) -> str:
         theme_summary = "\n".join(
             f"- [{t.theme_type}] {t.theme} (score: {t.priority_score}, mentions: {t.mention_count})"
             for t in themes[:15]
@@ -119,4 +164,13 @@ Write a 3-section report:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="weekly_insight_report",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

@@ -9,26 +9,41 @@ def auto_generate_planned_entries():
     from django.utils import timezone
     from datetime import timedelta
     from agents.content_architect.models import CalendarEntry
-    from agents.content_architect.engine import ContentArchitectEngine
+    from agents.content_architect.engine import ContentArchitectEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='content_architect')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = ContentArchitectEngine()
-    upcoming = CalendarEntry.objects.filter(
-        status="planned",
-        publish_date__lte=(timezone.now().date() + timedelta(days=3)),
-    )
     generated = 0
 
-    for entry in upcoming:
-        if entry.generated_content:
-            continue
-        try:
-            content = engine.generate_content(entry)
-            entry.generated_content = content
-            entry.status = "generated"
-            entry.save(update_fields=["generated_content", "status"])
-            generated += 1
-        except Exception as exc:
-            logger.error("content_architect.auto_generate entry %s: %s", entry.pk, exc)
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        upcoming = CalendarEntry.objects.filter(
+            calendar__business=instance.business,
+            status="planned",
+            publish_date__lte=(timezone.now().date() + timedelta(days=3)),
+        )
+
+        for entry in upcoming:
+            if entry.generated_content:
+                continue
+            try:
+                content = engine.generate_content(entry, instance=instance)
+                entry.generated_content = content
+                entry.status = "generated"
+                entry.save(update_fields=["generated_content", "status"])
+                generated += 1
+            except PermissionRequired as pr:
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("content_architect.auto_generate entry %s: %s", entry.pk, exc)
 
     logger.info("content_architect.auto_generate_planned_entries: generated %d entries", generated)
     return generated

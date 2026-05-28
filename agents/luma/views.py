@@ -43,7 +43,8 @@ class BrandMentionViewSet(viewsets.ModelViewSet):
     def draft_response(self, request, pk=None):
         """POST /api/v1/luma/mentions/<pk>/draft-response/ — AI drafts a response."""
         mention = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Source: {mention.source}\n"
             f"Title: {mention.title}\n"

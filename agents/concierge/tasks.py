@@ -7,22 +7,36 @@ logger = logging.getLogger(__name__)
 @shared_task(name="agents.concierge.process_unclassified_emails")
 def process_unclassified_emails():
     from agents.concierge.models import EmailTriage
-    from agents.concierge.engine import ConciergeEngine
+    from agents.concierge.engine import ConciergeEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='concierge')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = ConciergeEngine()
-    unprocessed = EmailTriage.objects.filter(is_processed=False)
     classified = 0
 
-    for email in unprocessed:
-        try:
-            result = engine.triage_email(email)
-            email.category = result.get("category", email.category)
-            email.priority = result.get("priority", email.priority)
-            email.is_processed = True
-            email.save(update_fields=["category", "priority", "is_processed"])
-            classified += 1
-        except Exception as exc:
-            logger.error("concierge.process_unclassified_emails email %s: %s", email.pk, exc)
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        unprocessed = EmailTriage.objects.filter(business_id=instance.business.id, is_processed=False)
+        for email in unprocessed:
+            try:
+                result = engine.triage_email(email, instance=instance)
+                email.category = result.get("category", email.category)
+                email.priority = result.get("priority", email.priority)
+                email.is_processed = True
+                email.save(update_fields=["category", "priority", "is_processed"])
+                classified += 1
+            except PermissionRequired as pr:
+                # Need permission to proceed with urgent routing
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("concierge.process_unclassified_emails email %s: %s", email.pk, exc)
 
     logger.info("concierge.process_unclassified_emails: classified %d emails", classified)
     return classified

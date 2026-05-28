@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Pulse, BengalBound's AI Market Research Analyst.
 
@@ -27,7 +35,7 @@ Report structure: Executive Summary → Key Findings → Opportunities → Threa
 class PulseEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_report(self, config, report) -> dict:
+    def generate_report(self, config, report, instance=None) -> dict:
         keywords = ", ".join(config.keywords[:10]) if config.keywords else "Not specified"
         competitors = ", ".join(config.competitors[:5]) if config.competitors else "Not specified"
         markets = ", ".join(config.target_markets[:5]) if config.target_markets else "Not specified"
@@ -63,11 +71,29 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"narrative": raw, "key_findings": [], "opportunities": [], "threats": [], "recommendations": []}
+            res = {"narrative": raw, "key_findings": [], "opportunities": [], "threats": [], "recommendations": []}
 
-    def trend_analysis(self, industry: str, keywords: list) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_report {report.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            high_threats = [t.get("threat") for t in res.get("threats", []) if t.get("probability") == "high" and t.get("impact") == "high"]
+            if high_threats:
+                raise PermissionRequired(
+                    context=f"Critical market threats identified: {', '.join(high_threats[:2])}",
+                    option_a="Acknowledge and trigger strategy review",
+                    option_b="Dismiss as false alarm"
+                )
+        return res
+
+    def trend_analysis(self, industry: str, keywords: list, instance=None) -> str:
         keywords_text = ", ".join(keywords[:10])
         prompt = f"""Analyse current trends in the {industry} industry.
 
@@ -84,9 +110,18 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="trend_analysis",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def competitor_analysis(self, competitors: list, own_company: str) -> dict:
+    def competitor_analysis(self, competitors: list, own_company: str, instance=None) -> dict:
         comp_text = "\n".join(f"- {c}" for c in competitors[:5])
         prompt = f"""Analyse the competitive landscape for {own_company}.
 
@@ -110,6 +145,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"competitive_position": "challenger", "differentiation_opportunities": [], "competitive_threats": [], "battle_cards": []}
+            res = {"competitive_position": "challenger", "differentiation_opportunities": [], "competitive_threats": [], "battle_cards": []}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="competitor_analysis",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

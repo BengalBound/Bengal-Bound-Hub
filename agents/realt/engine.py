@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Realt, BengalBound's AI Real Estate Assistant.
 
@@ -28,7 +36,7 @@ Listing types: sale, rent"""
 class RealtEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_listing(self, property_obj) -> str:
+    def generate_listing(self, property_obj, instance=None) -> str:
         bedrooms_text = f"{property_obj.bedrooms} bedrooms" if property_obj.bedrooms else "studio/open plan"
         prompt = f"""Write a compelling property listing description.
 
@@ -51,9 +59,18 @@ Target 150-250 words. No exaggeration."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_listing {property_obj.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def qualify_lead(self, lead) -> dict:
+    def qualify_lead(self, lead, instance=None) -> dict:
         areas = ", ".join(lead.preferred_areas) if lead.preferred_areas else "Flexible"
         prompt = f"""Qualify this real estate lead.
 
@@ -81,11 +98,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"ai_score": 50, "qualification": "warm", "ai_notes": raw, "next_action": "Follow up with lead"}
+            res = {"ai_score": 50, "qualification": "warm", "ai_notes": raw, "next_action": "Follow up with lead"}
 
-    def property_match(self, lead, properties: list) -> list:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"qualify_lead {lead.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            if res.get("qualification") == "unqualified":
+                raise PermissionRequired(
+                    context=f"Lead {lead.name} marked UNQUALIFIED. Rationale: {res.get('ai_notes')}",
+                    option_a="Approve and discard lead",
+                    option_b="Deny and assign to agent for follow-up"
+                )
+        return res
+
+    def property_match(self, lead, properties: list, instance=None) -> list:
         props_text = "\n".join(
             f"- {p.title}: {p.property_type}, {p.area_sqft} sqft, BDT {p.price:,.0f}, {p.location}, {p.bedrooms or 'N/A'} beds"
             for p in properties[:20]
@@ -117,6 +151,16 @@ Return a JSON array of the top 3 matches:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"property_match for {lead.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

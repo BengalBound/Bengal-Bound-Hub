@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Kai, BengalBound's AI DevOps Engineer.
 
@@ -27,7 +35,7 @@ Severity levels: low (degraded performance), medium (partial outage), high (majo
 class KaiEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def analyze_incident(self, incident) -> dict:
+    def analyze_incident(self, incident, instance=None) -> dict:
         prompt = f"""Perform root cause analysis on this infrastructure incident.
 
 Title: {incident.title}
@@ -51,11 +59,29 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"root_cause": raw, "contributing_factors": [], "immediate_fix": "", "runbook": [], "prevention": ""}
+            res = {"root_cause": raw, "contributing_factors": [], "immediate_fix": "", "runbook": [], "prevention": ""}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"analyze_incident #{incident.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            # If critical incident, require permission to post remediation to Slack/PagerDuty
+            if incident.severity in ['high', 'critical']:
+                raise PermissionRequired(
+                    context=f"Critical incident #{incident.pk} analyzed. Root cause identified: {res.get('root_cause')}",
+                    option_a="Approve posting remediation runbook to Slack #incidents",
+                    option_b="Deny (Human will handle)"
+                )
+        return res
 
-    def pipeline_health_check(self, pipeline) -> dict:
+    def pipeline_health_check(self, pipeline, instance=None) -> dict:
         prompt = f"""Assess this CI/CD pipeline's health.
 
 Pipeline: {pipeline.name}
@@ -79,11 +105,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"health_score": 50, "status_assessment": raw, "risks": [], "recommended_actions": [], "alert_level": "warning"}
+            res = {"health_score": 50, "status_assessment": raw, "risks": [], "recommended_actions": [], "alert_level": "warning"}
 
-    def deployment_checklist(self, service: str, change_description: str) -> list:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"pipeline_health_check #{pipeline.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
+
+    def deployment_checklist(self, service: str, change_description: str, instance=None) -> list:
         prompt = f"""Generate a production deployment checklist.
 
 Service: {service}
@@ -98,11 +134,21 @@ Return a JSON array of checklist items:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"deployment_checklist for {service}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def infrastructure_recommendations(self, pipeline_stats: dict) -> str:
+    def infrastructure_recommendations(self, pipeline_stats: dict, instance=None) -> str:
         stats_text = "\n".join(f"{k}: {v}" for k, v in pipeline_stats.items())
         prompt = f"""Review these infrastructure metrics and provide optimisation recommendations.
 
@@ -119,4 +165,13 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="infrastructure_recommendations",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

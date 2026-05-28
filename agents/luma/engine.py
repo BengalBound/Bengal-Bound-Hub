@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Luma, BengalBound's AI Brand and PR Manager.
 
@@ -27,7 +35,7 @@ Urgency levels: low (positive/neutral), medium (minor negative), high (significa
 class LumaEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def analyse_mention(self, mention) -> dict:
+    def analyse_mention(self, mention, instance=None) -> dict:
         prompt = f"""Analyse this brand mention for sentiment, urgency, and required action.
 
 Source: {mention.source}
@@ -52,11 +60,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"sentiment": "neutral", "urgency": "low", "ai_summary": raw, "response_required": False}
+            res = {"sentiment": "neutral", "urgency": "low", "ai_summary": raw, "response_required": False}
 
-    def draft_response(self, mention) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"analyse_mention for mention {mention.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("urgency") == "crisis":
+                raise PermissionRequired(
+                    context=f"CRISIS DETECTED! Mention from {mention.source} flagged as crisis. Summary: {res.get('ai_summary')}",
+                    option_a="Approve generation of immediate holding statement & PR alert",
+                    option_b="Deny (Handle internally)"
+                )
+        return res
+
+    def draft_response(self, mention, instance=None) -> str:
         prompt = f"""Draft a public-facing response to this brand mention.
 
 Source: {mention.source}
@@ -77,9 +102,18 @@ Write ONLY the response text, no preamble."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"draft_response for mention {mention.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def generate_press_release(self, release) -> str:
+    def generate_press_release(self, release, instance=None) -> str:
         prompt = f"""Write a professional press release.
 
 Headline: {release.headline}
@@ -100,9 +134,18 @@ Write a complete, wire-ready press release."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_press_release for {release.headline}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def crisis_playbook(self, crisis_description: str) -> dict:
+    def crisis_playbook(self, crisis_description: str, instance=None) -> dict:
         prompt = f"""Generate a crisis communication playbook for this situation.
 
 Crisis: {crisis_description}
@@ -125,6 +168,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"immediate_actions": [], "holding_statement": raw, "key_messages": [], "what_not_to_say": []}
+            res = {"immediate_actions": [], "holding_statement": raw, "key_messages": [], "what_not_to_say": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="crisis_playbook generated",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

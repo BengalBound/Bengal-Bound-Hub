@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Flux, BengalBound's AI Supply Chain Manager.
 
@@ -27,7 +35,7 @@ Rating scale: excellent (≥95% on-time, ≤3 avg lead days), good, average, poo
 class FluxEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def assess_supplier(self, supplier) -> dict:
+    def assess_supplier(self, supplier, instance=None) -> dict:
         prompt = f"""Assess this supplier's performance and provide a rating.
 
 Supplier: {supplier.name}
@@ -52,11 +60,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"rating": supplier.rating, "ai_summary": raw, "risks": [], "strengths": [], "recommendations": []}
+            res = {"rating": supplier.rating, "ai_summary": raw, "risks": [], "strengths": [], "recommendations": []}
 
-    def po_recommendation(self, order) -> str:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"assess_supplier {supplier.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            if res.get("rating") == "poor":
+                raise PermissionRequired(
+                    context=f"Supplier {supplier.name} assessed as POOR. Consider replacing.",
+                    option_a="Acknowledge and start vendor search",
+                    option_b="Ignore warning"
+                )
+        return res
+
+    def po_recommendation(self, order, instance=None) -> str:
         items_text = json.dumps(order.items, indent=2) if order.items else "No items listed"
         prompt = f"""Provide a sourcing recommendation for this purchase order.
 
@@ -77,9 +102,18 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"po_recommendation {order.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def stock_risk_analysis(self, low_stock_items: list) -> dict:
+    def stock_risk_analysis(self, low_stock_items: list, instance=None) -> dict:
         items_text = "\n".join(
             f"- {item.get('name', 'Unknown')}: {item.get('qty', 0)} units (threshold: {item.get('threshold', 0)})"
             for item in low_stock_items[:20]
@@ -104,6 +138,23 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"critical_items": [], "watch_items": [], "overall_risk": "medium", "recommended_actions": []}
+            res = {"critical_items": [], "watch_items": [], "overall_risk": "medium", "recommended_actions": []}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="stock_risk_analysis",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            if res.get("overall_risk") == "critical":
+                raise PermissionRequired(
+                    context=f"CRITICAL stock risk identified! Critical items: {', '.join(res.get('critical_items', []))}",
+                    option_a="Approve emergency POs",
+                    option_b="Deny and investigate"
+                )
+        return res

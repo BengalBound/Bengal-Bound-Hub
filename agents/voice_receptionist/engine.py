@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Voice Receptionist, BengalBound's AI Phone Receptionist.
 
@@ -23,7 +31,7 @@ Principles:
 class VoiceReceptionistEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def analyse_call(self, transcript: str, business_name: str, business_type: str) -> dict:
+    def analyse_call(self, transcript: str, business_name: str, business_type: str, instance=None) -> dict:
         prompt = f"""Analyse this call transcript for a {business_type} business called {business_name}.
 
 Transcript:
@@ -47,11 +55,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"intent": "unknown", "outcome": "unknown", "summary": raw}
+            res = {"intent": "unknown", "outcome": "unknown", "summary": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"analyse_call for {business_name}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("intent") == "emergency":
+                raise PermissionRequired(
+                    context=f"EMERGENCY call detected! Caller intent: {res.get('summary')}",
+                    option_a="Acknowledge and page staff",
+                    option_b="Mark as false alarm"
+                )
+        return res
 
-    def generate_greeting(self, business_profile) -> str:
+    def generate_greeting(self, business_profile, instance=None) -> str:
         prompt = f"""Write a warm, professional phone greeting for:
 Business: {business_profile.business_name}
 Type: {business_profile.get_business_type_display()}
@@ -63,9 +88,18 @@ Keep it under 2 sentences. Friendly, professional, inviting."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="generate_greeting",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def draft_confirmation_message(self, appointment) -> dict:
+    def draft_confirmation_message(self, appointment, instance=None) -> dict:
         prompt = f"""Write appointment confirmation messages for:
 
 Business: {appointment.business.business_name}
@@ -87,11 +121,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"sms_text": raw, "email_subject": "Appointment Confirmed", "email_body": raw}
+            res = {"sms_text": raw, "email_subject": "Appointment Confirmed", "email_body": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"draft_confirmation_message for {appointment.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def weekly_performance_report(self, business_name: str, stats: dict) -> str:
+    def weekly_performance_report(self, business_name: str, stats: dict, instance=None) -> str:
         prompt = f"""Write a weekly call performance report for {business_name}.
 
 Stats:
@@ -108,9 +152,18 @@ Write a concise executive summary (3-4 sentences): what went well, what needs im
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="weekly_performance_report",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def spam_classification(self, transcript: str) -> dict:
+    def spam_classification(self, transcript: str, instance=None) -> dict:
         prompt = f"""Classify this call transcript as spam or legitimate.
 
 Transcript: {transcript[:500]}
@@ -129,6 +182,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"is_spam": False, "confidence": 0.0, "spam_indicators": [], "recommended_action": "allow"}
+            res = {"is_spam": False, "confidence": 0.0, "spam_indicators": [], "recommended_action": "allow"}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="spam_classification",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

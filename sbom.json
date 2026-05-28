@@ -1,0 +1,744 @@
+{
+  "components": [
+    {
+      "bom-ref": "requirements-L5",
+      "description": "requirements line 5: Django==4.2.28",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/Django/"
+        }
+      ],
+      "name": "Django",
+      "purl": "pkg:pypi/django@4.2.28",
+      "type": "library",
+      "version": "4.2.28"
+    },
+    {
+      "bom-ref": "requirements-L30",
+      "description": "requirements line 30: Pillow>=10.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/Pillow/"
+        }
+      ],
+      "name": "Pillow",
+      "purl": "pkg:pypi/pillow",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L1",
+      "description": "requirements line 1: asgiref==3.11.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/asgiref/"
+        }
+      ],
+      "name": "asgiref",
+      "purl": "pkg:pypi/asgiref@3.11.1",
+      "type": "library",
+      "version": "3.11.1"
+    },
+    {
+      "bom-ref": "requirements-L2",
+      "description": "requirements line 2: celery==5.6.2",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/celery/"
+        }
+      ],
+      "name": "celery",
+      "purl": "pkg:pypi/celery@5.6.2",
+      "type": "library",
+      "version": "5.6.2"
+    },
+    {
+      "bom-ref": "requirements-L3",
+      "description": "requirements line 3: cryptography==46.0.5",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/cryptography/"
+        }
+      ],
+      "name": "cryptography",
+      "purl": "pkg:pypi/cryptography@46.0.5",
+      "type": "library",
+      "version": "46.0.5"
+    },
+    {
+      "bom-ref": "requirements-L35",
+      "description": "requirements line 35: diskcache>=5.6",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/diskcache/"
+        }
+      ],
+      "name": "diskcache",
+      "purl": "pkg:pypi/diskcache",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L4",
+      "description": "requirements line 4: dj-database-url==3.1.2",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/dj-database-url/"
+        }
+      ],
+      "name": "dj-database-url",
+      "purl": "pkg:pypi/dj-database-url@3.1.2",
+      "type": "library",
+      "version": "3.1.2"
+    },
+    {
+      "bom-ref": "requirements-L7",
+      "description": "requirements line 7: django-allauth==65.15.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-allauth/"
+        }
+      ],
+      "name": "django-allauth",
+      "purl": "pkg:pypi/django-allauth@65.15.0",
+      "type": "library",
+      "version": "65.15.0"
+    },
+    {
+      "bom-ref": "requirements-L8",
+      "description": "requirements line 8: django-axes==8.3.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-axes/"
+        }
+      ],
+      "name": "django-axes",
+      "purl": "pkg:pypi/django-axes@8.3.1",
+      "type": "library",
+      "version": "8.3.1"
+    },
+    {
+      "bom-ref": "requirements-L9",
+      "description": "requirements line 9: django-bootstrap5==26.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-bootstrap5/"
+        }
+      ],
+      "name": "django-bootstrap5",
+      "purl": "pkg:pypi/django-bootstrap5@26.1",
+      "type": "library",
+      "version": "26.1"
+    },
+    {
+      "bom-ref": "requirements-L10",
+      "description": "requirements line 10: django-ckeditor==6.7.3",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-ckeditor/"
+        }
+      ],
+      "name": "django-ckeditor",
+      "purl": "pkg:pypi/django-ckeditor@6.7.3",
+      "type": "library",
+      "version": "6.7.3"
+    },
+    {
+      "bom-ref": "requirements-L11",
+      "description": "requirements line 11: django-crispy-forms==2.3",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-crispy-forms/"
+        }
+      ],
+      "name": "django-crispy-forms",
+      "purl": "pkg:pypi/django-crispy-forms@2.3",
+      "type": "library",
+      "version": "2.3"
+    },
+    {
+      "bom-ref": "requirements-L12",
+      "description": "requirements line 12: django-debug-toolbar==6.3.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-debug-toolbar/"
+        }
+      ],
+      "name": "django-debug-toolbar",
+      "purl": "pkg:pypi/django-debug-toolbar@6.3.0",
+      "type": "library",
+      "version": "6.3.0"
+    },
+    {
+      "bom-ref": "requirements-L15",
+      "description": "requirements line 15: django-encrypted-model-fields==0.6.5",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-encrypted-model-fields/"
+        }
+      ],
+      "name": "django-encrypted-model-fields",
+      "purl": "pkg:pypi/django-encrypted-model-fields@0.6.5",
+      "type": "library",
+      "version": "0.6.5"
+    },
+    {
+      "bom-ref": "requirements-L16",
+      "description": "requirements line 16: django-environ==0.13.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-environ/"
+        }
+      ],
+      "name": "django-environ",
+      "purl": "pkg:pypi/django-environ@0.13.0",
+      "type": "library",
+      "version": "0.13.0"
+    },
+    {
+      "bom-ref": "requirements-L17",
+      "description": "requirements line 17: django-extensions==4.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-extensions/"
+        }
+      ],
+      "name": "django-extensions",
+      "purl": "pkg:pypi/django-extensions@4.1",
+      "type": "library",
+      "version": "4.1"
+    },
+    {
+      "bom-ref": "requirements-L13",
+      "description": "requirements line 13: django-otp==1.5.4",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-otp/"
+        }
+      ],
+      "name": "django-otp",
+      "purl": "pkg:pypi/django-otp@1.5.4",
+      "type": "library",
+      "version": "1.5.4"
+    },
+    {
+      "bom-ref": "requirements-L18",
+      "description": "requirements line 18: django-ratelimit==4.1.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-ratelimit/"
+        }
+      ],
+      "name": "django-ratelimit",
+      "purl": "pkg:pypi/django-ratelimit@4.1.0",
+      "type": "library",
+      "version": "4.1.0"
+    },
+    {
+      "bom-ref": "requirements-L19",
+      "description": "requirements line 19: django-redis==6.0.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-redis/"
+        }
+      ],
+      "name": "django-redis",
+      "purl": "pkg:pypi/django-redis@6.0.0",
+      "type": "library",
+      "version": "6.0.0"
+    },
+    {
+      "bom-ref": "requirements-L20",
+      "description": "requirements line 20: django-simple-history==3.11.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-simple-history/"
+        }
+      ],
+      "name": "django-simple-history",
+      "purl": "pkg:pypi/django-simple-history@3.11.0",
+      "type": "library",
+      "version": "3.11.0"
+    },
+    {
+      "bom-ref": "requirements-L21",
+      "description": "requirements line 21: django-widget-tweaks==1.5.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/django-widget-tweaks/"
+        }
+      ],
+      "name": "django-widget-tweaks",
+      "purl": "pkg:pypi/django-widget-tweaks@1.5.1",
+      "type": "library",
+      "version": "1.5.1"
+    },
+    {
+      "bom-ref": "requirements-L6",
+      "description": "requirements line 6: djangorestframework",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/djangorestframework/"
+        }
+      ],
+      "name": "djangorestframework",
+      "purl": "pkg:pypi/djangorestframework",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L22",
+      "description": "requirements line 22: groq==0.37.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/groq/"
+        }
+      ],
+      "name": "groq",
+      "purl": "pkg:pypi/groq@0.37.1",
+      "type": "library",
+      "version": "0.37.1"
+    },
+    {
+      "bom-ref": "requirements-L23",
+      "description": "requirements line 23: httpx==0.28.1",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/httpx/"
+        }
+      ],
+      "name": "httpx",
+      "purl": "pkg:pypi/httpx@0.28.1",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "bom-ref": "requirements-L24",
+      "description": "requirements line 24: langchain>=1.2.11",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/langchain/"
+        }
+      ],
+      "name": "langchain",
+      "purl": "pkg:pypi/langchain",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L25",
+      "description": "requirements line 25: langchain-core>=1.4.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/langchain-core/"
+        }
+      ],
+      "name": "langchain-core",
+      "purl": "pkg:pypi/langchain-core",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L26",
+      "description": "requirements line 26: langchain-groq>=1.1.2",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/langchain-groq/"
+        }
+      ],
+      "name": "langchain-groq",
+      "purl": "pkg:pypi/langchain-groq",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L27",
+      "description": "requirements line 27: langchain-openai>=1.1.11",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/langchain-openai/"
+        }
+      ],
+      "name": "langchain-openai",
+      "purl": "pkg:pypi/langchain-openai",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L28",
+      "description": "requirements line 28: langgraph>=1.2.2",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/langgraph/"
+        }
+      ],
+      "name": "langgraph",
+      "purl": "pkg:pypi/langgraph",
+      "type": "library"
+    },
+    {
+      "bom-ref": "requirements-L29",
+      "description": "requirements line 29: openai==2.26.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/openai/"
+        }
+      ],
+      "name": "openai",
+      "purl": "pkg:pypi/openai@2.26.0",
+      "type": "library",
+      "version": "2.26.0"
+    },
+    {
+      "bom-ref": "requirements-L31",
+      "description": "requirements line 31: python-dotenv==1.2.2",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/python-dotenv/"
+        }
+      ],
+      "name": "python-dotenv",
+      "purl": "pkg:pypi/python-dotenv@1.2.2",
+      "type": "library",
+      "version": "1.2.2"
+    },
+    {
+      "bom-ref": "requirements-L14",
+      "description": "requirements line 14: qrcode[pil]==8.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/qrcode/"
+        }
+      ],
+      "name": "qrcode",
+      "properties": [
+        {
+          "name": "cdx:python:package:required-extra",
+          "value": "pil"
+        }
+      ],
+      "purl": "pkg:pypi/qrcode@8.0",
+      "type": "library",
+      "version": "8.0"
+    },
+    {
+      "bom-ref": "requirements-L32",
+      "description": "requirements line 32: requests==2.32.5",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/requests/"
+        }
+      ],
+      "name": "requests",
+      "purl": "pkg:pypi/requests@2.32.5",
+      "type": "library",
+      "version": "2.32.5"
+    },
+    {
+      "bom-ref": "requirements-L33",
+      "description": "requirements line 33: sqlparse==0.5.5",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/sqlparse/"
+        }
+      ],
+      "name": "sqlparse",
+      "purl": "pkg:pypi/sqlparse@0.5.5",
+      "type": "library",
+      "version": "0.5.5"
+    },
+    {
+      "bom-ref": "requirements-L34",
+      "description": "requirements line 34: whitenoise==6.12.0",
+      "externalReferences": [
+        {
+          "comment": "implicit dist url",
+          "type": "distribution",
+          "url": "https://pypi.org/simple/whitenoise/"
+        }
+      ],
+      "name": "whitenoise",
+      "purl": "pkg:pypi/whitenoise@6.12.0",
+      "type": "library",
+      "version": "6.12.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "requirements-L1"
+    },
+    {
+      "ref": "requirements-L10"
+    },
+    {
+      "ref": "requirements-L11"
+    },
+    {
+      "ref": "requirements-L12"
+    },
+    {
+      "ref": "requirements-L13"
+    },
+    {
+      "ref": "requirements-L14"
+    },
+    {
+      "ref": "requirements-L15"
+    },
+    {
+      "ref": "requirements-L16"
+    },
+    {
+      "ref": "requirements-L17"
+    },
+    {
+      "ref": "requirements-L18"
+    },
+    {
+      "ref": "requirements-L19"
+    },
+    {
+      "ref": "requirements-L2"
+    },
+    {
+      "ref": "requirements-L20"
+    },
+    {
+      "ref": "requirements-L21"
+    },
+    {
+      "ref": "requirements-L22"
+    },
+    {
+      "ref": "requirements-L23"
+    },
+    {
+      "ref": "requirements-L24"
+    },
+    {
+      "ref": "requirements-L25"
+    },
+    {
+      "ref": "requirements-L26"
+    },
+    {
+      "ref": "requirements-L27"
+    },
+    {
+      "ref": "requirements-L28"
+    },
+    {
+      "ref": "requirements-L29"
+    },
+    {
+      "ref": "requirements-L3"
+    },
+    {
+      "ref": "requirements-L30"
+    },
+    {
+      "ref": "requirements-L31"
+    },
+    {
+      "ref": "requirements-L32"
+    },
+    {
+      "ref": "requirements-L33"
+    },
+    {
+      "ref": "requirements-L34"
+    },
+    {
+      "ref": "requirements-L35"
+    },
+    {
+      "ref": "requirements-L4"
+    },
+    {
+      "ref": "requirements-L5"
+    },
+    {
+      "ref": "requirements-L6"
+    },
+    {
+      "ref": "requirements-L7"
+    },
+    {
+      "ref": "requirements-L8"
+    },
+    {
+      "ref": "requirements-L9"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2026-05-28T04:43:08.040406+00:00",
+    "tools": {
+      "components": [
+        {
+          "description": "CycloneDX Software Bill of Materials (SBOM) generator for Python projects and environments",
+          "externalReferences": [
+            {
+              "type": "build-system",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/actions"
+            },
+            {
+              "type": "distribution",
+              "url": "https://pypi.org/project/cyclonedx-bom/"
+            },
+            {
+              "type": "documentation",
+              "url": "https://cyclonedx-bom-tool.readthedocs.io/"
+            },
+            {
+              "type": "issue-tracker",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/issues"
+            },
+            {
+              "type": "license",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/blob/main/LICENSE"
+            },
+            {
+              "type": "release-notes",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/blob/main/CHANGELOG.md"
+            },
+            {
+              "type": "vcs",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/"
+            },
+            {
+              "type": "website",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/#readme"
+            }
+          ],
+          "group": "CycloneDX",
+          "licenses": [
+            {
+              "license": {
+                "acknowledgement": "declared",
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "name": "cyclonedx-py",
+          "type": "application",
+          "version": "7.3.0"
+        },
+        {
+          "description": "Python library for CycloneDX",
+          "externalReferences": [
+            {
+              "type": "build-system",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/actions"
+            },
+            {
+              "type": "distribution",
+              "url": "https://pypi.org/project/cyclonedx-python-lib/"
+            },
+            {
+              "type": "documentation",
+              "url": "https://cyclonedx-python-library.readthedocs.io/"
+            },
+            {
+              "type": "issue-tracker",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/issues"
+            },
+            {
+              "type": "license",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/blob/main/LICENSE"
+            },
+            {
+              "type": "release-notes",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/blob/main/CHANGELOG.md"
+            },
+            {
+              "type": "vcs",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib"
+            },
+            {
+              "type": "website",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/#readme"
+            }
+          ],
+          "group": "CycloneDX",
+          "licenses": [
+            {
+              "license": {
+                "acknowledgement": "declared",
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "name": "cyclonedx-python-lib",
+          "type": "library",
+          "version": "11.7.0"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:acc6026c-85d7-432a-90cb-a0275cdffc27",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6"
+}

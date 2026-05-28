@@ -4,3 +4,6 @@ class MiraConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "agents.mira"
     verbose_name = "Mira — Customer Success"
+
+    def ready(self):
+        import agents.mira.signals  # noqa

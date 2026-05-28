@@ -62,7 +62,8 @@ class MeetingBriefViewSet(viewsets.ModelViewSet):
     def generate(self, request, pk=None):
         """POST /api/v1/atlas/briefs/<pk>/generate/ — AI generates talking points and briefing."""
         brief = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Meeting: {brief.meeting_title}\n"
             f"Attendees: {brief.attendees}\n"

@@ -21,11 +21,17 @@ Principles:
 
 Tone: Warm, professional, solution-focused. Never dismissive."""
 
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
+
 
 class AriaEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def resolve_ticket(self, ticket) -> dict:
+    def resolve_ticket(self, ticket, instance=None) -> dict:
         prompt = f"""A customer has submitted a support ticket. Provide a resolution.
 
 Ticket Subject: {ticket.subject}
@@ -46,9 +52,29 @@ Return a JSON object with:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            result = json.loads(raw)
         except json.JSONDecodeError:
-            return {"customer_reply": raw, "confidence": 0.7, "escalate": False, "resolution_category": "other"}
+            result = {"customer_reply": raw, "confidence": 0.7, "escalate": False, "resolution_category": "other"}
+
+        if result.get("confidence", 0) < 0.8:
+            raise PermissionRequired(
+                context=f"I want to send this reply to ticket #{ticket.pk} but my confidence is only {result.get('confidence', 0)}.",
+                option_a="Approve and send the reply.",
+                option_b="Deny and assign to a human agent."
+            )
+
+        if instance:
+            from agents.models import AgentLog
+            from django.conf import settings
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"resolve_ticket #{ticket.pk}",
+                outcome='success' if not result.get('escalate') else 'escalated',
+                detail=json.dumps(result),
+                model_used=getattr(settings, 'SEREA_TASK_MODELS', {}).get('chat', 'gpt-4'),
+            )
+            
+        return result
 
     def draft_reply(self, ticket, customer_sentiment: str = "neutral") -> str:
         prompt = f"""Draft a customer support reply for this ticket.

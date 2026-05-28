@@ -63,7 +63,8 @@ class DataQueryViewSet(viewsets.ModelViewSet):
     def execute(self, request, pk=None):
         """POST /api/v1/nova/queries/<pk>/execute/ — AI translates question to SQL + preview."""
         query = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         try:
             raw = ai_chat(
                 system_prompt=_NOVA_PROMPT,

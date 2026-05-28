@@ -45,7 +45,8 @@ class ITTicketViewSet(viewsets.ModelViewSet):
     def resolve(self, request, pk=None):
         """POST /api/v1/shield/tickets/<pk>/resolve/ — AI resolves IT ticket."""
         ticket = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Title: {ticket.title}\n"
             f"Category: {ticket.category}\n"

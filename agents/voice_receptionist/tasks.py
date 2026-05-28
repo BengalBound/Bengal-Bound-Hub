@@ -69,22 +69,29 @@ def weekly_analytics_report():
     from agents.voice_receptionist.models import BusinessProfile
     from agents.voice_receptionist.analytics import build_weekly_report
     from agents.voice_receptionist.engine import VoiceReceptionistEngine
+    from agents.models import AgentInstance, AgentCatalog
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='voice_receptionist')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = VoiceReceptionistEngine()
     end_dt = timezone.now()
     start_dt = end_dt - timedelta(days=7)
-
-    businesses = BusinessProfile.objects.filter(is_active=True)
     processed = 0
 
-    for business in businesses:
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
         try:
-            report = build_weekly_report(business, start_dt, end_dt)
-            narrative = engine.weekly_performance_report(business.business_name, report)
-            logger.info("voice_receptionist.weekly_report %s: %s", business.business_name, narrative[:100])
+            business_profile = BusinessProfile.objects.get(business=instance.business)
+            report = build_weekly_report(business_profile, start_dt, end_dt)
+            narrative = engine.weekly_performance_report(business_profile.business_name, report, instance=instance)
+            logger.info("voice_receptionist.weekly_report %s: %s", business_profile.business_name, narrative[:100])
             processed += 1
+        except BusinessProfile.DoesNotExist:
+            pass
         except Exception as exc:
-            logger.error("voice_receptionist.weekly_analytics_report business %s: %s", business.pk, exc)
+            logger.error("voice_receptionist.weekly_analytics_report instance %s: %s", instance.pk, exc)
 
     logger.info("voice_receptionist.weekly_analytics_report: processed %d businesses", processed)
     return processed

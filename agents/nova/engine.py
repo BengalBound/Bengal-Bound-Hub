@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Nova, BengalBound's AI Data Scientist.
 
@@ -27,7 +35,7 @@ SQL safety rules: Read-only queries only (SELECT). Parameterise inputs. Avoid su
 class NovaEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def nl_to_sql(self, query) -> dict:
+    def nl_to_sql(self, query, instance=None) -> dict:
         schema_hint = f"Source type: {query.data_source.source_type}" if query.data_source else "Schema not specified"
         prompt = f"""Translate this business question into a SQL query.
 
@@ -51,11 +59,29 @@ IMPORTANT: Generate only SELECT statements. No mutations."""
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"generated_sql": raw, "plain_english_explanation": "", "assumptions": [], "warnings": []}
+            res = {"generated_sql": raw, "plain_english_explanation": "", "assumptions": [], "warnings": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"nl_to_sql for {query.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            sql_upper = res.get("generated_sql", "").upper()
+            if any(mutation in sql_upper for mutation in ["DROP", "TRUNCATE", "DELETE", "UPDATE", "INSERT"]):
+                raise PermissionRequired(
+                    context=f"DANGEROUS SQL generated: {res.get('generated_sql')}",
+                    option_a="Approve and execute mutation",
+                    option_b="Deny and discard query"
+                )
+        return res
 
-    def analyse_results(self, question: str, results: list, source_type: str) -> str:
+    def analyse_results(self, question: str, results: list, source_type: str, instance=None) -> str:
         results_text = json.dumps(results[:20], indent=2) if results else "No results returned"
         prompt = f"""Analyse these query results and provide business insights.
 
@@ -75,9 +101,18 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="analyse_results",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def anomaly_detection(self, dataset_description: str, sample_data: list) -> dict:
+    def anomaly_detection(self, dataset_description: str, sample_data: list, instance=None) -> dict:
         data_text = json.dumps(sample_data[:30], indent=2)
         prompt = f"""Detect anomalies in this dataset.
 
@@ -101,11 +136,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"anomalies_found": False, "anomalies": [], "data_quality_score": 80, "recommendations": []}
+            res = {"anomalies_found": False, "anomalies": [], "data_quality_score": 80, "recommendations": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="anomaly_detection",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def visualisation_suggestions(self, query: str, results_schema: list) -> list:
+    def visualisation_suggestions(self, query: str, results_schema: list, instance=None) -> list:
         schema_text = ", ".join(results_schema)
         prompt = f"""Recommend the best data visualisations for this query result.
 
@@ -127,6 +172,16 @@ Return a JSON array of visualisation recommendations:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="visualisation_suggestions",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

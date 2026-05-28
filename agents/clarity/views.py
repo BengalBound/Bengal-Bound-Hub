@@ -45,7 +45,8 @@ class FeedbackSurveyViewSet(viewsets.ModelViewSet):
     def analyze(self, request, pk=None):
         """POST /api/v1/clarity/surveys/<pk>/analyze/ — AI generates InsightThemes."""
         survey = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Survey: {survey.name} (type: {survey.survey_type})\n"
             f"Questions: {survey.questions}\n"

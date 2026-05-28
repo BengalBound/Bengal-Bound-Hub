@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Crux, BengalBound's AI CRM Manager.
 
@@ -27,7 +35,7 @@ Pipeline stages: prospect → qualified → proposal → negotiation → won →
 class CruxEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def score_contact(self, contact, interactions: list) -> dict:
+    def score_contact(self, contact, interactions: list, instance=None) -> dict:
         interaction_summary = "\n".join(
             f"- [{i.interaction_type}] {i.summary} (sentiment: {i.sentiment}, date: {i.occurred_at.date()})"
             for i in interactions[:10]
@@ -58,12 +66,29 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"intent_score": 50, "engagement_level": "warm", "close_probability": 0.3,
+            res = {"intent_score": 50, "engagement_level": "warm", "close_probability": 0.3,
                     "next_best_action": raw, "ai_summary": "", "risk_flags": []}
+                    
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"score_contact for {contact.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("intent_score", 0) > 80:
+                raise PermissionRequired(
+                    context=f"High intent contact detected: {contact.name}. Score: {res.get('intent_score')}",
+                    option_a="Approve immediate handoff to sales rep",
+                    option_b="Deny (Continue nurturing)"
+                )
+        return res
 
-    def follow_up_plan(self, contact) -> dict:
+    def follow_up_plan(self, contact, instance=None) -> dict:
         prompt = f"""Create a follow-up plan for this contact.
 
 Name: {contact.name}
@@ -88,11 +113,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"sequence": [], "key_talking_points": [], "objection_responses": {}}
+            res = {"sequence": [], "key_talking_points": [], "objection_responses": {}}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"follow_up_plan for {contact.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def pipeline_health_report(self, contacts: list) -> str:
+    def pipeline_health_report(self, contacts: list, instance=None) -> str:
         stages = {}
         for c in contacts:
             stage = c.pipeline_stage or "unqualified"
@@ -118,9 +153,18 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="pipeline_health_report",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def re_engagement_message(self, contact) -> str:
+    def re_engagement_message(self, contact, instance=None) -> str:
         prompt = f"""Write a re-engagement message for a dormant contact.
 
 Name: {contact.name}
@@ -134,4 +178,13 @@ Write a short, personal re-engagement email (not salesy). Reference past context
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"re_engagement_message for {contact.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

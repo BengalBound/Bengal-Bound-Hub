@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Scout, BengalBound's AI Competitor Intelligence Analyst.
 
@@ -27,7 +35,7 @@ Change types: pricing, product, hiring, ad, content, pr"""
 class ScoutEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def analyse_change(self, change, competitor) -> dict:
+    def analyse_change(self, change, competitor, instance=None) -> dict:
         prompt = f"""Analyse this competitor change for strategic impact.
 
 Competitor: {competitor.name} ({competitor.website})
@@ -54,11 +62,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"ai_analysis": raw, "impact_level": change.impact, "urgency": "review", "strategic_implications": [], "recommended_responses": []}
+            res = {"ai_analysis": raw, "impact_level": change.impact, "urgency": "review", "strategic_implications": [], "recommended_responses": []}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"analyse_change for {competitor.name}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("urgency") == "act_now":
+                raise PermissionRequired(
+                    context=f"URGENT competitor change detected from {competitor.name}: {res.get('ai_analysis')}",
+                    option_a="Approve notifying leadership team immediately",
+                    option_b="Deny (Wait for weekly digest)"
+                )
+        return res
 
-    def competitor_profile(self, competitor) -> str:
+    def competitor_profile(self, competitor, instance=None) -> str:
         prompt = f"""Build a competitor intelligence profile.
 
 Competitor: {competitor.name}
@@ -79,9 +104,18 @@ Generate a structured competitor profile covering:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"competitor_profile for {competitor.name}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def weekly_intel_summary(self, changes: list, competitors: list) -> str:
+    def weekly_intel_summary(self, changes: list, competitors: list, instance=None) -> str:
         changes_text = "\n".join(
             f"- [{c.change_type}] {c.competitor.name if hasattr(c, 'competitor') else 'Unknown'}: {c.description[:100]}"
             for c in changes[:10]
@@ -105,9 +139,18 @@ Write a concise (1-page) intelligence brief:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="weekly_intel_summary",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def pricing_response(self, competitor_name: str, their_new_price: str, our_price: str, product: str) -> dict:
+    def pricing_response(self, competitor_name: str, their_new_price: str, our_price: str, product: str, instance=None) -> dict:
         prompt = f"""Analyse this competitor pricing move and recommend our response.
 
 Competitor: {competitor_name}
@@ -130,6 +173,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"response_recommendation": "hold", "rationale": raw, "messaging_angle": "", "risk_if_no_action": ""}
+            res = {"response_recommendation": "hold", "rationale": raw, "messaging_angle": "", "risk_if_no_action": ""}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"pricing_response for {competitor_name}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

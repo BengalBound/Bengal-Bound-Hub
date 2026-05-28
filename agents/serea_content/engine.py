@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Serea Content, BengalBound's AI Content Strategist.
 
@@ -26,7 +34,7 @@ Content types: blog_post, email, social, ad_copy"""
 class SereaContentEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_piece(self, piece) -> str:
+    def generate_piece(self, piece, instance=None) -> str:
         type_guides = {
             "blog_post": "Long-form, 800-1500 words, H2/H3 structure, SEO-optimised, practical and authoritative",
             "email": "Subject + preview + body, scannable, single CTA, conversational tone",
@@ -49,9 +57,18 @@ Write complete, publish-ready content."""
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_piece {piece.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def campaign_strategy(self, campaign) -> dict:
+    def campaign_strategy(self, campaign, instance=None) -> dict:
         prompt = f"""Build a content campaign strategy.
 
 Campaign: {campaign.name}
@@ -75,11 +92,27 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"strategy_overview": raw, "content_pillars": [], "kpis": [], "content_mix": {}}
+            res = {"strategy_overview": raw, "content_pillars": [], "kpis": [], "content_mix": {}}
 
-    def content_audit(self, pieces: list) -> dict:
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"campaign_strategy {campaign.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+
+            raise PermissionRequired(
+                context=f"New Content Campaign Strategy drafted for: {campaign.name}. Requires approval before generating pieces.",
+                option_a="Approve strategy and begin generating content",
+                option_b="Deny and request strategic revision"
+            )
+        return res
+
+    def content_audit(self, pieces: list, instance=None) -> dict:
         pieces_summary = "\n".join(
             f"- [{p.content_type}] {p.title} (status: {p.status})"
             for p in pieces[:20]
@@ -103,6 +136,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"content_gaps": [], "underperforming": [], "quick_wins": [], "strategic_recommendation": raw}
+            res = {"content_gaps": [], "underperforming": [], "quick_wins": [], "strategic_recommendation": raw}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="content_audit",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

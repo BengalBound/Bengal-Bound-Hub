@@ -7,22 +7,27 @@ logger = logging.getLogger(__name__)
 @shared_task(name="agents.crux.daily_pipeline_review")
 def daily_pipeline_review():
     from agents.crux.models import Contact
-    from agents.crux.engine import CruxEngine
-    from hub.models import BusinessInstance
+    from agents.crux.engine import CruxEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='crux')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = CruxEngine()
     processed = 0
 
-    for business in BusinessInstance.objects.filter(is_active=True):
-        contacts = list(Contact.objects.filter(business=business))
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        contacts = list(Contact.objects.filter(business=instance.business))
         if not contacts:
             continue
         try:
-            report = engine.pipeline_health_report(contacts)
-            logger.info("Crux pipeline report for %s generated", business.slug)
+            report = engine.pipeline_health_report(contacts, instance=instance)
+            logger.info("Crux pipeline report for %s generated", instance.business.slug)
             processed += 1
         except Exception as exc:
-            logger.error("crux.daily_pipeline_review business %s: %s", business.slug, exc)
+            logger.error("crux.daily_pipeline_review business %s: %s", instance.business.slug, exc)
 
     logger.info("crux.daily_pipeline_review: processed %d businesses", processed)
     return processed
@@ -31,22 +36,40 @@ def daily_pipeline_review():
 @shared_task(name="agents.crux.score_new_contacts")
 def score_new_contacts():
     from agents.crux.models import Contact, Interaction
-    from agents.crux.engine import CruxEngine
+    from agents.crux.engine import CruxEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='crux')
+    except AgentCatalog.DoesNotExist:
+        return 0
 
     engine = CruxEngine()
-    unscored = Contact.objects.filter(intent_score__isnull=True)
     scored = 0
 
-    for contact in unscored:
-        try:
-            interactions = list(contact.interactions.order_by("-occurred_at")[:10])
-            result = engine.score_contact(contact, interactions)
-            contact.intent_score = result.get("intent_score", 50)
-            contact.ai_summary = result.get("ai_summary", "")
-            contact.save(update_fields=["intent_score", "ai_summary"])
-            scored += 1
-        except Exception as exc:
-            logger.error("crux.score_new_contacts contact %s: %s", contact.pk, exc)
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        unscored = Contact.objects.filter(business=instance.business, intent_score__isnull=True)
+        for contact in unscored:
+            try:
+                interactions = list(contact.interactions.order_by("-occurred_at")[:10])
+                result = engine.score_contact(contact, interactions, instance=instance)
+                contact.intent_score = result.get("intent_score", 50)
+                contact.ai_summary = result.get("ai_summary", "")
+                contact.save(update_fields=["intent_score", "ai_summary"])
+                scored += 1
+            except PermissionRequired as pr:
+                if "result" in locals():
+                    contact.intent_score = locals()['result'].get("intent_score", 50)
+                    contact.ai_summary = locals()['result'].get("ai_summary", "")
+                    contact.save(update_fields=["intent_score", "ai_summary"])
+
+                AgentPermissionRequest.objects.create(
+                    instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
+                )
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+            except Exception as exc:
+                logger.error("crux.score_new_contacts contact %s: %s", contact.pk, exc)
 
     logger.info("crux.score_new_contacts: scored %d contacts", scored)
     return scored

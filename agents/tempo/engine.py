@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Tempo, BengalBound's AI Events Manager.
 
@@ -27,7 +35,7 @@ Event types: conference, workshop, product_launch, team_building, webinar, gala"
 class TempoEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def generate_event_plan(self, event) -> str:
+    def generate_event_plan(self, event, instance=None) -> str:
         budget_used_pct = (float(event.spent_so_far) / float(event.total_budget) * 100) if event.total_budget else 0
 
         prompt = f"""Generate a complete event plan and run-of-show.
@@ -53,9 +61,18 @@ Generate:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_event_plan for {event.name}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def attendee_message(self, event, message_type: str, attendees_count: int) -> dict:
+    def attendee_message(self, event, message_type: str, attendees_count: int, instance=None) -> dict:
         message_guides = {
             "invitation": "Warm, exciting, clear value proposition for attending. Include date, location, agenda highlights, registration link.",
             "reminder_2week": "Friendly reminder with logistics (parking, dress code, schedule). Build anticipation.",
@@ -87,11 +104,29 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"subject": f"{event.name} — {message_type}", "body": raw}
+            res = {"subject": f"{event.name} — {message_type}", "body": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"attendee_message ({message_type}) for {event.name}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            # Require permission to blast email to attendees
+            if attendees_count > 0:
+                raise PermissionRequired(
+                    context=f"Tempo drafted a {message_type} email for {attendees_count} attendees of {event.name}.\nSubject: {res.get('subject')}",
+                    option_a=f"Approve sending email to {attendees_count} attendees",
+                    option_b="Deny (Edit manually)"
+                )
+        return res
 
-    def post_event_summary(self, event, actual_attendance: int, budget_spent: float) -> str:
+    def post_event_summary(self, event, actual_attendance: int, budget_spent: float, instance=None) -> str:
         attendance_rate = (actual_attendance / event.expected_headcount * 100) if event.expected_headcount else 0
         budget_variance = float(event.total_budget) - budget_spent
 
@@ -118,4 +153,13 @@ Write a structured post-event summary:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"post_event_summary for {event.name}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

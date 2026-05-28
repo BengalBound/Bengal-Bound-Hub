@@ -7,26 +7,57 @@ logger = logging.getLogger(__name__)
 @shared_task(name="agents.aria.auto_resolve_tickets")
 def auto_resolve_tickets():
     from agents.aria.models import SupportTicket, TicketResponse
-    from agents.aria.engine import AriaEngine
+    from agents.aria.engine import AriaEngine, PermissionRequired
+    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+    from agents.platform.email_notify import EmailAdapter
+
+    catalog = AgentCatalog.objects.filter(slug='aria').first()
+    if not catalog:
+        return 0
 
     engine = AriaEngine()
-    tickets = SupportTicket.objects.filter(status="open", priority__in=["low", "medium"])
     resolved = 0
 
-    for ticket in tickets:
-        try:
-            result = engine.resolve_ticket(ticket)
-            if result.get("confidence", 0) >= 0.8 and not result.get("escalate", True):
-                TicketResponse.objects.create(
-                    ticket=ticket,
-                    content=result.get("customer_reply", ""),
-                    is_ai_generated=True,
+    for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
+        tickets = SupportTicket.objects.filter(business=instance.business, status="open", priority__in=["low", "medium"])
+        for ticket in tickets:
+            try:
+                result = engine.resolve_ticket(ticket, instance=instance)
+                if result.get("confidence", 0) >= 0.8 and not result.get("escalate", True):
+                    TicketResponse.objects.create(
+                        ticket=ticket,
+                        content=result.get("customer_reply", ""),
+                        is_ai_generated=True,
+                    )
+                    ticket.status = "resolved"
+                    ticket.save(update_fields=["status"])
+                    resolved += 1
+            except PermissionRequired as pr:
+                request = AgentPermissionRequest.objects.create(
+                    instance=instance,
+                    context=pr.context,
+                    option_a=pr.option_a,
+                    option_b=pr.option_b,
                 )
-                ticket.status = "resolved"
-                ticket.save(update_fields=["status"])
-                resolved += 1
-        except Exception as exc:
-            logger.error("aria.auto_resolve_tickets: ticket %s failed: %s", ticket.pk, exc)
+                instance.status = 'waiting'
+                instance.save(update_fields=['status'])
+                
+                try:
+                    if hasattr(instance.business, 'owner') and getattr(instance.business.owner, 'email', None):
+                        emails = [instance.business.owner.email]
+                    elif hasattr(instance.business, 'users'):
+                        emails = [u.email for u in instance.business.users.all() if u.email]
+                    else:
+                        emails = ['admin@bengalbound.com']
+                except Exception:
+                    emails = ['admin@bengalbound.com']
+                if not emails:
+                    emails = ['admin@bengalbound.com']
+                    
+                EmailAdapter(instance).send_permission_request(request, emails)
+                
+            except Exception as exc:
+                logger.error("aria.auto_resolve_tickets: ticket %s failed: %s", ticket.pk, exc)
 
     logger.info("aria.auto_resolve_tickets: resolved %d tickets", resolved)
     return resolved

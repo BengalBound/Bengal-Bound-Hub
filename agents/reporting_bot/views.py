@@ -43,7 +43,8 @@ class ReportConfigViewSet(viewsets.ModelViewSet):
     def generate(self, request, pk=None):
         """POST /api/v1/reporting/configs/<pk>/generate/ — AI generates a Report."""
         config = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         now = timezone.now()
         prompt = (
             f"Report: {config.report_name}\n"

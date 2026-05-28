@@ -5,3 +5,6 @@ class PulseConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "agents.pulse"
     verbose_name = "Pulse — Market Research"
+
+    def ready(self):
+        import agents.pulse.signals  # noqa

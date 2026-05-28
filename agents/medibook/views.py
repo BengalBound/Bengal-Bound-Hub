@@ -61,7 +61,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def confirm(self, request, pk=None):
         """POST /api/v1/medibook/appointments/<pk>/confirm/ — AI writes patient notes and confirms."""
         appointment = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Patient: {appointment.patient_name}\n"
             f"Doctor: {appointment.doctor.name} ({appointment.doctor.specialty})\n"

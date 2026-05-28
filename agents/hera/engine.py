@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Hera, BengalBound's AI HR Agent.
 
@@ -27,7 +35,7 @@ HR categories: onboarding, leave, benefits, conduct, payroll, performance, offbo
 class HeraEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def answer_policy_query(self, query) -> str:
+    def answer_policy_query(self, query, instance=None) -> str:
         prompt = f"""Answer this HR policy question accurately and empathetically.
 
 Question: {query.question}
@@ -45,9 +53,18 @@ Be warm but precise. If this involves a legal risk or sensitive situation, recom
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"answer_policy_query for {query.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def generate_onboarding_plan(self, employee_name: str, role: str, department: str) -> list:
+    def generate_onboarding_plan(self, employee_name: str, role: str, department: str, instance=None) -> list:
         prompt = f"""Create a 30-day onboarding plan for a new employee.
 
 Name: {employee_name}
@@ -70,11 +87,21 @@ Cover: admin (contracts, accounts), systems (email, tools), culture (team meetin
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="generate_onboarding_plan",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def leave_assessment(self, employee_name: str, leave_type: str, days: int, reason: str) -> dict:
+    def leave_assessment(self, employee_name: str, leave_type: str, days: int, reason: str, instance=None) -> dict:
         prompt = f"""Assess this leave request.
 
 Employee: {employee_name}
@@ -96,11 +123,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"recommendation": "escalate", "policy_basis": raw, "conditions": [], "response_to_employee": ""}
+            res = {"recommendation": "escalate", "policy_basis": raw, "conditions": [], "response_to_employee": ""}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action="leave_assessment",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def draft_hr_communication(self, comm_type: str, context: dict) -> str:
+    def draft_hr_communication(self, comm_type: str, context: dict, instance=None) -> str:
         context_text = "\n".join(f"{k}: {v}" for k, v in context.items())
         prompt = f"""Draft a professional HR communication.
 
@@ -114,4 +151,20 @@ Write a complete, professional HR communication. Be clear, fair, and legally car
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"draft_hr_communication {comm_type}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if comm_type.lower() in ["termination", "warning", "disciplinary"]:
+                raise PermissionRequired(
+                    context=f"Sensitive HR communication drafted: {comm_type}. Requires HR Director approval.",
+                    option_a="Approve and send",
+                    option_b="Deny and schedule meeting"
+                )
+        return res

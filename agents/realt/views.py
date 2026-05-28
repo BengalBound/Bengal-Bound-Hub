@@ -63,7 +63,8 @@ class LeadViewSet(viewsets.ModelViewSet):
     def qualify(self, request, pk=None):
         """POST /api/v1/realt/leads/<pk>/qualify/ — AI qualifies the lead."""
         lead = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Lead: {lead.name}\n"
             f"Intent: {lead.intent}\n"

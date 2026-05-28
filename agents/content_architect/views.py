@@ -53,7 +53,8 @@ class CalendarEntryViewSet(viewsets.ModelViewSet):
     def generate(self, request, pk=None):
         """POST /api/v1/architect/entries/<pk>/generate/ — AI writes content from brief."""
         entry = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = f"Channel: {entry.channel}\nTitle: {entry.title}\nBrief: {entry.brief}"
         try:
             content = ai_chat(

@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Oracle, BengalBound's AI SEO Specialist.
 
@@ -27,7 +35,7 @@ Issue severity: critical (page not visible/indexed), warning (significant rankin
 class OracleEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def audit_website(self, website) -> list:
+    def audit_website(self, website, instance=None) -> list:
         prompt = f"""Run an SEO audit assessment for this website.
 
 Domain: {website.domain}
@@ -56,11 +64,29 @@ Return a JSON array of issues:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return []
+            res = []
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"audit_website for {website.domain}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            has_critical = any(r.get("severity") == "critical" for r in res)
+            if has_critical:
+                raise PermissionRequired(
+                    context=f"CRITICAL SEO issue found on {website.domain}. Immediate fix recommended.",
+                    option_a="Approve creating urgent dev ticket",
+                    option_b="Deny (Handle internally)"
+                )
+        return res
 
-    def generate_fix(self, issue) -> str:
+    def generate_fix(self, issue, instance=None) -> str:
         prompt = f"""Generate a complete, implementable fix for this SEO issue.
 
 Issue Type: {issue.issue_type}
@@ -78,9 +104,18 @@ Provide:
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"generate_fix for issue {issue.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def keyword_research(self, niche: str, current_domain: str) -> dict:
+    def keyword_research(self, niche: str, current_domain: str, instance=None) -> dict:
         prompt = f"""Conduct keyword research for this business niche.
 
 Niche: {niche}
@@ -103,11 +138,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"primary_keywords": [], "long_tail_opportunities": [], "content_gaps": [], "quick_wins": [], "strategy_summary": raw}
+            res = {"primary_keywords": [], "long_tail_opportunities": [], "content_gaps": [], "quick_wins": [], "strategy_summary": raw}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"keyword_research for {niche}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def meta_optimisation(self, page_url: str, page_title: str, page_content: str, target_keyword: str) -> dict:
+    def meta_optimisation(self, page_url: str, page_title: str, page_content: str, target_keyword: str, instance=None) -> dict:
         prompt = f"""Optimise meta tags for this page.
 
 URL: {page_url}
@@ -129,6 +174,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"meta_title": page_title, "meta_description": page_content[:155], "h1_suggestion": page_title}
+            res = {"meta_title": page_title, "meta_description": page_content[:155], "h1_suggestion": page_title}
+
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"meta_optimisation for {page_url}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res

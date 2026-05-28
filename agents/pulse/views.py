@@ -47,7 +47,8 @@ class ResearchConfigViewSet(viewsets.ModelViewSet):
     def generate_report(self, request, pk=None):
         """POST /api/v1/pulse/configs/<pk>/generate-report/ — AI generates a ResearchReport."""
         config = self.get_object()
-        org = request.self._get_business()
+        business = self._get_business()
+        org = business
         prompt = (
             f"Industry: {config.industry}\n"
             f"Keywords: {config.keywords}\n"

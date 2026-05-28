@@ -1,5 +1,13 @@
 import json
+from django.conf import settings
 from agents.utils import agent_chat
+from agents.models import AgentLog
+
+class PermissionRequired(Exception):
+    def __init__(self, context, option_a, option_b=''):
+        self.context = context
+        self.option_a = option_a
+        self.option_b = option_b
 
 SYSTEM_PROMPT = """You are Concierge, BengalBound's AI Client Reception and Routing Specialist.
 
@@ -26,7 +34,7 @@ Categories: inquiry, sales, support, complaint, newsletter, internal, spam, part
 class ConciergeEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
-    def triage_email(self, email) -> dict:
+    def triage_email(self, email, instance=None) -> dict:
         prompt = f"""Triage this inbound email for a business.
 
 From: {email.sender}
@@ -49,11 +57,28 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"category": "inquiry", "priority": "medium", "needs_human": True}
+            res = {"category": "inquiry", "priority": "medium", "needs_human": True}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"triage_email for {email.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+            
+            if res.get("priority") == "urgent":
+                raise PermissionRequired(
+                    context=f"URGENT email received from {email.sender}: {email.subject}. Intent: {res.get('intent_summary')}",
+                    option_a="Approve immediate routing and page team",
+                    option_b="Deny (Downgrade to medium priority)"
+                )
+        return res
 
-    def schedule_meeting(self, meeting_request) -> dict:
+    def schedule_meeting(self, meeting_request, instance=None) -> dict:
         attendees = ", ".join(meeting_request.attendees) if meeting_request.attendees else "Not specified"
         times = json.dumps(meeting_request.preferred_times) if meeting_request.preferred_times else "Flexible"
 
@@ -78,11 +103,21 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"confirmation_message": raw, "agenda_suggestion": "", "prep_notes": "", "calendar_description": ""}
+            res = {"confirmation_message": raw, "agenda_suggestion": "", "prep_notes": "", "calendar_description": ""}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"schedule_meeting for {meeting_request.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def compose_reply(self, email, routing_context: str = "") -> str:
+    def compose_reply(self, email, routing_context: str = "", instance=None) -> str:
         prompt = f"""Draft a professional reply to this inbound email.
 
 From: {email.sender}
@@ -98,9 +133,18 @@ Write ONLY the reply body — professional, warm, concise. Include a clear next 
             {"role": "system", "content": self.SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ]
-        return agent_chat(messages)
+        res = agent_chat(messages)
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"compose_reply for {email.pk}",
+                outcome='success',
+                detail=res,
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
 
-    def qualify_meeting_request(self, request) -> dict:
+    def qualify_meeting_request(self, request, instance=None) -> dict:
         prompt = f"""Evaluate if this meeting request should proceed.
 
 Title: {request.title}
@@ -121,6 +165,16 @@ Return JSON:
         ]
         raw = agent_chat(messages)
         try:
-            return json.loads(raw)
+            res = json.loads(raw)
         except json.JSONDecodeError:
-            return {"qualified": True, "reason": raw, "questions_to_ask": [], "suggested_duration_minutes": 30}
+            res = {"qualified": True, "reason": raw, "questions_to_ask": [], "suggested_duration_minutes": 30}
+            
+        if instance:
+            AgentLog.objects.create(
+                instance=instance,
+                action=f"qualify_meeting_request for {request.pk}",
+                outcome='success',
+                detail=json.dumps(res),
+                model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
+            )
+        return res
