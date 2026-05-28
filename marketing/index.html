@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BengalBound HUB — The AI Operating System for Modern Business</title>
+<meta name="description" content="33 autonomous AI employees. 83 business modules. One platform. BengalBound HUB is the enterprise SaaS operating system that runs your business while you grow it.">
+<meta property="og:title" content="BengalBound HUB — AI Operating System">
+<meta property="og:description" content="33 autonomous AI employees. 83 business modules. Deploy anywhere.">
+<meta property="og:url" content="https://bengalboundhub.netlify.app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #06060F;
+  --bg-2:     #0C0C1E;
+  --bg-3:     #12122A;
+  --surface:  #181834;
+  --border:   rgba(255,255,255,0.08);
+  --border-2: rgba(255,255,255,0.14);
+  --text:     #EAE8F0;
+  --text-2:   #A09CB8;
+  --text-3:   #5E5A72;
+  --violet:   #7C3AED;
+  --violet-2: #A78BFA;
+  --cyan:     #0891B2;
+  --cyan-2:   #67E8F9;
+  --orange:   #EA580C;
+  --orange-2: #FB923C;
+  --green:    #059669;
+  --green-2:  #34D399;
+  --pink:     #DB2777;
+  --pink-2:   #F472B6;
+  --gold:     #D97706;
+  --gold-2:   #FCD34D;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Manrope', -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1,h2,h3,h4 { font-family: 'Fraunces', serif; letter-spacing: -0.02em; line-height: 1.15; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+a { color: inherit; text-decoration: none; }
+
+/* NOISE OVERLAY */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025; mix-blend-mode: overlay;
+}
+
+/* GLOW ORBS */
+.orb {
+  position: fixed; border-radius: 50%; filter: blur(120px);
+  pointer-events: none; z-index: 0;
+}
+.orb-1 { width:600px; height:600px; background:rgba(124,58,237,0.12); top:-200px; left:-200px; }
+.orb-2 { width:500px; height:500px; background:rgba(8,145,178,0.10); bottom:-150px; right:-150px; }
+.orb-3 { width:400px; height:400px; background:rgba(234,88,12,0.07); top:50%; left:50%; transform:translate(-50%,-50%); }
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgba(6,6,15,0.8);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; }
+.nav-brand img { width: 32px; height: 32px; object-fit: contain; }
+.nav-brand span {
+  font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600;
+  background: linear-gradient(135deg, var(--violet-2), var(--cyan-2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a { font-size: 13px; font-weight: 500; color: var(--text-2); transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--violet); color: #fff; font-size: 13px; font-weight: 600;
+  padding: 8px 20px; border-radius: 8px; transition: opacity .2s;
+}
+.nav-cta:hover { opacity: 0.85; }
+.nav-mobile-hide { display: flex; }
+
+/* HERO */
+.hero {
+  position: relative; z-index: 1;
+  padding: 120px 24px 100px;
+  text-align: center; max-width: 900px; margin: 0 auto;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3);
+  color: var(--violet-2); font-size: 12px; font-weight: 600;
+  padding: 6px 14px; border-radius: 99px; margin-bottom: 32px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.hero-badge span { width:6px; height:6px; background:var(--violet-2); border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero h1 {
+  font-size: clamp(42px, 7vw, 80px); font-weight: 600;
+  line-height: 1.05; margin-bottom: 24px;
+}
+.hero h1 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--violet-2) 0%, var(--cyan-2) 50%, var(--orange-2) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero p {
+  font-size: 18px; color: var(--text-2); max-width: 620px;
+  margin: 0 auto 40px; line-height: 1.7;
+}
+.hero-actions { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  color: #fff; font-size: 15px; font-weight: 700;
+  padding: 14px 32px; border-radius: 10px; transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 24px rgba(124,58,237,0.35);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,58,237,0.45); }
+.btn-secondary {
+  border: 1px solid var(--border-2); color: var(--text-2);
+  font-size: 15px; font-weight: 600; padding: 14px 32px; border-radius: 10px;
+  transition: border-color .2s, color .2s;
+}
+.btn-secondary:hover { border-color: var(--violet-2); color: var(--text); }
+.hero-logo {
+  width: 200px; margin: 60px auto 0;
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+/* STATS */
+.stats {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  padding: 40px 24px;
+}
+.stats-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'Fraunces', serif; font-size: 48px; font-weight: 700;
+  background: linear-gradient(135deg, var(--violet-2), var(--cyan-2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+.stat-label { font-size: 13px; color: var(--text-2); margin-top: 6px; font-weight: 500; }
+
+/* SECTION BASE */
+.section { position: relative; z-index: 1; padding: 100px 24px; }
+.section-inner { max-width: 1200px; margin: 0 auto; }
+.section-tag {
+  display: inline-block; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--violet-2); margin-bottom: 16px;
+}
+.section-title { font-size: clamp(32px, 4vw, 52px); font-weight: 600; margin-bottom: 16px; }
+.section-sub { font-size: 17px; color: var(--text-2); max-width: 560px; line-height: 1.7; }
+.section-header { margin-bottom: 60px; }
+
+/* AGENTS */
+.agents-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2px;
+  border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+}
+.agent-card {
+  background: var(--bg-2); padding: 28px;
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  transition: background .2s;
+}
+.agent-card:hover { background: var(--bg-3); }
+.agent-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 4px 10px; border-radius: 99px; font-weight: 500;
+  display: inline-block; margin-bottom: 12px;
+}
+.tag-support  { background:rgba(8,145,178,0.15);  color:var(--cyan-2); }
+.tag-sales    { background:rgba(5,150,105,0.15);  color:var(--green-2); }
+.tag-finance  { background:rgba(217,119,6,0.15);  color:var(--gold-2); }
+.tag-hr       { background:rgba(219,39,119,0.15); color:var(--pink-2); }
+.tag-marketing{ background:rgba(124,58,237,0.15); color:var(--violet-2); }
+.tag-analytics{ background:rgba(234,88,12,0.15);  color:var(--orange-2); }
+.tag-ops      { background:rgba(8,145,178,0.15);  color:var(--cyan-2); }
+.tag-tech     { background:rgba(5,150,105,0.15);  color:var(--green-2); }
+.tag-specialist{background:rgba(217,119,6,0.15); color:var(--gold-2); }
+.agent-name { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.agent-role { font-size: 12px; color: var(--text-2); margin-bottom: 10px; font-weight: 500; }
+.agent-desc { font-size: 13px; color: var(--text-3); line-height: 1.6; }
+.agent-tasks {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.agent-task-chip {
+  font-size: 11px; color: var(--text-3);
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  padding: 3px 8px; border-radius: 99px;
+}
+
+/* MODULES */
+.modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+.module-category {
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px;
+}
+.module-category-name {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-2); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+.module-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.module-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  color: var(--text-2); padding: 4px 10px; border-radius: 6px;
+  transition: border-color .2s, color .2s;
+}
+.module-chip:hover { border-color: var(--violet-2); color: var(--text); }
+
+/* HOW IT WORKS */
+.steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 40px; }
+.step { position: relative; padding-top: 24px; }
+.step-num {
+  font-family: 'Fraunces', serif; font-size: 64px; font-weight: 700;
+  color: rgba(124,58,237,0.15); line-height: 1; margin-bottom: 16px;
+  position: absolute; top: 0; left: -8px;
+}
+.step-content { padding-top: 40px; }
+.step-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+.step-desc { font-size: 14px; color: var(--text-2); line-height: 1.7; }
+
+/* DEPLOY */
+.deploy-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+.deploy-card {
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px; transition: border-color .2s;
+}
+.deploy-card:hover { border-color: var(--violet-2); }
+.deploy-icon {
+  width: 48px; height: 48px; border-radius: 12px; display: flex;
+  align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;
+}
+.deploy-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+.deploy-desc { font-size: 14px; color: var(--text-2); line-height: 1.7; margin-bottom: 16px; }
+.deploy-code {
+  background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cyan-2);
+  overflow-x: auto;
+}
+
+/* PRICING */
+.pricing-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+.pricing-card {
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px;
+  padding: 28px; position: relative; transition: transform .2s, border-color .2s;
+}
+.pricing-card:hover { transform: translateY(-4px); border-color: var(--violet-2); }
+.pricing-card.featured {
+  border-color: var(--violet);
+  background: linear-gradient(160deg, rgba(124,58,237,0.12), var(--bg-2));
+}
+.pricing-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--violet); color: #fff; font-size: 11px; font-weight: 700;
+  padding: 4px 12px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.pricing-tier { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-2); margin-bottom: 12px; }
+.pricing-price { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.pricing-period { font-size: 12px; color: var(--text-3); margin-bottom: 20px; }
+.pricing-divider { border: none; border-top: 1px solid var(--border); margin-bottom: 20px; }
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.pricing-features li { font-size: 13px; color: var(--text-2); display: flex; align-items: flex-start; gap: 8px; }
+.pricing-features li::before { content: '✓'; color: var(--green-2); font-weight: 700; flex-shrink: 0; }
+.pricing-btn {
+  display: block; text-align: center; padding: 12px;
+  border-radius: 8px; font-size: 13px; font-weight: 700;
+  transition: opacity .2s;
+}
+.pricing-btn-primary { background: var(--violet); color: #fff; }
+.pricing-btn-secondary { border: 1px solid var(--border-2); color: var(--text-2); }
+.pricing-btn:hover { opacity: 0.85; }
+
+/* INTEGRATION BANNER */
+.integration-banner {
+  position: relative; z-index: 1;
+  background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(8,145,178,0.12));
+  border-top: 1px solid rgba(124,58,237,0.2); border-bottom: 1px solid rgba(124,58,237,0.2);
+  padding: 80px 24px; text-align: center;
+}
+.integration-banner h2 { font-size: clamp(28px,4vw,48px); font-weight: 600; margin-bottom: 16px; }
+.integration-banner p { font-size: 17px; color: var(--text-2); max-width: 520px; margin: 0 auto 36px; }
+.integration-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 40px; }
+.int-tag {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border-2);
+  color: var(--text-2); font-size: 12px; font-weight: 600;
+  padding: 6px 16px; border-radius: 99px;
+}
+
+/* FOOTER */
+footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border); padding: 60px 24px 40px;
+}
+.footer-inner { max-width: 1200px; margin: 0 auto; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer-brand img { width: 48px; margin-bottom: 14px; }
+.footer-brand p { font-size: 13px; color: var(--text-3); line-height: 1.7; max-width: 260px; }
+.footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-2); margin-bottom: 16px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul li a { font-size: 13px; color: var(--text-3); transition: color .2s; }
+.footer-col ul li a:hover { color: var(--text); }
+.footer-bottom {
+  padding-top: 32px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--text-3);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .stats-inner { grid-template-columns: repeat(2,1fr); }
+  .steps { grid-template-columns: 1fr; }
+  .deploy-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: repeat(2,1fr); }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .hero { padding: 80px 24px 60px; }
+  .stats-inner { grid-template-columns: 1fr 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <img src="assets/logo.png" alt="BengalBound">
+      <span>BengalBound HUB</span>
+    </a>
+    <div class="nav-links nav-mobile-hide">
+      <a href="#agents">AI Agents</a>
+      <a href="#modules">Modules</a>
+      <a href="#deploy">Integrations</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#docs">Docs</a>
+    </div>
+    <a href="#pricing" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><span></span> Now with 33 Autonomous AI Employees</div>
+  <h1>The <em>AI Operating System</em> for Modern Business</h1>
+  <p>83 business modules. 33 autonomous AI employees. One platform that runs your operations, serves your customers, and scales your business — around the clock.</p>
+  <div class="hero-actions">
+    <a href="#pricing" class="btn-primary">Start Free Trial</a>
+    <a href="#agents" class="btn-secondary">Meet the AI Agents →</a>
+  </div>
+  <img src="assets/logo.png" alt="BengalBound" class="hero-logo">
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div>
+      <div class="stat-num">33</div>
+      <div class="stat-label">Autonomous AI Employees</div>
+    </div>
+    <div>
+      <div class="stat-num">83</div>
+      <div class="stat-label">Business Modules</div>
+    </div>
+    <div>
+      <div class="stat-num">90+</div>
+      <div class="stat-label">Scheduled Automations</div>
+    </div>
+    <div>
+      <div class="stat-num">4</div>
+      <div class="stat-label">Subscription Tiers</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTS -->
+<section class="section" id="agents">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">// AI Employee Marketplace</div>
+      <h2 class="section-title">33 Specialist AI Employees.<br>Every role. Every industry.</h2>
+      <p class="section-sub">Each agent is a self-contained mini-platform — its own AI brain, autonomous tasks, external integrations, and human-in-the-loop approval flow.</p>
+    </div>
+    <div class="agents-grid">
+
+      <div class="agent-card">
+        <span class="agent-tag tag-support">Support</span>
+        <div class="agent-name">Aria</div>
+        <div class="agent-role">Customer Support Specialist</div>
+        <div class="agent-desc">Resolves tickets with empathy, enforces SLAs, escalates intelligently, and builds a knowledge base from every resolution.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Auto-resolve (4hr)</span>
+          <span class="agent-task-chip">SLA watch (30min)</span>
+          <span class="agent-task-chip">KB generation</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-support">Support</span>
+        <div class="agent-name">Mira</div>
+        <div class="agent-role">Customer Success Manager</div>
+        <div class="agent-desc">Tracks client health scores, predicts churn risk, identifies expansion opportunities, and drafts personalised outreach.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Health scoring</span>
+          <span class="agent-task-chip">Churn alerts</span>
+          <span class="agent-task-chip">Weekly digest</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-support">Support</span>
+        <div class="agent-name">Concierge</div>
+        <div class="agent-role">Client Concierge</div>
+        <div class="agent-desc">Triages inbound emails, schedules meetings, qualifies requests, and composes professional replies on your behalf.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Inbox triage</span>
+          <span class="agent-task-chip">Meeting scheduling</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-support">Support</span>
+        <div class="agent-name">Voice Receptionist</div>
+        <div class="agent-role">AI Phone Receptionist</div>
+        <div class="agent-desc">Answers inbound calls via Twilio, books appointments, filters spam, and handles multi-language conversations in real time.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">2hr/24hr reminders</span>
+          <span class="agent-task-chip">Spam filtering</span>
+          <span class="agent-task-chip">Multi-language</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-support">Support</span>
+        <div class="agent-name">Chloe</div>
+        <div class="agent-role">AI Video Concierge</div>
+        <div class="agent-desc">Appears as a human avatar in live WebRTC video sessions — handling support, onboarding, and sales calls in real time.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Live video AI</span>
+          <span class="agent-task-chip">HeyGen / D-ID</span>
+          <span class="agent-task-chip">Session analytics</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-sales">Sales</span>
+        <div class="agent-name">Crux</div>
+        <div class="agent-role">CRM Manager</div>
+        <div class="agent-desc">Scores contact intent, builds personalised follow-up sequences, and generates weekly pipeline health reports.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Intent scoring</span>
+          <span class="agent-task-chip">Follow-up sequences</span>
+          <span class="agent-task-chip">Pipeline report</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-sales">Sales</span>
+        <div class="agent-name">Lead Hunter</div>
+        <div class="agent-role">B2B Prospector</div>
+        <div class="agent-desc">Scores ICP fit, builds 5-touch outreach sequences over 21 days, and crafts objection-handling responses by channel.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">ICP scoring</span>
+          <span class="agent-task-chip">21-day sequences</span>
+          <span class="agent-task-chip">Objection handling</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-finance">Finance</span>
+        <div class="agent-name">Cash</div>
+        <div class="agent-role">Payroll Processor</div>
+        <div class="agent-desc">Generates payroll narratives, calculates net pay, runs anomaly detection, and flags compliance issues automatically.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Monthly reminder (day 25)</span>
+          <span class="agent-task-chip">Anomaly detection</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-finance">Finance</span>
+        <div class="agent-name">Payload</div>
+        <div class="agent-role">Procurement Manager</div>
+        <div class="agent-desc">Evaluates RFQs with vendor rankings, assesses supplier risk, and drafts purchase orders with negotiation points.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Vendor assessment</span>
+          <span class="agent-task-chip">RFQ processing</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-finance">Finance</span>
+        <div class="agent-name">Reporting Bot</div>
+        <div class="agent-role">Automated Reporting</div>
+        <div class="agent-desc">Aggregates KPIs, writes narrative reports, highlights anomalies, and delivers executive summaries on schedule.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Daily KPI reports</span>
+          <span class="agent-task-chip">Weekly PDF digest</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-hr">HR</span>
+        <div class="agent-name">Hera</div>
+        <div class="agent-role">HR Agent</div>
+        <div class="agent-desc">Answers policy questions, generates onboarding plans, assesses leave requests, and drafts HR communications.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Onboarding plans</span>
+          <span class="agent-task-chip">Leave assessment</span>
+          <span class="agent-task-chip">Weekly digest</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-hr">HR</span>
+        <div class="agent-name">Nexus</div>
+        <div class="agent-role">L&D Coordinator</div>
+        <div class="agent-desc">Generates course modules with quizzes, builds personalised learning paths, and creates 10-question assessments per topic.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Course generation</span>
+          <span class="agent-task-chip">Learning paths</span>
+          <span class="agent-task-chip">Progress reports</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-marketing">Marketing</span>
+        <div class="agent-name">Content Architect</div>
+        <div class="agent-role">Content Strategist</div>
+        <div class="agent-desc">Plans content calendars, generates blogs, emails, social posts, and ad copy — then repurposes across 5+ formats.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Content calendar</span>
+          <span class="agent-task-chip">SEO optimisation</span>
+          <span class="agent-task-chip">Weekly audit</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-marketing">Marketing</span>
+        <div class="agent-name">Oracle</div>
+        <div class="agent-role">SEO Specialist</div>
+        <div class="agent-desc">Audits your site for 7 issue types, researches keywords, optimises meta tags, and tracks competitor backlinks weekly.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Weekly site audit</span>
+          <span class="agent-task-chip">Keyword research</span>
+          <span class="agent-task-chip">Meta optimisation</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-marketing">Marketing</span>
+        <div class="agent-name">Luma</div>
+        <div class="agent-role">Brand & PR Manager</div>
+        <div class="agent-desc">Monitors brand mentions every 30 minutes, generates press releases, and deploys crisis playbooks when sentiment spikes.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Crisis monitor (30min)</span>
+          <span class="agent-task-chip">Press releases</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-marketing">Marketing</span>
+        <div class="agent-name">Pulse</div>
+        <div class="agent-role">Market Intelligence Analyst</div>
+        <div class="agent-desc">Scans live market data, runs competitor analysis, builds battle cards, and surfaces trend reports every week.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Weekly market scan</span>
+          <span class="agent-task-chip">Competitor analysis</span>
+          <span class="agent-task-chip">Battle cards</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-marketing">Marketing</span>
+        <div class="agent-name">Sylvia</div>
+        <div class="agent-role">AI Video Pitch Presenter</div>
+        <div class="agent-desc">Writes investor-grade pitch scripts tailored to your audience, then renders a professional video via HeyGen or D-ID.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Script generation</span>
+          <span class="agent-task-chip">HeyGen rendering</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-analytics">Analytics</span>
+        <div class="agent-name">Nova</div>
+        <div class="agent-role">Data Scientist</div>
+        <div class="agent-desc">Translates natural language questions into SQL, detects anomalies, and suggests the right visualisation for every dataset.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">NL to SQL (1hr)</span>
+          <span class="agent-task-chip">Anomaly detection</span>
+          <span class="agent-task-chip">Weekly digest</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-analytics">Analytics</span>
+        <div class="agent-name">Clarity</div>
+        <div class="agent-role">Feedback Analyst</div>
+        <div class="agent-desc">Extracts themes from survey responses, scores sentiment per answer, and surfaces urgent issues before they escalate.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Theme extraction</span>
+          <span class="agent-task-chip">Sentiment scoring</span>
+          <span class="agent-task-chip">Weekly insight</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-analytics">Analytics</span>
+        <div class="agent-name">Scout</div>
+        <div class="agent-role">Competitor Intelligence</div>
+        <div class="agent-desc">Tracks competitor changes, analyses strategic implications, recommends pricing responses, and delivers weekly intel digests.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Change analysis</span>
+          <span class="agent-task-chip">Pricing response</span>
+          <span class="agent-task-chip">Weekly intel</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-analytics">Analytics</span>
+        <div class="agent-name">Scribe</div>
+        <div class="agent-role">AI Meeting Notetaker</div>
+        <div class="agent-desc">Joins meetings via Recall.ai, processes transcripts with AI, and delivers summaries, sentiment, and action items instantly.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Recall.ai integration</span>
+          <span class="agent-task-chip">Action item extraction</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-tech">Technology</span>
+        <div class="agent-name">Kai</div>
+        <div class="agent-role">DevOps Engineer</div>
+        <div class="agent-desc">Monitors pipeline health every 30 minutes, analyses incidents to root cause, and generates deployment checklists on demand.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Health check (30min)</span>
+          <span class="agent-task-chip">Incident analysis</span>
+          <span class="agent-task-chip">Deploy checklists</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-tech">Technology</span>
+        <div class="agent-name">Shield</div>
+        <div class="agent-role">IT Helpdesk</div>
+        <div class="agent-desc">Resolves IT tickets with confidence scoring, monitors SLAs every 30 minutes, and generates KB articles from every resolution.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Auto-resolve (4hr)</span>
+          <span class="agent-task-chip">SLA monitor (30min)</span>
+          <span class="agent-task-chip">KB articles</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-specialist">Specialist</span>
+        <div class="agent-name">Sage</div>
+        <div class="agent-role">Legal Reviewer</div>
+        <div class="agent-desc">Scores contract risk 0-100, explains every clause in plain English, compares against market standard, and flags high-risk documents.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Auto-review (4hr)</span>
+          <span class="agent-task-chip">Risk scoring</span>
+          <span class="agent-task-chip">High-risk alerts</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-specialist">Specialist</span>
+        <div class="agent-name">Dox</div>
+        <div class="agent-role">Technical Writer</div>
+        <div class="agent-desc">Generates API docs, SOPs, wikis, changelogs, and user manuals. Scans for outdated content and queues rewrites weekly.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Page generation</span>
+          <span class="agent-task-chip">Outdated scan</span>
+          <span class="agent-task-chip">Weekly audit</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-ops">Operations</span>
+        <div class="agent-name">Atlas</div>
+        <div class="agent-role">Executive Assistant</div>
+        <div class="agent-desc">Delivers a daily morning briefing from your calendar and tasks, extracts action items, and scores priorities automatically.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Daily briefing (9am)</span>
+          <span class="agent-task-chip">Task extraction</span>
+          <span class="agent-task-chip">Weekly summary</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-ops">Operations</span>
+        <div class="agent-name">Flux</div>
+        <div class="agent-role">Supply Chain Manager</div>
+        <div class="agent-desc">Assesses supplier risk, recommends purchase orders, analyses stock shortfalls, and generates weekly supply chain reports.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Supplier assessment</span>
+          <span class="agent-task-chip">Stock risk analysis</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-ops">Operations</span>
+        <div class="agent-name">Tempo</div>
+        <div class="agent-role">Events Manager</div>
+        <div class="agent-desc">Generates full event plans (checklist, run-of-show, budget, vendors), sends attendee reminders, and follows up on pending RSVPs.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Event plans</span>
+          <span class="agent-task-chip">2-week / 1-day reminders</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-specialist">Specialist</span>
+        <div class="agent-name">Babel</div>
+        <div class="agent-role">Translation Specialist</div>
+        <div class="agent-desc">Translates documents, announcements, and emails into any language — with quality scoring, domain glossaries, and retry queues.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Translation queue (1hr)</span>
+          <span class="agent-task-chip">Quality review</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-specialist">Specialist</span>
+        <div class="agent-name">Realt</div>
+        <div class="agent-role">Real Estate Assistant</div>
+        <div class="agent-desc">Writes lifestyle-focused listing copy, qualifies leads (hot/warm/cold), and matches buyers to the top 3 properties in your portfolio.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Listing generation</span>
+          <span class="agent-task-chip">Lead qualification</span>
+          <span class="agent-task-chip">Buyer matching</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-specialist">Specialist</span>
+        <div class="agent-name">MediBook</div>
+        <div class="agent-role">Medical Scheduler</div>
+        <div class="agent-desc">Generates clinical appointment notes, sends SMS and email reminders hourly, and triages urgency from routine to emergency.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Reminders (1hr)</span>
+          <span class="agent-task-chip">Triage urgency</span>
+          <span class="agent-task-chip">Clinical notes</span>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <span class="agent-tag tag-specialist">Specialist</span>
+        <div class="agent-name">Merch</div>
+        <div class="agent-role">eCommerce Manager</div>
+        <div class="agent-desc">Optimises product listings with AI-generated descriptions and pricing, monitors stock levels, and recommends reorders automatically.</div>
+        <div class="agent-tasks">
+          <span class="agent-task-chip">Listing optimisation</span>
+          <span class="agent-task-chip">Low stock alerts</span>
+          <span class="agent-task-chip">Reorder checks</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section class="section" id="modules" style="background:var(--bg-2);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">// Business Module Marketplace</div>
+      <h2 class="section-title">83 modules. Every industry covered.</h2>
+      <p class="section-sub">Activate only what you need. Each module is a pluggable Django app — your AI agents plug directly into the data without API overhead.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="module-category">
+        <div class="module-category-name">CRM & Sales</div>
+        <div class="module-chips">
+          <span class="module-chip">crm</span><span class="module-chip">leads</span><span class="module-chip">invoicing</span><span class="module-chip">contracts</span><span class="module-chip">deal_flow</span><span class="module-chip">commission</span><span class="module-chip">b2b_portal</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">HR & People</div>
+        <div class="module-chips">
+          <span class="module-chip">hr</span><span class="module-chip">payroll</span><span class="module-chip">recruitment</span><span class="module-chip">attendance</span><span class="module-chip">shift_planning</span><span class="module-chip">training</span><span class="module-chip">expense</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Finance</div>
+        <div class="module-chips">
+          <span class="module-chip">accounting</span><span class="module-chip">budgeting</span><span class="module-chip">financials</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Supply Chain & Ops</div>
+        <div class="module-chips">
+          <span class="module-chip">inventory</span><span class="module-chip">order_mgmt</span><span class="module-chip">bom</span><span class="module-chip">production</span><span class="module-chip">quality_control</span><span class="module-chip">maintenance</span><span class="module-chip">delivery</span><span class="module-chip">wms</span><span class="module-chip">tms</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Commerce & Retail</div>
+        <div class="module-chips">
+          <span class="module-chip">pos</span><span class="module-chip">ecommerce</span><span class="module-chip">loyalty</span><span class="module-chip">booking</span><span class="module-chip">table_mgmt</span><span class="module-chip">store_ops</span><span class="module-chip">planogram</span><span class="module-chip">product_catalog</span><span class="module-chip">omnichannel</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Marketing & Comms</div>
+        <div class="module-chips">
+          <span class="module-chip">email_marketing</span><span class="module-chip">announcements</span><span class="module-chip">website</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Collaboration</div>
+        <div class="module-chips">
+          <span class="module-chip">docs</span><span class="module-chip">sheets</span><span class="module-chip">slides</span><span class="module-chip">forms_builder</span><span class="module-chip">cloud_drive</span><span class="module-chip">business_mail</span><span class="module-chip">video_meet</span><span class="module-chip">business_calendar</span><span class="module-chip">task_board</span><span class="module-chip">team_chat</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Analytics & BI</div>
+        <div class="module-chips">
+          <span class="module-chip">reports</span><span class="module-chip">ai_analytics</span><span class="module-chip">ai_assistant</span><span class="module-chip">dashboard_pro</span><span class="module-chip">data_studio</span><span class="module-chip">data_collection</span><span class="module-chip">process_mapper</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Manufacturing</div>
+        <div class="module-chips">
+          <span class="module-chip">erp</span><span class="module-chip">mes</span><span class="module-chip">plm</span><span class="module-chip">cadcam</span><span class="module-chip">dms</span><span class="module-chip">dvi</span><span class="module-chip">factory_ops</span><span class="module-chip">asset_management</span><span class="module-chip">workshop</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Real Estate</div>
+        <div class="module-chips">
+          <span class="module-chip">property_listings</span><span class="module-chip">re_marketing</span><span class="module-chip">re_client_portal</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Hospitality & Travel</div>
+        <div class="module-chips">
+          <span class="module-chip">pms</span><span class="module-chip">channel_manager</span><span class="module-chip">rate_manager</span><span class="module-chip">travel_crm</span><span class="module-chip">group_bookings</span><span class="module-chip">travel_desk</span><span class="module-chip">hospitality_ops</span>
+        </div>
+      </div>
+      <div class="module-category">
+        <div class="module-category-name">Education & Healthcare</div>
+        <div class="module-chips">
+          <span class="module-chip">sis</span><span class="module-chip">lms</span><span class="module-chip">assessments</span><span class="module-chip">timetable</span><span class="module-chip">parent_portal</span><span class="module-chip">care_manager</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">// How It Works</div>
+      <h2 class="section-title">Hire once. Works forever.</h2>
+      <p class="section-sub">Every AI employee is auto-provisioned the moment you subscribe. No setup. No configuration. They start working immediately.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Choose your modules and agents</div>
+          <div class="step-desc">Activate the business modules your team uses and hire the AI agents that match your roles. Each agent knows which module data to work with.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Agents start working autonomously</div>
+          <div class="step-desc">Every agent runs on its own Celery schedule — checking for tickets, scoring leads, reviewing contracts, monitoring pipelines — 24 hours a day.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Approve sensitive decisions</div>
+          <div class="step-desc">When an agent is uncertain, it pauses and emails you for approval. You click Approve or Deny. Full audit trail kept for every decision.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPLOY ANYWHERE -->
+<section class="section" id="deploy" style="background:var(--bg-2);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">// Integrations</div>
+      <h2 class="section-title">Deploy agents anywhere.</h2>
+      <p class="section-sub">Every agent exposes a REST API and accepts inbound webhooks. Use them inside BengalBound HUB or connect them to any external system.</p>
+    </div>
+    <div class="deploy-grid">
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(124,58,237,0.15);">🧩</div>
+        <div class="deploy-title">Inside BengalBound Modules</div>
+        <div class="deploy-desc">Agents read and write to module data directly via Django ORM — no API overhead, real-time sync. Crux scores your CRM contacts. Merch optimises your product listings.</div>
+        <div class="deploy-code">agent → modules.crm.Contact<br>agent → modules.inventory.Product</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(8,145,178,0.15);">🔌</div>
+        <div class="deploy-title">REST API — Any External System</div>
+        <div class="deploy-desc">Every agent exposes DRF endpoints. Send a ticket, get a resolution. Send a prospect, get a scored outreach sequence. Works with any language or framework.</div>
+        <div class="deploy-code">POST /hub/acme-corp/agents/aria/tickets/<br>Authorization: Token &lt;your-token&gt;</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(234,88,12,0.15);">🪝</div>
+        <div class="deploy-title">Inbound Webhooks — Event-Driven</div>
+        <div class="deploy-desc">Register a webhook endpoint for any agent. Point Shopify, GitHub, Stripe, DocuSign, or Recall.ai at it. The agent handles the event immediately.</div>
+        <div class="deploy-code">POST /agents/webhook/&lt;token&gt;/<br>X-Hub-Signature-256: sha256=...</div>
+      </div>
+      <div class="deploy-card">
+        <div class="deploy-icon" style="background:rgba(5,150,105,0.15);">⚙️</div>
+        <div class="deploy-title">Standalone — No Module Required</div>
+        <div class="deploy-desc">Set an agent instance to idle and wire in encrypted external credentials. It runs on its own Celery Beat schedule, pulling data from wherever you configure.</div>
+        <div class="deploy-code">AgentIntegration(platform='shopify',<br>  credential=encrypted_token)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTEGRATION BANNER -->
+<div class="integration-banner" id="docs">
+  <h2>Connects to the tools your team already uses</h2>
+  <p>Every agent has pre-built adapters for the platforms that matter to your industry.</p>
+  <div class="integration-tags">
+    <span class="int-tag">Twilio</span>
+    <span class="int-tag">Shopify</span>
+    <span class="int-tag">GitHub</span>
+    <span class="int-tag">Slack</span>
+    <span class="int-tag">Google Calendar</span>
+    <span class="int-tag">HeyGen</span>
+    <span class="int-tag">Recall.ai</span>
+    <span class="int-tag">DocuSign</span>
+    <span class="int-tag">Stripe</span>
+    <span class="int-tag">LiteLLM</span>
+    <span class="int-tag">PagerDuty</span>
+    <span class="int-tag">D-ID</span>
+    <span class="int-tag">Google Voice</span>
+    <span class="int-tag">DuckDuckGo</span>
+  </div>
+  <a href="#pricing" class="btn-primary" style="display:inline-block;">Get started free →</a>
+</div>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-inner">
+    <div class="section-header" style="text-align:center; max-width:560px; margin:0 auto 60px;">
+      <div class="section-tag">// Pricing</div>
+      <h2 class="section-title">One price. Everything included.</h2>
+      <p class="section-sub">No per-seat fees. No per-agent upsells. Pay for the tier that matches your scale.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="pricing-card">
+        <div class="pricing-tier">Freemium</div>
+        <div class="pricing-price">$0</div>
+        <div class="pricing-period">Forever free</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>5 GB storage</li>
+          <li>Basic module set</li>
+          <li>Django admin access</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#" class="pricing-btn pricing-btn-secondary">Start Free</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-tier">Standard</div>
+        <div class="pricing-price">$49</div>
+        <div class="pricing-period">per month</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>20 GB storage</li>
+          <li>Basic + add-on modules</li>
+          <li>Entry tier AI agents</li>
+          <li>REST API access</li>
+          <li>Email support</li>
+        </ul>
+        <a href="#" class="pricing-btn pricing-btn-secondary">Get Started</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-tier">Premium</div>
+        <div class="pricing-price">$149</div>
+        <div class="pricing-period">per month</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>50 GB storage</li>
+          <li>Full industry module set</li>
+          <li>Standard AI agents</li>
+          <li>Inbound webhooks</li>
+          <li>IP-locked access</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="pricing-btn pricing-btn-primary">Get Started</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-tier">Advance</div>
+        <div class="pricing-price">Custom</div>
+        <div class="pricing-period">enterprise pricing</div>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li>100+ GB storage</li>
+          <li>All 83 modules</li>
+          <li>All 33 AI agents</li>
+          <li>Self-hosted option</li>
+          <li>Custom integrations</li>
+          <li>Dedicated support</li>
+        </ul>
+        <a href="#" class="pricing-btn pricing-btn-secondary">Contact Sales</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="BengalBound">
+        <p>BengalBound HUB is the AI operating system for modern business. 33 autonomous AI employees. 83 business modules. Deploy anywhere.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#agents">AI Agents</a></li>
+          <li><a href="#modules">Business Modules</a></li>
+          <li><a href="#deploy">Integrations</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Agents</h4>
+        <ul>
+          <li><a href="#agents">Support & CX</a></li>
+          <li><a href="#agents">Sales & CRM</a></li>
+          <li><a href="#agents">Finance & Ops</a></li>
+          <li><a href="#agents">HR & L&D</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 BengalBound HUB. Built with Django 4.2 + LiteLLM.</span>
+      <span class="mono" style="font-size:11px; color:var(--text-3);">bengalboundhub.netlify.app</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
