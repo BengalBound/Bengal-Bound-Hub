@@ -1,7 +1,6 @@
 import json
 from django.conf import settings
 from agents.utils import agent_chat
-from agents.models import AgentLog
 
 class PermissionRequired(Exception):
     def __init__(self, context, option_a, option_b=''):
@@ -60,6 +59,7 @@ Return JSON:
             res = {"intent": "unknown", "outcome": "unknown", "summary": raw}
             
         if instance:
+            from agents.models import AgentLog
             AgentLog.objects.create(
                 instance=instance,
                 action=f"analyse_call for {business_name}",
@@ -90,6 +90,7 @@ Keep it under 2 sentences. Friendly, professional, inviting."""
         ]
         res = agent_chat(messages)
         if instance:
+            from agents.models import AgentLog
             AgentLog.objects.create(
                 instance=instance,
                 action="generate_greeting",
@@ -126,6 +127,7 @@ Return JSON:
             res = {"sms_text": raw, "email_subject": "Appointment Confirmed", "email_body": raw}
             
         if instance:
+            from agents.models import AgentLog
             AgentLog.objects.create(
                 instance=instance,
                 action=f"draft_confirmation_message for {appointment.pk}",
@@ -154,6 +156,7 @@ Write a concise executive summary (3-4 sentences): what went well, what needs im
         ]
         res = agent_chat(messages)
         if instance:
+            from agents.models import AgentLog
             AgentLog.objects.create(
                 instance=instance,
                 action="weekly_performance_report",
@@ -187,6 +190,7 @@ Return JSON:
             res = {"is_spam": False, "confidence": 0.0, "spam_indicators": [], "recommended_action": "allow"}
 
         if instance:
+            from agents.models import AgentLog
             AgentLog.objects.create(
                 instance=instance,
                 action="spam_classification",
