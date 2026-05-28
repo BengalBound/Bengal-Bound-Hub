@@ -8,7 +8,7 @@ Uses SQLite (Django TEST config) — zero external dependencies.
 from datetime import time
 from django.test import TestCase
 from django.utils import timezone
-from ..models import (
+from agents.voice_receptionist.models import (
     BusinessProfile, Call, Appointment, SpamLog, SpamBlocklist,
     UserProfile, NotificationTemplate, BusinessType, CallStatus, AppointmentStatus,
 )

@@ -11,7 +11,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 from unittest.mock import patch
-from ..models import (
+from agents.voice_receptionist.models import (
     BusinessProfile, Call, Appointment, UserProfile, BusinessType,
 )
 

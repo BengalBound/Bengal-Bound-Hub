@@ -19,6 +19,7 @@ jobs:
     env:
       DJANGO_SETTINGS_MODULE: bengalbound_core.settings.development
       SECRET_KEY: ci-insecure-key-for-testing-only
+      FIELD_ENCRYPTION_KEY: IW8ZXBtFIr_09SNdGLeaYBKy-eAC1Z9gOvECyVQlMwA=
       DATABASE_URL: sqlite:///./test_db.sqlite3
       LITELLM_BASE_URL: http://localhost:4000
       LITELLM_MASTER_KEY: sk-test
@@ -43,7 +44,7 @@ jobs:
         run: python manage.py migrate --check
 
       - name: Run tests
-        run: python manage.py test --verbosity=2 --parallel
+        run: python manage.py test tests --verbosity=2
 
   lint:
     name: Lint

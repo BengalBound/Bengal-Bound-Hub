@@ -7,8 +7,8 @@ Gemini API calls are mocked — no actual API usage during tests.
 
 from django.test import TestCase
 from unittest.mock import patch, MagicMock
-from ..models import BusinessProfile, BusinessType
-from ..ai_engine import detect_intent, check_spam_keywords, Intent, IntentResult
+from agents.voice_receptionist.models import BusinessProfile, BusinessType
+from agents.voice_receptionist.ai_engine import detect_intent, check_spam_keywords, Intent, IntentResult
 
 
 def make_business():

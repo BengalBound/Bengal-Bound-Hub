@@ -5,6 +5,8 @@ from agents.utils import agent_chat
 logger = logging.getLogger(__name__)
 
 class ScribeEngine:
+    SYSTEM_PROMPT = "You are Scribe, BengalBound's AI Meeting Notetaker. You process raw meeting transcripts from Recall.ai and extract executive summaries, sentiment, and actionable tasks with assignees."
+
     def process_transcript(self, meeting) -> bool:
         """
         Uses Gemini to extract executive summary and action items from the raw meeting transcript.

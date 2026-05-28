@@ -1,17 +1,17 @@
 from django.test import TestCase
 
 
-class VideoConciergeEngineTests(TestCase):
-    # Unit tests for VideoConciergeEngine - AI Video Concierge
+class ChloeEngineTests(TestCase):
+    # Unit tests for ChloeEngine - AI Video Concierge
 
     def test_engine_import(self):
-        from agents.video_concierge.engine import VideoConciergeEngine
-        engine = VideoConciergeEngine()
+        from agents.video_concierge.engine import ChloeEngine
+        engine = ChloeEngine()
         self.assertIsNotNone(engine)
 
     def test_system_prompt_defined(self):
-        from agents.video_concierge.engine import VideoConciergeEngine
-        self.assertGreater(len(VideoConciergeEngine.SYSTEM_PROMPT), 50)
+        from agents.video_concierge.engine import ChloeEngine
+        self.assertGreater(len(ChloeEngine.SYSTEM_PROMPT), 50)
 
 
 class VideoConciergeModelTests(TestCase):

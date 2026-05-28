@@ -4,6 +4,8 @@ from agents.utils import agent_chat
 logger = logging.getLogger(__name__)
 
 class PitchPresenterEngine:
+    SYSTEM_PROMPT = "You are Sylvia, BengalBound's AI Video Pitch Presenter. You write high-converting spoken pitch scripts tailored to specific audiences (investors, enterprise buyers, partners) and orchestrate HeyGen/D-ID video rendering."
+
     def generate_script(self, pitch_obj) -> str:
         """
         Uses Gemini to generate a high-converting spoken pitch script based on the business summary and slide talking points.

@@ -21,7 +21,7 @@ from django.utils import timezone
 from accounts.models import User
 from workspace_admin.models import AIEmployeeTier, HiredAIEmployee
 
-from .models import (
+from serea.models import (
     SereaAgent,
     AgentInstruction,
     ConversationMessage,
@@ -29,7 +29,7 @@ from .models import (
     ContentQueue,
     SereaReport,
 )
-from .logic import (
+from serea.logic import (
     SereaBrain,
     TokenLimitExceeded,
     _parse_agent_response,
