@@ -1,6 +1,5 @@
 [build]
   publish = "marketing"
-  ignore = "exit 0"
 
 [[headers]]
   for = "/*"
