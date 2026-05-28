@@ -1115,5 +1115,40 @@ footer {
   </div>
 </footer>
 
+<script>
+// Remove the checkered white/gray background pixels baked into the logo PNG
+// by processing each pixel on a Canvas and making neutral light pixels transparent.
+function processLogoImage(img) {
+  try {
+    var c = document.createElement('canvas');
+    c.width  = img.naturalWidth  || img.width  || 200;
+    c.height = img.naturalHeight || img.height || 200;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    var imgData = ctx.getImageData(0, 0, c.width, c.height);
+    var d = imgData.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var r = d[i], g = d[i+1], b = d[i+2];
+      // Neutral light pixel = near-white or light gray (high brightness, low saturation)
+      var isLight   = r > 160 && g > 160 && b > 160;
+      var isNeutral = Math.abs(r - g) < 35 && Math.abs(g - b) < 35;
+      if (isLight && isNeutral) d[i+3] = 0; // make transparent
+    }
+    ctx.putImageData(new ImageData(d, c.width, c.height), 0, 0);
+    img.src = c.toDataURL('image/png');
+  } catch (e) { /* silently fail on CORS or canvas errors */ }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var logos = document.querySelectorAll('.hero-logo, .nav-brand img, .footer-brand img');
+  logos.forEach(function (img) {
+    if (img.complete && img.naturalWidth > 0) {
+      processLogoImage(img);
+    } else {
+      img.addEventListener('load', function () { processLogoImage(img); });
+    }
+  });
+});
+</script>
 </body>
 </html>
