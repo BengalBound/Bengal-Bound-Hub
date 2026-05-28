@@ -230,7 +230,7 @@ Each of the 30 agents is a fully self-contained Django app with its own AI brain
 | Marketing | SEO Specialist | `oracle` | Weekly site audit, keyword research, meta optimisation |
 | Marketing | Brand & PR | `luma` | Crisis monitoring (30 min), press release generation, weekly brand digest |
 | Marketing | Market Research | `pulse` | Weekly market scan, competitor analysis, trend reports |
-| Marketing | Content Strategist | `serea-content` | Auto-generate draft pieces, campaign strategy, weekly digest |
+| Marketing | Content Strategist | `content-strategist` | Auto-generate draft pieces, campaign strategy, weekly digest |
 | Operations | Executive Assistant | `atlas` | Daily morning briefing, overdue task alerts, weekly summary |
 | Operations | Supply Chain Manager | `flux` | Supplier assessments, stock risk analysis, weekly report |
 | Operations | Events Manager | `tempo` | Event plans, attendee reminders, RSVP follow-up |
@@ -349,8 +349,10 @@ celery -A bengalbound_core beat -l info
 
 ---
 
-## Security
+## Security & Compliance
 
+- **ISO/IEC 27001 & NIST SP 800-218**: Automated environment separation (`testing.py`, `.env.*`) and verification scripts at root (`verify.sh`, `verify.bat`).
+- **EO 14028 SBOM**: Automated CycloneDX SBOM generation for compliance transparency.
 - **django-axes**: account lockout after 5 failed login attempts (1-hour cooldown)
 - **django-otp / TOTP**: optional 2FA (QR code provisioning in console)
 - **simple-history**: model-level change audit on `BusinessInstance` and `BusinessEmployee`
