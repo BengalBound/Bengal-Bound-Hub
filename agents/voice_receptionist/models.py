@@ -88,7 +88,8 @@ class BusinessProfile(models.Model):
     forwarding_number   = models.CharField(max_length=30, blank=True, help_text="Number to transfer calls to when escalating")
     twilio_phone_number = models.CharField(max_length=30, blank=True, help_text="Assigned Twilio number for this business")
     agent_name          = models.CharField(max_length=100, default="Aria", help_text="AI agent's display name")
-    tts_voice           = models.CharField(max_length=60, default="en-US-Neural2-F", help_text="Google Cloud TTS voice ID")
+    tts_voice           = models.CharField(max_length=60, default="en-US-Neural2-F", help_text="Twilio/Google Cloud TTS voice ID (e.g. Polly.Lupe, Google.es-ES-Neural2-A)")
+    language_code       = models.CharField(max_length=20, default="en-US", help_text="BCP-47 language code for Speech-to-Text (e.g., es-ES, fr-FR)")
     greeting_template   = models.TextField(
         default="Thank you for calling {business_name}. My name is {agent_name}. How can I help you today?"
     )

@@ -67,14 +67,14 @@ def clear_call_session(call_sid: str):
 # TwiML Builders
 # ---------------------------------------------------------------------------
 
-def _twiml_gather(say_text: str, action_url: str, voice_name: str = "Polly.Joanna") -> str:
+def _twiml_gather(say_text: str, action_url: str, voice_name: str = "Polly.Joanna", language: str = "en-US") -> str:
     """
     Build TwiML that speaks `say_text` then opens a <Gather> to collect caller speech.
     Uses Twilio's built-in TTS as a fallback (Google TTS audio served separately in production).
     """
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Gather input="speech" action="{action_url}" method="POST" speechTimeout="auto" language="en-US">
+    <Gather input="speech" action="{action_url}" method="POST" speechTimeout="auto" language="{language}">
         <Say voice="{voice_name}">{say_text}</Say>
     </Gather>
     <Say voice="{voice_name}">I didn't catch that. Let me transfer you to a team member.</Say>
@@ -160,7 +160,7 @@ def handle_inbound(request):
     if spam.result == SpamResult.CONFIRMED_SPAM:
         _save_call_log(call_sid, caller_phone, business, "spam", request.POST.dict())
         return HttpResponse(
-            _twiml_say_hangup("Thank you for calling. Goodbye!"),
+            _twiml_say_hangup("Thank you for calling. Goodbye!", voice_name=business.tts_voice),
             content_type="text/xml",
         )
 
@@ -190,7 +190,12 @@ def handle_inbound(request):
         greeting += " We're currently closed, but I can still schedule a future appointment for you."
 
     action_url = f"/api/v1/voice/webhook/gather/"
-    twiml = _twiml_gather(greeting, action_url)
+    twiml = _twiml_gather(
+        say_text=greeting, 
+        action_url=action_url, 
+        voice_name=business.tts_voice, 
+        language=business.language_code
+    )
     return HttpResponse(twiml, content_type="text/xml")
 
 
@@ -229,7 +234,7 @@ def handle_gather(request):
     from .spam_filter import run_spam_check, SpamResult
     spam = run_spam_check(caller_phone, business, transcript=speech_result)
     if spam.result == SpamResult.CONFIRMED_SPAM:
-        return HttpResponse(_twiml_say_hangup("Thank you for calling. Have a great day!"), content_type="text/xml")
+        return HttpResponse(_twiml_say_hangup("Thank you for calling. Have a great day!", voice_name=business.tts_voice), content_type="text/xml")
 
     # Append caller utterance to history
     session["history"].append({"role": "user", "parts": [speech_result]})
@@ -248,16 +253,18 @@ def handle_gather(request):
     save_call_session(call_sid, session)
 
     action_url = "/api/v1/voice/webhook/gather/"
+    voice = business.tts_voice
+    lang = business.language_code
 
     # Route based on next_action
     if result.next_action == "hangup":
         _finalize_call(call_sid, "completed")
-        return HttpResponse(_twiml_say_hangup(result.response_text), content_type="text/xml")
+        return HttpResponse(_twiml_say_hangup(result.response_text, voice_name=voice), content_type="text/xml")
 
     elif result.next_action == "transfer":
         forward_to = business.forwarding_number or settings.DEFAULT_FORWARDING_NUMBER
         _finalize_call(call_sid, "transferred")
-        return HttpResponse(_twiml_transfer(result.response_text, forward_to), content_type="text/xml")
+        return HttpResponse(_twiml_transfer(result.response_text, forward_to, voice_name=voice), content_type="text/xml")
 
     elif result.next_action == "book":
         _confirm_booking(call_sid, session, business)
@@ -266,11 +273,11 @@ def handle_gather(request):
             appointment_date=session["collected"].get("preferred_datetime", "your selected time"),
             business_name=business.business_name,
         )
-        return HttpResponse(_twiml_say_hangup(closing), content_type="text/xml")
+        return HttpResponse(_twiml_say_hangup(closing, voice_name=voice), content_type="text/xml")
 
     else:
         # Continue gathering
-        return HttpResponse(_twiml_gather(result.response_text, action_url), content_type="text/xml")
+        return HttpResponse(_twiml_gather(result.response_text, action_url, voice_name=voice, language=lang), content_type="text/xml")
 
 
 @csrf_exempt
