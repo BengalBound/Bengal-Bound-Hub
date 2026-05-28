@@ -37,7 +37,7 @@ class ContentPieceViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="generate")
     def generate(self, request, slug=None, pk=None):
-        """POST /hub/<slug>/agents/serea-content/content/<pk>/generate/ — AI generates content."""
+        """POST /hub/<slug>/agents/content-strategist/content/<pk>/generate/ — AI generates content."""
         piece = self.get_object()
         business = self._get_business()
         system_prompt = _SEREA_SYSTEM.format(business_name=business.name)

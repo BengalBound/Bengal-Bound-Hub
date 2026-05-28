@@ -78,7 +78,7 @@ All 30 requirements specs reside in the **[`docs/agents/`](file:///d:/Bengal%20b
 | `reporting-bot` | [reporting_bot_analyst.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/reporting_bot_analyst.md) | Analytics | Scheduled dashboards & stats PDFs |
 | `sage` | [sage_legal_reviewer.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/sage_legal_reviewer.md) | Legal | TOS & compliance risk auditor |
 | `scout` | [scout_competitor_intelligence.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/scout_competitor_intelligence.md) | Analytics | Competitor feature & pricing tracker |
-| `serea-content` | [serea_content_copywriter.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/serea_content_copywriter.md) | Marketing | WordPress draft copy blog planner |
+| `content-strategist` | [content_strategist_copywriter.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/content_strategist_copywriter.md) | Marketing | WordPress draft copy blog planner |
 | `shield` | [shield_it_helpdesk.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/shield_it_helpdesk.md) | Technology | Staff passwords & workstation logs |
 | `tempo` | [tempo_event_planner.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/tempo_event_planner.md) | Operations | Holiday schedule & rosters calendar |
 | `voice-receptionist`| [aria_voice_receptionist.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/aria_voice_receptionist.md) | Communication| Twilio voice reception qualifications |

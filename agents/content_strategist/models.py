@@ -25,7 +25,7 @@ class CampaignStatus(models.TextChoices):
 
 class ContentPiece(BaseModel):
     id                = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    business          = models.ForeignKey("bredbound.BusinessInstance", on_delete=models.CASCADE, related_name="serea_content_pieces")
+    business          = models.ForeignKey("bredbound.BusinessInstance", on_delete=models.CASCADE, related_name="content_strategist_pieces")
     title             = models.CharField(max_length=255)
     content_type      = models.CharField(max_length=20, choices=ContentType.choices, default=ContentType.BLOG_POST)
     prompt            = models.TextField(help_text="Instructions sent to AI for content generation")

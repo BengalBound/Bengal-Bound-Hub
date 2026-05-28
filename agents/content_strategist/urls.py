@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import ContentPieceViewSet, CampaignViewSet
 
-app_name = "serea_content"
+app_name = "content_strategist"
 
 router = DefaultRouter()
 router.register(r"content",   ContentPieceViewSet, basename="content-piece")

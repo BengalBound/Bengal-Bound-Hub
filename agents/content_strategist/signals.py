@@ -4,8 +4,8 @@ from workspace_admin.models import HiredAIEmployee
 from agents.models import AgentInstance
 
 @receiver(post_save, sender=HiredAIEmployee)
-def provision_serea_content_instance(sender, instance, created, **kwargs):
-    if not getattr(instance, 'agent_catalog', None) or instance.agent_catalog.slug != 'serea_content':
+def provision_content_strategist_instance(sender, instance, created, **kwargs):
+    if not getattr(instance, 'agent_catalog', None) or instance.agent_catalog.slug != 'content_strategist':
         return
     if instance.is_active:
         business = instance.employer.owned_businesses.first()

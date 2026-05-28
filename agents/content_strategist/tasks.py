@@ -4,18 +4,18 @@ from celery import shared_task
 logger = logging.getLogger(__name__)
 
 
-@shared_task(name="agents.serea_content.auto_generate_draft_pieces")
+@shared_task(name="agents.content_strategist.auto_generate_draft_pieces")
 def auto_generate_draft_pieces():
-    from agents.serea_content.models import ContentPiece
-    from agents.serea_content.engine import SereaContentEngine
+    from agents.content_strategist.models import ContentPiece
+    from agents.content_strategist.engine import ContentStrategistEngine
     from agents.models import AgentInstance, AgentCatalog
 
     try:
-        catalog = AgentCatalog.objects.get(slug='serea_content')
+        catalog = AgentCatalog.objects.get(slug='content_strategist')
     except AgentCatalog.DoesNotExist:
         return 0
 
-    engine = SereaContentEngine()
+    engine = ContentStrategistEngine()
     generated = 0
 
     for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
@@ -29,24 +29,24 @@ def auto_generate_draft_pieces():
                 piece.save(update_fields=["generated_content", "word_count", "status"])
                 generated += 1
             except Exception as exc:
-                logger.error("serea_content.auto_generate_draft_pieces piece %s: %s", piece.pk, exc)
+                logger.error("content_strategist.auto_generate_draft_pieces piece %s: %s", piece.pk, exc)
 
-    logger.info("serea_content.auto_generate_draft_pieces: generated %d pieces", generated)
+    logger.info("content_strategist.auto_generate_draft_pieces: generated %d pieces", generated)
     return generated
 
 
-@shared_task(name="agents.serea_content.campaign_strategy_generation")
+@shared_task(name="agents.content_strategist.campaign_strategy_generation")
 def campaign_strategy_generation():
-    from agents.serea_content.models import Campaign
-    from agents.serea_content.engine import SereaContentEngine, PermissionRequired
+    from agents.content_strategist.models import Campaign
+    from agents.content_strategist.engine import ContentStrategistEngine, PermissionRequired
     from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
 
     try:
-        catalog = AgentCatalog.objects.get(slug='serea_content')
+        catalog = AgentCatalog.objects.get(slug='content_strategist')
     except AgentCatalog.DoesNotExist:
         return 0
 
-    engine = SereaContentEngine()
+    engine = ContentStrategistEngine()
     processed = 0
 
     for instance in AgentInstance.objects.filter(catalog=catalog, status='idle'):
@@ -56,7 +56,7 @@ def campaign_strategy_generation():
             if pieces_count == 0:
                 try:
                     strategy = engine.campaign_strategy(campaign, instance=instance)
-                    logger.info("serea_content: campaign '%s' strategy generated — suggested mix: %s",
+                    logger.info("content_strategist: campaign '%s' strategy generated — suggested mix: %s",
                                 campaign.name, strategy.get("content_mix", {}))
                     processed += 1
                 except PermissionRequired as pr:
@@ -66,17 +66,17 @@ def campaign_strategy_generation():
                     instance.status = 'waiting'
                     instance.save(update_fields=['status'])
                 except Exception as exc:
-                    logger.error("serea_content.campaign_strategy_generation campaign %s: %s", campaign.pk, exc)
+                    logger.error("content_strategist.campaign_strategy_generation campaign %s: %s", campaign.pk, exc)
 
-    logger.info("serea_content.campaign_strategy_generation: processed %d campaigns", processed)
+    logger.info("content_strategist.campaign_strategy_generation: processed %d campaigns", processed)
     return processed
 
 
-@shared_task(name="agents.serea_content.weekly_content_digest")
+@shared_task(name="agents.content_strategist.weekly_content_digest")
 def weekly_content_digest():
-    from agents.serea_content.models import ContentPiece
+    from agents.content_strategist.models import ContentPiece
     from django.db.models import Count
 
     stats = dict(ContentPiece.objects.values_list("status").annotate(count=Count("id")))
-    logger.info("serea_content.weekly_content_digest: %s", stats)
+    logger.info("content_strategist.weekly_content_digest: %s", stats)
     return stats

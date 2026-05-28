@@ -1,10 +1,10 @@
 from django.apps import AppConfig
 
 
-class SereaContentConfig(AppConfig):
+class ContentStrategistConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "agents.serea_content"
+    name = "agents.content_strategist"
     verbose_name = "Serea Content — Content Strategist"
 
     def ready(self):
-        import agents.serea_content.signals  # noqa
+        import agents.content_strategist.signals  # noqa

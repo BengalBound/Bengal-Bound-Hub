@@ -520,7 +520,7 @@ Each agent sub-app follows this pattern:
 - [x] All 30 agents: `serializers.py`, `views.py` (DRF ViewSets), `urls.py`
 - [x] Mounted under `hub/<slug>/agents/<name>/` in root urlconf
 - [x] `voice_receptionist` auth fixed — replaced Firebase dependency with DRF `SessionAuthentication`
-- [x] `serea_content` agent created (was missing from source; built from scratch)
+- [x] `content_strategist` agent created (was missing from source; built from scratch)
 
 **Sprint E — Console UI** (next)
 - [ ] Agent marketplace browse page in `console_admin/`

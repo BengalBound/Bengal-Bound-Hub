@@ -189,7 +189,7 @@ urlpatterns = [
     path('hub/<slug:slug>/agents/shield/', include('agents.shield.urls', namespace='shield')),
     path('hub/<slug:slug>/agents/tempo/', include('agents.tempo.urls', namespace='tempo')),
     path('hub/<slug:slug>/agents/voice-receptionist/', include('agents.voice_receptionist.urls', namespace='voice_receptionist')),
-    path('hub/<slug:slug>/agents/serea-content/', include('agents.serea_content.urls', namespace='serea_content')),
+    path('hub/<slug:slug>/agents/content-strategist/', include('agents.content_strategist.urls', namespace='content_strategist')),
 ]
 
 if settings.DEBUG:

@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('generated_content', models.TextField(blank=True)),
                 ('status', models.CharField(choices=[('draft', 'Draft'), ('generated', 'Generated'), ('approved', 'Approved')], default='draft', max_length=20)),
                 ('word_count', models.PositiveIntegerField(default=0)),
-                ('business', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='serea_content_pieces', to='bredbound.businessinstance')),
+                ('business', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='content_strategist_pieces', to='bredbound.businessinstance')),
             ],
             options={
                 'ordering': ['-created_at'],
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                 ('goal', models.TextField(blank=True)),
                 ('status', models.CharField(choices=[('planning', 'Planning'), ('active', 'Active'), ('paused', 'Paused'), ('completed', 'Completed')], default='planning', max_length=20)),
                 ('business', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='serea_campaigns', to='bredbound.businessinstance')),
-                ('content_pieces', models.ManyToManyField(blank=True, related_name='campaigns', to='serea_content.contentpiece')),
+                ('content_pieces', models.ManyToManyField(blank=True, related_name='campaigns', to='content_strategist.contentpiece')),
             ],
             options={
                 'ordering': ['-created_at'],

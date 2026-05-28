@@ -2,7 +2,7 @@
 # BengalBound HUB Integration
 
 > **Prepared for:** Bengal Bound | **Date:** April 2026 | **Version:** 1.0
-> 🔧 Django + DRF — `serea_content` app | 🤖 LiteLLM proxy (Gemini 1.5 Flash via LITELLM_BASE_URL) | ☁️ Django + Celery (BengalBound HUB deployment)
+> 🔧 Django + DRF — `content_strategist` app | 🤖 LiteLLM proxy (Gemini 1.5 Flash via LITELLM_BASE_URL) | ☁️ Django + Celery (BengalBound HUB deployment)
 > 🔗 Google Sheets API, Google Drive API, HubSpot, WordPress REST API, Meta Graph API
 
 ---
@@ -39,7 +39,7 @@
 ```python
 from django.db import models
 
-class SereaContentConfig(models.Model):
+class ContentStrategistConfig(models.Model):
     business         = models.ForeignKey('bredbound.BusinessInstance', on_delete=models.CASCADE, related_name='sereacontent_configs')
     default_tone     = models.CharField(max_length=50, default='professional')  # playful, professional, bold
     wordpress_url    = models.URLField(blank=True)
@@ -64,7 +64,7 @@ class ContentPiece(models.Model):
 
 ---
 
-## Section 4: API Endpoints (`/hub/<slug>/api/agents/serea-content/`)
+## Section 4: API Endpoints (`/hub/<slug>/api/agents/content-strategist/`)
 
 | Method | Endpoint | Action |
 |---|---|---|

@@ -31,7 +31,7 @@ Principles:
 Content types: blog_post, email, social, ad_copy"""
 
 
-class SereaContentEngine:
+class ContentStrategistEngine:
     SYSTEM_PROMPT = SYSTEM_PROMPT
 
     def generate_piece(self, piece, instance=None) -> str:

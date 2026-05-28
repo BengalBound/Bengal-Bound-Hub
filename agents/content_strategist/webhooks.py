@@ -1,4 +1,4 @@
-from agents.serea_content.models import Campaign
+from agents.content_strategist.models import Campaign
 from agents.models import AgentInstance
 
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):

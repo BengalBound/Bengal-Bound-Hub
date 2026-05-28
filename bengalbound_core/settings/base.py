@@ -96,7 +96,7 @@ INSTALLED_APPS = [
     'agents.shield',
     'agents.tempo',
     'agents.voice_receptionist',
-    'agents.serea_content',
+    'agents.content_strategist',
 
 
     # Modules — Project Management
@@ -355,7 +355,7 @@ if CELERY_BROKER_URL == 'memory://':
 CELERY_BEAT_SCHEDULE = {
     # ── Serea platform engine (social/webhook layer) ──────────────────────────
     'serea-monitor-all':  {'task': 'serea.tasks.dispatch_monitor_to_all_agents',  'schedule': 600},
-    'serea-content-all':  {'task': 'serea.tasks.dispatch_content_to_all_agents',  'schedule': 300},
+    'content-strategist-all':  {'task': 'serea.tasks.dispatch_content_to_all_agents',  'schedule': 300},
     'serea-briefing-all': {'task': 'serea.tasks.dispatch_briefing_to_all_agents', 'schedule': 86400},
     'serea-report-all':   {'task': 'serea.tasks.dispatch_reports_to_all_agents',  'schedule': 86400},
 
@@ -482,9 +482,9 @@ CELERY_BEAT_SCHEDULE = {
     'shield-auto-resolve':      {'task': 'agents.shield.auto_resolve_open_tickets', 'schedule': 14400},
 
     # ── Serea Content — Content Strategist ───────────────────────────────────
-    'serea-content-generate':   {'task': 'agents.serea_content.auto_generate_draft_pieces',    'schedule': 86400},
-    'serea-content-campaigns':  {'task': 'agents.serea_content.campaign_strategy_generation',  'schedule': 86400},
-    'serea-content-digest':     {'task': 'agents.serea_content.weekly_content_digest',         'schedule': 604800},
+    'content-strategist-generate':   {'task': 'agents.content_strategist.auto_generate_draft_pieces',    'schedule': 86400},
+    'content-strategist-campaigns':  {'task': 'agents.content_strategist.campaign_strategy_generation',  'schedule': 86400},
+    'content-strategist-digest':     {'task': 'agents.content_strategist.weekly_content_digest',         'schedule': 604800},
 
     # ── Tempo — Events Manager ────────────────────────────────────────────────
     'tempo-reminders':          {'task': 'agents.tempo.event_reminder_dispatch',    'schedule': 86400},
