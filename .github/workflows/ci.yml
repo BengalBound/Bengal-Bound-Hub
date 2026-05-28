@@ -40,8 +40,11 @@ jobs:
       - name: Check Django configuration
         run: python manage.py check
 
-      - name: Check for pending migrations
-        run: python manage.py migrate --check
+      - name: Check no migrations are missing
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations
+        run: python manage.py migrate
 
       - name: Run tests
         run: python manage.py test tests --verbosity=2
