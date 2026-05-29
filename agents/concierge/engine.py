@@ -60,7 +60,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"category": "inquiry", "priority": "medium", "needs_human": True}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -69,7 +69,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("priority") == "urgent":
                 raise PermissionRequired(
                     context=f"URGENT email received from {email.sender}: {email.subject}. Intent: {res.get('intent_summary')}",
@@ -106,7 +106,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"confirmation_message": raw, "agenda_suggestion": "", "prep_notes": "", "calendar_description": ""}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -168,7 +168,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"qualified": True, "reason": raw, "questions_to_ask": [], "suggested_duration_minutes": 30}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

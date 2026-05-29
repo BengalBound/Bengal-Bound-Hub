@@ -21,7 +21,7 @@ def agent_chat(messages: list, model: str = None) -> str:
             if instruction not in m.get("content", ""):
                 m["content"] += instruction
             break
-            
+
     for _ in range(5):  # Max 5 tool iterations
         resp = requests.post(
             f"{settings.LITELLM_BASE_URL}/chat/completions",
@@ -30,19 +30,19 @@ def agent_chat(messages: list, model: str = None) -> str:
             timeout=45,
         )
         resp.raise_for_status()
-        
+
         message = resp.json()["choices"][0]["message"]
-        
+
         if message.get("tool_calls"):
             messages_copy.append(message)
-            
+
             for tc in message["tool_calls"]:
                 tool_name = tc["function"]["name"]
                 try:
                     arguments = json.loads(tc["function"]["arguments"])
                 except json.JSONDecodeError:
                     arguments = {}
-                    
+
                 result = execute_tool(tool_name, arguments)
                 messages_copy.append({
                     "role": "tool",
@@ -52,7 +52,7 @@ def agent_chat(messages: list, model: str = None) -> str:
                 })
         else:
             return message.get("content", "")
-            
+
     return "Error: Exceeded maximum tool call iterations."
 
 def ai_chat(system_prompt: str, messages: list, organization_id=None, **kwargs) -> str:

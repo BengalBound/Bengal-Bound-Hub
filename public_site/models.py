@@ -130,10 +130,10 @@ class HomepageContent(models.Model):
     hero_title1 = models.CharField(max_length=100, default="Next-Gen Workforces.")
     hero_title2 = models.CharField(max_length=100, default="Automated & Unbound.")
     hero_subtitle = models.TextField(default="BengalBound provides leading WaaS and AIaaS.")
-    
+
     primary_button_text = models.CharField(max_length=50, default="Meet Serea")
     primary_button_url = models.CharField(max_length=200, default="#")
-    
+
     secondary_button_text = models.CharField(max_length=50, default="View Services")
     secondary_button_url = models.CharField(max_length=200, default="/services/")
 
@@ -150,7 +150,7 @@ class CompanyDetails(models.Model):
     phone = models.CharField(max_length=50, default="+1 (555) 123-4567")
     email = models.EmailField(default="hello@bengalbound.com")
     working_hours = models.CharField(max_length=100, default="Mon - Fri, 9am - 6pm EST")
-    
+
     class Meta:
         verbose_name_plural = "Company Details"
 

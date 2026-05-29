@@ -7,7 +7,7 @@ from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 
-from .models import Contact, Deal, Pipeline
+from .models import Contact, Deal
 from hub.models import BusinessInstance, BusinessEmployee
 
 

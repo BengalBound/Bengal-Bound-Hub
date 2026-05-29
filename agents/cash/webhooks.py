@@ -7,7 +7,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Cash."""
     engine = CashEngine()
-    
+
     if event_type == 'employee_synced':
         try:
             join_date = dateutil.parser.isoparse(payload.get('join_date')).date()
@@ -27,7 +27,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'join_date': join_date
             }
         )
-        
+
         try:
             # We can optionally run a compliance check on sync
             res = engine.compliance_check(employee, instance=instance)

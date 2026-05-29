@@ -31,7 +31,6 @@ from pydantic import BaseModel, Field
 from django.db import models as db_models
 from django.utils import timezone
 
-from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langchain_core.callbacks import BaseCallbackHandler
 from langgraph.prebuilt import create_react_agent
@@ -42,8 +41,6 @@ from .models import (
     AgentInstruction,
     ContentQueue,
     SereaReport,
-    SocialMediaAccount,
-    ClientContentFile,
     SereaTask,
     CampaignTracker,
     EngagementLog,
@@ -591,7 +588,6 @@ def update_task(agent_id: str, task_id: str, status: str, notes: str = '', resul
         notes:    Brief update on progress or what's blocking you.
         result:   Final output / summary (for when status=done).
     """
-    import datetime
 
     try:
         agent = SereaAgent.objects.get(id=int(agent_id))
@@ -1885,7 +1881,6 @@ RULES:
         Returns tone guides and brand guidelines uploaded by the client.
         Injected into every prompt so Serea always speaks in the client's brand voice.
         """
-        from django.db.models import Q
         voice_files = self.agent.content_files.filter(
             is_active=True,
             content_type__in=('tone_guide', 'brand_guidelines'),

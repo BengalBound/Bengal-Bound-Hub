@@ -113,7 +113,15 @@
                     <i class="bi bi-robot text-white"></i>
                 </div>
                 <div class="overflow-hidden">
-                    <div class="fw-semibold text-truncate">{{ ai.ai_name }}</div>
+                    <div class="fw-semibold text-truncate">
+                        {% if ai.agent_catalog %}
+                        <a href="{% url 'hub:agent_capabilities' slug=biz.slug agent_slug=ai.agent_catalog.slug %}" class="text-decoration-none text-white hover-text-primary" title="View Capabilities">
+                            {{ ai.ai_name }}
+                        </a>
+                        {% else %}
+                            {{ ai.ai_name }}
+                        {% endif %}
+                    </div>
                     <div style="font-size:0.75rem;color:var(--hub-muted);">{{ ai.tier.get_name_display }}</div>
                 </div>
                 <div class="ms-auto">

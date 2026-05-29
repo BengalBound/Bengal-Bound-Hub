@@ -72,7 +72,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "gcal_event_id", "calendar_synced", "created_at", "updated_at")
 
     def validate_scheduled_at(self, value):
-        from django.conf import settings
         # Get business min lead time from context if available
         request = self.context.get("request")
         min_hours = 2  # default

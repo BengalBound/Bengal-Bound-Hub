@@ -4,7 +4,7 @@ from django.db.models import CharField, IntegerField, JSONField, DateTimeField, 
 from django.contrib.auth import get_user_model
 from workspace_admin.models import HiredAIEmployee
 from simple_history.models import HistoricalRecords
-from .encryption import EncryptedTextField, EncryptedJSONField
+from .encryption import EncryptedTextField
 
 User = get_user_model()
 

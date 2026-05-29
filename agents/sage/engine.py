@@ -73,7 +73,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"overall_risk": 50, "risk_label": "medium", "executive_summary": raw, "clauses": [], "critical_issues": [], "missing_protections": [], "counsel_required": True}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -82,7 +82,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("risk_label") == "critical" or res.get("counsel_required"):
                 raise PermissionRequired(
                     context=f"CRITICAL LEGAL RISK in {document.name}. AI recommends external legal counsel.",
@@ -117,7 +117,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"plain_english": raw, "risk_level": "caution", "risk_score": 50, "negotiation_suggestion": "", "key_risks": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

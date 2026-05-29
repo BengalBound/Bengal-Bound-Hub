@@ -1,10 +1,9 @@
 import csv
 import io
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseForbidden
 
 from hub.views import _get_business_for_user
 from hub.access import get_access_level

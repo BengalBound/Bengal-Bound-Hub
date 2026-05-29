@@ -32,7 +32,7 @@ def process_pending_queries():
                 query.generated_sql = locals()['result'].get("generated_sql", "") if "result" in locals() else ""
                 query.status = "failed" # Mark failed so it doesn't run automatically
                 query.save(update_fields=["generated_sql", "status"])
-                
+
                 AgentPermissionRequest.objects.create(
                     instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
                 )

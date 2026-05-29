@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Sum
 
 from hub.views import _get_business_for_user
-from .models import SalaryStructure, SalaryComponent, PayPeriod, Payslip, PayslipLine
+from .models import SalaryStructure, SalaryComponent, PayPeriod, Payslip
 
 try:
     from modules.hr.models import Employee

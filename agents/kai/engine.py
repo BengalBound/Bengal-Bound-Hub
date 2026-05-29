@@ -62,7 +62,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"root_cause": raw, "contributing_factors": [], "immediate_fix": "", "runbook": [], "prevention": ""}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -71,7 +71,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             # If critical incident, require permission to post remediation to Slack/PagerDuty
             if incident.severity in ['high', 'critical']:
                 raise PermissionRequired(
@@ -137,7 +137,7 @@ Return a JSON array of checklist items:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

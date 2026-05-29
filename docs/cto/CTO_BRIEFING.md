@@ -275,10 +275,10 @@ Run on port **1234** to match `CSRF_TRUSTED_ORIGINS`.
 
 ```
 Serea Engine
-  └── LiteLLM Proxy (LITELLM_BASE_URL)
-        ├── Groq       (GROQ_API_KEY)         — fast inference
-        ├── OpenAI     (OPENAI_API_KEY)        — GPT models
-        └── OpenRouter (OPENROUTER_API_KEY)    — model routing
+  └── LiteLLM Proxy (LITELLM_BASE_URL via LITELLM_MASTER_KEY)
+        ├── Fast Inference (neural-chat, llama3)
+        ├── OpenAI Models  (gpt-4o)
+        └── OpenRouter / Gemini based on routing rules
 ```
 
 Model routing is configurable per task type:

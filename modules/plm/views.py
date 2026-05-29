@@ -5,7 +5,7 @@ from django.http import HttpResponseForbidden
 
 from hub.views import _get_business_for_user
 from hub.access import get_access_level
-from .models import Product, BillOfMaterials, BOMLine, EngineeringChangeOrder, ProductDocument, ProductStage, ShoeArticle, SampleOrder, SampleBuyerComment
+from .models import Product, EngineeringChangeOrder, ProductDocument, ProductStage, ShoeArticle, SampleOrder, SampleBuyerComment
 
 
 def _plm_check(slug, user, min_level=4):
@@ -142,7 +142,8 @@ def plm_ecos(request, slug):
 
     if request.method == 'POST' and get_access_level(biz, request.user) >= 4:
         product_id = request.POST.get('product_id', '')
-        import random, string
+        import random
+        import string
         eco_num = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         EngineeringChangeOrder.objects.create(
             business=biz,

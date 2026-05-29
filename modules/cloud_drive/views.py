@@ -1,11 +1,9 @@
-import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.http import FileResponse
 
 from hub.views import _get_business_for_user
 from hub.access import require_employee
-from .models import DriveFolder, DriveFile, DriveShare
+from .models import DriveFolder, DriveFile
 
 
 @require_employee

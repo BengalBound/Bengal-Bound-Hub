@@ -41,7 +41,7 @@ def auto_resolve_tickets():
                 )
                 instance.status = 'waiting'
                 instance.save(update_fields=['status'])
-                
+
                 try:
                     if hasattr(instance.business, 'owner') and getattr(instance.business.owner, 'email', None):
                         emails = [instance.business.owner.email]
@@ -53,9 +53,9 @@ def auto_resolve_tickets():
                     emails = ['admin@bengalbound.com']
                 if not emails:
                     emails = ['admin@bengalbound.com']
-                    
+
                 EmailAdapter(instance).send_permission_request(request, emails)
-                
+
             except Exception as exc:
                 logger.error("aria.auto_resolve_tickets: ticket %s failed: %s", ticket.pk, exc)
 
@@ -66,7 +66,6 @@ def auto_resolve_tickets():
 @shared_task(name="agents.aria.sla_breach_check")
 def sla_breach_check():
     from django.utils import timezone
-    from datetime import timedelta
     from agents.aria.models import SupportTicket
 
     sla_hours = {"urgent": 1, "high": 4, "medium": 24, "low": 48}

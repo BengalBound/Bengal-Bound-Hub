@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from workspace_admin.models import HiredAIEmployee
-from agents.models import AgentInstance, AgentCatalog
+from agents.models import AgentInstance
 
 
 @receiver(post_save, sender=HiredAIEmployee)

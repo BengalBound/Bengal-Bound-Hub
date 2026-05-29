@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 @shared_task(name="agents.crux.daily_pipeline_review")
 def daily_pipeline_review():
     from agents.crux.models import Contact
-    from agents.crux.engine import CruxEngine, PermissionRequired
-    from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
+    from agents.crux.engine import CruxEngine
+    from agents.models import AgentInstance, AgentCatalog
 
     try:
         catalog = AgentCatalog.objects.get(slug='crux')
@@ -35,7 +35,7 @@ def daily_pipeline_review():
 
 @shared_task(name="agents.crux.score_new_contacts")
 def score_new_contacts():
-    from agents.crux.models import Contact, Interaction
+    from agents.crux.models import Contact
     from agents.crux.engine import CruxEngine, PermissionRequired
     from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
 

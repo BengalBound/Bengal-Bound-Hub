@@ -17,8 +17,6 @@ import time
 import textwrap
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
-from django.utils import timezone
 
 from accounts.models import User
 from workspace_admin.models import AIEmployeeTier, HiredAIEmployee
@@ -273,7 +271,7 @@ class Command(BaseCommand):
             f"  Total tokens used: {CYAN}{agent.tokens_used_this_month:,}{RESET}"
         )
         self.stdout.write(
-            f"  DB records created:"
+            "  DB records created:"
         )
         self.stdout.write(f"    ConversationMessages : {ConversationMessage.objects.filter(agent=agent).count()}")
         self.stdout.write(f"    ContentQueue items   : {ContentQueue.objects.filter(agent=agent).count()}")

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task(name="agents.scout.analyse_unprocessed_changes")
 def analyse_unprocessed_changes():
-    from agents.scout.models import CompetitorChange, Competitor
+    from agents.scout.models import CompetitorChange
     from agents.scout.engine import ScoutEngine, PermissionRequired
     from agents.models import AgentInstance, AgentCatalog, AgentPermissionRequest
 
@@ -37,7 +37,7 @@ def analyse_unprocessed_changes():
                     change.ai_analysis = locals()['result'].get("ai_analysis", "")
                     change.impact = locals()['result'].get("impact_level", change.impact)
                     change.save(update_fields=["ai_analysis", "impact"])
-                
+
                 AgentPermissionRequest.objects.create(
                     instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
                 )
@@ -56,7 +56,6 @@ def weekly_intel_digest():
     from datetime import timedelta
     from agents.scout.models import CompetitorChange, Competitor
     from agents.scout.engine import ScoutEngine
-    from hub.models import BusinessInstance
     from agents.models import AgentInstance, AgentCatalog
 
     try:

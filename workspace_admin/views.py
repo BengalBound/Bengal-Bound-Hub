@@ -5,8 +5,8 @@ from django.core.paginator import Paginator
 from .decorators import workspace_admin_required
 from .models import HiredAIEmployee, WaaSSite, TrafficLog, Order, Coupon, UserNotification, Subscription
 from serea.models import SereaAgent
-from public_site.models import ContactInquiry, ConsultationBooking, BlogPost, BlogComment, CompanyDetails
-from console_admin.models import WorkspaceProject, SupportTicket, AITask
+from public_site.models import ContactInquiry, ConsultationBooking, BlogPost, BlogComment
+from console_admin.models import WorkspaceProject, SupportTicket
 from community_forum.models import ForumTopic, ForumPost
 
 User = get_user_model()
@@ -32,7 +32,6 @@ def dashboard(request):
 @workspace_admin_required
 def ai_oversight(request):
     """Monitor all Serea agents across all clients; activate/deactivate."""
-    from serea.models import SereaAgent
     if request.method == 'POST':
         ai_id = request.POST.get('ai_id')
         action = request.POST.get('action')
@@ -159,14 +158,14 @@ def manage_user(request):
         allowed_roles = ['manager', 'employee', 'contractor', 'auditor']
     elif user_role == 'manager':
         allowed_roles = ['employee', 'contractor', 'auditor']
-    
+
     # List of all users in the workspace (exclude clients unless super_admin?)
     # Let's show all staff members.
     staff_users = User.objects.filter(role__in=['super_admin', 'manager', 'employee', 'contractor', 'auditor']).order_by('-date_joined')
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+
         if action == 'create_staff':
             if not allowed_roles:
                 messages.error(request, "You do not have permission to create staff accounts.")
@@ -205,7 +204,7 @@ def manage_user(request):
                 return redirect('workspace_admin:manage_user')
 
             target_user = get_object_or_404(User, id=user_id)
-            
+
             # Basic permission check: managers shouldn't delete super_admins
             if target_user.role == 'super_admin' and user_role != 'super_admin':
                 messages.error(request, "You cannot modify a Super Admin.")
@@ -219,9 +218,9 @@ def manage_user(request):
             elif action == 'delete':
                 target_user.delete()
                 messages.success(request, "User account successfully deleted.")
-            
+
         return redirect('workspace_admin:manage_user')
-            
+
     return render(request, 'workspace_admin/manage_user.html', {
         'staff_users': staff_users,
         'allowed_roles': allowed_roles,
@@ -325,7 +324,6 @@ def serea_agent_config(request):
       - Change agent status (idle / working / offline)
       - Manually create a SereaAgent for any HiredAIEmployee
     """
-    from serea.models import SereaAgent
     agents = SereaAgent.objects.select_related(
         'tenant', 'hired_employee__tier'
     ).order_by('tenant__email')
@@ -351,7 +349,7 @@ def serea_agent_config(request):
                 )
                 messages.success(request, f"Serea agent created for {hired.employer.email}.")
             else:
-                messages.warning(request, f"That employee already has a Serea agent.")
+                messages.warning(request, "That employee already has a Serea agent.")
             return redirect('workspace_admin:serea_config')
 
         # ── Existing agent actions ─────────────────────────────────────────────
@@ -428,21 +426,21 @@ def ai_tiers(request):
             tier = AIEmployeeTier.objects.get(id=tier_id)
             token_limit = request.POST.get('token_limit')
             monthly_price = request.POST.get('monthly_price_usd')
-            
+
             if token_limit is not None and token_limit.isdigit():
                 tier.token_limit = int(token_limit)
             if monthly_price is not None:
                 tier.monthly_price_usd = float(monthly_price)
-                
+
             tier.save()
             messages.success(request, f"{tier.get_name_display()} tier config updated successfully.")
         except AIEmployeeTier.DoesNotExist:
             messages.error(request, "Tier not found.")
         except ValueError:
             messages.error(request, "Invalid input values. Please check token limits and pricing.")
-            
+
         return redirect('ai_tiers')
-        
+
     tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
     return render(request, 'workspace_admin/ai_tiers.html', {'tiers': tiers})
 
@@ -459,7 +457,6 @@ def cms_control(request):
 # ─── Dynamic CMS CRUD Engine ──────────────────────────────────────────────────
 
 from django.forms import modelform_factory
-from django.urls import reverse
 from django.db import models
 import public_site.models as psm
 
@@ -483,7 +480,6 @@ CMS_MODELS = {
     'testimonial': psm.Testimonial,
     'documentation': psm.Documentation,
     'documentationcategory': psm.DocumentationCategory,
-    'partner': psm.Partner,
     'companydetails': psm.CompanyDetails,
 }
 
@@ -493,7 +489,7 @@ def cms_list(request, model_name):
     if model_name not in CMS_MODELS:
         messages.error(request, "CMS Module not found.")
         return redirect('cms_control')
-    
+
     model_class = CMS_MODELS[model_name]
     object_list = model_class.objects.all().order_by('-id') if hasattr(model_class, 'id') else model_class.objects.all()
 
@@ -511,7 +507,7 @@ def cms_list(request, model_name):
             get_display_method = getattr(obj, f'get_{f.name}_display', None)
             if get_display_method is not None:
                 val = get_display_method()
-                
+
             row_fields.append({
                 'name': f.name,
                 'value': val,
@@ -531,13 +527,13 @@ def cms_form(request, model_name, pk=None):
     """Dynamically handle Create/Update forms for the requested CMS model."""
     if model_name not in CMS_MODELS:
         return redirect('cms_control')
-    
+
     model_class = CMS_MODELS[model_name]
     instance = get_object_or_404(model_class, pk=pk) if pk else None
-    
+
     # Generate a generic ModelForm excluding automatically set fields
     DynamicForm = modelform_factory(model_class, exclude=['created_at', 'updated_at'])
-    
+
     if request.method == 'POST':
         form = DynamicForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():
@@ -549,9 +545,9 @@ def cms_form(request, model_name, pk=None):
 
     # Attach premium styling class to all form inputs
     for visible in form.visible_fields():
-        if not getattr(visible.field.widget, 'input_type', None) in ['checkbox', 'radio']:
+        if getattr(visible.field.widget, 'input_type', None) not in ['checkbox', 'radio']:
             visible.field.widget.attrs['class'] = 'form-control form-control-premium mb-3'
-            
+
     return render(request, 'workspace_admin/cms_form.html', {
         'form': form,
         'model_name': model_name,
@@ -566,7 +562,7 @@ def cms_delete(request, model_name, pk):
         model_class = CMS_MODELS[model_name]
         instance = get_object_or_404(model_class, pk=pk)
         instance.delete()
-        messages.success(request, f"Item deleted successfully.")
+        messages.success(request, "Item deleted successfully.")
     return redirect('workspace_admin:cms_list', model_name=model_name)
 
 # ─── Community Forum Management ───────────────────────────────────────────────
@@ -575,16 +571,16 @@ def cms_delete(request, model_name, pk):
 def forum_management(request):
     """View and manage all community forum topics."""
     topics = ForumTopic.objects.select_related('creator', 'category').order_by('-created_at')
-    
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'delete_topic':
             topic_id = request.POST.get('topic_id')
             topic = get_object_or_404(ForumTopic, id=topic_id)
             topic.delete()
-            messages.success(request, f"Topic deleted successfully.")
+            messages.success(request, "Topic deleted successfully.")
             return redirect('forum_management')
-            
+
     return render(request, 'workspace_admin/forum_management.html', {
         'topics': topics,
     })
@@ -594,17 +590,17 @@ def forum_topic_detail(request, pk):
     """View a specific topic and its replies, with ability to reply and delete."""
     topic = get_object_or_404(ForumTopic, pk=pk)
     posts = topic.posts.select_related('author').order_by('created_at')
-    
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+
         if action == 'delete_post':
             post_id = request.POST.get('post_id')
             post = get_object_or_404(ForumPost, id=post_id)
             post.delete()
             messages.success(request, "Reply deleted successfully.")
             return redirect('workspace_admin:forum_topic_detail', pk=topic.pk)
-            
+
         elif action == 'reply':
             content = request.POST.get('content', '').strip()
             if content:
@@ -612,7 +608,7 @@ def forum_topic_detail(request, pk):
                 parent_post = None
                 if parent_id:
                     parent_post = get_object_or_404(ForumPost, id=parent_id)
-                
+
                 ForumPost.objects.create(
                     topic=topic,
                     parent=parent_post,
@@ -636,13 +632,13 @@ def office_projects(request):
     """Manage internal company projects."""
     from workspace_admin.models import Project
     projects = Project.objects.select_related('client', 'manager').order_by('-created_at')
-    
+
     if request.method == 'POST':
         title = request.POST.get('title')
         description = request.POST.get('description', '')
         client_id = request.POST.get('client_id')
         manager_id = request.POST.get('manager_id')
-        
+
         Project.objects.create(
             title=title,
             description=description,
@@ -651,7 +647,7 @@ def office_projects(request):
         )
         messages.success(request, "Office Project created successfully.")
         return redirect('workspace_admin:office_projects')
-        
+
     users = User.objects.all()
     return render(request, 'workspace_admin/office_projects.html', {
         'projects': projects,
@@ -665,7 +661,7 @@ def office_tasks(request):
     """Manage internal company tasks (kanban style list)."""
     from workspace_admin.models import Task, Project
     tasks = Task.objects.select_related('project', 'assigned_to').order_by('-created_at')
-    
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'create_task':
@@ -673,7 +669,7 @@ def office_tasks(request):
             title = request.POST.get('title')
             assigned_to_id = request.POST.get('assigned_to_id')
             priority = request.POST.get('priority')
-            
+
             project = get_object_or_404(Project, id=project_id)
             Task.objects.create(
                 project=project,
@@ -687,12 +683,12 @@ def office_tasks(request):
             new_status = request.POST.get('status')
             Task.objects.filter(id=task_id).update(status=new_status)
             messages.success(request, "Task status updated.")
-            
+
         return redirect('workspace_admin:office_tasks')
-        
+
     projects = Project.objects.all()
     staff_users = User.objects.filter(role__in=['super_admin', 'manager', 'employee', 'contractor'])
-    
+
     return render(request, 'workspace_admin/office_tasks.html', {
         'tasks': tasks,
         'projects': projects,
@@ -707,14 +703,14 @@ def office_finance(request):
     """Manage internal company bookkeeping and finance."""
     from workspace_admin.models import FinanceRecord
     records = FinanceRecord.objects.select_related('recorded_by').order_by('-date', '-created_at')
-    
+
     if request.method == 'POST':
         title = request.POST.get('title')
         record_type = request.POST.get('record_type')
         amount = request.POST.get('amount')
         date = request.POST.get('date')
         category = request.POST.get('category')
-        
+
         FinanceRecord.objects.create(
             title=title,
             record_type=record_type,
@@ -725,7 +721,7 @@ def office_finance(request):
         )
         messages.success(request, "Finance record added successfully.")
         return redirect('workspace_admin:office_finance')
-        
+
     return render(request, 'workspace_admin/office_finance.html', {
         'records': records,
         'record_types': FinanceRecord.RECORD_TYPE,
@@ -813,7 +809,7 @@ def module_pricing(request):
 @workspace_admin_required
 def hub_subscriptions(request):
     """View and manage all business subscriptions across clients."""
-    from hub.models import BusinessSubscription, BusinessInstance
+    from hub.models import BusinessSubscription
     subs = BusinessSubscription.objects.select_related('business', 'business__owner').order_by('-started_at')
 
     plan_filter = request.GET.get('plan', '')
@@ -895,7 +891,6 @@ def storage_requests(request):
 def advance_quotes(request):
     """Review and price Advance plan custom quotes."""
     from .models import AdvancePlanQuote
-    from hub.models import HubPlanConfig
 
     quotes = AdvancePlanQuote.objects.select_related('business', 'requested_by').order_by('-created_at')
     status_filter = request.GET.get('status', '')

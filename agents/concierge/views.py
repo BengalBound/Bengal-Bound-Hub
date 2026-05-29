@@ -87,7 +87,7 @@ class EmailTriageViewSet(viewsets.ModelViewSet):
             email.priority     = result.get("priority", "medium")
             email.is_processed = True
             email.save(update_fields=["category", "priority", "is_processed"])
-            
+
             # Audit log for sub-action (bypasses middleware)
             AuditLog.objects.create(
                 user=request.user,
@@ -99,11 +99,11 @@ class EmailTriageViewSet(viewsets.ModelViewSet):
                 rules_triggered=[],
                 raw_request_payload={"email_id": str(email.id), "sender": email.sender, "category": email.category},
             )
-            
+
             return Response(EmailTriageSerializer(email).data)
         except Exception as exc:
             logger.error("Email triage failed for %s: %s", email.id, exc)
-            
+
             # Audit log for failed triage
             AuditLog.objects.create(
                 user=request.user,
@@ -115,5 +115,5 @@ class EmailTriageViewSet(viewsets.ModelViewSet):
                 rules_triggered=[],
                 raw_request_payload={"error": str(exc)},
             )
-            
+
             return Response({"error": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

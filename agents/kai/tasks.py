@@ -37,7 +37,7 @@ def pipeline_health_monitor():
                 )
                 instance.status = 'waiting'
                 instance.save(update_fields=['status'])
-                
+
             except Exception as exc:
                 logger.error("kai.pipeline_health_monitor pipeline %s: %s", pipeline.pk, exc)
 

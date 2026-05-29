@@ -56,7 +56,7 @@ Return JSON with:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"talking_points": [], "ai_briefing": raw, "pre_meeting_prep": [], "risks": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -65,7 +65,7 @@ Return JSON with:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("risks") and len(res.get("risks")) > 0:
                 raise PermissionRequired(
                     context=f"Risks identified in meeting briefing: {', '.join(res.get('risks', []))}",
@@ -95,7 +95,7 @@ Return a JSON array of objects, each with:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

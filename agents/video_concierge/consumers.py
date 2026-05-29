@@ -8,7 +8,7 @@ class ChloeConsumer:
     Mock Django Channels WebSocket Consumer for Live Video Chat.
     In production, this inherits from AsyncWebsocketConsumer and runs inside ASGI.
     """
-    
+
     async def connect(self):
         # 1. Accept WebRTC connection
         # 2. Authenticate user/client
@@ -27,19 +27,19 @@ class ChloeConsumer:
         if text_data:
             data = json.loads(text_data)
             event_type = data.get("type")
-            
+
             if event_type == "client_speech_transcript":
                 # Received text from Frontend STT (or raw audio if bytes_data)
                 transcript = data.get("text", "")
-                
+
                 # 1. Process via Gemini (ChloeEngine)
                 from .engine import ChloeEngine
                 engine = ChloeEngine()
                 response_text = engine.generate_empathetic_response(transcript)
-                
+
                 # 2. Push text to HeyGen/D-ID Avatar API via WebRTC Data Channel
                 # await self.send_to_avatar_engine(response_text)
-                
+
                 # 3. Echo back to frontend (optional subtitle)
                 # await self.send(text_data=json.dumps({"type": "ai_response", "text": response_text}))
                 pass

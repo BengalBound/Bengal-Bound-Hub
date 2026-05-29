@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Luma."""
     engine = LumaEngine()
-    
+
     if event_type == 'mention_detected':
         mention, _ = BrandMention.objects.get_or_create(
             business=instance.business,
@@ -16,7 +16,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'snippet': payload.get('snippet', ''),
             }
         )
-        
+
         try:
             res = engine.analyse_mention(mention, instance=instance)
             mention.sentiment = res.get("sentiment", mention.sentiment)

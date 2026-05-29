@@ -90,8 +90,8 @@
                     <!-- SSO Jump to Console Login, return to Public Site -->
                     <a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://localhost:1234/accounts/sso/consume/"
                         class="text-white text-decoration-none fw-medium transition-all me-2 hover-text-primary">Log In</a>
-                    <a href="http://console.localhost:1234/accounts/register/"
-                        class="btn btn-outline-premium px-4">Sign Up</a>
+                    <a href="{% url 'public_site:consult' %}"
+                        class="btn btn-outline-premium px-4">Set a meeting with our analyst</a>
                     <a href="http://localhost:1234/consult/"
                         class="btn btn-premium px-4">Book Demo</a>
                     {% endif %}

@@ -65,7 +65,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"ai_analysis": raw, "impact_level": change.impact, "urgency": "review", "strategic_implications": [], "recommended_responses": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -74,7 +74,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("urgency") == "act_now":
                 raise PermissionRequired(
                     context=f"URGENT competitor change detected from {competitor.name}: {res.get('ai_analysis')}",
@@ -176,7 +176,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"response_recommendation": "hold", "rationale": raw, "messaging_angle": "", "risk_if_no_action": ""}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

@@ -54,7 +54,7 @@ class AIEmployeeTier(models.Model):
     role = models.CharField(max_length=50, choices=AI_ROLES, default='general', help_text="Primary function of this AI Employee tier")
     n8n_workflow_json = models.JSONField(null=True, blank=True, help_text="n8n workflow configuration JSON for this tier")
     monthly_price_usd = models.DecimalField(max_digits=8, decimal_places=2, default=0.00, help_text="Monthly price in USD. 0 = Free tier.")
-    
+
     def __str__(self):
         return self.get_name_display()
 
@@ -66,7 +66,7 @@ class HiredAIEmployee(models.Model):
     tokens_used_this_month = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
     hired_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.ai_name} ({self.employer.email})"
 
@@ -99,7 +99,7 @@ class Subscription(models.Model):
     current_period_end = models.DateTimeField(null=True, blank=True)
     next_renewal_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
-    
+
     def __str__(self):
         return f"Sub #{self.id} - {self.client.email} [{self.tier}] ({self.status})"
 

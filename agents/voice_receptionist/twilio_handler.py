@@ -10,7 +10,6 @@ Call Flow:
   → on spam: polite disconnect
 """
 
-import json
 import logging
 from typing import Optional
 
@@ -189,11 +188,11 @@ def handle_inbound(request):
     if not business.is_open_now():
         greeting += " We're currently closed, but I can still schedule a future appointment for you."
 
-    action_url = f"/api/v1/voice/webhook/gather/"
+    action_url = "/api/v1/voice/webhook/gather/"
     twiml = _twiml_gather(
-        say_text=greeting, 
-        action_url=action_url, 
-        voice_name=business.tts_voice, 
+        say_text=greeting,
+        action_url=action_url,
+        voice_name=business.tts_voice,
         language=business.language_code
     )
     return HttpResponse(twiml, content_type="text/xml")
@@ -318,7 +317,6 @@ def _get_business(session: dict):
 
 def _finalize_call(call_sid: str, status: str):
     from .models import Call
-    from django.utils import timezone
     Call.objects.filter(call_sid=call_sid).update(
         status=status, ended_at=timezone.now()
     )
@@ -331,7 +329,7 @@ def _finalize_call(call_sid: str, status: str):
     transcript = "\n".join(lines)
     Call.objects.filter(call_sid=call_sid).update(transcript=transcript)
     clear_call_session(call_sid)
-    
+
     # Trigger background translation to English
     try:
         call_obj = Call.objects.filter(call_sid=call_sid).first()

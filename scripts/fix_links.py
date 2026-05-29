@@ -1,4 +1,3 @@
-import sys
 
 filepath = r'g:\[Bengal Bound]\BengalBound-HUB\templates\workspace_admin\base_admin.html'
 

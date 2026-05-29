@@ -90,7 +90,7 @@ Cover: admin (contracts, accounts), systems (email, tools), culture (team meetin
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -126,7 +126,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"recommendation": "escalate", "policy_basis": raw, "conditions": [], "response_to_employee": ""}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -160,7 +160,7 @@ Write a complete, professional HR communication. Be clear, fair, and legally car
                 detail=res,
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if comm_type.lower() in ["termination", "warning", "disciplinary"]:
                 raise PermissionRequired(
                     context=f"Sensitive HR communication drafted: {comm_type}. Requires HR Director approval.",

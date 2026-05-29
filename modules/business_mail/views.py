@@ -1,11 +1,10 @@
 import secrets
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.utils import timezone
 
 from hub.views import _get_business_for_user
 from hub.access import require_employee, require_manager
-from .models import MailAccount, MailMessage, MailAttachment
+from .models import MailAccount, MailMessage
 
 
 @require_employee

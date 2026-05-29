@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Kai."""
     engine = KaiEngine()
-    
+
     if event_type == 'incident':
         incident, _ = Incident.objects.get_or_create(
             business=instance.business,
@@ -43,7 +43,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
         )
         pipeline.last_status = 'failing'
         pipeline.save(update_fields=['last_status'])
-        
+
         try:
             engine.pipeline_health_check(pipeline, instance=instance)
         except PermissionRequired as pr:

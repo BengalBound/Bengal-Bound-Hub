@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from workspace_admin.models import HiredAIEmployee
-from agents.models import AgentInstance, AgentCatalog
+from agents.models import AgentInstance
 
 @receiver(post_save, sender=HiredAIEmployee)
 def provision_kai_instance(sender, instance, created, **kwargs):
@@ -11,7 +11,7 @@ def provision_kai_instance(sender, instance, created, **kwargs):
         business = instance.employer.owned_businesses.first()
         if not business:
             return
-            
+
         obj, is_new = AgentInstance.objects.get_or_create(
             business=business,  # tenant link
             catalog=instance.agent_catalog,

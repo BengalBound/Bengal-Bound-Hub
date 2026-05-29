@@ -62,14 +62,14 @@ Return JSON with:
                 data = json.loads(raw)
             except json.JSONDecodeError:
                 data = {"translated_text": raw, "quality_score": 0.7, "cultural_notes": [], "flagged_segments": []}
-                
+
             if data.get("quality_score", 1.0) < 0.6:
                 low_quality_detected = True
             if data.get("flagged_segments"):
                 flagged_segments_detected = True
 
             results.append({"language": target_lang, **data})
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -78,7 +78,7 @@ Return JSON with:
                 detail=json.dumps(results),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if low_quality_detected or flagged_segments_detected:
                 raise PermissionRequired(
                     context=f"Low quality or flagged segments in translation job {job.pk}.",
@@ -126,7 +126,7 @@ Return JSON with:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"score": 0.8, "issues": [], "suggested_corrections": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -153,7 +153,7 @@ Return a JSON array of objects: {{"term": "original term", "domain": "{domain}",
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

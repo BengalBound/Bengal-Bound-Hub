@@ -22,7 +22,7 @@ from .models import (
     SocialMediaAccount, SereaTask, DailyReport, DailyReportItem,
 )
 from .logic import SereaBrain, _parse_agent_response, TokenLimitExceeded
-from .platform_api import FacebookAPI, InstagramAPI, PlatformAPIError
+from .platform_api import PlatformAPIError
 from .platforms import get_adapter
 
 logger = logging.getLogger(__name__)
@@ -473,9 +473,9 @@ def generate_daily_report_task(agent_id: int):
         agent=agent,
         sender='serea',
         message_text=(
-            f"Hey! End of day — I've put together today's report. "
-            f"Head to [Daily Reports](/reports/) to check it over. "
-            f"If anything looks off, flag it there and I'll sort it out."
+            "Hey! End of day — I've put together today's report. "
+            "Head to [Daily Reports](/reports/) to check it over. "
+            "If anything looks off, flag it there and I'll sort it out."
         ),
     )
     logger.info("Daily report generated for agent %s on %s — %d items.", agent_id, today, order)

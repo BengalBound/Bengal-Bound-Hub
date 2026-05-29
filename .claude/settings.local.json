@@ -5,7 +5,13 @@
       "Bash(Get-ChildItem -Path \"d:\\\\Bengal bound\\\\dev-backoffice\\\\agents\" -Directory)",
       "Bash(Select-Object -ExpandProperty Name)",
       "Bash(Get-ChildItem -Path \"d:\\\\Bengal bound\\\\dev-backoffice\" -Recurse -Filter \"serea*\" -Directory)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(cd \"/d/Bengal bound/dev-backoffice\" && sed -i 's/        if instance:\\\\n            AgentLog/        if instance:\\\\n            from agents.models import AgentLog\\\\n            AgentLog/' agents/voice_receptionist/engine.py && echo \"done\")",
+      "Read(//d/d/Bengal bound/dev-backoffice/docs/**)",
+      "Bash(pip show *)"
+    ],
+    "additionalDirectories": [
+      "d:\\d\\Bengal bound\\dev-backoffice\\agents\\voice_receptionist"
     ]
   }
 }

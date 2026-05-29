@@ -1,7 +1,6 @@
 # Generated manually 2026-03-12
 
 import django.db.models.deletion
-from django.conf import settings
 from django.db import migrations, models
 
 

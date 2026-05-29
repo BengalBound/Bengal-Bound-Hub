@@ -7,8 +7,7 @@ All queries use Django ORM — no raw SQL required for Phase 1.
 
 import logging
 from datetime import datetime
-from django.db.models import Count, Avg, Q
-from django.utils import timezone
+from django.db.models import Count, Avg
 
 logger = logging.getLogger(__name__)
 

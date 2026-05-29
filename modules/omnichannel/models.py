@@ -1,5 +1,5 @@
 from django.db import models
-from hub.models import BusinessInstance, BusinessEmployee
+from hub.models import BusinessInstance
 
 
 class SalesChannel(models.Model):

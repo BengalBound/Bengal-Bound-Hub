@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.utils import timezone
-from django.db.models import Sum, Count, Q
-import csv, io
+from django.db.models import Sum
+import csv
 
 from hub.models import BusinessInstance, BusinessEmployee
 from .models import (

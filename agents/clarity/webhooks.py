@@ -5,15 +5,15 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Clarity."""
     engine = ClarityEngine()
-    
+
     if event_type == 'feedback_received':
         # payload might have multiple responses, but let's assume it's an array of text
         responses = payload.get('responses', [])
         survey_name = payload.get('survey_name', 'General Feedback')
-        
+
         if not responses:
             return
-            
+
         try:
             themes = engine.extract_themes(responses, survey_name, instance=instance)
             for t in themes:

@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Scout."""
     engine = ScoutEngine()
-    
+
     if event_type == 'competitor_intel':
         competitor, _ = Competitor.objects.get_or_create(
             business=instance.business,
@@ -14,7 +14,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'name': payload.get('competitor_name', 'Unknown Competitor'),
             }
         )
-        
+
         change = CompetitorChange.objects.create(
             business=instance.business,
             competitor=competitor,
@@ -22,7 +22,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
             description=payload.get('description', ''),
             source_url=payload.get('source_url', ''),
         )
-        
+
         try:
             res = engine.analyse_change(change, competitor, instance=instance)
             change.ai_analysis = res.get("ai_analysis", "")
@@ -33,7 +33,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 change.ai_analysis = res.get("ai_analysis", "")
                 change.impact = res.get("impact_level", change.impact)
                 change.save(update_fields=["ai_analysis", "impact"])
-                
+
             AgentPermissionRequest.objects.create(
                 instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
             )

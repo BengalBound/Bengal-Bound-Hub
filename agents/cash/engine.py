@@ -92,7 +92,7 @@ Return JSON with: gross, tax, pf_deduction, net, calculation_steps (list of stri
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"gross": 0, "tax": 0, "pf_deduction": 0, "net": 0, "calculation_steps": [raw]}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -125,7 +125,7 @@ List any anomalies as JSON array of objects:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -134,7 +134,7 @@ List any anomalies as JSON array of objects:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             has_critical = any(a.get("severity") == "critical" for a in res)
             if has_critical:
                 raise PermissionRequired(
@@ -168,7 +168,7 @@ Return JSON with:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"compliant": True, "issues": [], "recommendations": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

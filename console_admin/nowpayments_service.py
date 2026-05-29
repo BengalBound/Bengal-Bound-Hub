@@ -3,7 +3,6 @@ import json
 import os
 import hmac
 import hashlib
-from django.conf import settings
 
 # Usually these come from settings.py or environment variables.
 # We default to sandbox URL. Change to api.nowpayments.io for production.
@@ -17,7 +16,7 @@ def create_invoice(price_amount: float, price_currency: str, order_id: str, orde
     Returns the parsed JSON response dict (containing 'invoice_url', 'id', etc).
     """
     url = f"{NOWPAYMENTS_API_URL}/invoice"
-    
+
     payload = {
         "price_amount": price_amount,
         "price_currency": price_currency,
@@ -27,12 +26,12 @@ def create_invoice(price_amount: float, price_currency: str, order_id: str, orde
         "cancel_url": cancel_url,
         "is_fee_paid_by_user": True
     }
-    
+
     headers = {
         "x-api-key": NOWPAYMENTS_API_KEY,
         "Content-Type": "application/json"
     }
-    
+
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=10)
         response.raise_for_status()
@@ -53,12 +52,12 @@ def verify_ipn_signature(request_data: dict, signature: str) -> bool:
     # NowPayments requires keys sorted alphabetically for the HMAC signature
     sorted_dict = dict(sorted(request_data.items()))
     request_str = json.dumps(sorted_dict, separators=(',', ':'))
-    
+
     hmac_obj = hmac.new(
         NOWPAYMENTS_IPN_SECRET.encode('utf-8'),
         request_str.encode('utf-8'),
         hashlib.sha512
     )
     expected_signature = hmac_obj.hexdigest()
-    
+
     return hmac.compare_digest(expected_signature, signature)

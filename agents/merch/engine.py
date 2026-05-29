@@ -84,7 +84,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             # If changing price, ask permission
             if res.get("ai_price") and float(res["ai_price"]) != float(product.price):
                 raise PermissionRequired(
@@ -160,7 +160,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("should_reorder") and res.get("urgency") in ["high", "critical"]:
                 raise PermissionRequired(
                     context=f"Critical low stock for {product.title}. Recommended reorder: {res.get('recommended_quantity')} units. Reason: {res.get('reasoning')}",

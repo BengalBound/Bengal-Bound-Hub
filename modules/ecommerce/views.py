@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.utils.text import slugify
 
 from hub.views import _get_business_for_user
-from .models import Store, StoreCategory, StoreProduct, Order, OrderItem
+from .models import Store, StoreProduct, Order
 
 
 def _biz(slug, user):

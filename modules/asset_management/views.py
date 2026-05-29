@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from hub.views import _get_business_for_user
 from hub.access import get_access_level
-from .models import Asset, AssetCategory, MaintenanceSchedule, WorkOrder, AssetDocument, AssetDepreciation
+from .models import Asset, AssetCategory, WorkOrder, AssetDocument
 
 
 def _asset_check(slug, user, min_level=3):
@@ -143,7 +143,8 @@ def asset_detail(request, slug, asset_id):
             messages.success(request, "Document uploaded.")
         elif action == 'create_wo' and get_access_level(biz, request.user) >= 4:
             from hub.models import BusinessEmployee
-            import random, string
+            import random
+            import string
             wo_num = 'WO-' + ''.join(random.choices(string.digits, k=6))
             emp_id = request.POST.get('assigned_to_id', '')
             due_date = request.POST.get('due_date', '') or None

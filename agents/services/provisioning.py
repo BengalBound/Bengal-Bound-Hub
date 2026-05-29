@@ -14,14 +14,14 @@ class AgentProvisioningService:
         """
         Spawns the default agents (Concierge and Inspector) for the given organization.
         """
-        
+
         # 1. Concierge - Customer Support & Intake
         concierge_prompt = (
             f"You are the Concierge for {organization.name}, operating in the {organization.industry} industry. "
             "Your primary role is to act as the frontline receptionist, greet users or clients, answer FAQs, "
             "and route complex queries to human operators. Always maintain a professional and welcoming tone."
         )
-        
+
         Agent.objects.create(
             organization=organization,
             name="Concierge",
@@ -29,14 +29,14 @@ class AgentProvisioningService:
             system_prompt=concierge_prompt,
             model_override="gemini/gemini-1.5-flash" # Default to fast model for basic interaction
         )
-        
+
         # 2. Inspector - Compliance & Security
         inspector_prompt = (
             f"You are the Inspector for {organization.name}. Your duty is fail-closed security and compliance. "
             f"You must evaluate all incoming requests against regional compliance standards for {organization.country_code}. "
             "If an action poses a data breach risk or violates standard operating procedure, you must block it."
         )
-        
+
         Agent.objects.create(
             organization=organization,
             name="Inspector",
@@ -44,7 +44,7 @@ class AgentProvisioningService:
             system_prompt=inspector_prompt,
             model_override="gemini/gemini-1.5-flash" # Use fast model for realtime request checking
         )
-        
+
         # 3. Serea - Content Strategy & Campaigns
         serea_prompt = (
             f"You are Serea, the Content Strategist for {organization.name}, "

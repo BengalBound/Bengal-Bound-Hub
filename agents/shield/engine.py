@@ -76,7 +76,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"ai_solution": raw, "ai_confidence": 0.5, "should_auto_resolve": False, "escalation_reason": "Unable to parse AI response"}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -85,7 +85,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if ticket.priority == "urgent":
                 raise PermissionRequired(
                     context=f"URGENT ticket detected: {ticket.title}. Escalation reason: {res.get('escalation_reason')}",
@@ -110,7 +110,7 @@ Return JSON:
             "remaining_hours": round(remaining, 1),
             "urgency": "critical" if breached else ("warning" if remaining < 2 else "ok"),
         }
-        
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -147,7 +147,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"title": ticket.title, "category": ticket.category, "problem": ticket.description, "solution": resolution, "tags": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

@@ -17,7 +17,7 @@ if biz and biz.owner:
         print(f"Status Code: {response.status_code}")
         if response.status_code == 500:
             print("ERROR 500 DETECTED!")
-    except Exception as e:
+    except Exception:
         import traceback
         traceback.print_exc()
         print("EXCEPTION RAISED!")

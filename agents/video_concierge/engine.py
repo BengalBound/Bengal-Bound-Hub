@@ -12,7 +12,7 @@ class ChloeEngine:
         """
         # For a live video call, latency is critical. We use Gemini Flash.
         # We also enforce strict conversational rules so the AI feels human.
-        
+
         system_prompt = """You are Chloe, an expert Customer Support Video Concierge.
 You are currently on a LIVE video call with a client. You appear as a human avatar on their screen.
 
@@ -28,7 +28,7 @@ Your goal is to make the client feel heard and to resolve their support issue sw
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": client_transcript}
         ]
-        
+
         try:
             # We enforce max_tokens=150 to keep responses short and snappy
             response = agent_chat(messages, model="neural-chat")

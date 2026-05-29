@@ -70,7 +70,7 @@ Return JSON:
         except json.JSONDecodeError:
             res = {"intent_score": 50, "engagement_level": "warm", "close_probability": 0.3,
                     "next_best_action": raw, "ai_summary": "", "risk_flags": []}
-                    
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -79,7 +79,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("intent_score", 0) > 80:
                 raise PermissionRequired(
                     context=f"High intent contact detected: {contact.name}. Score: {res.get('intent_score')}",
@@ -116,7 +116,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"sequence": [], "key_talking_points": [], "objection_responses": {}}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

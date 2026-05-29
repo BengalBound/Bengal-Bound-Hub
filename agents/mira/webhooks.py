@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Mira."""
     engine = MiraEngine()
-    
+
     if event_type == 'health_updated':
         health, _ = ClientHealth.objects.update_or_create(
             business=instance.business,
@@ -18,7 +18,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'open_tickets': payload.get('open_tickets', 0),
             }
         )
-        
+
         try:
             res = engine.health_assessment(health, instance=instance)
             health.ai_summary = res.get("assessment", health.ai_summary)

@@ -6,7 +6,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Oracle."""
     engine = OracleEngine()
-    
+
     if event_type == 'website_crawled':
         website, _ = Website.objects.get_or_create(
             business=instance.business,
@@ -15,7 +15,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'cms': payload.get('cms', 'Unknown'),
             }
         )
-        
+
         try:
             issues = engine.audit_website(website, instance=instance)
             for issue_data in issues:

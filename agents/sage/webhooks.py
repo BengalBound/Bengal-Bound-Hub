@@ -6,7 +6,7 @@ from django.utils import timezone
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Sage."""
     engine = SageEngine()
-    
+
     if event_type == 'document_uploaded':
         # E.g. from DocuSign or a contract management tool
         document, created = LegalDocument.objects.get_or_create(
@@ -18,14 +18,14 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'status': 'queued'
             }
         )
-        
+
         if created and document.raw_text:
             try:
                 document.status = 'reviewing'
                 document.save(update_fields=['status'])
-                
+
                 result = engine.review_document(document, instance=instance)
-                
+
                 document.overall_risk = result.get("overall_risk", 50)
                 document.risk_label = result.get("risk_label", "medium")
                 document.executive_summary = result.get("executive_summary", "")
@@ -53,12 +53,12 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                     document.status = "completed"
                     document.reviewed_at = timezone.now()
                     document.save(update_fields=["overall_risk", "risk_label", "executive_summary", "status", "reviewed_at"])
-                
+
                 AgentPermissionRequest.objects.create(
                     instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
                 )
                 instance.status = 'waiting'
                 instance.save(update_fields=['status'])
-            except Exception as e:
+            except Exception:
                 document.status = 'failed'
                 document.save(update_fields=['status'])

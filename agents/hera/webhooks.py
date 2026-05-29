@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Hera."""
     engine = HeraEngine()
-    
+
     if event_type == 'policy_query':
         query = PolicyQuery.objects.create(
             business=instance.business,
@@ -14,7 +14,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
             category=payload.get('category', 'general'),
             ai_answer=""
         )
-        
+
         try:
             query.ai_answer = engine.answer_policy_query(query, instance=instance)
             query.save(update_fields=["ai_answer"])

@@ -57,7 +57,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"intent": "unknown", "outcome": "unknown", "summary": raw}
-            
+
         if instance:
             from agents.models import AgentLog
             AgentLog.objects.create(
@@ -67,7 +67,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("intent") == "emergency":
                 raise PermissionRequired(
                     context=f"EMERGENCY call detected! Caller intent: {res.get('summary')}",
@@ -125,7 +125,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"sms_text": raw, "email_subject": "Appointment Confirmed", "email_body": raw}
-            
+
         if instance:
             from agents.models import AgentLog
             AgentLog.objects.create(

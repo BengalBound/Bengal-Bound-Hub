@@ -7,7 +7,7 @@ from agents.models import AgentInstance
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Tempo."""
     engine = TempoEngine()
-    
+
     if event_type == 'calendly_invitee_created' or event_type == 'calendar_booking':
         # Create event from webhook payload
         try:
@@ -26,7 +26,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'status': 'planning'
             }
         )
-        
+
         if created and not event.ai_plan:
             event.ai_plan = engine.generate_event_plan(event, instance=instance)
             event.save(update_fields=['ai_plan'])

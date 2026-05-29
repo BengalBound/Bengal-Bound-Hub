@@ -1,4 +1,3 @@
-import secrets
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,14 +5,15 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.utils.text import slugify
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-import datetime
-
+import os
+import markdown
+from django.conf import settings
 from .models import (
     BusinessInstance, ModuleCatalog, TenantModule,
     BusinessEmployee, ConnectorSession, SyncLog,
     HubPlanConfig, BusinessSubscription, StorageIncreaseRequest,
     CustomPosition, UserBusinessMembership,
-    INDUSTRY_MODULE_PRIORITY, BASIC_MODULE_IDS,
+    INDUSTRY_MODULE_PRIORITY,
 )
 
 
@@ -322,7 +322,7 @@ def hub_add_employee(request, slug):
         employee_id=employee_id,
         pin_code=pin_code,
     )
-    
+
     if custom_pos_id:
         emp.custom_position_id = int(custom_pos_id)
         emp.save(update_fields=['custom_position_id'])
@@ -963,4 +963,51 @@ def hub_onboarding(request, slug):
         'sub': sub,
         'current_business': biz,
         'is_owner': True,
+    })
+
+
+@login_required(login_url='/accounts/login/')
+def hub_module_capabilities(request, slug, module_id):
+    biz = get_object_or_404(BusinessInstance, slug=slug)
+    module_obj = get_object_or_404(ModuleCatalog, module_id=module_id)
+
+    readme_path = os.path.join(settings.BASE_DIR, 'modules', module_id, 'README.md')
+    content = ""
+    if os.path.exists(readme_path):
+        with open(readme_path, 'r', encoding='utf-8') as f:
+            raw_markdown = f.read()
+            content = markdown.markdown(raw_markdown, extensions=['extra', 'codehilite'])
+    else:
+        content = f"<p>No detailed capability documentation found for {module_obj.name}.</p>"
+
+    return render(request, 'hub/module_capabilities.html', {
+        'biz': biz,
+        'module_obj': module_obj,
+        'content': content,
+        'is_owner': biz.owner == request.user,
+        'current_business': biz,
+    })
+
+
+@login_required(login_url='/accounts/login/')
+def agent_capabilities(request, slug, agent_slug):
+    biz = get_object_or_404(BusinessInstance, slug=slug)
+    from agents.models import AgentCatalog
+    agent_obj = get_object_or_404(AgentCatalog, slug=agent_slug)
+
+    readme_path = os.path.join(settings.BASE_DIR, 'agents', agent_slug, 'README.md')
+    content = ""
+    if os.path.exists(readme_path):
+        with open(readme_path, 'r', encoding='utf-8') as f:
+            raw_markdown = f.read()
+            content = markdown.markdown(raw_markdown, extensions=['extra', 'codehilite'])
+    else:
+        content = f"<p>No detailed capability documentation found for {agent_obj.name}.</p>"
+
+    return render(request, 'hub/agent_capabilities.html', {
+        'biz': biz,
+        'agent_obj': agent_obj,
+        'content': content,
+        'is_owner': biz.owner == request.user,
+        'current_business': biz,
     })

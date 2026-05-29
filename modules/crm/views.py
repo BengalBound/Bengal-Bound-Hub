@@ -3,8 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.db.models import Q, Sum, Count
-from django.utils import timezone
+from django.db.models import Q, Sum
 
 from hub.views import _get_business_for_user
 from .models import Contact, Pipeline, Stage, Deal, Activity

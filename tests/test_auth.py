@@ -7,7 +7,6 @@ Unit tests for the authentication flow:
   - SSO redirect / consume flow
   - One-business-per-owner enforcement
 """
-import secrets
 from datetime import timedelta
 from unittest.mock import patch
 

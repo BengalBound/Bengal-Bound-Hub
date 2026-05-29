@@ -47,7 +47,7 @@ def daily_listing_optimisation():
                 if "ai_description" in locals().get('result', {}):
                     product.ai_description = locals()['result']["ai_description"]
                     product.save(update_fields=["ai_description"])
-                
+
                 AgentPermissionRequest.objects.create(
                     instance=instance,
                     context=pr.context,

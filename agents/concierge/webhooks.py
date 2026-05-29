@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Concierge."""
     engine = ConciergeEngine()
-    
+
     if event_type == 'email_received':
         email = EmailTriage.objects.create(
             business_id=instance.business.id,
@@ -14,7 +14,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
             body_preview=payload.get('body_preview', ''),
             is_processed=False
         )
-        
+
         try:
             # Triage immediately
             result = engine.triage_email(email, instance=instance)

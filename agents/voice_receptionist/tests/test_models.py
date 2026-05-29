@@ -5,12 +5,11 @@ Unit tests for all Voice Receptionist Django models.
 Uses SQLite (Django TEST config) — zero external dependencies.
 """
 
-from datetime import time
 from django.test import TestCase
 from django.utils import timezone
 from ..models import (
     BusinessProfile, Call, Appointment, SpamLog, SpamBlocklist,
-    UserProfile, NotificationTemplate, BusinessType, CallStatus, AppointmentStatus,
+    BusinessType, CallStatus, AppointmentStatus,
 )
 
 
@@ -40,7 +39,6 @@ class BusinessProfileModelTest(TestCase):
 
     def test_is_open_during_configured_hours(self):
         """Business configured 00:00–23:59 every day should always be open."""
-        from datetime import datetime
         days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
         hours = {d: {"open": "00:00", "close": "23:59"} for d in days}
         self.biz.business_hours = hours

@@ -10,14 +10,14 @@ def process_meeting_notes(meeting_id: str):
     """
     from agents.scribe.models import Meeting
     from agents.scribe.engine import ScribeEngine
-    
+
     try:
         meeting = Meeting.objects.get(id=meeting_id)
         meeting.status = "processing"
         meeting.save(update_fields=["status"])
-        
+
         engine = ScribeEngine()
         engine.process_transcript(meeting)
-        
+
     except Exception as e:
         logger.error("Error processing meeting notes %s: %s", meeting_id, e)

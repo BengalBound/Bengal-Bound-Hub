@@ -66,7 +66,7 @@ class AIChatInteraction(models.Model):
     message_content = models.TextField()
     is_from_ai = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         sender = self.ai_employee.ai_name if self.is_from_ai else self.client.email
         return f"{sender}: {self.message_content[:30]}..."

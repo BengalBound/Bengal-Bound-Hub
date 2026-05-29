@@ -31,7 +31,7 @@ urlpatterns = [
 
     # Serea AI Config
     path('serea-config/', views.serea_agent_config, name='serea_config'),
-    
+
     # AI Tiers Config
     path('ai-tiers/', views.ai_tiers, name='ai_tiers'),
 
@@ -41,7 +41,7 @@ urlpatterns = [
     path('cms/<str:model_name>/new/', views.cms_form, name='cms_create'),
     path('cms/<str:model_name>/<int:pk>/edit/', views.cms_form, name='cms_edit'),
     path('cms/<str:model_name>/<int:pk>/delete/', views.cms_delete, name='cms_delete'),
-    
+
     # Community Forum Admin
     path('forum/', views.forum_management, name='forum_management'),
     path('forum/topic/<int:pk>/', views.forum_topic_detail, name='forum_topic_detail'),

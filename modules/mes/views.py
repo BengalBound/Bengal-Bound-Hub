@@ -4,12 +4,10 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.db.models import Count, Avg
-from django.utils import timezone
 
 from hub.views import _get_business_for_user
 from hub.access import get_access_level
 from .models import WorkCenter, ProductionOrder, ProductionLog, QualityCheck, DowntimeRecord, OEESnapshot, RoutingStation, FootwearProductionSchedule, ProductionDayEntry
-from modules.inventory.models import StockLevel, ProductLot
 from modules.quality_control.models import Inspection
 from modules.asset_management.models import Asset
 
@@ -61,16 +59,16 @@ def executive_dashboard(request, slug):
     biz, err = _mes_check(slug, request.user)
     if err:
         return err
-        
+
     total_wip_orders = ProductionOrder.objects.filter(business=biz, status='in_progress').count()
-    
+
     avg_oee_val = OEESnapshot.objects.filter(work_center__business=biz).aggregate(Avg('oee'))['oee__avg']
     avg_oee = round(avg_oee_val, 2) if avg_oee_val else 0
-    
+
     total_inspections = Inspection.objects.filter(business=biz).count()
     passed_inspections = Inspection.objects.filter(business=biz, result='pass').count()
     aql_pass_rate = round((passed_inspections / total_inspections * 100), 1) if total_inspections > 0 else 100
-    
+
     worn_assets = Asset.objects.filter(business=biz, is_tooling=True, lifespan_capacity__gt=0)
     wear_alerts = [a for a in worn_assets if (a.lifespan_consumed / a.lifespan_capacity) > 0.9]
 
@@ -133,7 +131,8 @@ def mes_production_orders(request, slug):
 
     if request.method == 'POST' and get_access_level(biz, request.user) >= 5:
         wc_id = request.POST.get('work_center_id', '')
-        import datetime, random, string
+        import random
+        import string
         wo_num = f"WO-{''.join(random.choices(string.digits, k=6))}"
         ProductionOrder.objects.create(
             business=biz,
@@ -300,7 +299,7 @@ def footwear_schedule_list(request, slug):
                 cumulative_target=cumulative,
                 owner=owner,
             )
-        messages.success(request, f'Production schedule created with 15 day entries.')
+        messages.success(request, 'Production schedule created with 15 day entries.')
         return redirect('mes:footwear_schedule_detail', slug=slug, schedule_id=sched.pk)
 
     schedules = FootwearProductionSchedule.objects.filter(business=biz).prefetch_related('day_entries')

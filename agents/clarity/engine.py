@@ -62,7 +62,7 @@ Return a JSON array of theme objects:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -100,7 +100,7 @@ Return as JSON: {{"analysis": "...", "root_cause": "...", "business_impact": "..
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"analysis": raw, "urgency": "medium", "recommendations": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -109,7 +109,7 @@ Return as JSON: {{"analysis": "...", "root_cause": "...", "business_impact": "..
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("urgency") == "critical":
                 raise PermissionRequired(
                     context=f"CRITICAL feedback theme detected: {theme.theme}. Analysis: {res.get('analysis')}",
@@ -134,7 +134,7 @@ Return JSON: {{"sentiment": "positive|neutral|negative", "score": float -1 to 1,
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"sentiment": "neutral", "score": 0.0, "emotions": [], "intensity": "low"}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

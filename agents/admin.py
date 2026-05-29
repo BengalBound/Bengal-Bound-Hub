@@ -6,7 +6,7 @@ class AgentLogInline(admin.TabularInline):
     extra = 0
     readonly_fields = ['action', 'outcome', 'detail', 'model_used', 'tokens']
     can_delete = False
-    
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.order_by('-created_at')[:20]
@@ -26,11 +26,11 @@ class AgentInstanceAdmin(admin.ModelAdmin):
 @admin.register(AgentCatalog)
 class AgentCatalogAdmin(admin.ModelAdmin):
     list_display = ['name', 'slug', 'category', 'is_active']
-    
+
 @admin.register(AgentMemory)
 class AgentMemoryAdmin(admin.ModelAdmin):
     list_display = ['instance', 'subject', 'memory_type', 'importance']
-    
+
 @admin.register(AgentIntegration)
 class AgentIntegrationAdmin(admin.ModelAdmin):
     list_display = ['instance', 'platform', 'label', 'status']

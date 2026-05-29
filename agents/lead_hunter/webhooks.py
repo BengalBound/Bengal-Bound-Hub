@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Lead Hunter."""
     engine = LeadHunterEngine()
-    
+
     if event_type == 'prospect_added':
         prospect, _ = Prospect.objects.get_or_create(
             business=instance.business,
@@ -18,7 +18,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'status': 'new',
             }
         )
-        
+
         try:
             # Auto-score new prospect
             result = engine.score_prospect(prospect, instance=instance)
@@ -30,7 +30,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 prospect.score = result.get("score", 50)
                 prospect.ai_summary = result.get("ai_summary", "")
                 prospect.save(update_fields=["score", "ai_summary"])
-                
+
             AgentPermissionRequest.objects.create(
                 instance=instance, context=pr.context, option_a=pr.option_a, option_b=pr.option_b
             )

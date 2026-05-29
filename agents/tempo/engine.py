@@ -107,7 +107,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"subject": f"{event.name} — {message_type}", "body": raw}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -116,7 +116,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             # Require permission to blast email to attendees
             if attendees_count > 0:
                 raise PermissionRequired(

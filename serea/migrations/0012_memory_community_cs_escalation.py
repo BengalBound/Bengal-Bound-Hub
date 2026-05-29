@@ -8,7 +8,6 @@ New models:
   - EscalationRecord       — Logs escalations to internal teams
 """
 import django.db.models.deletion
-from django.conf import settings
 from django.db import migrations, models
 
 

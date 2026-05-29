@@ -16,11 +16,11 @@ def strip_pii(text: str) -> str:
     # Mask emails
     email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
     text = re.sub(email_pattern, '[REDACTED_EMAIL]', text)
-    
+
     # Mask standard phone numbers (US/International)
     phone_pattern = r'\b(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\b'
     text = re.sub(phone_pattern, '[REDACTED_PHONE]', text)
-    
+
     return text
 
 def check_robots_txt(url: str, user_agent: str) -> tuple:
@@ -29,10 +29,10 @@ def check_robots_txt(url: str, user_agent: str) -> tuple:
         parsed_url = urlparse(url)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
         robots_url = f"{base_url}/robots.txt"
-        
+
         rp = RobotFileParser()
         rp.set_url(robots_url)
-        
+
         robots_resp = requests.get(robots_url, headers={"User-Agent": user_agent}, timeout=5)
         if robots_resp.status_code == 200:
             rp.parse(robots_resp.text.splitlines())
@@ -52,11 +52,11 @@ def search_web(query: str, max_results: int = 5) -> str:
         results = DDGS().text(query, max_results=max_results)
         if not results:
             return "No results found."
-        
+
         formatted = []
         for r in results:
             formatted.append(f"Title: {r.get('title')}\nURL: {r.get('href')}\nSnippet: {r.get('body')}")
-        
+
         # Strip PII from search snippets
         clean_text = strip_pii("\n\n".join(formatted))
         return clean_text
@@ -72,27 +72,27 @@ def scrape_website(url: str) -> str:
         if not allowed:
             logger.info(f"Scrape blocked by robots.txt for {url}")
             return f"Error: Access Denied. The website's robots.txt policy strictly forbids AI scraping for URL: {url}. We must respect this legal boundary."
-        
+
         # 2. Compliance: Politeness Delay
         if delay > 0:
             logger.info(f"Respecting crawl-delay of {delay}s for {url}")
             time.sleep(delay)
-            
+
         # 3. Compliance: Clear Identification
         response = requests.get(url, timeout=15, headers={"User-Agent": USER_AGENT})
         response.raise_for_status()
 
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(response.text, "html.parser")
-        
+
         for element in soup(["script", "style", "header", "footer", "nav"]):
             element.decompose()
-            
+
         text = soup.get_text(separator="\n", strip=True)
-        
+
         # 4. Compliance: Automated Content Classification & PII Stripping
         clean_text = strip_pii(text)
-        
+
         return clean_text[:5000]
     except Exception as e:
         logger.error(f"scrape_website failed for {url}: {e}")
@@ -104,7 +104,7 @@ def call_api(url: str, method: str = "GET", payload: str = None) -> str:
         kwargs = {"timeout": 15, "headers": {"User-Agent": USER_AGENT}}
         if payload:
             kwargs["json"] = json.loads(payload)
-            
+
         response = requests.request(method.upper(), url, **kwargs)
         clean_text = strip_pii(response.text)
         return clean_text[:5000]

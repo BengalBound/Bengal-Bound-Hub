@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
-import datetime
 
 from hub.views import _get_business_for_user
 from hub.access import require_employee, require_manager
@@ -26,7 +25,6 @@ def meet_home(request, slug):
 def meet_schedule(request, slug):
     biz = _get_business_for_user(slug, request.user)
     rooms = MeetingRoom.objects.filter(business=biz, is_active=True)
-    from accounts.models import User
     from hub.models import BusinessEmployee
     employees = BusinessEmployee.objects.filter(business=biz, is_active=True).select_related('user')
 

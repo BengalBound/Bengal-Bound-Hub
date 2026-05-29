@@ -40,7 +40,7 @@ def event_reminder_dispatch():
                 instance.save(update_fields=['status'])
             except Exception as exc:
                 logger.error("tempo.event_reminder_dispatch event %s (2wk): %s", event.pk, exc)
-                
+
         events_1day = Event.objects.filter(business=instance.business, status__in=["planning", "confirmed"], date__date=tomorrow.date())
         for event in events_1day:
             attendees = Attendee.objects.filter(event=event, rsvp_status="confirmed")

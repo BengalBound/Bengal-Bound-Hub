@@ -64,7 +64,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"assessment": raw, "churn_risk": client_health.risk_level, "recommended_actions": [], "key_issues": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -73,7 +73,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("churn_risk") == "critical":
                 raise PermissionRequired(
                     context=f"CRITICAL churn risk detected for customer. Issues: {', '.join(res.get('key_issues', []))}",
@@ -118,7 +118,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"subject": f"[{email_type.title()}] {business_name}", "body": raw}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -155,7 +155,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"ready_for_expansion": False, "opportunity_type": "none", "recommended_timing": raw}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

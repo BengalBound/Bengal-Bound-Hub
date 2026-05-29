@@ -5,7 +5,6 @@ Unit tests for the spam detection pipeline.
 """
 
 from django.test import TestCase
-from unittest.mock import patch
 from ..models import BusinessProfile, SpamLog, SpamBlocklist, BusinessType
 from ..spam_filter import run_spam_check, handle_silence_timeout, SpamResult
 

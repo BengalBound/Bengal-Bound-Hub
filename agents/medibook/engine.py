@@ -92,7 +92,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"sms_text": f"Reminder: appt with Dr {appointment.doctor.name} at {appointment.scheduled_at}", "email_body": raw, "urgency": "routine"}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -157,7 +157,7 @@ IMPORTANT: If this indicates a medical emergency, set urgency_level to 'emergenc
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"urgency_level": "routine", "recommended_timeframe": "within 1 week", "red_flags": [], "triage_notes": raw}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -166,7 +166,7 @@ IMPORTANT: If this indicates a medical emergency, set urgency_level to 'emergenc
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("urgency_level") == "emergency":
                 raise PermissionRequired(
                     context=f"Emergency medical urgency flagged for reason: '{reason}'. Red flags: {res.get('red_flags')}",

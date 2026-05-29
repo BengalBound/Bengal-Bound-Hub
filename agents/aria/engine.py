@@ -73,7 +73,7 @@ Return a JSON object with:
                 detail=json.dumps(result),
                 model_used=getattr(settings, 'SEREA_TASK_MODELS', {}).get('chat', 'gpt-4'),
             )
-            
+
         return result
 
     def draft_reply(self, ticket, customer_sentiment: str = "neutral") -> str:

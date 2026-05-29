@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.utils import timezone
 
 from hub.views import _get_business_for_user
-from .models import DiningArea, Table, Reservation, TableOrder
+from .models import DiningArea, Table, Reservation
 
 
 def _biz(slug, user):

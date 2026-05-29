@@ -9,14 +9,14 @@ EXCLUDED_AGENTS = ['aria']
 def scaffold():
     agents = [
         d for d in os.listdir(AGENTS_DIR)
-        if os.path.isdir(os.path.join(AGENTS_DIR, d)) 
+        if os.path.isdir(os.path.join(AGENTS_DIR, d))
         and os.path.isfile(os.path.join(AGENTS_DIR, d, 'apps.py'))
         and d not in EXCLUDED_AGENTS
     ]
 
     for agent in agents:
         agent_dir = os.path.join(AGENTS_DIR, agent)
-        
+
         # 1. Write signals.py
         signals_code = f"""from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -45,18 +45,18 @@ def provision_{agent.replace('-', '_')}_instance(sender, instance, created, **kw
 """
         with open(os.path.join(agent_dir, 'signals.py'), 'w', encoding='utf-8') as f:
             f.write(signals_code)
-            
+
         # 2. Patch apps.py
         apps_path = os.path.join(agent_dir, 'apps.py')
         with open(apps_path, 'r', encoding='utf-8') as f:
             apps_content = f.read()
-            
+
         if "def ready(self):" not in apps_content:
             ready_method = f"\n    def ready(self):\n        import agents.{agent}.signals  # noqa\n"
             apps_content += ready_method
             with open(apps_path, 'w', encoding='utf-8') as f:
                 f.write(apps_content)
-                
+
         # 3. Create basic admin.py
         # We don't know the exact domain models for every agent, so we'll just write a base admin
         # that imports standard django stuff and sets up inlines if they ever register a model.
@@ -70,20 +70,20 @@ def provision_{agent.replace('-', '_')}_instance(sender, instance, created, **kw
                 matches = re.findall(r'class\s+([A-Za-z0-9_]+)\((?:models\.Model|BaseModel)\):', models_content)
                 for m in matches:
                     models_list.append(m)
-        
+
         admin_code = "from django.contrib import admin\n"
         if models_list:
             admin_code += f"from .models import {', '.join(models_list)}\n\n"
             for model in models_list:
                 admin_code += f"@admin.register({model})\nclass {model}Admin(admin.ModelAdmin):\n    pass\n\n"
-        
+
         # We don't add AgentLogInline here directly because that's on AgentInstance (which is in agents/admin.py).
         # Wait, the plan said "Every agent admin includes AgentLogInline and AgentPermissionRequestInline".
         # But those are FK to AgentInstance, not to the domain models! So the plan probably meant
         # that the global agent admin has them, or the domain models don't have those inlines directly.
         # Actually, in the Aria pilot, I correctly registered the inlines in agents/admin.py instead of aria/admin.py.
         # So we just register the domain models here.
-        
+
         if models_list:
             with open(os.path.join(agent_dir, 'admin.py'), 'w', encoding='utf-8') as f:
                 f.write(admin_code)

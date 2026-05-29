@@ -62,7 +62,7 @@ IMPORTANT: Generate only SELECT statements. No mutations."""
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"generated_sql": raw, "plain_english_explanation": "", "assumptions": [], "warnings": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -71,7 +71,7 @@ IMPORTANT: Generate only SELECT statements. No mutations."""
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             sql_upper = res.get("generated_sql", "").upper()
             if any(mutation in sql_upper for mutation in ["DROP", "TRUNCATE", "DELETE", "UPDATE", "INSERT"]):
                 raise PermissionRequired(
@@ -139,7 +139,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"anomalies_found": False, "anomalies": [], "data_quality_score": 80, "recommendations": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -175,7 +175,7 @@ Return a JSON array of visualisation recommendations:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

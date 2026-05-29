@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Content Architect."""
     engine = ContentArchitectEngine()
-    
+
     if event_type == 'calendar_requested':
         calendar, _ = ContentCalendar.objects.get_or_create(
             business=instance.business,
@@ -16,7 +16,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'status': 'draft'
             }
         )
-        
+
         try:
             res = engine.plan_calendar(calendar, instance=instance)
             # normally we'd loop and create CalendarEntry objects from res here

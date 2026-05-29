@@ -625,7 +625,6 @@ class ConnectorSession(models.Model):
 
     @classmethod
     def generate(cls, business, label='', days_valid=30):
-        from django.utils import timezone
         import datetime
         return cls.objects.create(
             business=business,

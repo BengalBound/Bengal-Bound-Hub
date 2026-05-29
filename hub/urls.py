@@ -12,8 +12,11 @@ urlpatterns = [
     path('<slug:slug>/', views.hub_dashboard, name='hub_dashboard'),
     path('<slug:slug>/portal/', views.hub_employee_portal, name='hub_employee_portal'),
     path('<slug:slug>/modules/', views.hub_module_store, name='hub_module_store'),
+    path('<slug:slug>/modules/<str:module_id>/capabilities/', views.hub_module_capabilities, name='hub_module_capabilities'),
     path('<slug:slug>/modules/activate/', views.hub_activate_module, name='hub_activate_module'),
     path('<slug:slug>/modules/deactivate/', views.hub_deactivate_module, name='hub_deactivate_module'),
+
+    path('<slug:slug>/agents/<str:agent_slug>/capabilities/', views.agent_capabilities, name='agent_capabilities'),
 
     path('<slug:slug>/employees/', views.hub_employees, name='hub_employees'),
     path('<slug:slug>/employees/add/', views.hub_add_employee, name='hub_add_employee'),

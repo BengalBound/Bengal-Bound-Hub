@@ -10,23 +10,23 @@ class PitchPresenterEngine:
         """
         Uses Gemini to generate a high-converting spoken pitch script based on the business summary and slide talking points.
         """
-        prompt = f"Write a professional, spoken video pitch for the following business context:\n\n"
+        prompt = "Write a professional, spoken video pitch for the following business context:\n\n"
         prompt += f"Context: {pitch_obj.business_summary}\n"
         prompt += f"Target Audience: {pitch_obj.target_audience}\n\n"
-        
+
         slides = pitch_obj.slides.all()
         if slides.exists():
             prompt += "The video will feature the following slides. Please write the script linearly, transitioning smoothly between slides:\n"
             for slide in slides:
                 prompt += f"- Slide {slide.slide_number}: Cover these points: {slide.talking_points}\n"
-                
+
         prompt += "\nOutput ONLY the spoken script. Do not include stage directions or formatting, just the raw words the avatar will speak."
-        
+
         messages = [
             {"role": "system", "content": "You are Sylvia, an elite Executive Presentation AI. Write compelling, confident, and highly persuasive spoken video scripts."},
             {"role": "user", "content": prompt}
         ]
-        
+
         try:
             script = agent_chat(messages)
             pitch_obj.ai_script = script

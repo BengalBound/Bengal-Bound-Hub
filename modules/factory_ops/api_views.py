@@ -3,13 +3,11 @@ modules/factory_ops/api_views.py
 Lightweight JSON API for factory_ops — no DRF required.
 Auth: session-based (same as regular views). Token auth can be layered later.
 """
-import json
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 
-from .models import ProductionOrder, RawMaterial, QCInspection, DailyProductionReport
+from .models import ProductionOrder, RawMaterial, QCInspection
 from .views import _biz
 
 

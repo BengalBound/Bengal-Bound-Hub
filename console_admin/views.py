@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from .decorators import console_user_required
 from .models import (
-    WorkspaceEnvironment, WorkspaceProject, AITask, SupportTicket,
+    WorkspaceProject, AITask, SupportTicket,
     AIChatInteraction, AICredential, AITrainingDocument, AITaskLimit
 )
 from workspace_admin.models import HiredAIEmployee
@@ -16,7 +16,7 @@ def my_ai(request):
     The 'My AI Employee' page — shows the user's Serea agent as a profile card.
     Tabbed interface: Overview | Chat | Moderation Logs | Content Queue | Reports
     """
-    from serea.models import SereaAgent, ConversationMessage, ModerationLog, ContentQueue, SereaReport, SereaTask
+    from serea.models import ConversationMessage, ModerationLog, ContentQueue, SereaReport, SereaTask
 
     hired_ai = HiredAIEmployee.objects.filter(employer=request.user, is_active=True).select_related('tier').first()
     serea_agent = None
@@ -127,7 +127,7 @@ def ai_chat(request, ai_id=None):
             serea_agent = None
 
         if serea_agent:
-            from serea.models import ConversationMessage as SereaMsg, SocialMediaAccount, ClientContentFile
+            from serea.models import ConversationMessage as SereaMsg
             chat_messages = SereaMsg.objects.filter(agent=serea_agent).order_by('created_at')
 
             # ── Auto-welcome: send Serea's first onboarding message if no chat yet ──
@@ -360,7 +360,7 @@ def dashboard(request):
     """
     from hub.models import BusinessInstance
     from .models import ConsoleModuleActivation
-    from serea.models import SereaAgent, ConversationMessage, ModerationLog, ContentQueue, SereaReport, SereaTask
+    from serea.models import ConversationMessage, ModerationLog, ContentQueue, SereaReport, SereaTask
 
     biz = BusinessInstance.objects.filter(owner=request.user, is_active=True).first()
 
@@ -497,19 +497,19 @@ def hire_ai(request):
     """
     from workspace_admin.models import AIEmployeeTier, Subscription
     from django.urls import reverse
-    
+
     tiers = AIEmployeeTier.objects.all().order_by('?')
-    
+
     if request.method == 'POST':
         tier_id = request.POST.get('tier_id')
         duration_months = int(request.POST.get('duration_months', 1))
-        
+
         tier = get_object_or_404(AIEmployeeTier, id=tier_id)
-        
+
         if tier.monthly_price_usd > 0:
             total_price = float(tier.monthly_price_usd) * duration_months
-            
-            # Create a pending subscription record. 
+
+            # Create a pending subscription record.
             # We don't link it to a HiredAIEmployee yet because it's not paid.
             trial_sub = Subscription.objects.create(
                 client=request.user,
@@ -518,17 +518,17 @@ def hire_ai(request):
                 status='trialing', # Using 'trialing' as 'pending' for now
                 amount_paid_usd=total_price
             )
-            
+
             from console_admin.nowpayments_service import create_invoice
-            
+
             # Passing sub_id and duration in order_description so the webhook knows what to do
             order_description = f"Sub:{trial_sub.id}|Duration:{duration_months}"
-            
+
             # Build absolute URLs for redirects
             # (Assuming standard django settings or request.build_absolute_uri)
             success_url = request.build_absolute_uri(reverse('console_admin:dashboard'))
             cancel_url = request.build_absolute_uri(reverse('console_admin:hire_ai'))
-            
+
             # Create NowPayments invoice
             invoice_data = create_invoice(
                 price_amount=total_price,
@@ -538,13 +538,13 @@ def hire_ai(request):
                 success_url=success_url,
                 cancel_url=cancel_url
             )
-            
+
             if invoice_data and 'invoice_url' in invoice_data:
                 # Save the invoice URL and ID for tracking
                 trial_sub.nowpayments_order_id = invoice_data.get('id')
                 trial_sub.nowpayments_invoice_url = invoice_data.get('invoice_url')
                 trial_sub.save(update_fields=['nowpayments_order_id', 'nowpayments_invoice_url'])
-                
+
                 # Redirect user to the NowPayments checkout
                 return redirect(invoice_data['invoice_url'])
             else:
@@ -554,14 +554,14 @@ def hire_ai(request):
             # Free tier: Instantly provision
             from django.utils import timezone
             from datetime import timedelta
-            
+
             # Check if user already has this free tier
             existing_free_ai = HiredAIEmployee.objects.filter(
-                employer=request.user, 
+                employer=request.user,
                 is_active=True,
                 tier=tier
             ).exists()
-            
+
             if existing_free_ai:
                 messages.warning(request, f"You already have an active {tier.get_name_display()} employee.")
                 return redirect('console_admin:dashboard')
@@ -583,10 +583,10 @@ def hire_ai(request):
                 started_at=timezone.now(),
                 current_period_end=timezone.now() + timedelta(days=365*10) # 10 years for free tier
             )
-            
+
             messages.success(request, f"Free tier activated! Say hello to your new {tier.get_name_display()} employee.")
             return redirect('console_admin:serea_onboarding')
-    
+
     return render(request, 'console_admin/hire_ai.html', {
         'tiers': tiers
     })
@@ -605,57 +605,57 @@ def nowpayments_webhook(request):
     """
     from console_admin.nowpayments_service import verify_ipn_signature
     from workspace_admin.models import Subscription, HiredAIEmployee
-    
+
     if request.method != 'POST':
         return HttpResponse(status=405)
-        
+
     signature = request.headers.get('x-nowpayments-sig')
     if not signature:
         return JsonResponse({'error': 'Missing signature'}, status=400)
-        
+
     try:
         data = json.loads(request.body)
-        
+
         # Verify webhook signature using the IPN Secret
         if not verify_ipn_signature(data, signature):
             return JsonResponse({'error': 'Invalid signature'}, status=403)
-            
+
         payment_status = data.get('payment_status')
         order_description = data.get('order_description', '')
-        
+
         # We passed f"Sub:{trial_sub.id}|Duration:{duration_months}" during checkout
         if not order_description.startswith('Sub:'):
             return JsonResponse({'status': 'ignored - not a recognized order format'})
-            
+
         parts = dict(p.split(':') for p in order_description.split('|'))
         sub_id = parts.get('Sub')
         duration_months = int(parts.get('Duration', 1))
-        
+
         if payment_status == 'finished':
             sub = Subscription.objects.select_related('client', 'tier').get(id=sub_id)
-            
+
             # If it's already active, skip (idempotent)
             if sub.status == 'active':
                 return JsonResponse({'status': 'already processed'})
-                
+
             # 1. Update the Subscription
             sub.status = 'active'
             sub.started_at = timezone.now()
             # Approximation (30 days per month)
-            days = duration_months * 30 
+            days = duration_months * 30
             sub.current_period_end = timezone.now() + timedelta(days=days)
             sub.save()
-            
+
             # 2. Upgrade the HiredAIEmployee (or create one)
             # The client might already have an Intern tier, let's upgrade their oldest one,
-            # or strictly create a new one based on business logic. 
+            # or strictly create a new one based on business logic.
             # We will try to find an active Intern tier first to upgrade:
             existing_ai = HiredAIEmployee.objects.filter(
-                employer=sub.client, 
+                employer=sub.client,
                 is_active=True,
                 tier__name='intern'
             ).first()
-            
+
             if existing_ai:
                 existing_ai.tier = sub.tier
                 existing_ai.save(update_fields=['tier'])
@@ -672,7 +672,7 @@ def nowpayments_webhook(request):
                 sub.save(update_fields=['hired_ai'])
 
         return JsonResponse({'status': 'ok'})
-        
+
     except Subscription.DoesNotExist:
         return JsonResponse({'error': 'Subscription not found'}, status=404)
     except Exception as e:
@@ -812,7 +812,6 @@ def serea_fb_connect(request):
     import secrets
     from urllib.parse import urlencode
     from django.conf import settings as dj_settings
-    from serea.models import SereaAgent
 
     hired_ai = HiredAIEmployee.objects.filter(employer=request.user, is_active=True).first()
     serea_agent = None
@@ -998,7 +997,7 @@ def serea_onboarding(request):
     Step 3: Business info — manager name, working hours, tone/description
     On finish: marks onboarding_complete=True, sends Serea's first message.
     """
-    from serea.models import SereaAgent, SocialMediaAccount, ConversationMessage
+    from serea.models import SocialMediaAccount, ConversationMessage
 
     hired_ai = HiredAIEmployee.objects.filter(employer=request.user, is_active=True).first()
     serea_agent = None
@@ -1115,7 +1114,7 @@ def serea_platforms(request):
     Platform Connections — the client connects Facebook, Instagram, and LinkedIn here.
     Serea uses these credentials to moderate, post, and handle DMs on all three platforms.
     """
-    from serea.models import SereaAgent, SocialMediaAccount, ConversationMessage
+    from serea.models import SocialMediaAccount, ConversationMessage
 
     hired_ai = HiredAIEmployee.objects.filter(employer=request.user, is_active=True).first()
     serea_agent = None
@@ -1211,7 +1210,7 @@ def serea_workspace(request):
     """
     import csv
     import io
-    from serea.models import SereaAgent, ClientContentFile
+    from serea.models import ClientContentFile
 
     hired_ai = HiredAIEmployee.objects.filter(employer=request.user, is_active=True).first()
     serea_agent = None
@@ -1593,7 +1592,7 @@ def daily_report_detail(request, report_id):
 
             # Trigger Serea's reply
             try:
-                from serea.logic import SereaBrain, TokenLimitExceeded
+                from serea.logic import SereaBrain
                 brain = SereaBrain(agent_id=serea_agent.id)
                 reply = brain.chat(msg_text)
                 ConversationMessage.objects.create(

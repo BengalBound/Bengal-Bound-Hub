@@ -232,7 +232,7 @@ class AppointmentViewSet(FirebaseAuthMixin, viewsets.ModelViewSet):
         Return available time slots for a given date.
         """
         from .calendar_sync import get_available_slots
-        from datetime import datetime, time
+        from datetime import datetime
 
         date_str  = request.query_params.get("date")
         duration  = int(request.query_params.get("duration", 60))

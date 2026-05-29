@@ -1,9 +1,7 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.http import HttpResponse
 from django.utils.text import slugify
-from django.views.decorators.csrf import csrf_exempt
 
 from hub.views import _get_business_for_user
 from hub.access import require_employee

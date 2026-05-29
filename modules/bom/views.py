@@ -157,7 +157,6 @@ def shoe_bom_list(request, slug):
         return HttpResponseForbidden()
 
     if request.method == 'POST':
-        import datetime
         ShoeArticleBOM.objects.create(
             business=biz,
             article_code=request.POST['article_code'].strip(),
@@ -190,7 +189,6 @@ def shoe_bom_detail(request, slug, bom_id):
         action = request.POST.get('action')
 
         if action == 'add_colorway':
-            import json
             # Build size_data from individual size fields submitted as size_XX=qty
             raw_sizes = {}
             for key, val in request.POST.items():

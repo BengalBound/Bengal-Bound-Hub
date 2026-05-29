@@ -101,7 +101,7 @@ Return a JSON array of content entries:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -110,7 +110,7 @@ Return a JSON array of content entries:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if len(res) > 5:
                 raise PermissionRequired(
                     context=f"Large content calendar generated with {len(res)} pieces of content.",
@@ -145,7 +145,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"optimised_content": content, "seo_score": 50, "improvements_made": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -174,7 +174,7 @@ For each target channel, write a complete repurposed version. Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {ch: raw for ch in target_channels}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

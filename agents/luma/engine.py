@@ -72,7 +72,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("urgency") == "crisis":
                 raise PermissionRequired(
                     context=f"CRISIS DETECTED! Mention from {mention.source} flagged as crisis. Summary: {res.get('ai_summary')}",
@@ -171,7 +171,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"immediate_actions": [], "holding_statement": raw, "key_messages": [], "what_not_to_say": []}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from hub.models import BusinessInstance, BusinessEmployee
-from .models import Course, CourseModule, Lesson, LearnerEnrollment, LessonProgress
+from .models import Course, CourseModule, Lesson, LearnerEnrollment
 
 
 def _lms_check(slug, user, min_level=1):

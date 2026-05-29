@@ -12,10 +12,10 @@ when the key is not present.
 
 import os
 import json
-from unittest import skip, skipUnless
+from unittest import skipUnless
 from unittest.mock import patch, MagicMock
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 from django.utils import timezone
 
 from accounts.models import User
@@ -458,7 +458,7 @@ class TestTokenManagement(TestCase):
 
     def _brain(self):
         """Returns a SereaBrain with a mocked LLM (no API call)."""
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             return SereaBrain(agent_id=self.agent.pk)
 
     def test_under_limit_passes(self):
@@ -540,7 +540,7 @@ class TestSereaBrainPrompts(TestCase):
         self.agent = _make_agent(self.user)
 
     def _brain(self):
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             return SereaBrain(agent_id=self.agent.pk)
 
     def test_chat_prompt_contains_agent_id(self):
@@ -608,7 +608,7 @@ class TestConversationHistory(TestCase):
         self.agent = _make_agent(self.user)
 
     def _brain(self):
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             return SereaBrain(agent_id=self.agent.pk)
 
     def test_empty_history(self):
@@ -660,7 +660,7 @@ class TestSereaBrainChatMocked(TestCase):
 
     def _brain_with_mock_response(self, mock_text):
         """Returns a SereaBrain whose _run_messages always returns mock_text."""
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         brain._run_messages = MagicMock(return_value=(mock_text, 150))
         return brain
@@ -677,7 +677,7 @@ class TestSereaBrainChatMocked(TestCase):
         self.assertEqual(self.agent.tokens_used_this_month, 150)
 
     def test_chat_fallback_on_exception(self):
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         brain._run_messages = MagicMock(side_effect=Exception("LLM timeout"))
         reply = brain.chat("Hello")
@@ -699,7 +699,7 @@ class TestSereaBrainChatMocked(TestCase):
         self.agent.token_limit_override = 100
         self.agent.tokens_used_this_month = 100
         self.agent.save()
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         with self.assertRaises(TokenLimitExceeded):
             brain.chat("Hello")
@@ -716,7 +716,7 @@ class TestSereaBrainModerationMocked(TestCase):
         self.agent = _make_agent(self.user)
 
     def _brain_with_mock_response(self, mock_text):
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         brain._run = MagicMock(return_value=(mock_text, 200))
         return brain
@@ -747,7 +747,7 @@ class TestSereaBrainModerationMocked(TestCase):
         self.assertEqual(self.agent.tokens_used_this_month, 200)
 
     def test_process_comment_handles_exception(self):
-        with patch('serea.logic.ChatGroq'):
+        with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         brain._run = MagicMock(side_effect=Exception("network error"))
         result = brain.process_comment("test")
@@ -797,14 +797,14 @@ class TestSereaSignals(TestCase):
 # 11. LIVE LLM TESTS  (skipped unless GROQ_API_KEY is set)
 # ─────────────────────────────────────────────────────────────────────────────
 
-GROQ_KEY = os.getenv('GROQ_API_KEY', '')
+LITELLM_KEY = os.getenv('LITELLM_MASTER_KEY', '')
 
 
-@skipUnless(GROQ_KEY, 'Set GROQ_API_KEY env var to run live LLM tests')
+@skipUnless(LITELLM_KEY, 'Set LITELLM_MASTER_KEY env var to run live LLM tests')
 class TestSereaBrainLive(TestCase):
     """
-    Integration tests that make real Groq API calls.
-    Only run when GROQ_API_KEY is present in the environment.
+    Integration tests that make real API calls via LiteLLM.
+    Only run when LITELLM_MASTER_KEY is present in the environment.
     """
 
     def setUp(self):
@@ -812,8 +812,8 @@ class TestSereaBrainLive(TestCase):
         self.agent = SereaAgent.objects.create(
             tenant=self.user,
             tier='entry',
-            ai_model='llama3-8b-8192',   # smallest/fastest for tests
-            groq_api_key=GROQ_KEY,
+            ai_model='neural-chat',   # smallest/fastest for tests
+            openrouter_api_key=LITELLM_KEY,
             token_limit_override=0,
             status='idle',
         )

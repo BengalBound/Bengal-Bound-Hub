@@ -6,7 +6,6 @@ Unit tests for critical Serea AI logic:
   - Platform adapter contract (stub via TikTokAdapter)
 """
 from unittest.mock import patch, MagicMock
-import serea.tasks
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth import get_user_model
@@ -100,8 +99,6 @@ class PermissionRespondTest(TestCase):
         )
 
     def test_approve_sets_permission_granted_true(self):
-        from serea.models import ConversationMessage
-        from django.http import JsonResponse
 
         factory = RequestFactory()
         request = factory.post(f'/serea/permission/{self.msg.id}/respond/', {
@@ -117,7 +114,6 @@ class PermissionRespondTest(TestCase):
         self.assertTrue(self.msg.permission_granted)
 
     def test_deny_sets_permission_granted_false(self):
-        from serea.models import ConversationMessage
 
         factory = RequestFactory()
         request = factory.post(f'/serea/permission/{self.msg.id}/respond/', {
@@ -134,7 +130,6 @@ class PermissionRespondTest(TestCase):
 
     def test_double_approve_returns_409(self):
         """Approving an already-resolved request must return HTTP 409."""
-        from serea.models import ConversationMessage
 
         # Pre-resolve
         self.msg.permission_granted = True

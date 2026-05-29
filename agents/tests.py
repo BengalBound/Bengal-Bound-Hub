@@ -8,9 +8,9 @@ from rest_framework.test import APIClient
 
 from hub.models import BusinessInstance, BusinessEmployee
 from agents.aria.models import SupportTicket, TicketResponse
-from agents.crux.models import Contact, Interaction
-from agents.mira.models import ClientHealth, SuccessEmail
-from agents.lead_hunter.models import Prospect, OutreachSequence
+from agents.crux.models import Contact
+from agents.mira.models import ClientHealth
+from agents.lead_hunter.models import Prospect
 
 User = get_user_model()
 

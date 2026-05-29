@@ -7,7 +7,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for MediBook."""
     engine = MediBookEngine()
-    
+
     if event_type == 'patient_booked':
         try:
             appt_date = dateutil.parser.isoparse(payload.get('scheduled_at'))
@@ -32,7 +32,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 'status': 'booked'
             }
         )
-        
+
         try:
             res = engine.triage_urgency(reason, doctor.specialty, instance=instance)
             if res.get('urgency_level') == 'emergency':

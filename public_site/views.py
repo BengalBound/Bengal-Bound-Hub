@@ -3,9 +3,8 @@ from django.contrib import messages
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.contrib.auth import login, get_user_model
 from .models import (
-    Service, Product, BlogPost, ContactInquiry, ConsultationBooking,
-    HomepageContent, Partner, VideoRepresentation, VideoReview, FAQ,
-    TeamMember, TrialAccount, CoreValue, PlatformFeature, WorkProcessStep, Testimonial,
+    Service, Product, BlogPost, ContactInquiry, HomepageContent, Partner, VideoRepresentation, VideoReview, FAQ,
+    TrialAccount, CoreValue, PlatformFeature, WorkProcessStep, Testimonial,
     Documentation, DocumentationCategory
 )
 from workspace_admin.models import AIEmployeeTier
@@ -17,18 +16,18 @@ def home(request):
     reviews = VideoReview.objects.filter(is_featured=True)
     faqs = FAQ.objects.filter(is_active=True)
     services = Service.objects.filter(is_active=True)[:4]
-    
+
     core_values = CoreValue.objects.filter(is_active=True)
     platform_features = PlatformFeature.objects.filter(is_active=True)
     work_process_steps = WorkProcessStep.objects.filter(is_active=True)
     testimonials = Testimonial.objects.filter(is_featured=True)
-    
+
     # Showcase the subscription-based AI roles
     ai_tiers = AIEmployeeTier.objects.all().order_by('token_limit')
-    
+
     docs = Documentation.objects.filter(is_active=True)
     doc_categories = DocumentationCategory.objects.all()
-    
+
     context = {
         'hero_content': hero_content,
         'partners': partners,
@@ -84,13 +83,13 @@ def contact(request):
         email = request.POST.get('email')
         subject = request.POST.get('subject')
         message = request.POST.get('message')
-        
+
         ContactInquiry.objects.create(
             name=name, email=email, subject=subject, message=message
         )
         messages.success(request, "Your message has been sent successfully!")
         return redirect('public_site:contact')
-    
+
     from .models import CompanyDetails
     company = CompanyDetails.objects.first()
     return render(request, 'public_site/contact.html', {'company': company})
@@ -105,14 +104,14 @@ def consult(request):
         date = request.POST.get('preferred_date')
         time = request.POST.get('preferred_time')
         notes = request.POST.get('notes', '')
-        
+
         Appointment.objects.create(
             client_name=name, client_email=email, client_phone=phone,
             service_type=service_type, date=date, time=time, notes=notes
         )
         messages.success(request, "Your appointment request has been scheduled! We will contact you soon.")
         return redirect('public_site:consult')
-        
+
     return render(request, 'public_site/consult.html')
 
 def ai_job_portal(request):
@@ -121,7 +120,7 @@ def ai_job_portal(request):
     by industry (role) and seniority (tier level).
     """
     tiers = AIEmployeeTier.objects.all().order_by('token_limit')
-    
+
     # Search/filter params
     search_role = request.GET.get('role', '')
     search_level = request.GET.get('level', '')

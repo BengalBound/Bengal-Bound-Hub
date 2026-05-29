@@ -11,7 +11,7 @@ class Appointment(models.Model):
         ('bengalbound_demo', 'BengalBound Demo'),
         ('ai_employee', 'AI Employee Consultation')
     ), default='custom_website')
-    
+
     date = models.DateField()
     time = models.TimeField()
     status = models.CharField(max_length=20, choices=(
@@ -20,7 +20,7 @@ class Appointment(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled')
     ), default='pending')
-    
+
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

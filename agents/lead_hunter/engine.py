@@ -64,7 +64,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"score": 50, "icp_fit": "average", "intent_signals": [], "ai_summary": raw, "priority": "medium"}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -73,7 +73,7 @@ Return JSON:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             if res.get("score", 0) >= 90 or res.get("priority") == "high":
                 raise PermissionRequired(
                     context=f"High-priority lead detected: {prospect.company_name}. Score: {res.get('score')}. Summary: {res.get('ai_summary')}",
@@ -145,7 +145,7 @@ Create 5 touches: day 1, 3, 7, 14, 21."""
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

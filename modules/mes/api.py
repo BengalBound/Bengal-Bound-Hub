@@ -71,7 +71,7 @@ def scanner_event_webhook(request):
             # Update current station on ProductionOrder
             production_order.current_station = scanner.assigned_station
             production_order.save(update_fields=['current_station'])
-        
+
         elif event_type == 'check_out':
             # Find active log and close it
             active_log = StationTrackingLog.objects.filter(

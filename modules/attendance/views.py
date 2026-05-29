@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.utils import timezone
 
 from hub.views import _get_business_for_user
-from .models import AttendanceRecord, Timesheet, TimesheetEntry
+from .models import AttendanceRecord, Timesheet
 
 try:
     from modules.hr.models import Employee

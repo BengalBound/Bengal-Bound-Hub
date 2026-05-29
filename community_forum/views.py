@@ -101,7 +101,7 @@ def get_or_create_viewer_user(request, email):
     # Create a new user account for the viewer
     # Generate unique username: viewer_<uuid prefix>
     username = f"viewer_{uuid.uuid4().hex[:8]}"
-    
+
     # We create the user with role 'console_user' but unverified
     new_user = User.objects.create_user(
         username=username,
@@ -124,21 +124,21 @@ def create_topic(request, slug):
         title = request.POST.get('title', '').strip()
         content = request.POST.get('content', '').strip()
         topic_type = request.POST.get('topic_type', 'question')
-        
+
         author = request.user
-        
+
         # Handle unauthenticated users submitting email
         if not author.is_authenticated:
             email = request.POST.get('email', '').strip()
             if not email:
                 messages.error(request, "Email is required to post.")
                 return redirect('create_topic', slug=category.slug)
-            
+
             new_user, error_msg = get_or_create_viewer_user(request, email)
             if error_msg:
                 messages.error(request, error_msg)
                 return redirect('create_topic', slug=category.slug)
-            
+
             author = new_user
 
         if title and content:
@@ -169,19 +169,19 @@ def create_post(request, pk):
 
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
-        
+
         author = request.user
         if not author.is_authenticated:
             email = request.POST.get('email', '').strip()
             if not email:
                 messages.error(request, "Email is required to reply.")
                 return redirect('topic_detail', pk=topic.pk)
-            
+
             new_user, error_msg = get_or_create_viewer_user(request, email)
             if error_msg:
                 messages.error(request, error_msg)
                 return redirect('topic_detail', pk=topic.pk)
-            
+
             author = new_user
 
         if content:
@@ -213,19 +213,19 @@ def reply_to_post(request, pk):
 
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
-        
+
         author = request.user
         if not author.is_authenticated:
             email = request.POST.get('email', '').strip()
             if not email:
                 messages.error(request, "Email is required to reply.")
                 return redirect('topic_detail', pk=topic.pk)
-            
+
             new_user, error_msg = get_or_create_viewer_user(request, email)
             if error_msg:
                 messages.error(request, error_msg)
                 return redirect('topic_detail', pk=topic.pk)
-            
+
             author = new_user
 
         if content:
@@ -233,7 +233,7 @@ def reply_to_post(request, pk):
                 topic=topic, parent=parent_post, author=author, content=content
             )
             topic.save()
-            
+
             flagged = serea_moderate(post)
             if flagged:
                 messages.warning(

@@ -67,7 +67,7 @@ Return a JSON array of issues:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = []
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,
@@ -76,7 +76,7 @@ Return a JSON array of issues:
                 detail=json.dumps(res),
                 model_used=settings.SEREA_TASK_MODELS.get('chat', 'gemini-1.5-flash'),
             )
-            
+
             has_critical = any(r.get("severity") == "critical" for r in res)
             if has_critical:
                 raise PermissionRequired(
@@ -141,7 +141,7 @@ Return JSON:
             res = json.loads(raw)
         except json.JSONDecodeError:
             res = {"primary_keywords": [], "long_tail_opportunities": [], "content_gaps": [], "quick_wins": [], "strategy_summary": raw}
-            
+
         if instance:
             AgentLog.objects.create(
                 instance=instance,

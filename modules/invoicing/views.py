@@ -4,7 +4,6 @@ from django.http import HttpResponseForbidden
 from django.contrib import messages
 from django.db.models import Sum, Q
 from django.utils import timezone
-import uuid
 
 from hub.views import _get_business_for_user
 from .models import Invoice, InvoiceLine, InvoiceClient, Payment

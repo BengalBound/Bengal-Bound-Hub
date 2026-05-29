@@ -39,3 +39,14 @@ python manage.py test
 coverage run --source=hub,accounts,serea manage.py test
 coverage report -m
 ```
+
+---
+
+## 3. Coverage Debt & Priorities
+Recent coverage analysis has identified the following core applications currently lack dedicated test suites. These are prioritized for upcoming QA sprints:
+- `accounts` (User models, authentication, roles)
+- `booking_calendar` (Consultation scheduling, time slots)
+- `community_forum` (Topics, posts, discussions)
+- `console_admin` (Master admin dashboard, workspace projects)
+- `core` (Base configurations)
+- `public_site` (Blog posts, contact inquiries)

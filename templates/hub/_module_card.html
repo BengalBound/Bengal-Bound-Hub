@@ -23,9 +23,14 @@
       </div>
     </div>
 
-    <h6 class="fw-bold mb-1" style="font-size:0.87rem;">{{ item.obj.name }}</h6>
+    <a href="{% url 'hub:hub_module_capabilities' slug=biz.slug module_id=item.obj.module_id %}" class="text-decoration-none text-white hover-text-primary">
+        <h6 class="fw-bold mb-1" style="font-size:0.87rem;">{{ item.obj.name }}</h6>
+    </a>
     {% if item.obj.tagline %}<p class="mb-1" style="color:var(--hub-accent);font-size:0.75rem;font-style:italic;">{{ item.obj.tagline }}</p>{% endif %}
-    <p class="flex-grow-1 mb-3" style="color:var(--hub-muted);font-size:0.78rem;line-height:1.55;">{{ item.obj.description|truncatewords:20 }}</p>
+    <p class="flex-grow-1 mb-1" style="color:var(--hub-muted);font-size:0.78rem;line-height:1.55;">{{ item.obj.description|truncatewords:20 }}</p>
+    <div class="mb-3 mt-auto">
+        <a href="{% url 'hub:hub_module_capabilities' slug=biz.slug module_id=item.obj.module_id %}" class="text-decoration-none" style="font-size:0.75rem; color:#38bdf8;">View Capabilities &rarr;</a>
+    </div>
 
     <!-- Footer -->
     <div class="mt-auto pt-2" style="border-top:1px solid var(--hub-border);">

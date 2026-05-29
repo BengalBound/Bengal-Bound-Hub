@@ -14,7 +14,7 @@ from .base import *  # noqa: F401, F403
 DEBUG = True
 
 ALLOWED_HOSTS += [                              # noqa: F405
-    'localhost',
+    '.localhost',
     '127.0.0.1',
     '.ngrok-free.dev',
     '.ngrok.io',

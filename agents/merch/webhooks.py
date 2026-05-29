@@ -5,7 +5,7 @@ from agents.models import AgentInstance, AgentPermissionRequest
 def handle_event(event_type: str, payload: dict, instance: AgentInstance):
     """Route inbound webhook payload to the right engine method for Merch."""
     engine = MerchEngine()
-    
+
     if event_type == 'inventory_level.updated':
         # E.g., Shopify inventory webhook
         store, _ = ConnectedStore.objects.get_or_create(
@@ -24,7 +24,7 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
             }
         )
         product.stock_quantity = payload.get('available', 0)
-        
+
         if product.stock_quantity <= product.reorder_threshold:
             product.is_low_stock = True
             try:
@@ -38,5 +38,5 @@ def handle_event(event_type: str, payload: dict, instance: AgentInstance):
                 )
                 instance.status = 'waiting'
                 instance.save(update_fields=['status'])
-                
+
         product.save(update_fields=['stock_quantity', 'is_low_stock'])

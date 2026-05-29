@@ -1,12 +1,10 @@
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.utils import timezone
 
 from hub.views import _get_business_for_user
-from .models import Channel, ChannelMember, Message, DirectMessage
+from .models import Channel, ChannelMember, Message
 
 
 def _biz(slug, user):

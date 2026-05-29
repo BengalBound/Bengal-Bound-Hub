@@ -93,19 +93,19 @@ class SereaAgent(models.Model):
     )
 
     tier = models.CharField(max_length=20, choices=TIER_CHOICES, default='intern')
-    
+
     PERSONA_CHOICES = (
         ('serea', 'Serea (Default Virtual Assistant)'),
         ('aelin', 'Aelin (Female AI Employee)'),
         ('kael', 'Kael (Male AI Employee)'),
     )
     persona = models.CharField(
-        max_length=20, 
-        choices=PERSONA_CHOICES, 
+        max_length=20,
+        choices=PERSONA_CHOICES,
         default='serea',
         help_text="The visual and communication persona the AI will adopt."
     )
-    
+
     neurolinkit_api_key = EncryptedCharField(
         max_length=255,
         blank=True,

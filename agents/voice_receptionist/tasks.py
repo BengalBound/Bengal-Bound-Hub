@@ -113,7 +113,7 @@ def spam_blocklist_cleanup():
 def daily_call_digest():
     from django.utils import timezone
     from datetime import timedelta
-    from agents.voice_receptionist.models import Call, BusinessProfile
+    from agents.voice_receptionist.models import Call
     from django.db.models import Count
 
     yesterday = timezone.now() - timedelta(days=1)
@@ -134,20 +134,20 @@ def translate_call_transcript(call_id: str):
     """
     from agents.voice_receptionist.models import Call
     from agents.utils import agent_chat
-    
+
     try:
         call = Call.objects.get(id=call_id)
         if not call.transcript:
             return "No transcript to translate."
-        
+
         prompt = f"Translate the following raw phone call transcript into English. Output ONLY the English translation.\n\n{call.transcript}"
         messages = [
             {"role": "system", "content": "You are a professional translator. Translate all input text accurately into English."},
             {"role": "user", "content": prompt}
         ]
-        
+
         english_translation = agent_chat(messages)
-        
+
         call.english_transcript = english_translation
         call.save(update_fields=["english_transcript"])
         logger.info("voice_receptionist.translate_call_transcript: successfully translated call %s", call_id)
