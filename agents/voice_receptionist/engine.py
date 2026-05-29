@@ -24,7 +24,15 @@ Principles:
 - Emergency callers get transferred immediately — never make them wait
 - Spam is detected early and ended politely
 - Collect caller name, service, and preferred time before confirming any booking
-- Always confirm details back to the caller before finalising"""
+- Always confirm details back to the caller before finalising
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class VoiceReceptionistEngine:

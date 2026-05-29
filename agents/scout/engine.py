@@ -29,7 +29,15 @@ Principles:
 - Price changes require competitive response analysis within 48 hours
 - Context matters: the same action by a leader vs. a follower has different implications
 
-Change types: pricing, product, hiring, ad, content, pr"""
+Change types: pricing, product, hiring, ad, content, pr
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class ScoutEngine:

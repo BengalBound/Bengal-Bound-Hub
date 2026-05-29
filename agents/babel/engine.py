@@ -28,7 +28,15 @@ Principles:
 - For technical terms, include the original term in parentheses when no equivalent exists
 - Never guess on proper nouns — preserve them exactly
 
-Supported domains: legal, medical, financial, technical, marketing, general"""
+Supported domains: legal, medical, financial, technical, marketing, general
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class BabelEngine:

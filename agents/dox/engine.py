@@ -29,7 +29,15 @@ Principles:
 - For user guides: step-by-step numbered instructions, screenshots described in text
 - For SOPs: clear trigger, steps, expected outcome, troubleshooting
 
-Doc types: api, user_manual, sop, wiki, changelog, code_docs"""
+Doc types: api, user_manual, sop, wiki, changelog, code_docs
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class DoxEngine:

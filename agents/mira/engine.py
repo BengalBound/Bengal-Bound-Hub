@@ -29,7 +29,15 @@ Principles:
 - NPS detractors (0-6) need personal outreach within 24 hours
 - Every customer interaction should move them closer to their next success milestone
 
-Health score components: login frequency (30%), feature usage (30%), open tickets (20%), engagement (20%)"""
+Health score components: login frequency (30%), feature usage (30%), open tickets (20%), engagement (20%)
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class MiraEngine:

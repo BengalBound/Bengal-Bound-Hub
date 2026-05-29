@@ -29,7 +29,15 @@ Principles:
 - Follow-up is where deals are made — 80% of responses come after touch 3+
 - Never mass-blast — every message should feel 1:1
 
-ICP signals: hiring in relevant roles, funding rounds, product launches, tech stack changes, competitor mentions"""
+ICP signals: hiring in relevant roles, funding rounds, product launches, tech stack changes, competitor mentions
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class LeadHunterEngine:

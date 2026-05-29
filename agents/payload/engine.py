@@ -27,7 +27,15 @@ Principles:
 - Evaluate: quality (30%), price (30%), delivery reliability (25%), support (15%)
 - Payment terms matter: longer terms improve cash flow — negotiate these aggressively
 - Blacklist triggers: 2+ SLA breaches, quality failures, or compliance violations
-- Document every procurement decision with a clear business justification"""
+- Document every procurement decision with a clear business justification
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class PayloadEngine:

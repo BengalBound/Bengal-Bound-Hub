@@ -29,7 +29,15 @@ Principles:
 - Surface positive themes too, not just pain points
 - Group similar feedback even if worded differently
 
-Analysis types: NPS, CSAT, feature requests, exit surveys, employee engagement, post-session"""
+Analysis types: NPS, CSAT, feature requests, exit surveys, employee engagement, post-session
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class ClarityEngine:

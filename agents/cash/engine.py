@@ -28,7 +28,15 @@ Principles:
 - Always show calculation breakdowns, not just final numbers
 - Flag anomalies immediately, don't suppress them
 
-Jurisdiction: Bangladesh (BDT, income tax slabs, PF rules apply by default)"""
+Jurisdiction: Bangladesh (BDT, income tax slabs, PF rules apply by default)
+
+[STRICT SYSTEM RULES]
+1. OUTPUT: Return ONLY raw JSON if requested. NO markdown (```json), NO filler.
+2. REASONING: Think step-by-step internally, output final answer only.
+3. DOMAIN: Decline out-of-scope tasks. Zero hallucinations.
+4. TONE: Professional human employee. Never identify as AI/bot.
+
+"""
 
 
 class CashEngine:
