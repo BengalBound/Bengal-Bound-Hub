@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block content %}
 <div class="container py-5 mt-5">
@@ -28,11 +29,11 @@
                 <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-gradient-purple-cyan px-4 py-2 fs-6 fw-semibold text-white shadow-glow">
                     Unbound Scale
                 </div>
-                <h3 class="display-6 fw-bold mb-2 mt-3 text-white">Pro Series</h3>
+                <h3 class="display-6 fw-bold mb-2 mt-3 text-white">{% trans "Pro Series" %}</h3>
                 <div class="d-flex justify-content-center align-items-baseline mb-4 text-gradient-orange-gold">
-                    <span class="display-5 fw-bold">$99</span>
+                    <span class="display-5 fw-bold">{{ currency_symbol }}{{ local_pro_min }}</span>
                     <span class="fw-bold mx-2 pb-2">-</span>
-                    <span class="display-5 fw-bold">$999</span>
+                    <span class="display-5 fw-bold">{{ currency_symbol }}{{ local_pro_max }}</span>
                     <span class="fs-5 text-white-50 fw-normal ms-2">/mo</span>
                 </div>
                 <p class="text-white-50 mb-4 px-3">Professional-grade AI agents for every major role in your startup.</p>
@@ -71,11 +72,11 @@
 
             <div class="mb-4">
                 {% if plan.monthly_price_usd == 0 %}
-                <span class="fw-bold" style="font-size:2.2rem;color:#22c55e;">Free</span>
+                <span class="fw-bold" style="font-size:2.2rem;color:#22c55e;">{% trans "Free" %}</span>
                 {% elif plan.plan_type == 'advance' %}
-                <span class="fw-bold" style="font-size:1.5rem;color:#c084fc;">Custom Quote</span>
+                <span class="fw-bold" style="font-size:1.5rem;color:#c084fc;">{% trans "Custom Quote" %}</span>
                 {% else %}
-                <span class="fw-bold" style="font-size:2.2rem;color:#38bdf8;">${{ plan.monthly_price_usd }}</span>
+                <span class="fw-bold" style="font-size:2.2rem;color:#38bdf8;">{{ currency_symbol }}{{ plan.local_monthly_price }}</span>
                 <span class="text-white-50">/mo</span>
                 {% endif %}
             </div>
@@ -83,8 +84,8 @@
             <ul class="list-unstyled text-white-50 small flex-grow-1 mb-4">
                 <li class="mb-2"><i class="bi bi-hdd me-2" style="color:#c084fc;"></i>{{ plan.storage_gb|floatformat:0 }}{% if plan.plan_type == 'advance' %}+{% endif %} GB storage</li>
                 <li class="mb-2"><i class="bi bi-cloud-check me-2" style="color:#38bdf8;"></i>Cloud hosted instance</li>
-                {% if plan.allows_ip_locked %}<li class="mb-2"><i class="bi bi-shield-lock me-2" style="color:#38bdf8;"></i>IP-Locked deployment{% if plan.ip_locked_addon_usd > 0 %} (+${{ plan.ip_locked_addon_usd }}/mo){% endif %}</li>{% endif %}
-                {% if plan.allows_self_hosted %}<li class="mb-2"><i class="bi bi-server me-2" style="color:#22c55e;"></i>Self-hosted option{% if plan.self_hosted_addon_usd > 0 %} (+${{ plan.self_hosted_addon_usd }}/mo){% endif %}</li>{% endif %}
+                {% if plan.allows_ip_locked %}<li class="mb-2"><i class="bi bi-shield-lock me-2" style="color:#38bdf8;"></i>IP-Locked deployment{% if plan.ip_locked_addon_usd > 0 %} (+{{ currency_symbol }}{{ plan.local_ip_addon }}/mo){% endif %}</li>{% endif %}
+                {% if plan.allows_self_hosted %}<li class="mb-2"><i class="bi bi-server me-2" style="color:#22c55e;"></i>Self-hosted option{% if plan.self_hosted_addon_usd > 0 %} (+{{ currency_symbol }}{{ plan.local_self_addon }}/mo){% endif %}</li>{% endif %}
                 {% if plan.includes_full_industry_set %}<li class="mb-2"><i class="bi bi-collection me-2" style="color:#fbbf24;"></i>Full industry module pack</li>{% endif %}
                 {% if plan.is_fully_customizable %}<li class="mb-2"><i class="bi bi-sliders me-2" style="color:#ec4899;"></i>Pick your own modules</li>
                 <li class="mb-2"><i class="bi bi-tag me-2" style="color:#22c55e;"></i>Bundle discount applied</li>{% endif %}

@@ -55,11 +55,11 @@
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 font-inter fw-medium">
-                    <li class="nav-item"><a class="nav-link px-3" href="http://localhost:1234/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="http://localhost:1234/about/">About Us</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="http://localhost:1234/services/">Services</a>
+                    <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:home' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:about' %}">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:services' %}">Services</a>
                     </li>
-                    <li class="nav-item"><a class="nav-link px-3" href="http://localhost:1234/products/">AI
+                    <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:ai_job_portal' %}">AI
                             Employees</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle px-3" href="#" id="resourcesDropdown" role="button"
@@ -68,32 +68,44 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark glass-card border-0"
                             aria-labelledby="resourcesDropdown">
-                            <li><a class="dropdown-item" href="http://localhost:1234/blog/">Blog</a></li>
-                            <li><a class="dropdown-item" href="http://localhost:1234/pricing/">Pricing Tiers</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:blog_list' %}">Blog</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:pricing' %}">Pricing Tiers</a></li>
                             <li>
                                 <hr class="dropdown-divider border-white border-opacity-25">
                             </li>
-                            <li><a class="dropdown-item" href="http://localhost:1234/contact/">Contact Us</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:contact' %}">Contact Us</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Currency Toggle -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3" href="#" id="currencyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ request.session.currency|default:"USD" }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark glass-card border-0" aria-labelledby="currencyDropdown" style="min-width: 80px;">
+                            <li><a class="dropdown-item" href="{% url 'public_site:set_currency' %}?currency=USD">USD ($)</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:set_currency' %}?currency=EUR">EUR (€)</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:set_currency' %}?currency=GBP">GBP (£)</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:set_currency' %}?currency=BDT">BDT (৳)</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:set_currency' %}?currency=INR">INR (₹)</a></li>
                         </ul>
                     </li>
                 </ul>
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
                     {% if request.user.is_authenticated %}
-                    <span class="text-white-50 small me-2">{{ request.user.email }}</span>
+                    <span class="text-white-50 small me-2 text-nowrap">{{ request.user.email }}</span>
                     <!-- SSO Jump back to Console Dashboard -->
-                    <a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://console.localhost:1234/"
-                        class="btn btn-outline-premium px-4">My Console</a>
+                    <a href="{% url 'console_admin:dashboard' %}"
+                        class="btn btn-outline-premium px-3 text-nowrap">My Console</a>
                     <a href="{% url 'accounts:logout' %}"
-                        class="text-danger text-decoration-none fw-medium small border-start border-secondary ps-3 ms-1">Log
+                        class="text-danger text-decoration-none fw-medium small border-start border-secondary ps-2 ms-1 text-nowrap">Log
                         Out</a>
                     {% else %}
                     <!-- SSO Jump to Console Login, return to Public Site -->
-                    <a href="http://console.localhost:1234/accounts/sso/redirect/?target=http://localhost:1234/accounts/sso/consume/"
-                        class="text-white text-decoration-none fw-medium transition-all me-2 hover-text-primary">Log In</a>
+                    <a href="{% url 'accounts:login' %}"
+                        class="text-white text-decoration-none fw-medium transition-all me-3 hover-text-primary text-nowrap">Log In</a>
                     <a href="{% url 'public_site:consult' %}"
-                        class="btn btn-outline-premium px-4">Set a meeting with our analyst</a>
-                    <a href="http://localhost:1234/consult/"
-                        class="btn btn-premium px-4">Book Demo</a>
+                        class="btn btn-premium px-4 text-nowrap">Book Demo</a>
                     {% endif %}
                 </div>
             </div>

@@ -527,9 +527,9 @@
                         <div class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-2 mb-4 fs-6">{{ tier.get_name_display }}</div>
                         <h2 class="display-3 fw-bold mb-0 text-white d-flex align-items-start"
                             style="letter-spacing: -0.05em;">
-                            <span class="fs-3 mt-3 me-1 text-white-50">$</span>
-                            {% if tier.monthly_price_usd == 0 %}0{% else %}{{ tier.monthly_price_usd|floatformat:0 }}{% endif %}
-                            <span class="fs-6 text-white-50 align-self-end ms-1 mb-3 fw-normal font-inter">USD/mo</span>
+                            <span class="fs-3 mt-3 me-1 text-white-50">{{ currency_symbol }}</span>
+                            {% if tier.monthly_price_usd == 0 %}0{% else %}{{ tier.local_monthly_price }}{% endif %}
+                            <span class="fs-6 text-white-50 align-self-end ms-1 mb-3 fw-normal font-inter">{{ currency }}/mo</span>
                         </h2>
                         <p class="text-cyan small fw-bold mt-2 text-uppercase tracking-widest">{{ tier.get_role_display }}</p>
                     </div>

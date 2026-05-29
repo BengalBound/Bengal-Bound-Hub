@@ -41,28 +41,31 @@
 
         <!-- Results Grid -->
         <div class="row g-4">
-            {% for tier in tiers %}
-            <div class="col-md-6 col-lg-3 fade-up" style="transition-delay: {{ forloop.counter0|add:2 }}00ms;">
+            {% for agent in agents %}
+            <div class="col-md-6 col-lg-4 fade-up" style="transition-delay: {{ forloop.counter0|add:2 }}00ms;">
                 <div class="bento-card glow-hover-cyan p-4 h-100 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="badge-premium">{{ tier.get_name_display }}</span>
-                        <span class="badge bg-transparent text-white-50 small border border-secondary border-opacity-25">{{ tier.get_role_display }}</span>
+                        <span class="badge-premium">{{ agent.category }}</span>
+                        <span class="badge bg-transparent text-white-50 small border border-secondary border-opacity-25">{{ agent.role }}</span>
                     </div>
-                    <h5 class="fw-bold font-outfit mb-1">Serea AI</h5>
-                    <p class="text-white-50 small mb-4 flex-grow-1">{{ tier.description }}</p>
+                    <div class="mb-2">
+                        <span class="badge bg-white bg-opacity-10 text-cyan rounded-pill">{{ agent.tier_obj.get_name_display|default:"Entry Level" }}</span>
+                    </div>
+                    <h5 class="fw-bold font-outfit mb-1">{{ agent.name }}</h5>
+                    <p class="text-white-50 small mb-4 flex-grow-1">{{ agent.description|truncatewords:20 }}</p>
                     <ul class="list-unstyled text-white-50 small mb-4">
-                        <li class="mb-2"><i class="bi bi-cpu me-2 text-gradient-purple-cyan"></i>{{ tier.token_limit|default:"Unlimited" }} tokens/mo</li>
+                        <li class="mb-2"><i class="bi bi-cpu me-2 text-gradient-purple-cyan"></i>{{ agent.tier_obj.token_limit|default:"Unlimited" }} tokens/mo</li>
                         <li><i class="bi bi-tag me-2 text-gradient-purple-cyan"></i>
-                            {% if tier.monthly_price_usd == 0 %}<span class="text-white fw-bold">Free</span>
-                            {% else %}<strong class="text-white">${{ tier.monthly_price_usd }}</strong>/month{% endif %}
+                            {% if agent.tier_obj.monthly_price_usd == 0 %}<span class="text-white fw-bold">Free</span>
+                            {% else %}<strong class="text-white">{{ currency_symbol }}{{ agent.local_monthly_price }}</strong>/{{ currency }} mo{% endif %}
                         </li>
                     </ul>
                     {% if request.user.is_authenticated %}
-                        <a href="{% url 'console_admin:hire_ai' %}?tier={{ tier.id }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
+                        <a href="{% url 'console_admin:hire_ai' %}?catalog={{ agent.slug }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
                             <i class="bi bi-robot me-1"></i> Hire This Agent
                         </a>
                     {% else %}
-                        <a href="{% url 'account_signup' %}?next={% url 'console_admin:hire_ai' %}%3Ftier={{ tier.id }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
+                        <a href="{% url 'account_signup' %}?next={% url 'console_admin:hire_ai' %}%3Fcatalog={{ agent.slug }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
                             <i class="bi bi-robot me-1"></i> Create Account to Hire
                         </a>
                     {% endif %}

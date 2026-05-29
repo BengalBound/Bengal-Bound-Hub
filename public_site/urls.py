@@ -14,6 +14,7 @@ urlpatterns = [
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('contact/', views.contact, name='contact'),
     path('consult/', views.consult, name='consult'),
+    path('set-currency/', views.set_currency, name='set_currency'),
     # Phase 4 additions
     path('hire-ai/', views.ai_job_portal, name='ai_job_portal'),
     path('affiliates/', views.affiliate_portal, name='affiliate_portal'),

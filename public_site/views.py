@@ -9,6 +9,28 @@ from .models import (
 )
 from workspace_admin.models import AIEmployeeTier
 
+EXCHANGE_RATES = {
+    'USD': 1.0,
+    'EUR': 0.92,
+    'GBP': 0.79,
+    'BDT': 110.0,
+    'INR': 83.0
+}
+CURRENCY_SYMBOLS = {
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'BDT': '৳',
+    'INR': '₹'
+}
+
+def set_currency(request):
+    currency = request.GET.get('currency', 'USD')
+    if currency in EXCHANGE_RATES:
+        request.session['currency'] = currency
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
 def home(request):
     hero_content = HomepageContent.objects.first()
     partners = Partner.objects.all()
@@ -28,6 +50,15 @@ def home(request):
     docs = Documentation.objects.filter(is_active=True)
     doc_categories = DocumentationCategory.objects.all()
 
+    currency = request.session.get('currency', 'USD')
+    rate = EXCHANGE_RATES.get(currency, 1.0)
+    symbol = CURRENCY_SYMBOLS.get(currency, '$')
+    
+    from decimal import Decimal
+    decimal_rate = Decimal(str(rate))
+    for tier in ai_tiers:
+        tier.local_monthly_price = int(tier.monthly_price_usd * decimal_rate)
+
     context = {
         'hero_content': hero_content,
         'partners': partners,
@@ -42,6 +73,9 @@ def home(request):
         'ai_tiers': ai_tiers,
         'docs': docs,
         'doc_categories': doc_categories,
+        'currency': currency,
+        'exchange_rate': rate,
+        'currency_symbol': symbol,
     }
     return render(request, 'public_site/home.html', context)
 
@@ -64,9 +98,29 @@ def pricing(request):
         from hub.views import _seed_plan_defaults
         _seed_plan_defaults()
         plans = HubPlanConfig.objects.filter(is_visible=True).order_by('monthly_price_usd')
+        
+    currency = request.session.get('currency', 'USD')
+    rate = EXCHANGE_RATES.get(currency, 1.0)
+    symbol = CURRENCY_SYMBOLS.get(currency, '$')
+    
+    from decimal import Decimal
+    decimal_rate = Decimal(str(rate))
+    for plan in plans:
+        plan.local_monthly_price = int(plan.monthly_price_usd * decimal_rate)
+        plan.local_ip_addon = int(plan.ip_locked_addon_usd * decimal_rate)
+        plan.local_self_addon = int(plan.self_hosted_addon_usd * decimal_rate)
+
+    local_pro_min = int(99 * decimal_rate)
+    local_pro_max = int(999 * decimal_rate)
+
     return render(request, 'public_site/pricing.html', {
         'plans': plans,
         'industry_map': INDUSTRY_MODULE_PRIORITY,
+        'currency': currency,
+        'exchange_rate': rate,
+        'currency_symbol': symbol,
+        'local_pro_min': local_pro_min,
+        'local_pro_max': local_pro_max,
     })
 
 def blog_list(request):
@@ -119,23 +173,42 @@ def ai_job_portal(request):
     AI Job Portal — Searchable directory where clients can browse AI employees
     by industry (role) and seniority (tier level).
     """
-    tiers = AIEmployeeTier.objects.all().order_by('token_limit')
+    from agents.models import AgentCatalog
+    agents = AgentCatalog.objects.filter(is_active=True).order_by('category', 'name')
+    tiers = AIEmployeeTier.objects.all()
+    tier_map = {t.name: t for t in tiers}
 
     # Search/filter params
     search_role = request.GET.get('role', '')
     search_level = request.GET.get('level', '')
 
     if search_role:
-        tiers = tiers.filter(role=search_role)
+        agents = agents.filter(category=search_role)
     if search_level:
-        tiers = tiers.filter(name=search_level)
+        agents = agents.filter(tier_required=search_level)
+
+    # Attach tier data dynamically for the template
+    currency = request.session.get('currency', 'USD')
+    rate = EXCHANGE_RATES.get(currency, 1.0)
+    symbol = CURRENCY_SYMBOLS.get(currency, '$')
+    from decimal import Decimal
+    decimal_rate = Decimal(str(rate))
+
+    for agent in agents:
+        agent.tier_obj = tier_map.get(agent.tier_required)
+        if agent.tier_obj:
+            agent.local_monthly_price = int(agent.tier_obj.monthly_price_usd * decimal_rate)
+        else:
+            agent.local_monthly_price = 0
 
     return render(request, 'public_site/ai_job_portal.html', {
-        'tiers': tiers,
-        'role_choices': AIEmployeeTier.AI_ROLES,
+        'agents': agents,
+        'role_choices': list(AgentCatalog.objects.values_list('category', 'category').distinct()),
         'level_choices': AIEmployeeTier.TIERS,
         'search_role': search_role,
         'search_level': search_level,
+        'currency': currency,
+        'currency_symbol': symbol,
     })
 
 def affiliate_portal(request):
