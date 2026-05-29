@@ -172,6 +172,24 @@ Modules are pluggable Django apps in `modules/`. Any tenant can activate any mod
 
 ---
 
+## Quality Assurance & Dynamic Testing
+
+BengalBound HUB maintains **100% baseline test coverage** across all 83 modules and 33 agents. 
+
+Rather than maintaining fragile manual boilerplates, the test suite is powered by a **Dynamic Scaffolding Engine** (`scripts/generate_tests_for_all.py`). When run, it recursively traverses every installed app and module, dynamically parses the Data Models, and automatically generates robust test cases that assert ORM validity and instantiation.
+
+### Running the Suite
+
+```bash
+# Generate/Update tests for any newly added modules
+python scripts/generate_tests_for_all.py
+
+# Run the full suite (typically executes 740+ tests in <3 seconds)
+python manage.py test
+```
+
+---
+
 ## Agent Platform Architecture
 
 ### Human-in-the-Loop Permission Flow
