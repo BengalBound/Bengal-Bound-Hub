@@ -18,7 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
+from django.views.generic import TemplateView
 from modules.forms_builder.views import form_public
+from public_site.sitemaps import StaticPageSitemap, BlogSitemap
+
+_sitemaps = {
+    'static': StaticPageSitemap,
+    'blog': BlogSitemap,
+}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -193,6 +201,10 @@ urlpatterns = [
     path('hub/<slug:slug>/agents/sylvia/', include('agents.pitch_presenter.urls', namespace='pitch_presenter')),
     path('hub/<slug:slug>/agents/scribe/', include('agents.scribe.urls', namespace='scribe')),
     path('hub/<slug:slug>/agents/chloe/', include('agents.video_concierge.urls', namespace='video_concierge')),
+
+    # SEO
+    path('sitemap.xml', sitemap, {'sitemaps': _sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
 ]
 
 if settings.DEBUG:

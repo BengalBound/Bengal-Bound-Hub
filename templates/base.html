@@ -7,6 +7,27 @@
     <title>{% block title %}BengalBound | WaaS & AIaaS{% endblock %}</title>
 
     {% load static %}
+
+    <!-- SEO Meta -->
+    <meta name="description" content="{% block meta_description %}BengalBound HUB — Hire AI Employees for your business. 33 autonomous AI agents + 83 business modules. From $9/month.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}AI employee, business automation, SaaS, CRM, HR software, AI agents, Bangladesh{% endblock %}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{% block canonical %}https://bengalbound.com{% endblock %}">
+
+    <!-- Open Graph (Facebook, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BengalBound">
+    <meta property="og:title" content="{% block og_title %}BengalBound — AI Employees for Your Business{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Hire 33 autonomous AI agents to run your CRM, HR, finance, marketing and more. From $9/month. No coding required.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'img/og_preview.png' %}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://bengalbound.com{% endblock %}">
+
+    <!-- Twitter/X Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}BengalBound — AI Employees for Your Business{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}33 autonomous AI agents + 83 business modules. From $9/month.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{% static 'img/og_preview.png' %}{% endblock %}">
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
 

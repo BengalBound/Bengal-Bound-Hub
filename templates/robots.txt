@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /about/
+Allow: /services/
+Allow: /pricing/
+Allow: /blog/
+Allow: /contact/
+Allow: /hire-ai/
+Allow: /why-us/
+Allow: /docs/
+Allow: /privacy/
+Allow: /terms/
+
+Disallow: /admin/
+Disallow: /hub/
+Disallow: /console/
+Disallow: /workspace/
+Disallow: /community/
+Disallow: /accounts/
+Disallow: /serea/
+Disallow: /agents/
+Disallow: /api/
+Disallow: /f/
+
+Sitemap: https://bengalbound.com/sitemap.xml
