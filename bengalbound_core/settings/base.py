@@ -540,20 +540,10 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'APP': {
-            'client_id': env('GOOGLE_CLIENT_ID', default=''),
-            'secret': env('GOOGLE_CLIENT_SECRET', default=''),
-            'key': ''
-        },
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
     },
     'facebook': {
-        'APP': {
-            'client_id': env('FACEBOOK_CLIENT_ID', default=''),
-            'secret': env('FACEBOOK_CLIENT_SECRET', default=''),
-            'key': ''
-        },
         'METHOD': 'oauth2',
         'SCOPE': ['email', 'public_profile'],
         'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
@@ -564,10 +554,28 @@ SOCIALACCOUNT_PROVIDERS = {
         'VERIFIED_EMAIL': False,
         'VERSION': 'v13.0',
     },
-    'github': {
-        'APP': {
-            'client_id': env('GITHUB_CLIENT_ID', default=''),
-            'secret': env('GITHUB_CLIENT_SECRET', default=''),
-        }
-    }
+    'github': {}
 }
+
+_google_id = env('GOOGLE_CLIENT_ID', default='')
+if _google_id:
+    SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
+        'client_id': _google_id,
+        'secret': env('GOOGLE_CLIENT_SECRET', default=''),
+        'key': ''
+    }
+
+_github_id = env('GITHUB_CLIENT_ID', default='')
+if _github_id:
+    SOCIALACCOUNT_PROVIDERS['github']['APP'] = {
+        'client_id': _github_id,
+        'secret': env('GITHUB_CLIENT_SECRET', default=''),
+    }
+
+_fb_id = env('FACEBOOK_CLIENT_ID', default='')
+if _fb_id:
+    SOCIALACCOUNT_PROVIDERS['facebook']['APP'] = {
+        'client_id': _fb_id,
+        'secret': env('FACEBOOK_CLIENT_SECRET', default=''),
+        'key': ''
+    }
