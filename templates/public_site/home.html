@@ -95,13 +95,17 @@
         <!-- Connecting Lines SVG -->
         <svg class="connection-lines" viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice">
             <!-- Top Left Node -->
-            <path class="connection-path" d="M 350,240 C 500,240 550,400 700,400" />
+            <path class="connection-path" d="M 350,200 C 500,200 550,400 700,400" />
             <!-- Top Right Node -->
-            <path class="connection-path" d="M 1050,240 C 900,240 850,400 700,400" />
+            <path class="connection-path" d="M 1050,200 C 900,200 850,400 700,400" />
+            <!-- Mid Left Node -->
+            <path class="connection-path" d="M 200,400 C 350,400 500,400 700,400" />
+            <!-- Mid Right Node -->
+            <path class="connection-path" d="M 1200,400 C 1050,400 900,400 700,400" />
             <!-- Bottom Left Node -->
-            <path class="connection-path" d="M 350,640 C 500,640 550,400 700,400" />
+            <path class="connection-path" d="M 350,680 C 500,680 550,400 700,400" />
             <!-- Bottom Right Node -->
-            <path class="connection-path" d="M 1050,640 C 900,640 850,400 700,400" />
+            <path class="connection-path" d="M 1050,680 C 900,680 850,400 700,400" />
         </svg>
 
         <!-- Central Glowing Sphere & Logo -->
@@ -112,12 +116,14 @@
 
         {% if services %}
         <!-- Floating Interactive Service Cards -->
-        {% for service in services|slice:":4" %}
+        {% for service in services|slice:":6" %}
         <div class="floating-card 
             {% if forloop.counter == 1 %}card-top-left
             {% elif forloop.counter == 2 %}card-top-right
-            {% elif forloop.counter == 3 %}card-bottom-left
-            {% elif forloop.counter == 4 %}card-bottom-right
+            {% elif forloop.counter == 3 %}card-mid-left
+            {% elif forloop.counter == 4 %}card-mid-right
+            {% elif forloop.counter == 5 %}card-bottom-left
+            {% elif forloop.counter == 6 %}card-bottom-right
             {% endif %} fade-up position-absolute" style="transition-delay: {{ forloop.counter0|add:2 }}00ms;">
 
             <div class="d-flex align-items-center mb-2">
@@ -149,11 +155,8 @@
                     </div>
                 </div>
                 <!-- Mockup content -->
-                <div class="p-5 text-center text-white-50 d-flex flex-column align-items-center justify-content-center"
-                    style="min-height: 500px; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 20px);">
-                    <i class="bi bi-shop fs-1 text-cyan opacity-50 mb-3 d-block anim-float"></i>
-                    <h3 class="fw-bold text-white mb-2">BredBound SaaS</h3>
-                    <p class="mb-0">Your dedicated, scalable backoffice ecosystem.</p>
+                <div class="w-100 overflow-hidden" style="min-height: 500px; background: #000;">
+                    <img src="{% static 'img/desktop_dashboard.png' %}" alt="BengalBound SaaS Dashboard" class="img-fluid w-100 h-100" style="object-fit: cover;">
                 </div>
             </div>
 
@@ -165,11 +168,8 @@
                     <div class="rounded-pill bg-black border border-white border-opacity-10" style="width: 80px; height: 20px;"></div>
                 </div>
                 <!-- Mobile content -->
-                <div class="p-4 text-center text-white-50 d-flex flex-column align-items-center justify-content-center"
-                    style="height: calc(100% - 37px); background: repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 20px);">
-                    <i class="bi bi-graph-up-arrow fs-2 text-purple opacity-75 mb-3 d-block anim-float" style="animation-delay: -1s;"></i>
-                    <h5 class="fw-bold text-white mb-2">Multi-Tenant</h5>
-                    <p class="small mb-0">Manage everything at scale.</p>
+                <div class="w-100 overflow-hidden" style="height: calc(100% - 37px); background: #000;">
+                    <img src="{% static 'img/mobile_dashboard.png' %}" alt="BengalBound Multi-Tenant Mobile View" class="img-fluid w-100 h-100" style="object-fit: cover;">
                 </div>
             </div>
         </div>

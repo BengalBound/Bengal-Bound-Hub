@@ -404,10 +404,12 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     background: rgba(20, 20, 25, 0.8);
 }
 
-.card-top-left { top: 20%; left: 15%; }
-.card-top-right { top: 20%; right: 15%; }
-.card-bottom-left { bottom: 20%; left: 15%; }
-.card-bottom-right { bottom: 20%; right: 15%; }
+.card-top-left { top: 12%; left: 12%; }
+.card-top-right { top: 12%; right: 12%; }
+.card-bottom-left { bottom: 12%; left: 12%; }
+.card-bottom-right { bottom: 12%; right: 12%; }
+.card-mid-left { top: 50%; left: 2%; transform: translateY(-50%); }
+.card-mid-right { top: 50%; right: 2%; transform: translateY(-50%); }
 
 /* SVG Connection Lines */
 .connection-lines {

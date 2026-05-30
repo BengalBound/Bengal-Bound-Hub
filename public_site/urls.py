@@ -21,4 +21,10 @@ urlpatterns = [
     path('trial/', views.trial_request, name='trial_request'),
     # SSO consume endpoint for public site
     path('accounts/sso/consume/', views.sso_consume_proxy, name='sso_consume'),
+    
+    # Marketing Proof
+    path('why-us/', views.ai_superiority_showcase, name='why_us'),
+    
+    # Public documentation page
+    path('docs/', views.docs_list, name='docs_list'),
 ]

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="py-5 my-5 position-relative z-2" style="padding-top: 10rem !important;">
+    <div class="container py-4">
+
+        <!-- Header row -->
+        <div class="d-flex flex-wrap align-items-start justify-content-between mb-4 gap-3 fade-up">
+            <div>
+                <h1 class="fw-bold mb-1" style="letter-spacing: -0.03em;">Documentation</h1>
+                <p class="text-white-50 mb-0 small">Discover and use resources shared by our team.</p>
+            </div>
+            <!-- Filter tabs -->
+            <div class="docs-filter-bar d-flex flex-wrap gap-2">
+                <button class="docs-filter-btn active" data-filter="all">
+                    <i class="bi bi-search me-1"></i> Discover
+                </button>
+                {% for cat in doc_categories %}
+                <button class="docs-filter-btn" data-filter="{{ cat.slug }}">{{ cat.name }}</button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="docs-grid fade-up delay-100" id="docsGrid">
+            {% for doc in docs %}
+            <div class="docs-card" data-category="{{ doc.category.slug|default:'uncategorized' }}"
+                 {% if doc.youtube_url %}
+                 onclick="openYouTubeModal('{{ doc.youtube_url }}', '{{ doc.title|escapejs }}', '{{ doc.external_url|escapejs }}')"
+                 style="cursor: pointer;"
+                 {% elif doc.external_url %}
+                 onclick="window.open('{{ doc.external_url }}','_blank')"
+                 style="cursor: pointer;"
+                 {% else %}
+                 style="cursor: default;"
+                 {% endif %}>
+                <!-- Thumbnail -->
+                <div class="docs-card-thumb">
+                    {% if doc.thumbnail %}
+                        <img src="{{ doc.thumbnail.url }}" alt="{{ doc.title }}" loading="lazy">
+                    {% else %}
+                        <div class="docs-card-thumb-placeholder">
+                            <i class="bi bi-file-earmark-text" style="font-size: 2.5rem; color: rgba(0,245,212,0.3);"></i>
+                        </div>
+                    {% endif %}
+                    {% if doc.youtube_url %}
+                    <div class="docs-youtube-play">
+                        <svg viewBox="0 0 68 48" width="56" height="40">
+                            <path d="M66.5 7.7c-.8-2.9-2.9-5.2-5.8-6C55.9 0 34 0 34 0S12.1 0 7.3 1.7C4.4 2.5 2.3 4.8 1.5 7.7 0 12.4 0 24 0 24s0 11.6 1.5 16.3c.8 2.9 2.9 5.2 5.8 6C12.1 48 34 48 34 48s21.9 0 26.7-1.7c2.9-.8 5-3.1 5.8-6C68 35.6 68 24 68 24s0-11.6-1.5-16.3z" fill="#f00"/>
+                            <path d="M45 24L27 14v20" fill="#fff"/>
+                        </svg>
+                    </div>
+                    {% elif doc.external_url %}
+                    <div class="docs-card-arrow"><i class="bi bi-arrow-up-right"></i></div>
+                    {% endif %}
+                </div>
+                <!-- Meta -->
+                <div class="docs-card-meta">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if doc.author_avatar %}
+                        <img src="{{ doc.author_avatar.url }}" alt="{{ doc.author_name }}" class="docs-avatar">
+                        {% else %}
+                        <div class="docs-avatar-placeholder"><i class="bi bi-person-fill"></i></div>
+                        {% endif %}
+                        <span class="docs-author-name">{{ doc.author_name }}</span>
+                    </div>
+                    <span class="docs-view-count">
+                        <i class="bi bi-people me-1" style="font-size: 0.7rem;"></i>{{ doc.view_count|default:"0" }}
+                    </span>
+                </div>
+                <!-- Title & Excerpt -->
+                <p class="docs-card-title">
+                    {% if doc.youtube_url %}<i class="bi bi-play-circle-fill me-1" style="color: #f00; font-size: 0.85rem;"></i>{% endif %}
+                    {{ doc.title }}
+                </p>
+                {% if doc.excerpt %}
+                <p class="docs-card-excerpt">{{ doc.excerpt|truncatewords:18 }}</p>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-white-50">No documentation articles found.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- YouTube Modal -->
+    <div id="ytModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:1.25rem; padding:1rem;">
+        <button onclick="closeYouTubeModal()" style="position:absolute; top:1.2rem; right:1.5rem; background:none; border:none; color:rgba(255,255,255,0.6); font-size:1.8rem; cursor:pointer;">&#x2715;</button>
+        <div id="ytContainer" style="width:100%; max-width:900px; aspect-ratio:16/9; background:#000; border-radius:1rem; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative;">
+            <iframe id="ytIframe" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div id="ytMeta" style="width:100%; max-width:900px; display:flex; justify-content:space-between; align-items:center;">
+            <h4 id="ytTitle" class="text-white fw-bold mb-0"></h4>
+            <a id="ytExtLink" href="#" target="_blank" class="btn btn-sm btn-outline-premium rounded-pill px-4" style="display:none;">Read Full Article <i class="bi bi-arrow-up-right ms-1"></i></a>
+        </div>
+    </div>
+</section>
+{% endblock %}

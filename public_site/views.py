@@ -37,7 +37,7 @@ def home(request):
     videos = VideoRepresentation.objects.filter(is_active=True)
     reviews = VideoReview.objects.filter(is_featured=True)
     faqs = FAQ.objects.filter(is_active=True)
-    services = Service.objects.filter(is_active=True)[:4]
+    services = Service.objects.filter(is_active=True)[:6]
 
     core_values = CoreValue.objects.filter(is_active=True)
     platform_features = PlatformFeature.objects.filter(is_active=True)
@@ -203,7 +203,7 @@ def ai_job_portal(request):
 
     return render(request, 'public_site/ai_job_portal.html', {
         'agents': agents,
-        'role_choices': list(AgentCatalog.objects.values_list('category', 'category').distinct()),
+        'role_choices': [(c, c) for c in AgentCatalog.objects.values_list('category', flat=True).distinct().order_by('category')],
         'level_choices': AIEmployeeTier.TIERS,
         'search_role': search_role,
         'search_level': search_level,
@@ -262,3 +262,18 @@ def sso_consume_proxy(request):
         except (BadSignature, SignatureExpired):
             pass
     return redirect(next_url)
+
+def ai_superiority_showcase(request):
+    """
+    Dedicated landing page explaining BengalBound's AI architecture,
+    specifically the Human-in-the-Loop safeguard system.
+    """
+    return render(request, 'public_site/why_us.html')
+
+def docs_list(request):
+    docs = Documentation.objects.filter(is_active=True)
+    doc_categories = DocumentationCategory.objects.all()
+    return render(request, 'public_site/docs_list.html', {
+        'docs': docs,
+        'doc_categories': doc_categories,
+    })
