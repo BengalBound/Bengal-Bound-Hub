@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load socialaccount %}
+
+{% block title %}Sign Up | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center position-relative overflow-hidden py-5">
+    <!-- Gradient background glow -->
+    <div class="position-absolute" style="top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 50%, rgba(157,78,221,0.12) 0%, transparent 60%); z-index:0; pointer-events:none;"></div>
+
+    <div class="container" style="position:relative;z-index:1;">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5 col-xl-4 text-center">
+
+                <!-- Logo/Brand -->
+                <div class="mb-4 mt-5">
+                    <a href="/" class="text-decoration-none">
+                        <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.6rem;background:linear-gradient(135deg,#c084fc,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">BengalBound</span>
+                    </a>
+                </div>
+
+                <!-- Glass Card -->
+                <div class="glass-card p-4 p-lg-5 text-center" style="background:rgba(10, 10, 15, 0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.08); border-radius:1.5rem; box-shadow:0 15px 35px rgba(0,0,0,0.5), 0 0 30px rgba(157, 78, 221, 0.15);">
+                    
+                    <h1 class="fw-bold font-outfit text-white mb-2" style="font-size:1.5rem;">
+                        {% trans "Sign Up" %}
+                    </h1>
+                    
+                    <p class="text-white-50 small mb-4">
+                        {% blocktrans with provider_name=account.get_provider.name %}You are about to use your {{ provider_name }} account to sign in. As a final step, please complete your profile information below.{% endblocktrans %}
+                    </p>
+
+                    <!-- Form styling helper -->
+                    <style>
+                        .allauth-form-field input, .allauth-form-field select {
+                            background-color: #0d0d12 !important;
+                            color: #ffffff !important;
+                            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                            border-radius: 50rem !important;
+                            padding: 0.75rem 1.25rem !important;
+                            width: 100% !important;
+                            box-shadow: none !important;
+                            transition: all 0.2s ease !important;
+                            font-size: 0.9rem !important;
+                        }
+                        .allauth-form-field input:focus, .allauth-form-field select:focus {
+                            border-color: var(--bb-accent-cyan) !important;
+                            box-shadow: 0 0 10px rgba(0, 245, 212, 0.2) !important;
+                            outline: none !important;
+                        }
+                    </style>
+
+                    <!-- Form -->
+                    <form class="signup" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            {% for field in form %}
+                                <div class="allauth-form-field mb-3 text-start">
+                                    <label class="form-label text-white-50 small fw-medium ms-2 mb-1.5">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-1 ms-2" style="font-size:0.75rem;">{{ field.errors.as_text }}</div>
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <div class="text-white-50 small mt-1 ms-2" style="font-size: 0.72rem; opacity: 0.6;">{{ field.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-premium w-100 rounded-pill py-3 fw-semibold mb-3">
+                            {% trans "Create Account" %} <i class="bi bi-person-plus-fill ms-1"></i>
+                        </button>
+                        
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-premium w-100 rounded-pill py-2.5 text-decoration-none small">
+                            Cancel
+                        </a>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

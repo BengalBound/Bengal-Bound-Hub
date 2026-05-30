@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load socialaccount %}
+
+{% block title %}
+    {% if process == "connect" %}
+        {% blocktrans with provider.name as provider_name %}Connect {{ provider_name }}{% endblocktrans %}
+    {% else %}
+        {% blocktrans with provider.name as provider_name %}Sign In Via {{ provider_name }}{% endblocktrans %}
+    {% endif %}
+    | BengalBound
+{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center position-relative overflow-hidden py-5">
+    <!-- Gradient background glow -->
+    <div class="position-absolute" style="top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 50%, rgba(157,78,221,0.12) 0%, transparent 60%); z-index:0; pointer-events:none;"></div>
+
+    <div class="container" style="position:relative;z-index:1;">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5 col-xl-4 text-center">
+
+                <!-- Logo/Brand -->
+                <div class="mb-4 mt-5">
+                    <a href="/" class="text-decoration-none">
+                        <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:1.6rem;background:linear-gradient(135deg,#c084fc,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">BengalBound</span>
+                    </a>
+                </div>
+
+                <!-- Glass Card -->
+                <div class="glass-card p-4 p-lg-5 text-center" style="background:rgba(10, 10, 15, 0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.08); border-radius:1.5rem; box-shadow:0 15px 35px rgba(0,0,0,0.5), 0 0 30px rgba(157, 78, 221, 0.15);">
+                    
+                    <!-- Giant Neon Provider Icon -->
+                    <div class="d-inline-flex align-items-center justify-content-center mb-4 rounded-circle position-relative" 
+                         style="width: 80px; height: 80px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 20px rgba(255,255,255,0.05);">
+                        {% if provider.id == 'github' %}
+                            <i class="bi bi-github text-white fs-1"></i>
+                            <div class="position-absolute w-100 h-100 rounded-circle" style="top:0; left:0; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); pointer-events:none;"></div>
+                        {% elif provider.id == 'google' %}
+                            <i class="bi bi-google text-danger fs-1"></i>
+                            <div class="position-absolute w-100 h-100 rounded-circle" style="top:0; left:0; box-shadow: 0 0 30px rgba(219, 68, 85, 0.2); pointer-events:none;"></div>
+                        {% elif provider.id == 'facebook' %}
+                            <i class="bi bi-facebook text-primary fs-1"></i>
+                            <div class="position-absolute w-100 h-100 rounded-circle" style="top:0; left:0; box-shadow: 0 0 30px rgba(13, 110, 253, 0.2); pointer-events:none;"></div>
+                        {% else %}
+                            <i class="bi bi-shield-lock-fill text-warning fs-1"></i>
+                            <div class="position-absolute w-100 h-100 rounded-circle" style="top:0; left:0; box-shadow: 0 0 30px rgba(255, 193, 7, 0.2); pointer-events:none;"></div>
+                        {% endif %}
+                    </div>
+
+                    {% if process == "connect" %}
+                        <h1 class="fw-bold font-outfit text-white mb-2" style="font-size:1.5rem;">
+                            {% blocktrans with provider.name as provider_name %}Connect {{ provider_name }}{% endblocktrans %}
+                        </h1>
+                        <p class="text-white-50 small mb-4">
+                            {% blocktrans with provider.name as provider_name %}You are about to connect your third-party account from {{ provider_name }} to your BengalBound profile.{% endblocktrans %}
+                        </p>
+                    {% else %}
+                        <h1 class="fw-bold font-outfit text-white mb-2" style="font-size:1.5rem;">
+                            {% blocktrans with provider.name as provider_name %}Sign In via {{ provider_name }}{% endblocktrans %}
+                        </h1>
+                        <p class="text-white-50 small mb-4">
+                            {% blocktrans with provider.name as provider_name %}Authenticate securely using your {{ provider_name }} account to proceed to BengalBound HUB.{% endblocktrans %}
+                        </p>
+                    {% endif %}
+
+                    <!-- Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <button type="submit" class="btn btn-premium w-100 rounded-pill py-3 fw-semibold mb-3">
+                            {% trans "Continue" %} <i class="bi bi-arrow-right-short ms-1"></i>
+                        </button>
+                        
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-premium w-100 rounded-pill py-2.5 text-decoration-none small">
+                            Cancel
+                        </a>
+                    </form>
+
+                </div>
+
+                <!-- Footer disclaimer -->
+                <p class="text-white-50 mt-4 mb-0" style="font-size:0.75rem; opacity:0.6;">
+                    BengalBound only accesses public profile details. We never post on your behalf or access private data.
+                </p>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
