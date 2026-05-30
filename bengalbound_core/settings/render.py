@@ -28,7 +28,13 @@ import dj_database_url  # noqa: E402
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+_raw_hosts = os.environ.get('ALLOWED_HOSTS', '').strip()
+_raw_hosts = _raw_hosts.replace('[', '').replace(']', '').replace('"', '').replace("'", "")
+ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
+if not ALLOWED_HOSTS or '*' in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS.extend(['.run.app', 'localhost', '127.0.0.1'])
 
 # ── HTTPS (Render terminates SSL at the proxy layer) ──────────────────────────
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

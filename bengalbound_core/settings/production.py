@@ -19,9 +19,17 @@ import dj_database_url
 
 DEBUG = False
 
-# ── Hosts & CSRF ──────────────────────────────────────────────────────────────
-_raw_hosts = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()] or ['*']
+_raw_hosts = os.environ.get('ALLOWED_HOSTS', '').strip()
+# Clean up bracket/quote syntax if entered as literal arrays by mistake
+_raw_hosts = _raw_hosts.replace('[', '').replace(']', '').replace('"', '').replace("'", "")
+ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
+
+# Robust wildcard fallback for Cloud Run & localhost
+if not ALLOWED_HOSTS or '*' in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
+else:
+    # Ensure it always matches run.app and local hosts
+    ALLOWED_HOSTS.extend(['.run.app', 'localhost', '127.0.0.1'])
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.run.app',           # Google Cloud Run
