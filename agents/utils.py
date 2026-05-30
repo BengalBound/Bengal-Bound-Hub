@@ -2,53 +2,106 @@ import json
 import requests
 from django.conf import settings
 
+# Maps the internal model nicknames → real Groq model IDs used by litellm library
+_GROQ_MODEL_MAP = {
+    "neural-chat":        "groq/llama-3.1-8b-instant",
+    "dolphin-mistral":    "groq/mixtral-8x7b-32768",
+    "glm4":               "groq/llama-3.1-70b-versatile",
+    "qwen2.5-coder":      "groq/llama-3.1-8b-instant",
+    "phi4-mini":          "groq/llama-3.1-8b-instant",
+    "gemini/gemini-1.5-flash": "groq/llama-3.1-70b-versatile",
+}
+
+
+def _call_via_proxy(messages_copy, model, tools):
+    """HTTP call to the LiteLLM proxy server."""
+    resp = requests.post(
+        f"{settings.LITELLM_BASE_URL}/chat/completions",
+        headers={"Authorization": f"Bearer {settings.LITELLM_MASTER_KEY}"},
+        json={"model": model, "messages": messages_copy, "tools": tools},
+        timeout=45,
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]
+
+
+def _call_via_library(messages_copy, model, tools):
+    """Direct litellm library call — works without a proxy server running."""
+    import litellm
+    groq_model = _GROQ_MODEL_MAP.get(model, "groq/llama-3.1-8b-instant")
+    response = litellm.completion(
+        model=groq_model,
+        messages=messages_copy,
+        tools=tools or None,
+        api_key=settings.GROQ_API_KEY,
+        timeout=45,
+    )
+    msg = response.choices[0].message
+    # Normalise to plain dict so the rest of the code works unchanged
+    return {
+        "role": "assistant",
+        "content": msg.content or "",
+        "tool_calls": [
+            {
+                "id": tc.id,
+                "function": {
+                    "name": tc.function.name,
+                    "arguments": tc.function.arguments,
+                },
+            }
+            for tc in (msg.tool_calls or [])
+        ] or None,
+    }
+
+
+def _use_proxy() -> bool:
+    """True when a proxy URL is configured AND it is not localhost (proxy must be running)."""
+    url = getattr(settings, "LITELLM_BASE_URL", "")
+    return bool(url) and "localhost" not in url and "127.0.0.1" not in url
+
 
 def agent_chat(messages: list, model: str = None) -> str:
     """
-    Send messages to the LiteLLM proxy and return the assistant reply.
-    This is the ONLY correct way to call any AI model in this project.
-    Equipped with the Universal Toolkit loop for internet/API access.
+    Send messages through LiteLLM and return the assistant reply.
+    - If LITELLM_BASE_URL points to a remote proxy: uses the HTTP proxy.
+    - Otherwise (localhost / not set): calls the litellm Python library directly
+      using GROQ_API_KEY — no separate proxy process required.
     """
     from .toolkit import UNIVERSAL_TOOLS, execute_tool  # lazy — avoids startup curl_cffi load
 
     model = model or settings.SEREA_TASK_MODELS.get("chat", "neural-chat")
 
-    # Inject tool awareness into the system prompt automatically
     messages_copy = list(messages)
     for m in messages_copy:
         if m.get("role") == "system":
-            instruction = "\n\n[SYSTEM]: You are an autonomous AI. You have access to tools that can search the internet, scrape websites, and call APIs. Use them whenever you need real-time information or external data."
+            instruction = (
+                "\n\n[SYSTEM]: You are an autonomous AI. You have access to tools "
+                "that can search the internet, scrape websites, and call APIs. "
+                "Use them whenever you need real-time information or external data."
+            )
             if instruction not in m.get("content", ""):
                 m["content"] += instruction
             break
 
-    for _ in range(5):  # Max 5 tool iterations
-        resp = requests.post(
-            f"{settings.LITELLM_BASE_URL}/chat/completions",
-            headers={"Authorization": f"Bearer {settings.LITELLM_MASTER_KEY}"},
-            json={"model": model, "messages": messages_copy, "tools": UNIVERSAL_TOOLS},
-            timeout=45,
-        )
-        resp.raise_for_status()
+    call = _call_via_proxy if _use_proxy() else _call_via_library
 
-        message = resp.json()["choices"][0]["message"]
+    for _ in range(5):
+        message = call(messages_copy, model, UNIVERSAL_TOOLS)
 
         if message.get("tool_calls"):
             messages_copy.append(message)
-
             for tc in message["tool_calls"]:
                 tool_name = tc["function"]["name"]
                 try:
                     arguments = json.loads(tc["function"]["arguments"])
                 except json.JSONDecodeError:
                     arguments = {}
-
                 result = execute_tool(tool_name, arguments)
                 messages_copy.append({
                     "role": "tool",
                     "name": tool_name,
                     "tool_call_id": tc["id"],
-                    "content": str(result)
+                    "content": str(result),
                 })
         else:
             return message.get("content", "")
