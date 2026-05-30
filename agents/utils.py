@@ -4,12 +4,12 @@ from django.conf import settings
 
 # Maps the internal model nicknames → real Groq model IDs used by litellm library
 _GROQ_MODEL_MAP = {
-    "neural-chat":        "groq/llama-3.1-8b-instant",
-    "dolphin-mistral":    "groq/mixtral-8x7b-32768",
-    "glm4":               "groq/llama-3.1-70b-versatile",
-    "qwen2.5-coder":      "groq/llama-3.1-8b-instant",
-    "phi4-mini":          "groq/llama-3.1-8b-instant",
-    "gemini/gemini-1.5-flash": "groq/llama-3.1-70b-versatile",
+    "neural-chat":             "groq/llama-3.3-70b-versatile",  # 12k TPM, 128k ctx
+    "dolphin-mistral":         "groq/llama-3.3-70b-versatile",
+    "glm4":                    "groq/llama-3.3-70b-versatile",
+    "qwen2.5-coder":           "groq/llama-3.3-70b-versatile",
+    "phi4-mini":               "groq/llama-3.1-8b-instant",     # 6k TPM, fast + small prompts only
+    "gemini/gemini-1.5-flash": "groq/llama-3.3-70b-versatile",
 }
 
 

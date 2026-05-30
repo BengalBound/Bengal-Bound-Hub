@@ -1647,35 +1647,59 @@ class SereaBrain:
     def _get_llm(self, task_type: str = 'chat'):
         """
         Lazy-build and cache an LLM for the given task type.
-        All traffic goes through the LiteLLM proxy — task routing is fully automatic.
+        Routes through the LiteLLM proxy when LITELLM_BASE_URL is an external URL,
+        otherwise falls back to ChatGroq directly using GROQ_API_KEY.
         """
         if task_type in self._llm_cache:
             return self._llm_cache[task_type]
 
         from django.conf import settings
-        from langchain_openai import ChatOpenAI
-
-        base_url = getattr(settings, 'LITELLM_BASE_URL', 'https://ai.neurolinkit.com/v1')
-        api_key  = getattr(settings, 'LITELLM_MASTER_KEY', 'sk-asperse-master-key')
 
         _default_models = {
-            'chat':       'neural-chat',       # warm, human-like conversation
-            'moderation': 'dolphin-mistral',   # fast, accurate content scoring
-            'content':    'glm4',              # creative writing, captions, posts
-            'analysis':   'qwen2.5-coder',     # planning, reporting, reasoning
-            'quick':      'phi4-mini',         # fast real-time simple responses
+            'chat':       'neural-chat',
+            'moderation': 'dolphin-mistral',
+            'content':    'glm4',
+            'analysis':   'qwen2.5-coder',
+            'quick':      'phi4-mini',
         }
+        # Maps internal model nicknames → Groq model IDs (used when no proxy)
+        # Serea system prompts are ~10k tokens so everything uses llama-3.3-70b-versatile
+        # (12k TPM free, 128k context) except phi4-mini quick tasks with small prompts
+        _groq_model_map = {
+            'neural-chat':     'llama-3.3-70b-versatile',
+            'dolphin-mistral': 'llama-3.3-70b-versatile',
+            'glm4':            'llama-3.3-70b-versatile',
+            'qwen2.5-coder':   'llama-3.3-70b-versatile',
+            'phi4-mini':       'llama-3.1-8b-instant',
+        }
+
         task_models = getattr(settings, 'SEREA_TASK_MODELS', _default_models)
         model = task_models.get(task_type, task_models.get('chat', 'neural-chat'))
         temperature = 0.72 if task_type in ('chat', 'content') else 0.2
 
-        llm = ChatOpenAI(
-            model=model,
-            openai_api_key=api_key,
-            openai_api_base=base_url,
-            temperature=temperature,
-            default_headers={'X-Client': 'BengalBound-Serea'},
-        )
+        base_url = getattr(settings, 'LITELLM_BASE_URL', '') or ''
+        use_proxy = base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url
+
+        if use_proxy:
+            from langchain_openai import ChatOpenAI
+            api_key = getattr(settings, 'LITELLM_MASTER_KEY', '') or 'sk-bengalbound'
+            llm = ChatOpenAI(
+                model=model,
+                openai_api_key=api_key,
+                openai_api_base=base_url,
+                temperature=temperature,
+                default_headers={'X-Client': 'BengalBound-Serea'},
+            )
+        else:
+            from langchain_groq import ChatGroq
+            groq_key = getattr(settings, 'GROQ_API_KEY', '') or ''
+            groq_model = _groq_model_map.get(model, 'llama-3.1-8b-instant')
+            llm = ChatGroq(
+                model=groq_model,
+                groq_api_key=groq_key,
+                temperature=temperature,
+            )
+
         self._llm_cache[task_type] = llm
         return llm
 
