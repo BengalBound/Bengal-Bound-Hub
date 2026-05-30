@@ -14,10 +14,9 @@ from public_site.models import (
 )
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
-admin = User.objects.filter(is_superuser=True).first()
-
 def seed_db():
+    User = get_user_model()
+    admin = User.objects.filter(is_superuser=True).first()
     print("Seeding CompanyDetails...")
     CompanyDetails.objects.get_or_create(id=1, defaults={
         'address': '123 AI Boulevard\nTech District, Innovation City 90210',
