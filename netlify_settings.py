@@ -5,8 +5,11 @@ Not used in production — only invoked by netlify.toml build command.
 
 import os
 
-# Must be set before importing base (base.py requires it with no default)
+# Must be set before importing base — base.py requires both with no default.
+# FIELD_ENCRYPTION_KEY must be a valid Fernet key; this build-time default is
+# safe because no real encrypted data is read or stored during static export.
 os.environ.setdefault('SECRET_KEY', 'netlify-static-build-key-not-for-production')
+os.environ.setdefault('FIELD_ENCRYPTION_KEY', 'HJjlUIRoq5d30B8h1dgdujtx5WscrJqJjEc4tWP5Kdg=')
 
 from bengalbound_core.settings.base import *  # noqa: F401,F403,E402
 
