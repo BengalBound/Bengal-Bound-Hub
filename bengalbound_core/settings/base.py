@@ -28,7 +28,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-SECRET_KEY = env('SECRET_KEY', default='insecure-default-change-me-in-production')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'insecure-default-change-me-in-production')
 
 DEBUG = env('DEBUG')                                # False by default (safe)
 
