@@ -1,0 +1,12 @@
+Welcome to BengalBound!
+
+Please confirm your email address by clicking the link below:
+
+{{ activate_url }}
+
+This link expires in 3 days.
+
+If you didn't sign up for BengalBound, you can safely ignore this email.
+
+— The BengalBound Team
+https://bengalbound.com

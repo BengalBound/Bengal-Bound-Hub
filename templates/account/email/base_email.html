@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block subject %}BengalBound{% endblock %}</title>
+<style>
+  body { margin: 0; padding: 0; background: #06060a; font-family: 'Inter', Arial, sans-serif; color: #e5e5e5; }
+  .wrapper { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+  .logo-bar { text-align: center; margin-bottom: 32px; }
+  .logo-bar img { height: 40px; }
+  .logo-bar span { display: block; font-size: 22px; font-weight: 700; color: #fff; margin-top: 8px; letter-spacing: -0.03em; }
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 40px; }
+  h1 { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 16px; letter-spacing: -0.02em; }
+  p { font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.6); margin: 0 0 20px; }
+  .btn { display: inline-block; background: linear-gradient(135deg, #8b5cf6, #00f5d4); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 50px; font-weight: 600; font-size: 15px; margin: 8px 0 24px; }
+  .divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 28px 0; }
+  .small { font-size: 13px; color: rgba(255,255,255,0.35); }
+  .footer { text-align: center; margin-top: 32px; }
+  .footer p { font-size: 13px; color: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="logo-bar">
+    <span>Bengal<span style="background:linear-gradient(90deg,#8b5cf6,#00f5d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Bound</span></span>
+  </div>
+  <div class="card">
+    {% block content %}{% endblock %}
+  </div>
+  <div class="footer">
+    <p>BengalBound Ltd &nbsp;·&nbsp; bengalbound.com</p>
+    <p>You're receiving this because you have an account with BengalBound.<br>
+    <a href="https://bengalbound.com/privacy/" style="color:rgba(255,255,255,0.35);">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="https://bengalbound.com/terms/" style="color:rgba(255,255,255,0.35);">Terms of Service</a></p>
+  </div>
+</div>
+</body>
+</html>
