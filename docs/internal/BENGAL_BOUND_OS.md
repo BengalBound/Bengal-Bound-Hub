@@ -34,7 +34,7 @@ The Managing Director gets an executive dashboard containing:
    BengalBound OS Console
    (Internal tenant schema: client_id = bengalbound_internal)
                 │
-                ├── Full access to all 30 AI Employees
+                ├── Full access to all 33 AI Employees
                 ├── $0 usage billing cost overrides
                 └── Guided by the Inspector compliance watchdog
 ```

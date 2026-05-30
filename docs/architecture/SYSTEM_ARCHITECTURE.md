@@ -77,6 +77,11 @@ SubdomainRoutingMiddleware (bengalbound_core/middleware.py)
                                                            └── Views + Templates
 ```
 
+**Deployment:**
+- Backend: Render free tier (`render.yaml`, `bengalbound_core/settings/render.py`, Supabase PostgreSQL)
+- Public site: Netlify (`netlify.toml`, export via `python manage.py export_static --settings=netlify_settings`)
+- AI: Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free) via litellm library; LiteLLM proxy optional for VPS prod
+
 **Dev setup** — add to `C:\Windows\System32\drivers\etc\hosts`:
 ```
 127.0.0.1  workspace.localhost
@@ -190,7 +195,7 @@ Client Console (console.domain)
     │  Module Store │
     │  Browse 60+  │
     │  modules +   │
-    │  30 agents   │
+    │  33 agents   │
     └──────┬───────┘
            ▼
     ┌──────────────┐
@@ -353,9 +358,18 @@ GitHub Actions triggered
     │
     └─── Tests PASS
               │
-              └── Manual deploy (until CI/CD wired)
-                  │
-                  ├── SSH to VPS
+              ├── Render (auto-deploy on push — render.yaml)
+              │     ├── pip install -r requirements.txt
+              │     ├── python manage.py migrate
+              │     ├── python manage.py seed_modules
+              │     ├── python manage.py seed_agents
+              │     └── python manage.py collectstatic --no-input
+              │
+              ├── Netlify (public site — netlify.toml)
+              │     └── python manage.py export_static --settings=netlify_settings
+              │
+              └── VPS (manual deploy)
+                  ├── SSH to server
                   ├── git pull
                   ├── pip install -r requirements.txt
                   ├── python manage.py migrate
@@ -398,8 +412,9 @@ INTERNET
 │                                                      │
 └─────────────────────────────────────────────────────┘
 
-AI calls: LiteLLM proxy at LITELLM_BASE_URL (external service)
-  └── Routes to Groq / OpenRouter / Gemini based on model
+AI calls:
+  Dev/Render: litellm Python library → Groq (meta-llama/llama-4-scout-17b-16e-instruct, 30k TPM free)
+  VPS prod:   LiteLLM proxy at LITELLM_BASE_URL → Groq / OpenRouter / Gemini
 ```
 
 ### VPS Scaling Path

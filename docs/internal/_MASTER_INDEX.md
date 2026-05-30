@@ -31,12 +31,38 @@
 ### 📁 docs/crm/
 *   **[CRM & Leads Spec](file:///d:/Bengal%20bound/dev-backoffice/docs/crm/CRM_MODULE_SPEC.md)**: Contacts and deals models schema, external CRM syncing, and SDR pipelines.
 
+### 📁 docs/ceo/
+*   **[CEO Briefing](file:///d:/Bengal%20bound/dev-backoffice/docs/ceo/CEO_BRIEFING.md)**: Platform overview, revenue model, competitive position, deployment status, and action items for the CEO.
+
 ### 📁 docs/legal/
 *   **[Legal & Compliance Standards](file:///d:/Bengal%20bound/dev-backoffice/docs/legal/COMPLIANCE_AND_LEGAL_STANDARDS.md)**: GDPR, EU AI Act, PDPA, and Bangladesh privacy controls specifications.
+*   **[International Compliance Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/legal/INTERNATIONAL_COMPLIANCE.md)**: Per-country compliance checklist — EU GDPR, UK, Bangladesh, Singapore, UAE, USA, India.
 
 ### 📁 docs/marketing/
 *   **[Marketing & SEO Playbook](file:///d:/Bengal%20bound/dev-backoffice/docs/marketing/MARKETING_AND_SEO_STRATEGY.md)**: Search visibility headers, meta tags, and element ID standards.
 *   **[Go-To-Market Kit](file:///d:/Bengal%20bound/dev-backoffice/docs/marketing/MARKETING_KIT.md)**: Taglines, positioning statements, AppSumo pricing structures, and bKash / Stripe merchant configurations.
+*   **[International GTM Strategy](file:///d:/Bengal%20bound/dev-backoffice/docs/marketing/INTERNATIONAL_GTM_STRATEGY.md)**: Market-by-market launch plan, ICP, AppSumo LTD strategy, affiliate programme, SEO keywords.
+
+### 📁 docs/business/
+*   **[Business Analysis](file:///d:/Bengal%20bound/dev-backoffice/docs/business/BENGALBOUND_BUSINESS_ANALYSIS.md)**: TAM/SAM/SOM, competitive analysis, financial projections.
+*   **[International Launch Plan](file:///d:/Bengal%20bound/dev-backoffice/docs/business/INTERNATIONAL_LAUNCH_PLAN.md)**: Market entry order, localization requirements, payment gateways by region.
+*   **[VPS Profit Model](file:///d:/Bengal%20bound/dev-backoffice/docs/business/VPS_PROFIT_MODEL.md)**: Hetzner VPS + Ollama self-hosted AI cost model vs cloud APIs.
+*   **[Brand Vision](file:///d:/Bengal%20bound/dev-backoffice/docs/business/BENGALBOUND_BRAND_VISION.md)**: Brand identity, tone of voice, visual guidelines.
+*   **[SRS](file:///d:/Bengal%20bound/dev-backoffice/docs/business/BENGALBOUND_SRS.md)**: Software Requirements Specification.
+
+### 📁 docs/tech/
+*   **[Technical Standards](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/TECHNICAL_STANDARDS_AND_GUIDELINES.md)**: Coding standards, API design, testing requirements.
+*   **[Deployment Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/DEPLOYMENT_GUIDE.md)**: Step-by-step production deployment — Netlify + Render + Supabase + Groq + Stripe.
+
+### 📁 docs/testing/
+*   **[QA & Testing Playbook](file:///d:/Bengal%20bound/dev-backoffice/docs/testing/QA_AND_TESTING_PLAYBOOK.md)**: Test suites guidelines and coverage commands.
+*   **[ISO 29119 Test Plan](file:///d:/Bengal%20bound/dev-backoffice/docs/testing/TEST_PLAN.md)**: Unit tests mocks, Playwright E2E flows, security vulnerability scans.
+*   **[Pre-Launch Checklist](file:///d:/Bengal%20bound/dev-backoffice/docs/testing/LAUNCH_CHECKLIST.md)**: 80-point checklist covering infra, AI, auth, payments, legal, and content.
+
+### 📁 docs/platform/
+*   **[Payment Integration Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/platform/PAYMENT_INTEGRATION.md)**: Stripe global + SSLCommerz BD + Razorpay India, pricing tiers, tax handling.
+*   **[Inspector Compliance Monitor](file:///d:/Bengal%20bound/dev-backoffice/docs/platform/inspector_compliance_monitor.md)**: Always-on compliance gate spec.
+*   **[Veritas KYB Onboarding](file:///d:/Bengal%20bound/dev-backoffice/docs/platform/veritas_client_kyb_onboarding.md)**: Client KYB onboarding flow.
 
 ### 📁 docs/internal/
 *   **[BengalBound OS spec](file:///d:/Bengal%20bound/dev-backoffice/docs/internal/BENGAL_BOUND_OS.md)**: CEO executive terminal, free employee unlocking grids, and impact reporting.
@@ -46,9 +72,9 @@
 
 ---
 
-## 🤖 30 SPECIALIST AI AGENTS SPECIFICATIONS
+## 🤖 33 SPECIALIST AI AGENTS SPECIFICATIONS
 
-All 30 requirements specs reside in the **[`docs/agents/`](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/)** directory:
+All agent requirements specs reside in the **[`docs/agents/`](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/)** directory. All 33 agents are implemented and verified working as of 2026-05-29.
 
 | Slug | Requirements File | Category | Primary Function |
 |---|---|---|---|
@@ -78,7 +104,10 @@ All 30 requirements specs reside in the **[`docs/agents/`](file:///d:/Bengal%20b
 | `reporting-bot` | [reporting_bot_analyst.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/reporting_bot_analyst.md) | Analytics | Scheduled dashboards & stats PDFs |
 | `sage` | [sage_legal_reviewer.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/sage_legal_reviewer.md) | Legal | TOS & compliance risk auditor |
 | `scout` | [scout_competitor_intelligence.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/scout_competitor_intelligence.md) | Analytics | Competitor feature & pricing tracker |
-| `content-strategist` | [content_strategist_copywriter.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/content_strategist_copywriter.md) | Marketing | WordPress draft copy blog planner |
+| `content_strategist` | [content_strategist.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/content_strategist.md) | Marketing | WordPress draft copy blog planner |
 | `shield` | [shield_it_helpdesk.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/shield_it_helpdesk.md) | Technology | Staff passwords & workstation logs |
 | `tempo` | [tempo_event_planner.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/tempo_event_planner.md) | Operations | Holiday schedule & rosters calendar |
 | `voice-receptionist`| [aria_voice_receptionist.md](file:///d:/Bengal%20bound/dev-backoffice/docs/agents/aria_voice_receptionist.md) | Communication| Twilio voice reception qualifications |
+| `pitch_presenter` | *(see AGENT_MODULE_INTEGRATION.md)* | Marketing | AI video pitch deck generation (Sylvia) |
+| `scribe` | *(see AGENT_MODULE_INTEGRATION.md)* | Operations | Meeting transcript intelligence |
+| `video_concierge` | *(see AGENT_MODULE_INTEGRATION.md)* | Support | Live video AI concierge (Chloe) |

@@ -42,7 +42,10 @@ BengalBound HUB runs a decoupled, subdomain-routed Django architecture serving m
 ## 🤖 3. LiteLLM & AI Scaling Strategy
 
 ### Blended Model Routing Schema
-We operate a centralized AI routing layer inside `agents.utils.agent_chat()`. This decouples the agent logic from underlying API models:
+We operate a centralized AI routing layer inside `agents.utils.agent_chat()`. This decouples the agent logic from underlying API models.
+
+**Dev / Render (no proxy):** `GROQ_API_KEY` → litellm library → Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free)
+**Production (proxy set):** `LITELLM_BASE_URL` → HTTP proxy → routed model per task key
 
 ```python
 # settings/base.py
@@ -52,9 +55,11 @@ SEREA_TASK_MODELS = {
     'content':    env('SEREA_MODEL_CONTENT',    default='glm4'),
     'analysis':   env('SEREA_MODEL_ANALYSIS',   default='qwen2.5-coder'),
     'quick':      env('SEREA_MODEL_QUICK',      default='phi4-mini'),
-    'gemini':     env('GEMINI_MODEL',     default='gemini/gemini-1.5-flash'),
+    'gemini':     env('GEMINI_MODEL',           default='gemini/gemini-1.5-flash'),
 }
 ```
+
+In dev, all nickname keys resolve to `groq/meta-llama/llama-4-scout-17b-16e-instruct` via the `_GROQ_MODEL_MAP` in `agents/utils.py`.
 
 ### Infrastructure Scaling Benchmark Targets
 

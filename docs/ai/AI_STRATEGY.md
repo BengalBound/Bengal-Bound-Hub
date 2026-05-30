@@ -6,9 +6,15 @@
 
 ## 1. Overview
 
-BengalBound HUB uses a **LiteLLM proxy architecture**: all AI calls route through a single LiteLLM proxy at `LITELLM_BASE_URL`, which routes to Groq, OpenAI, OpenRouter, or Gemini based on model selection. This gives us:
+BengalBound HUB uses a **dual-mode AI architecture**: in development and on free-tier hosting, AI calls go directly through the `litellm` Python library to Groq (using `GROQ_API_KEY`). In production with a proxy server, calls route through an HTTP LiteLLM proxy at `LITELLM_BASE_URL`. The same `agent_chat()` function handles both modes transparently.
+
+**Dev / Render (no proxy server):** `GROQ_API_KEY` → `litellm` library → Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free)
+**Production (with proxy):** `LITELLM_BASE_URL` (remote) → HTTP proxy → Groq / OpenRouter / Gemini
+
+This gives us:
 
 - **Provider agnosticism** — swap models without touching agent code
+- **Zero-cost dev** — Groq free tier handles all 33 agents in development
 - **Cost control** — route cheap tasks to faster/cheaper models, premium tasks to better ones
 - **Offline-capable** — add Ollama as a LiteLLM backend for zero-cost local inference
 
@@ -47,34 +53,45 @@ result = agent_chat(
 
 ```python
 SEREA_TASK_MODELS = {
-    'chat':       env('MODEL_CHAT',       default='neural-chat'),
-    'moderation': env('MODEL_MODERATION', default='dolphin-mistral'),
-    'content':    env('MODEL_CONTENT',    default='glm4'),
-    'analysis':   env('MODEL_ANALYSIS',   default='qwen2.5-coder'),
-    'quick':      env('MODEL_QUICK',      default='phi4-mini'),
-    'gemini':     env('GEMINI_MODEL',     default='gemini/gemini-1.5-flash'),
+    'chat':       env('SEREA_MODEL_CHAT',       default='neural-chat'),
+    'moderation': env('SEREA_MODEL_MODERATION', default='dolphin-mistral'),
+    'content':    env('SEREA_MODEL_CONTENT',    default='glm4'),
+    'analysis':   env('SEREA_MODEL_ANALYSIS',   default='qwen2.5-coder'),
+    'quick':      env('SEREA_MODEL_QUICK',      default='phi4-mini'),
+    'gemini':     env('GEMINI_MODEL',           default='gemini/gemini-1.5-flash'),
 }
 ```
 
-| Task type | Default model | Use case |
-|---|---|---|
-| `chat` | `neural-chat` | General agent chat, Serea conversations |
-| `moderation` | `dolphin-mistral` | Content moderation, spam detection |
-| `content` | `glm4` | Blog posts, email copy, social content |
-| `analysis` | `qwen2.5-coder` | Data analysis, code review |
-| `quick` | `phi4-mini` | Quick classification, Inspector checks |
-| `gemini` | `gemini/gemini-1.5-flash` | Premium/overflow — vision, complex reasoning |
+All of these nickname keys map to `groq/meta-llama/llama-4-scout-17b-16e-instruct` when running via the direct litellm library path (dev / Render). In production with a proxy, each key can be routed to a different model.
+
+| Task type | Nickname key | Dev model (Groq direct) | Prod model (proxy, configurable) |
+|---|---|---|---|
+| `chat` | `neural-chat` | llama-4-scout-17b | Any proxied model |
+| `moderation` | `dolphin-mistral` | llama-4-scout-17b | Lighter fast model |
+| `content` | `glm4` | llama-4-scout-17b | Content-optimised model |
+| `analysis` | `qwen2.5-coder` | llama-4-scout-17b | Code/analysis model |
+| `quick` | `phi4-mini` | llama-4-scout-17b | Fast classification model |
+| `gemini` | `gemini/gemini-1.5-flash` | llama-4-scout-17b | Gemini for vision/reasoning |
 
 ---
 
-## 3. LiteLLM Proxy — Configured Backends
+## 3. AI Provider Strategy
 
-The LiteLLM proxy at `LITELLM_BASE_URL` is pre-configured to route to:
+### Dev / Render Free Tier (Current — No Proxy Required)
 
-### Startup (Current)
+`GROQ_API_KEY` is the only required key. The `litellm` Python library calls Groq directly:
+
+| Provider | Model | Free Tier |
+|---|---|---|
+| Groq | `meta-llama/llama-4-scout-17b-16e-instruct` | 30,000 TPM free |
+
+### Production with LiteLLM Proxy (Optional)
+
+When `LITELLM_BASE_URL` points to a remote proxy, all calls go through it:
+
 | Provider | Models | Use Case |
 |---|---|---|
-| Groq | `neural-chat`, `mixtral-8x7b` | Fast inference, free tier |
+| Groq | `neural-chat`, `llama-4-scout` | Fast inference |
 | OpenRouter | `glm4`, `qwen2.5-coder`, `phi4-mini` | Cheap bulk tasks |
 | Gemini | `gemini/gemini-1.5-flash` | Premium, vision, overflow |
 
@@ -102,7 +119,7 @@ model_list:
 
 ## 4. Agent Ecosystem
 
-BengalBound HUB hosts 30 specialist AI employees, each for a specific business vertical.
+BengalBound HUB hosts 33 specialist AI employees, each for a specific business vertical. All 33 are implemented, seeded, and verified working (as of 2026-05-29).
 
 ### Core Principles
 - **No Hallucination:** Agents use structured outputs and rely on factual context via the hub's module data
@@ -176,7 +193,7 @@ BengalBound offers a free AI tier for registered Bangladeshi NGOs:
 - **Business strategy:** Each NGO = case study = press coverage = grant eligibility
 - **Grant pathway:** Free NGO tier enables eligibility for USAID, Gates Foundation, Google.org grants
 
-AI models used for NGO tier: `phi4-mini` via LiteLLM (most cost-efficient).
+AI models used for NGO tier: `phi4-mini` key → `llama-4-scout-17b` via Groq (free 30k TPM — zero variable cost at this scale).
 
 ---
 

@@ -13,7 +13,7 @@
 At BengalBound Ltd, our core philosophy is **iOS-Level Simplicity** applied to enterprise SaaS:
 > *"Can a non-technical business owner perform this task in under 60 seconds?"*
 
-If the answer is no, we redesign the feature. The BengalBound HUB is built on a "light and easy, yet incredibly powerful" foundation, mapping a 60+ pluggable module marketplace alongside a 30-agent AI Employee Marketplace.
+If the answer is no, we redesign the feature. The BengalBound HUB is built on a "light and easy, yet incredibly powerful" foundation, mapping a 83+ pluggable module marketplace alongside a 33-agent AI Employee Marketplace (all 33 agents are live and verified as of May 2026).
 
 ### The Problem
 *   **Talent Scarcity for SMBs:** Small and medium businesses (particularly in developing economies like Bangladesh) struggle with high employee turnover, recruitment friction, and variable performance.
@@ -21,7 +21,7 @@ If the answer is no, we redesign the feature. The BengalBound HUB is built on a 
 
 ### Our Solution
 *   **Instant Activation:** Pluggable module catalog activated in 1 tap from the storefront.
-*   **Pre-Trained AI Workforce:** 30 specialized AI employees (Aria, Crux, Mira, Hera, Cash) ready to be hired instantly to manage operations, support, logistics, and finance.
+*   **Pre-Trained AI Workforce:** 33 specialized AI employees (Aria, Crux, Mira, Hera, Cash, Scribe, Sylvia, Chloe and more) ready to be hired instantly to manage operations, support, logistics, and finance.
 
 ---
 

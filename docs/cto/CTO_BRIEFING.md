@@ -52,8 +52,9 @@ The current dev branch represents a **complete, production-ready backend scaffol
 └────────────┬───────────────────────────────────────────────────┘
              │
 ┌────────────▼───────────────┐  ┌───────────────────────────────┐
-│   PostgreSQL (production)  │  │   Redis (Celery broker)        │
+│   PostgreSQL (production)  │  │   Redis / memory broker        │
 │   SQLite (development)     │  │   Celery Beat (scheduled AI)   │
+│   Supabase (Render tier)   │  │   memory broker used locally   │
 └────────────────────────────┘  └───────────────────────────────┘
 ```
 
@@ -273,25 +274,49 @@ Run on port **1234** to match `CSRF_TRUSTED_ORIGINS`.
 
 ### 6.1 Provider Architecture
 
+The AI layer has two modes — the code in `agents/utils.py` picks automatically:
+
 ```
-Serea Engine
-  └── LiteLLM Proxy (LITELLM_BASE_URL via LITELLM_MASTER_KEY)
-        ├── Fast Inference (neural-chat, llama3)
-        ├── OpenAI Models  (gpt-4o)
-        └── OpenRouter / Gemini based on routing rules
+agents/utils.py  →  _use_proxy() check
+                    │
+                    ├── LITELLM_BASE_URL = remote URL
+                    │     └── HTTP proxy call (production / multi-tenant VPS)
+                    │
+                    └── LITELLM_BASE_URL not set or = localhost
+                          └── litellm Python library (direct Groq)
+                                └── meta-llama/llama-4-scout-17b-16e-instruct
+                                      (30k TPM free tier on Groq)
 ```
 
-Model routing is configurable per task type:
+All internal model nicknames map to the same Groq model for dev:
+
+```python
+# agents/utils.py — _GROQ_MODEL_MAP
+{
+    "neural-chat":             "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+    "dolphin-mistral":         "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+    "glm4":                    "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+    "qwen2.5-coder":           "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+    "phi4-mini":               "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+    "gemini/gemini-1.5-flash": "groq/meta-llama/llama-4-scout-17b-16e-instruct",
+}
+```
+
+Model routing is configurable per task type via `SEREA_TASK_MODELS` in `base.py`:
 
 ```python
 SEREA_TASK_MODELS = {
-    'chat':       'neural-chat',
+    'chat':       'neural-chat',      # → llama-4-scout (dev) or proxied model (prod)
     'moderation': 'dolphin-mistral',
     'content':    'glm4',
     'analysis':   'qwen2.5-coder',
     'quick':      'phi4-mini',
+    'gemini':     'gemini/gemini-1.5-flash',
 }
 ```
+
+**Required env var (dev):** `GROQ_API_KEY` — free tier at console.groq.com (30k TPM).
+**Optional (production):** `LITELLM_BASE_URL` + `LITELLM_MASTER_KEY` for a proxy server.
 
 ### 6.2 Celery Beat Tasks
 
@@ -363,14 +388,42 @@ bengalbound_core/settings/
 | `SECRET_KEY` | Yes | Django secret key |
 | `DATABASE_URL` | Production | `postgres://user:pass@host/db` |
 | `ALLOWED_HOSTS` | Production | Comma-separated domains |
-| `LITELLM_BASE_URL` | Production | LiteLLM proxy endpoint |
-| `LITELLM_MASTER_KEY` | Production | LiteLLM auth key |
+| `GROQ_API_KEY` | Dev + Production | Direct Groq inference (free 30k TPM tier) |
+| `LITELLM_BASE_URL` | Optional (Production) | LiteLLM proxy endpoint — overrides direct Groq |
+| `LITELLM_MASTER_KEY` | Optional (Production) | LiteLLM auth key |
 | `FACEBOOK_WEBHOOK_VERIFY_TOKEN` | Production | Meta webhook verification |
-| `CELERY_BROKER_URL` | Production | `redis://127.0.0.1:6379/0` |
+| `CELERY_BROKER_URL` | Production | `redis://127.0.0.1:6379/0` (memory broker used locally) |
 | `FIELD_ENCRYPTION_KEY` | Production | Fernet key for encrypted fields |
 | `EMAIL_HOST / USER / PASSWORD` | Production | SMTP for allauth emails |
 
-### 9.2 First Deploy Checklist
+### 9.2 Deployment Options
+
+#### Render (Free Tier — Django backend)
+
+Settings: `bengalbound_core/settings/render.py`. Config: `render.yaml`.
+Database: Supabase PostgreSQL (set `DATABASE_URL` env var in Render dashboard).
+Static files: served by Whitenoise (no Nginx needed).
+
+```bash
+# Render build command (in render.yaml):
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py seed_modules
+python manage.py seed_agents
+python manage.py collectstatic --no-input
+```
+
+#### Netlify (Public marketing site — static export)
+
+Public site templates (`templates/public_site/`) exported to `netlify_dist/`:
+
+```bash
+python manage.py export_static --settings=netlify_settings
+```
+
+Config: `netlify.toml`. Settings: `netlify_settings.py`.
+
+#### VPS (Hetzner — Full production)
 
 ```bash
 # 1. Set env vars (see table above)
@@ -380,22 +433,21 @@ export DJANGO_SETTINGS_MODULE=bengalbound_core.settings.production
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run migrations
+# 4. Run migrations and seed
 python manage.py migrate
-
-# 5. Seed module catalog
 python manage.py seed_modules
+python manage.py seed_agents
 
-# 6. Collect static files
+# 5. Collect static files
 python manage.py collectstatic --no-input
 
-# 7. Create superuser
+# 6. Create superuser
 python manage.py createsuperuser
 
-# 8. Start Gunicorn
+# 7. Start Gunicorn
 gunicorn bengalbound_core.wsgi:application --workers 4 --threads 4
 
-# 9. Start Celery worker + beat (in separate processes)
+# 8. Start Celery worker + beat (in separate processes)
 celery -A bengalbound_core worker -l info
 celery -A bengalbound_core beat -l info
 ```
@@ -486,7 +538,7 @@ Django 4.2 LTS is supported until April 2026. Plan upgrade to Django 5.2 LTS (re
 
 ### 13.1 Overview
 
-30 specialist AI employees are being absorbed into this project from a separate codebase. The migration preserves BengalBound HUB's tech stack entirely — LiteLLM routing, Django 4.2 patterns, `bredbound.BusinessInstance` as the tenant FK, and Serea as the AI backbone.
+33 specialist AI employees are deployed under `agents/` in this project. The migration preserves BengalBound HUB's tech stack entirely — LiteLLM routing, Django 4.2 patterns, `bredbound.BusinessInstance` as the tenant FK, and Serea as the AI backbone.
 
 ### 13.2 New Models
 
@@ -504,40 +556,46 @@ HiredAIEmployee (extended)
   └── model_override: CharField         ← NEW FIELD
 ```
 
-### 13.3 The 30 Agents
+### 13.3 The 33 Agents
 
-| Agent | Role | Category |
-|-------|------|----------|
-| Aria | Customer Support Specialist | Support |
-| Atlas | Executive Assistant | Operations |
-| Babel | Translation & Localisation | Communication |
-| Cash | Payroll Processor | Finance |
-| Clarity | Feedback Analyst | Analytics |
-| Concierge | Front-door Receptionist | Operations |
-| Content Architect | Editorial Planning | Marketing |
-| Crux | CRM Manager | Sales |
-| Dox | Technical Writer | Documents |
-| Flux | Supply Chain Manager | Operations |
-| Hera | HR Agent | HR |
-| Kai | DevOps Engineer | Technology |
-| Lead Hunter | B2B Prospector | Sales |
-| Luma | Brand & PR | Marketing |
-| MediBook | Medical Scheduler | Healthcare |
-| Merch | eCommerce Manager | Commerce |
-| Mira | Customer Success | Support |
-| Nexus | L&D Coordinator | HR |
-| Nova | Data Scientist | Analytics |
-| Oracle | SEO Specialist | Marketing |
-| Payload | Procurement Manager | Operations |
-| Pulse | Market Research | Analytics |
-| Realt | Real Estate Assistant | Real Estate |
-| Reporting Bot | Automated Reporting | Analytics |
-| Sage | Legal Reviewer | Legal |
-| Scout | Competitor Intelligence | Analytics |
-| Serea Content | Content Strategist | Marketing |
-| Shield | IT Helpdesk | Technology |
-| Tempo | Events Manager | Operations |
-| Voice Receptionist | Phone AI Receptionist | Communication |
+All 33 agents are implemented, seeded via `python manage.py seed_agents`, and verified working.
+
+| Agent | Slug | Role | Category |
+|-------|------|------|----------|
+| Aria | `aria` | Customer Support Specialist | Support |
+| Atlas | `atlas` | Executive Assistant | Operations |
+| Babel | `babel` | Translation & Localisation | Communication |
+| Cash | `cash` | Payroll Processor | Finance |
+| Clarity | `clarity` | Feedback Analyst | Analytics |
+| Concierge | `concierge` | Front-door Receptionist | Operations |
+| Content Architect | `content-architect` | Editorial Planning | Marketing |
+| Crux | `crux` | CRM Manager | Sales |
+| Dox | `dox` | Technical Writer | Documents |
+| Flux | `flux` | Supply Chain Manager | Operations |
+| Hera | `hera` | HR Agent | HR |
+| Kai | `kai` | DevOps Engineer | Technology |
+| Lead Hunter | `lead-hunter` | B2B Prospector | Sales |
+| Luma | `luma` | Brand & PR | Marketing |
+| MediBook | `medibook` | Medical Scheduler | Healthcare |
+| Merch | `merch` | eCommerce Manager | Commerce |
+| Mira | `mira` | Customer Success | Support |
+| Nexus | `nexus` | L&D Coordinator | HR |
+| Nova | `nova` | Data Scientist | Analytics |
+| Oracle | `oracle` | SEO Specialist | Marketing |
+| Payload | `payload` | Procurement Manager | Operations |
+| Pulse | `pulse` | Market Research | Analytics |
+| Realt | `realt` | Real Estate Assistant | Real Estate |
+| Reporting Bot | `reporting-bot` | Automated Reporting | Analytics |
+| Sage | `sage` | Legal Reviewer | Legal |
+| Scout | `scout` | Competitor Intelligence | Analytics |
+| Serea Content | `serea-content` | Content Strategist | Marketing |
+| Shield | `shield` | IT Helpdesk | Technology |
+| Tempo | `tempo` | Events Manager | Operations |
+| Voice Receptionist | `voice-receptionist` | Phone AI Receptionist | Communication |
+| Content Strategist | `content_strategist` | Copywriting & Blog Planning | Marketing |
+| Pitch Presenter (Sylvia) | `pitch_presenter` | AI Video Pitch Deck | Marketing |
+| Scribe | `scribe` | Meeting Intelligence | Operations |
+| Video Concierge (Chloe) | `video_concierge` | Live Video AI | Support |
 
 ### 13.4 Sprint Plan
 

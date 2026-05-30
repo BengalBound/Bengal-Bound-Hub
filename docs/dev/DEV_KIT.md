@@ -82,11 +82,30 @@ contacts = Contact.objects.filter(business=request.current_business)
 ```bash
 DEBUG=True
 SECRET_KEY=bengalbound-local-key
-LITELLM_BASE_URL=https://ai.neurolinkit.com/v1
-LITELLM_MASTER_KEY=local-dev-key
+
+# Groq direct (required — free 30k TPM, no proxy server needed)
+GROQ_API_KEY=your-groq-api-key-here
+
+# LiteLLM proxy (optional — only needed for production multi-model routing)
+# LITELLM_BASE_URL=https://your-litellm-proxy.com/v1
+# LITELLM_MASTER_KEY=your-proxy-key
 ```
+
+Get a free Groq API key at: https://console.groq.com
+
+### Production Setup (Render — Free Tier):
+*   Settings: `bengalbound_core/settings/render.py`
+*   Database: Supabase PostgreSQL (`DATABASE_URL` env var)
+*   Static files: Whitenoise (no Nginx)
+*   Config: `render.yaml`
 
 ### Production Setup (Hetzner VPS):
 *   `DEBUG=False`
 *   `CELERY_BROKER_URL` set to Redis backend broker.
+*   `DJANGO_SETTINGS_MODULE=bengalbound_core.settings.production`
 *   Production Gunicorn binding behind Nginx gateway.
+
+### Public Site (Netlify):
+*   Export: `python manage.py export_static --settings=netlify_settings`
+*   Output: `netlify_dist/`
+*   Config: `netlify.toml`
