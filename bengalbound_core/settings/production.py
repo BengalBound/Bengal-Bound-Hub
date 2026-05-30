@@ -8,6 +8,12 @@ All secrets injected as environment variables. No .env file in production.
 """
 
 import os
+
+# Safe fallbacks so the container starts even if an env var is missing.
+# Override all of these in Cloud Run → Variables & Secrets.
+os.environ.setdefault('SECRET_KEY', 'insecure-default-change-in-cloud-run')
+os.environ.setdefault('FIELD_ENCRYPTION_KEY', 'dD0JVWMzh1pqJfZkyI1KDrehE7SL9qzMjYwKILQPsSQ=')
+
 from .base import *  # noqa: F401, F403
 import dj_database_url
 

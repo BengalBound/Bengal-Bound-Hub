@@ -65,7 +65,7 @@ MIDDLEWARE = (  # noqa: F405
     + MIDDLEWARE[_security_idx + 1:]  # noqa: F405
 )
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # noqa: F405
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # ── Celery — run synchronously unless Redis is available ──────────────────────
 _redis_url = os.environ.get('REDIS_URL', '')

@@ -17,7 +17,8 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . /app/
 
 # Collect static files at build time (whitenoise serves them)
-RUN python manage.py collectstatic --noinput || true
+# SECRET_KEY default set in production.py so collectstatic works without env vars
+RUN mkdir -p staticfiles && python manage.py collectstatic --noinput
 
 EXPOSE 8080
 
