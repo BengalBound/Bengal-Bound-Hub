@@ -27,6 +27,8 @@ PAGES = [
     ('/why-us/',      'why-us/index.html'),
     ('/docs/',        'docs/index.html'),
     ('/blog/',        'blog/index.html'),
+    ('/privacy/',     'privacy/index.html'),
+    ('/terms/',       'terms/index.html'),
 ]
 
 

@@ -277,3 +277,9 @@ def docs_list(request):
         'docs': docs,
         'doc_categories': doc_categories,
     })
+
+def privacy(request):
+    return render(request, 'public_site/privacy.html')
+
+def terms(request):
+    return render(request, 'public_site/terms.html')

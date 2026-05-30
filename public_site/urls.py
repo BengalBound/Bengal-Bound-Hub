@@ -27,4 +27,8 @@ urlpatterns = [
     
     # Public documentation page
     path('docs/', views.docs_list, name='docs_list'),
+
+    # Legal pages
+    path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
 ]

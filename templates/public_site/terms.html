@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Terms of Service | BengalBound{% endblock %}
+
+{% block content %}
+<section class="py-5" style="padding-top: 10rem !important;">
+<div class="container" style="max-width: 860px;">
+
+<div class="mb-5 fade-up">
+    <div class="badge-premium d-inline-flex align-items-center mb-3">
+        <i class="bi bi-file-earmark-text me-2"></i> Legal
+    </div>
+    <h1 class="display-5 fw-bold mb-2">Terms of Service</h1>
+    <p class="text-white-50">Last updated: May 2026 &nbsp;·&nbsp; BengalBound Ltd</p>
+</div>
+
+<div class="text-white-50 lh-lg font-inter fade-up" style="font-size:1rem;">
+
+<h4 class="text-white fw-bold mt-5 mb-3">1. Acceptance of Terms</h4>
+<p>By accessing or using BengalBound HUB ("the Platform"), you agree to be bound by these Terms of Service ("Terms"). If you are using the Platform on behalf of a business, you represent that you have authority to bind that business. If you do not agree, do not use the Platform.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">2. Description of Service</h4>
+<p>BengalBound HUB is a multi-tenant SaaS Business Operating System providing:</p>
+<ul>
+    <li>83+ pluggable business modules (CRM, HR, finance, operations, etc.)</li>
+    <li>33 autonomous AI Agents ("AI Employees") that operate within your business modules</li>
+    <li>A client console for managing your subscription, AI workforce, and business settings</li>
+</ul>
+<p>AI Agents operate autonomously on schedules you control. All AI actions are logged and subject to human approval flows for consequential decisions.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">3. Account Registration</h4>
+<ul>
+    <li>You must provide accurate and complete information when creating an account</li>
+    <li>You are responsible for maintaining the security of your credentials</li>
+    <li>You must be at least 16 years old to use the Platform</li>
+    <li>One account per business entity; shared credentials between businesses are prohibited</li>
+    <li>You must notify us immediately of any unauthorised access to your account</li>
+</ul>
+
+<h4 class="text-white fw-bold mt-5 mb-3">4. Subscription and Payment</h4>
+<p><strong class="text-white">Plans:</strong> Freemium (free), Entry, Standard, Premium, and Advance tiers. Pricing is displayed on our <a href="{% url 'public_site:pricing' %}" class="text-cyan">Pricing page</a> and billed monthly or annually.</p>
+<p><strong class="text-white">Payment:</strong> Processed by Stripe (global) or SSLCommerz (Bangladesh). By providing payment details, you authorise us to charge the applicable fees.</p>
+<p><strong class="text-white">Auto-renewal:</strong> Subscriptions renew automatically. You may cancel at any time from your billing portal; no refund is issued for the current billing period.</p>
+<p><strong class="text-white">Annual plans:</strong> Pro-rata refund available within 30 days of purchase.</p>
+<p><strong class="text-white">Price changes:</strong> We will notify you 30 days before any price increase.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">5. Acceptable Use</h4>
+<p>You agree not to use the Platform to:</p>
+<ul>
+    <li>Violate any applicable law or regulation</li>
+    <li>Transmit spam, malware, or abusive content</li>
+    <li>Attempt to gain unauthorised access to other accounts or systems</li>
+    <li>Use AI Agents to generate illegal content, harassment, or deception</li>
+    <li>Reverse-engineer or resell the Platform without authorisation</li>
+    <li>Exceed API rate limits or scrape data in ways that harm other users</li>
+    <li>Impersonate BengalBound or any other entity</li>
+</ul>
+<p>We reserve the right to suspend accounts violating these terms without notice.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">6. AI Agent Terms</h4>
+<p><strong class="text-white">AI transparency:</strong> All AI Agents are clearly identified as AI. You must not represent AI-generated communications as coming from a human where material deception could result.</p>
+<p><strong class="text-white">Human oversight:</strong> You are responsible for reviewing and approving AI Agent actions through the human-in-the-loop approval flow. BengalBound is not liable for business decisions made based on AI outputs without human review.</p>
+<p><strong class="text-white">Data used by AI:</strong> AI Agents access only your business data within your account. Your data is never used to train models for other clients.</p>
+<p><strong class="text-white">EU AI Act compliance:</strong> Our AI Agents are classified as limited-risk systems under the EU AI Act. Full compliance documentation is available on request.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">7. Intellectual Property</h4>
+<p><strong class="text-white">Platform:</strong> BengalBound HUB, its code, design, and branding are owned by BengalBound Ltd. We grant you a limited, non-exclusive licence to use the Platform for your business purposes.</p>
+<p><strong class="text-white">Your data:</strong> You retain ownership of all data you upload to the Platform. You grant us a limited licence to process it to deliver the service.</p>
+<p><strong class="text-white">AI outputs:</strong> Content generated by AI Agents using your data belongs to you, subject to applicable law.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">8. Privacy</h4>
+<p>Your use of the Platform is governed by our <a href="{% url 'public_site:privacy' %}" class="text-cyan">Privacy Policy</a>, which is incorporated into these Terms.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">9. Limitation of Liability</h4>
+<p>To the maximum extent permitted by law:</p>
+<ul>
+    <li>BengalBound is not liable for indirect, incidental, or consequential damages</li>
+    <li>Our total liability for any claim is limited to the fees you paid in the 3 months prior to the claim</li>
+    <li>We do not guarantee that the Platform will be error-free or uninterrupted</li>
+    <li>AI Agent outputs are provided "as-is" — always review before acting on business-critical decisions</li>
+</ul>
+
+<h4 class="text-white fw-bold mt-5 mb-3">10. Uptime & Service Level</h4>
+<p>We target 99.5% monthly uptime. Scheduled maintenance is announced 24 hours in advance. Check <strong>status.bengalbound.com</strong> for real-time service status.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">11. Termination</h4>
+<p><strong class="text-white">By you:</strong> Cancel your subscription at any time in the billing portal. Data export available for 30 days after cancellation.</p>
+<p><strong class="text-white">By us:</strong> We may terminate accounts for Terms violations with 7 days notice, or immediately for severe violations (fraud, illegal content, abuse).</p>
+<p><strong class="text-white">On termination:</strong> Your data is retained for 30 days then permanently deleted, unless legal retention obligations apply.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">12. Governing Law</h4>
+<p>These Terms are governed by the laws of Bangladesh. Disputes will be resolved by the courts of Dhaka, Bangladesh, except where local consumer protection law requires otherwise.</p>
+<p>For EU/UK users: Nothing in these Terms affects your statutory rights under applicable consumer protection law.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">13. Changes to Terms</h4>
+<p>We may update these Terms. We will notify you by email at least 14 days before material changes take effect. Continued use of the Platform constitutes acceptance of the updated Terms.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">14. Contact</h4>
+<p>
+BengalBound Ltd<br>
+Email: <a href="mailto:legal@bengalbound.com" class="text-cyan">legal@bengalbound.com</a><br>
+<a href="{% url 'public_site:contact' %}" class="text-cyan">Contact form</a>
+</p>
+
+</div>
+</div>
+</section>
+{% endblock %}

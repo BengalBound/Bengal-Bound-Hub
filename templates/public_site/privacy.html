@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy | BengalBound{% endblock %}
+
+{% block content %}
+<section class="py-5" style="padding-top: 10rem !important;">
+<div class="container" style="max-width: 860px;">
+
+<div class="mb-5 fade-up">
+    <div class="badge-premium d-inline-flex align-items-center mb-3">
+        <i class="bi bi-shield-check me-2"></i> Legal
+    </div>
+    <h1 class="display-5 fw-bold mb-2">Privacy Policy</h1>
+    <p class="text-white-50">Last updated: May 2026 &nbsp;·&nbsp; BengalBound Ltd</p>
+</div>
+
+<div class="text-white-50 lh-lg font-inter fade-up" style="font-size:1rem;">
+
+<h4 class="text-white fw-bold mt-5 mb-3">1. Who We Are</h4>
+<p>BengalBound Ltd ("BengalBound", "we", "us", "our") operates the BengalBound HUB platform — a multi-tenant SaaS Business Operating System with AI Agent services — accessible at <strong>bengalbound.com</strong> and associated subdomains. We are registered in Bangladesh and operate globally.</p>
+<p>Data controller contact: <a href="mailto:privacy@bengalbound.com" class="text-cyan">privacy@bengalbound.com</a></p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">2. What Data We Collect</h4>
+<p><strong class="text-white">Account data:</strong> Name, email address, password (hashed), company name, phone number — collected when you create an account.</p>
+<p><strong class="text-white">Business data:</strong> Information you enter into business modules (CRM contacts, HR records, invoices, etc.) — stored on your behalf as a data processor.</p>
+<p><strong class="text-white">AI interaction data:</strong> Conversations with AI Agents, AI-generated outputs, and related activity logs — used to deliver the service and improve safety.</p>
+<p><strong class="text-white">Usage data:</strong> IP address, browser type, pages visited, time spent — collected via server logs and analytics for security and product improvement.</p>
+<p><strong class="text-white">Payment data:</strong> Billing address and payment method — processed directly by Stripe or SSLCommerz. We never store raw card numbers.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">3. How We Use Your Data</h4>
+<ul>
+    <li>To provide and operate the BengalBound platform</li>
+    <li>To authenticate your identity and secure your account</li>
+    <li>To process payments and send billing communications</li>
+    <li>To power AI Agent features on your behalf</li>
+    <li>To send transactional emails (receipts, alerts, password resets)</li>
+    <li>To improve the platform through aggregated, anonymised analytics</li>
+    <li>To comply with legal obligations</li>
+</ul>
+<p>We <strong class="text-white">do not sell</strong> your personal data to third parties. We do not use your business data to train AI models without explicit consent.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">4. Legal Basis for Processing (GDPR / UK GDPR)</h4>
+<ul>
+    <li><strong class="text-white">Contract performance</strong> — processing necessary to deliver the service you signed up for</li>
+    <li><strong class="text-white">Legitimate interests</strong> — security monitoring, fraud prevention, product analytics</li>
+    <li><strong class="text-white">Legal obligation</strong> — tax records, compliance with court orders</li>
+    <li><strong class="text-white">Consent</strong> — marketing emails (you can withdraw at any time)</li>
+</ul>
+
+<h4 class="text-white fw-bold mt-5 mb-3">5. Data Retention</h4>
+<ul>
+    <li>Active account data: retained for the duration of your subscription</li>
+    <li>After account deletion: anonymised within 30 days, fully purged within 90 days</li>
+    <li>Payment records: retained 7 years for tax/accounting obligations</li>
+    <li>AI Agent logs: retained 12 months, then deleted</li>
+</ul>
+
+<h4 class="text-white fw-bold mt-5 mb-3">6. Who We Share Data With</h4>
+<p>We use the following sub-processors:</p>
+<ul>
+    <li><strong class="text-white">Supabase</strong> — database hosting (EU/US servers)</li>
+    <li><strong class="text-white">Render</strong> — application hosting (US servers)</li>
+    <li><strong class="text-white">Netlify</strong> — static site hosting (US CDN)</li>
+    <li><strong class="text-white">Groq / LiteLLM</strong> — AI inference (prompts processed, not stored)</li>
+    <li><strong class="text-white">Stripe</strong> — payment processing (global)</li>
+    <li><strong class="text-white">Brevo</strong> — transactional email</li>
+    <li><strong class="text-white">Cloudflare</strong> — DNS, CDN, DDoS protection</li>
+</ul>
+<p>All sub-processors are bound by GDPR-compliant Data Processing Agreements.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">7. Your Rights</h4>
+<p>Depending on your location, you have the right to:</p>
+<ul>
+    <li><strong class="text-white">Access</strong> — request a copy of your personal data</li>
+    <li><strong class="text-white">Rectification</strong> — correct inaccurate data</li>
+    <li><strong class="text-white">Erasure</strong> — request deletion of your data ("right to be forgotten")</li>
+    <li><strong class="text-white">Portability</strong> — receive your data in a machine-readable format</li>
+    <li><strong class="text-white">Restriction</strong> — limit how we process your data</li>
+    <li><strong class="text-white">Objection</strong> — object to processing based on legitimate interests</li>
+    <li><strong class="text-white">Withdraw consent</strong> — for marketing emails, unsubscribe at any time</li>
+</ul>
+<p>Submit requests to: <a href="mailto:privacy@bengalbound.com" class="text-cyan">privacy@bengalbound.com</a>. We respond within 30 days.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">8. Cookies</h4>
+<p>We use cookies for:</p>
+<ul>
+    <li><strong class="text-white">Essential:</strong> Session authentication, CSRF protection — cannot be disabled</li>
+    <li><strong class="text-white">Functional:</strong> Currency preference, UI settings</li>
+    <li><strong class="text-white">Analytics:</strong> Anonymous usage statistics (with your consent)</li>
+</ul>
+<p>You can manage cookie preferences via the banner shown on first visit.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">9. International Transfers</h4>
+<p>Data may be processed in the US (Render, Stripe, Groq) and the EU (Supabase). All transfers comply with GDPR Chapter V via Standard Contractual Clauses (SCCs).</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">10. Security</h4>
+<ul>
+    <li>All data in transit encrypted via TLS 1.2+</li>
+    <li>Sensitive fields (API keys, OAuth tokens) encrypted at rest using Fernet (AES-128)</li>
+    <li>Account lockout after 5 failed login attempts</li>
+    <li>Two-factor authentication (TOTP) available for all accounts</li>
+    <li>Immutable audit trail on all privileged operations</li>
+</ul>
+
+<h4 class="text-white fw-bold mt-5 mb-3">11. Children's Privacy</h4>
+<p>BengalBound is not intended for users under 16. We do not knowingly collect data from children. If you believe a child has provided us data, contact us immediately.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">12. Changes to This Policy</h4>
+<p>We may update this policy. We will notify registered users by email at least 14 days before material changes take effect. Continued use of the platform constitutes acceptance.</p>
+
+<h4 class="text-white fw-bold mt-5 mb-3">13. Contact</h4>
+<p>
+BengalBound Ltd<br>
+Email: <a href="mailto:privacy@bengalbound.com" class="text-cyan">privacy@bengalbound.com</a><br>
+Support: <a href="{% url 'public_site:contact' %}" class="text-cyan">Contact form</a>
+</p>
+
+</div><!-- end prose -->
+</div>
+</section>
+{% endblock %}

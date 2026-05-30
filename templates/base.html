@@ -151,8 +151,8 @@
                         <ul class="nav flex-column gap-2 font-inter">
                             <li class="nav-item"><a href="{% url 'public_site:contact' %}" class="nav-link px-0">Contact</a></li>
                             <li class="nav-item"><a href="#" class="nav-link px-0">Style Guide</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link px-0">Privacy Policy</a></li>
-                            <li class="nav-item"><a href="#" class="nav-link px-0">Terms of Conditions</a></li>
+                            <li class="nav-item"><a href="{% url 'public_site:privacy' %}" class="nav-link px-0">Privacy Policy</a></li>
+                            <li class="nav-item"><a href="{% url 'public_site:terms' %}" class="nav-link px-0">Terms of Service</a></li>
                         </ul>
                     </div>
 
@@ -233,6 +233,43 @@
         });
     </script>
     {% block extra_js %}{% endblock %}
+
+    <!-- Cookie Consent Banner (GDPR / UK GDPR compliant) -->
+    <div id="cookie-banner"
+         style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:10000;
+                background:rgba(8,8,12,0.97); border-top:1px solid rgba(255,255,255,0.1);
+                backdrop-filter:blur(20px); padding:1.25rem 1.5rem;">
+        <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <p class="mb-0 text-white-50 font-inter" style="font-size:0.88rem; max-width:700px;">
+                We use cookies to keep you logged in, remember your preferences, and understand how our platform is used.
+                Essential cookies are always active. Analytics cookies are optional.
+                See our <a href="/privacy/" class="text-cyan">Privacy Policy</a> for details.
+            </p>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <button onclick="cookieConsent('essential')"
+                        class="btn btn-sm rounded-pill px-4 fw-semibold"
+                        style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); font-size:0.82rem;">
+                    Essential only
+                </button>
+                <button onclick="cookieConsent('all')"
+                        class="btn btn-sm btn-premium rounded-pill px-4 fw-semibold"
+                        style="font-size:0.82rem;">
+                    Accept all
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function() {
+        if (!localStorage.getItem('bb_cookie_consent')) {
+            document.getElementById('cookie-banner').style.display = 'block';
+        }
+    })();
+    function cookieConsent(level) {
+        localStorage.setItem('bb_cookie_consent', level);
+        document.getElementById('cookie-banner').style.display = 'none';
+    }
+    </script>
 </body>
 
 </html>
