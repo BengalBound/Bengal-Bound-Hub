@@ -1,0 +1,29 @@
+[build]
+  # Renders the public Django site to static HTML via our export_static command.
+  command = """
+    pip install -r requirements.txt &&
+    python manage.py migrate --settings=netlify_settings --run-syncdb &&
+    python manage.py collectstatic --noinput --settings=netlify_settings &&
+    python manage.py export_static --settings=netlify_settings
+  """
+  publish = "netlify_dist"
+
+[build.environment]
+  PYTHON_VERSION        = "3.11"
+  DJANGO_SETTINGS_MODULE = "netlify_settings"
+  # Set SECRET_KEY in Netlify UI → Site settings → Environment variables
+  # (netlify_settings.py has a safe fallback for it, but override in prod)
+
+# Serve clean URLs: /about  →  /about/index.html
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets aggressively
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

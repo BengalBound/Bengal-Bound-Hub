@@ -38,6 +38,10 @@ db.sqlite3
 # Collected static files (production artefact, not source)
 staticfiles/
 
+# Netlify static export artefacts
+netlify_dist/
+netlify_build.db
+
 # Node.js
 node_modules/
 dist/
