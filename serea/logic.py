@@ -1666,11 +1666,11 @@ class SereaBrain:
         # Serea system prompts are ~10k tokens so everything uses llama-3.3-70b-versatile
         # (12k TPM free, 128k context) except phi4-mini quick tasks with small prompts
         _groq_model_map = {
-            'neural-chat':     'llama-3.3-70b-versatile',
-            'dolphin-mistral': 'llama-3.3-70b-versatile',
-            'glm4':            'llama-3.3-70b-versatile',
-            'qwen2.5-coder':   'llama-3.3-70b-versatile',
-            'phi4-mini':       'llama-3.1-8b-instant',
+            'neural-chat':     'meta-llama/llama-4-scout-17b-16e-instruct',  # 30k TPM
+            'dolphin-mistral': 'meta-llama/llama-4-scout-17b-16e-instruct',
+            'glm4':            'meta-llama/llama-4-scout-17b-16e-instruct',
+            'qwen2.5-coder':   'meta-llama/llama-4-scout-17b-16e-instruct',
+            'phi4-mini':       'meta-llama/llama-4-scout-17b-16e-instruct',
         }
 
         task_models = getattr(settings, 'SEREA_TASK_MODELS', _default_models)
