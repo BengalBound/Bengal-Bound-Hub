@@ -1,7 +1,10 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bengalbound_core.settings.development')
+if 'K_SERVICE' in os.environ:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bengalbound_core.settings.production')
+else:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bengalbound_core.settings.development')
 django.setup()
 
 from public_site.models import (

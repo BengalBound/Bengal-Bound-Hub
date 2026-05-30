@@ -64,8 +64,11 @@ MIDDLEWARE = (  # noqa: F405
     + ['whitenoise.middleware.WhiteNoiseMiddleware']
     + MIDDLEWARE[_security_idx + 1:]  # noqa: F405
 )
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # noqa: F405
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+# Robust fallback: use manifest storage if manifest exists, otherwise basic storage to prevent startup crash
+if (STATIC_ROOT / 'staticfiles.json').exists():
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # ── Celery — run synchronously unless Redis is available ──────────────────────
 _redis_url = os.environ.get('REDIS_URL', '')

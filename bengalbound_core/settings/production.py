@@ -56,7 +56,12 @@ MIDDLEWARE = (  # noqa: F405
     + ['whitenoise.middleware.WhiteNoiseMiddleware']
     + MIDDLEWARE[_security_idx + 1:]  # noqa: F405
 )
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Robust fallback: use manifest storage if manifest exists, otherwise basic storage to prevent startup crash
+if (STATIC_ROOT / 'staticfiles.json').exists():
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # ── Database ──────────────────────────────────────────────────────────────────
 _db_url = os.environ.get('DATABASE_URL', '')
