@@ -78,6 +78,9 @@ MIDDLEWARE = (  # noqa: F405
     + ['whitenoise.middleware.WhiteNoiseMiddleware']
     + MIDDLEWARE[_security_idx + 1:]  # noqa: F405
 )
+from pathlib import Path
+STATIC_ROOT = Path('/tmp/staticfiles')
+
 # Robust fallback: use manifest storage if manifest exists, otherwise basic storage to prevent startup crash
 if (STATIC_ROOT / 'staticfiles.json').exists():
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

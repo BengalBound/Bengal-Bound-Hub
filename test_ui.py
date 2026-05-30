@@ -7,14 +7,14 @@ def test_ui():
         page = browser.new_page()
         
         print('1. Testing Homepage...')
-        page.goto('http://127.0.0.1:8000/')
+        page.goto('https://bengal-bound-hub-480777976022.us-south1.run.app/')
         assert 'BengalBound' in page.title()
         
         print('2. Testing Login Page...')
-        page.goto('http://127.0.0.1:8000/accounts/login/')
+        page.goto('https://bengal-bound-hub-480777976022.us-south1.run.app/accounts/login/')
         
         print('3. Testing Registration Page...')
-        page.goto('http://127.0.0.1:8000/accounts/signup/')
+        page.goto('https://bengal-bound-hub-480777976022.us-south1.run.app/accounts/signup/')
         
         print('4. Attempting a mock user signup...')
         try:
@@ -24,7 +24,7 @@ def test_ui():
             print(f'Error interacting with signup form: {e}')
             
         print('5. Checking Workspace Admin console access...')
-        page.goto('http://127.0.0.1:8000/workspace/')
+        page.goto('https://bengal-bound-hub-480777976022.us-south1.run.app/workspace/')
         if 'login' in page.url:
             print('Workspace correctly protected by login redirection.')
             

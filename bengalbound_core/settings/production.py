@@ -55,7 +55,8 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ── Static files — whitenoise serves directly from gunicorn ──────────────────
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # noqa: F405
+from pathlib import Path
+STATIC_ROOT = Path('/tmp/staticfiles')
 _security_idx = next(
     (i for i, m in enumerate(MIDDLEWARE) if 'SecurityMiddleware' in m), 0  # noqa: F405
 )
