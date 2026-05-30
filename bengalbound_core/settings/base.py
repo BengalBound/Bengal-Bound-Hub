@@ -341,6 +341,11 @@ SEREA_TASK_MODELS  = {
     'gemini':     env('GEMINI_MODEL',           default='gemini/gemini-1.5-flash'),
 }
 
+# ── Payments (NowPayments) ────────────────────────────────────────────────────
+NOWPAYMENTS_API_KEY  = env('NOWPAYMENTS_API_KEY',  default='')
+NOWPAYMENTS_IPN_SECRET = env('NOWPAYMENTS_IPN_SECRET', default='')
+NOWPAYMENTS_API_URL  = env('NOWPAYMENTS_API_URL',  default='https://api-sandbox.nowpayments.io/v1')
+
 # ── Encryption ────────────────────────────────────────────────────────────────
 FIELD_ENCRYPTION_KEY = env('FIELD_ENCRYPTION_KEY', default='')
 
