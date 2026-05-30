@@ -59,6 +59,14 @@ if _db_url:
             ssl_require=True,
         )
     }
+else:
+    # Ephemeral SQLite in /tmp for guaranteed write permissions in containerized environments
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite3',
+        }
+    }
 
 # ── Static files — whitenoise serves them from gunicorn ───────────────────────
 # Insert whitenoise right after SecurityMiddleware

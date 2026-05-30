@@ -81,6 +81,14 @@ if _db_url:
             ssl_require='sslmode' not in _db_url,
         )
     }
+else:
+    # Ephemeral SQLite in /tmp for guaranteed write permissions in containerized environments
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/tmp/db.sqlite3',
+        }
+    }
 
 # ── Email — Brevo SMTP (free 300/day) or any SMTP ────────────────────────────
 # Brevo setup: https://app.brevo.com → Transactional → SMTP & API
