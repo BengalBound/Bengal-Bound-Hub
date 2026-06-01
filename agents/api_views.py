@@ -80,7 +80,7 @@ class AgentRunView(APIView):
     def post(self, request, slug, agent_slug):
         from agents.utils import agent_chat
 
-        _, catalog, instance = _get_instance(request, slug, agent_slug)
+        business, catalog, instance = _get_instance(request, slug, agent_slug)
 
         user_input = (request.data.get('input') or '').strip()
         if not user_input:
@@ -91,10 +91,14 @@ class AgentRunView(APIView):
 
         t0 = timezone.now()
         try:
-            result = agent_chat([
-                {'role': 'system', 'content': catalog.system_prompt},
-                {'role': 'user',   'content': user_input},
-            ])
+            result = agent_chat(
+                messages=[
+                    {'role': 'system', 'content': catalog.system_prompt},
+                    {'role': 'user',   'content': user_input},
+                ],
+                business=business,
+                agent_slug=agent_slug,
+            )
             duration_ms = int((timezone.now() - t0).total_seconds() * 1000)
             log = AgentLog.objects.create(
                 instance=instance,

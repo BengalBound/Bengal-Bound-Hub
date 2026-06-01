@@ -1,133 +1,107 @@
-import json
-import requests
+"""
+All AI calls go through this module — LangChain 1.x (LangGraph) only.
+Never call Groq, OpenAI, or any provider directly outside this file.
+"""
+import logging
 from django.conf import settings
 
-# Maps the internal model nicknames → real Groq model IDs used by litellm library
-_GROQ_MODEL_MAP = {
-    "neural-chat":             "groq/meta-llama/llama-4-scout-17b-16e-instruct",  # 30k TPM
-    "dolphin-mistral":         "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-    "glm4":                    "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-    "qwen2.5-coder":           "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-    "phi4-mini":               "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-    "gemini/gemini-1.5-flash": "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-}
-
-
-def _call_via_proxy(messages_copy, model, tools):
-    """HTTP call to the LiteLLM proxy server."""
-    resp = requests.post(
-        f"{settings.LITELLM_BASE_URL}/chat/completions",
-        headers={"Authorization": f"Bearer {settings.LITELLM_MASTER_KEY}"},
-        json={"model": model, "messages": messages_copy, "tools": tools},
-        timeout=45,
-    )
-    resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]
-
-
-def _call_via_library(messages_copy, model, tools):
-    """Direct litellm library call — works without a proxy server running."""
-    import litellm
-    groq_model = _GROQ_MODEL_MAP.get(model, "groq/llama-3.1-8b-instant")
-    response = litellm.completion(
-        model=groq_model,
-        messages=messages_copy,
-        tools=tools or None,
-        api_key=settings.GROQ_API_KEY,
-        timeout=45,
-    )
-    msg = response.choices[0].message
-    # Normalise to plain dict so the rest of the code works unchanged
-    return {
-        "role": "assistant",
-        "content": msg.content or "",
-        "tool_calls": [
-            {
-                "id": tc.id,
-                "function": {
-                    "name": tc.function.name,
-                    "arguments": tc.function.arguments,
-                },
-            }
-            for tc in (msg.tool_calls or [])
-        ] or None,
-    }
+logger = logging.getLogger(__name__)
 
 
 def _use_proxy() -> bool:
-    """True when a proxy URL is configured AND it is not localhost (proxy must be running)."""
     url = getattr(settings, "LITELLM_BASE_URL", "")
     return bool(url) and "localhost" not in url and "127.0.0.1" not in url
 
 
-def agent_chat(messages: list, model: str = None) -> str:
+def get_llm(model: str = None):
+    """Return the appropriate LangChain chat model for the current environment."""
+    if _use_proxy():
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            base_url=f"{settings.LITELLM_BASE_URL}/v1",
+            api_key=settings.LITELLM_MASTER_KEY,
+            model=model or settings.SEREA_TASK_MODELS.get("chat", "neural-chat"),
+            timeout=45,
+        )
+    from langchain_groq import ChatGroq
+    return ChatGroq(
+        api_key=settings.GROQ_API_KEY,
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        timeout=45,
+    )
+
+
+def agent_chat(
+    messages: list,
+    model: str = None,
+    business=None,
+    agent_slug: str = None,
+) -> str:
     """
-    Send messages through LiteLLM and return the assistant reply.
-    - If LITELLM_BASE_URL points to a remote proxy: uses the HTTP proxy.
-    - Otherwise (localhost / not set): calls the litellm Python library directly
-      using GROQ_API_KEY — no separate proxy process required.
+    Run a conversation through a LangChain / LangGraph agent with tools.
+
+    Args:
+        messages:    OpenAI-format list [{"role": ..., "content": ...}]
+        model:       Optional LLM model override
+        business:    BusinessInstance — enables hub data tools when provided
+        agent_slug:  Catalog slug — selects the correct subset of hub tools
     """
-    from .toolkit import UNIVERSAL_TOOLS, execute_tool  # lazy — avoids startup curl_cffi load
+    from langchain.agents import create_agent
+    from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+    from .toolkit import get_universal_tools
 
-    model = model or settings.SEREA_TASK_MODELS.get("chat", "neural-chat")
+    # --- Parse the OpenAI-format message list ---
+    lc_messages = []
+    system_content = (
+        "You are a helpful AI employee for a business. "
+        "Use your tools whenever you need real-time or business-specific data."
+    )
+    for msg in messages:
+        role = msg.get("role", "")
+        content = msg.get("content") or ""
+        if role == "system":
+            system_content = content
+        elif role == "user":
+            lc_messages.append(HumanMessage(content=content))
+        elif role == "assistant":
+            lc_messages.append(AIMessage(content=content))
 
-    messages_copy = list(messages)
-    for m in messages_copy:
-        if m.get("role") == "system":
-            instruction = (
-                "\n\n[SYSTEM]: You are an autonomous AI. You have access to tools "
-                "that can search the internet, scrape websites, and call APIs. "
-                "Use them whenever you need real-time information or external data."
-            )
-            if instruction not in m.get("content", ""):
-                m["content"] += instruction
-            break
+    # --- Assemble tools ---
+    tools = get_universal_tools()
+    if business is not None:
+        try:
+            from .hub_tools import get_hub_tools
+            tools = tools + get_hub_tools(business, agent_slug=agent_slug)
+        except Exception as exc:
+            logger.warning("hub_tools load failed (%s/%s): %s", business, agent_slug, exc)
 
-    call = _call_via_proxy if _use_proxy() else _call_via_library
+    # --- Build and run the LangGraph agent ---
+    llm = get_llm(model)
+    agent = create_agent(llm, tools, system_prompt=system_content)
 
-    for _ in range(5):
-        message = call(messages_copy, model, UNIVERSAL_TOOLS)
+    try:
+        result = agent.invoke({"messages": lc_messages})
+        # result["messages"] is a list; the last message is the final AI reply
+        final = result["messages"][-1]
+        return getattr(final, "content", str(final))
+    except Exception as exc:
+        logger.error("agent_chat failed: %s", exc, exc_info=True)
+        return f"Error: {exc}"
 
-        if message.get("tool_calls"):
-            messages_copy.append(message)
-            for tc in message["tool_calls"]:
-                tool_name = tc["function"]["name"]
-                try:
-                    arguments = json.loads(tc["function"]["arguments"])
-                except json.JSONDecodeError:
-                    arguments = {}
-                result = execute_tool(tool_name, arguments)
-                messages_copy.append({
-                    "role": "tool",
-                    "name": tool_name,
-                    "tool_call_id": tc["id"],
-                    "content": str(result),
-                })
-        else:
-            return message.get("content", "")
 
-    return "Error: Exceeded maximum tool call iterations."
-
-def ai_chat(system_prompt: str, messages: list, organization_id=None, **kwargs) -> str:
-    """
-    Backward-compatibility wrapper translating comparison's ai_chat parameters
-    to unified agent_chat calls.
-    """
+def ai_chat(system_prompt: str, messages: list, _organization_id=None, **kwargs) -> str:
+    """Backward-compatibility shim for Serea-era callers."""
     full_messages = []
     if system_prompt:
         full_messages.append({"role": "system", "content": system_prompt})
     full_messages.extend(messages)
-    return agent_chat(messages=full_messages, model="gemini/gemini-1.5-flash")
+    return agent_chat(messages=full_messages)
+
 
 class AuditLog:
-    """
-    Mock class for compliance AuditLog to prevent import errors and allow
-    clean execution of view logs when the compliance module is not installed.
-    """
+    """Stub preventing import errors when the compliance module is not installed."""
     class MockManager:
         @staticmethod
         def create(*args, **kwargs):
             return None
     objects = MockManager()
-
-
