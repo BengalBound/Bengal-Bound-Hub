@@ -57,8 +57,8 @@ if _db_url:
     DATABASES = {
         'default': dj_database_url.config(
             default=_db_url,
-            conn_max_age=600,
-            ssl_require=True,
+            conn_max_age=0,  # Cloud Run is stateless — no persistent connections
+            ssl_require=False,  # SSL handled by the URL itself (Supabase pooler)
         )
     }
 else:
