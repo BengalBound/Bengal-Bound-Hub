@@ -43,6 +43,20 @@ The platform is feature-complete for MVP. All 33 AI agents are implemented and w
 - Content management (CMS)
 - Marketing analytics
 
+### ✅ Sprint F — P1: Agent Connection Layer (June 2026)
+- Generic DRF API for all 30 agents: run / logs / status / approvals / decide
+- `console_admin/views_agents.py` — agent workspace + overview views
+- `templates/console_admin/agent_workspace.html` — chat UI + approvals + activity log
+- `templates/console_admin/agents_overview.html` — all 30 agents grid
+- `base_console.html` — AI Agents sidebar section with live status dots + pending badge
+
+### ✅ Sprint G — P2: LangChain Hub Data Connectors (June 2026)
+- Replaced raw litellm loop with **LangChain 1.x** (`create_agent` / LangGraph)
+- `agents/toolkit.py` — universal tools as LangChain `@tool` decorators
+- `agents/hub_tools.py` — 12 `StructuredTool` functions across CRM (5), HR (4), Invoice (3)
+- `agents/utils.py` — `get_llm()` factory + `agent_chat(business, agent_slug)` API
+- `agents/api_views.py` — passes `business` + `agent_slug` through to `agent_chat`
+
 ### ✅ Sprint E — UI Overhaul (June 2026)
 - Premium glass-morphism design across all templates
 - Animated background orbs on all screens

@@ -30,20 +30,37 @@ agents/
 
 ---
 
-## The Only Correct Way to Call AI
+## The Only Correct Way to Call AI — LangChain (P2+)
+
+All AI calls go through `agents/utils.py` using **LangChain 1.x** (LangGraph under the hood).
 
 ```python
-# agents/utils.py
 from agents.utils import agent_chat
 
+# Basic call (universal tools: web search, scrape, API)
 result = agent_chat(
     messages=[
         {"role": "system", "content": "You are Crux, a world-class CRM manager..."},
         {"role": "user",   "content": "Audit this pipeline and flag stale deals."},
     ],
-    model=None  # None = auto-pick from SEREA_TASK_MODELS
+)
+
+# With hub data access (agents that need live business data)
+result = agent_chat(
+    messages=[...],
+    business=business_instance,   # scopes all ORM queries to this tenant
+    agent_slug="crux",            # selects the correct hub tools (CRM, HR, Invoice, etc.)
 )
 ```
+
+### LLM routing
+
+| Environment | LLM used |
+|---|---|
+| Dev / Render | `ChatGroq` → `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free) |
+| VPS (prod) | `ChatOpenAI` → LiteLLM proxy at `LITELLM_BASE_URL` |
+
+`get_llm()` in `agents/utils.py` handles the routing automatically based on whether `LITELLM_BASE_URL` is set to a non-localhost URL.
 
 **Never call Groq, OpenAI, or Gemini directly.** Always use `agent_chat()`.
 
@@ -193,6 +210,22 @@ InspectorMiddleware (inspector/middleware.py)
 ```
 
 Inspector uses `phi4-mini` key → `llama-4-scout-17b` for fast classification. Every decision is SHA-256 chained in `inspector_compliancecheck` — immutable, never deletable.
+
+---
+
+## Hub Data Tools — P2 Agent→Module Connectors
+
+`agents/hub_tools.py` provides LangChain `StructuredTool` instances scoped to a specific business. Each tool hits real Django ORM — no mocked data.
+
+| Agent Slug | Hub Tools Available |
+|---|---|
+| `crux`, `lead-hunter` | `crm_get_contacts`, `crm_get_deals`, `crm_pipeline_summary`, `crm_create_contact`, `crm_log_activity` |
+| `hera`, `nexus` | `hr_get_employees`, `hr_pending_leaves`, `hr_headcount`, `hr_performance_reviews` |
+| `cash` | `invoice_list`, `invoice_revenue_summary`, `invoice_client_balance` |
+| `reporting-bot`, `nova`, `clarity` | All CRM + HR + Invoice tools |
+| All others | Universal tools only (web search, scrape, API call) |
+
+Tools are added automatically by `agent_chat(business=..., agent_slug=...)` — no changes needed in engine.py files.
 
 ---
 
