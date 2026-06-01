@@ -1,0 +1,242 @@
+{% extends 'console_admin/base_console.html' %}
+
+{% block title %}{{ catalog.name }} — AI Agent | BengalBound Console{% endblock %}
+{% block page_title %}{{ catalog.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.agent-header { background: linear-gradient(135deg, rgba(157,78,221,0.12), rgba(0,245,212,0.08)); border: 1px solid var(--bb-glass-border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.log-card { background: var(--bb-bg-card); border: 1px solid var(--bb-glass-border); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; transition: border-color 0.2s; }
+.log-card:hover { border-color: rgba(255,255,255,0.12); }
+.outcome-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.outcome-success  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+.outcome-failed   { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+.outcome-escalated{ background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+.outcome-pending  { background: rgba(99,102,241,0.12); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
+.approval-card { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; }
+#chat-output { min-height: 120px; max-height: 320px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 1rem; font-size: 0.85rem; color: #e2e8f0; white-space: pre-wrap; border: 1px solid var(--bb-glass-border); }
+#chat-output .msg-user { color: var(--bb-accent-cyan); margin-bottom: 0.5rem; }
+#chat-output .msg-agent { color: #e2e8f0; margin-bottom: 1rem; }
+.chat-form input, .chat-form textarea { background: rgba(255,255,255,0.04); border: 1px solid var(--bb-glass-border); border-radius: 10px; color: #e2e8f0; font-size: 0.875rem; }
+.chat-form input:focus, .chat-form textarea:focus { border-color: var(--bb-accent-cyan); box-shadow: 0 0 0 3px rgba(0,245,212,0.1); background: rgba(255,255,255,0.06); color: #e2e8f0; outline: none; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- Left column: Agent Info + Chat -->
+  <div class="col-lg-7">
+
+    <!-- Agent header card -->
+    <div class="agent-header">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,rgba(157,78,221,0.25),rgba(0,245,212,0.15));border:1px solid rgba(0,245,212,0.3);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--bb-accent-cyan);">
+          <i class="bi {{ catalog.icon|default:'bi-robot' }}"></i>
+        </div>
+        <div class="flex-grow-1">
+          <h5 class="font-outfit fw-bold mb-0" style="color:#e2e8f0;">{{ catalog.name }}</h5>
+          <p class="small mb-0" style="color:rgba(226,232,240,0.5);">{{ catalog.role }}</p>
+        </div>
+        {% if instance %}
+        <div class="d-flex align-items-center gap-2">
+          <span class="status-dot {% if instance.status == 'working' %}bg-success{% elif instance.status == 'waiting' %}bg-warning{% else %}bg-secondary{% endif %}"></span>
+          <span style="font-size:0.78rem;color:rgba(226,232,240,0.6);">{{ instance.get_status_display }}</span>
+        </div>
+        {% endif %}
+      </div>
+      <p class="small mb-2" style="color:rgba(226,232,240,0.55);">{{ catalog.description }}</p>
+      <div class="d-flex gap-3 flex-wrap">
+        <span class="badge" style="background:rgba(157,78,221,0.15);color:#c084fc;border:1px solid rgba(157,78,221,0.3);font-size:0.68rem;">{{ catalog.category }}</span>
+        <span class="badge" style="background:rgba(255,255,255,0.05);color:rgba(226,232,240,0.5);font-size:0.68rem;">Tier: {{ catalog.tier_required }}</span>
+        {% if instance %}
+        <span class="badge" style="background:rgba(255,255,255,0.05);color:rgba(226,232,240,0.5);font-size:0.68rem;">
+          <i class="bi bi-lightning me-1"></i>{{ instance.tokens_used_this_month|default:0 }} tokens this month
+        </span>
+        {% if instance.last_run_at %}
+        <span class="badge" style="background:rgba(255,255,255,0.05);color:rgba(226,232,240,0.5);font-size:0.68rem;">
+          Last run: {{ instance.last_run_at|date:"M d, H:i" }}
+        </span>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Chat Interface -->
+    {% if instance %}
+    <div class="glass-panel p-4 mb-4">
+      <h6 class="font-outfit fw-bold mb-3" style="color:#e2e8f0;"><i class="bi bi-chat-dots me-2" style="color:var(--bb-accent-cyan);"></i>Talk to {{ catalog.name }}</h6>
+      <div id="chat-output" class="mb-3">
+        <span style="color:rgba(226,232,240,0.3);font-size:0.8rem;">Ask {{ catalog.name }} anything — they'll respond as your expert AI employee.</span>
+      </div>
+      <div class="chat-form">
+        <div class="d-flex gap-2">
+          <textarea id="chat-input" class="form-control flex-grow-1" rows="2" placeholder="e.g. 'Review our pipeline and tell me which deals are at risk'" style="resize:none;"></textarea>
+          <button id="chat-send" class="btn btn-hub-primary px-3" style="align-self:flex-end;white-space:nowrap;" onclick="sendToAgent()">
+            <i class="bi bi-send-fill me-1"></i>Ask
+          </button>
+        </div>
+        <div id="chat-loading" class="mt-2 d-none" style="color:rgba(0,245,212,0.7);font-size:0.8rem;">
+          <span class="spinner-border spinner-border-sm me-1"></span> {{ catalog.name }} is thinking...
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="glass-panel p-4 text-center mb-4">
+      <i class="bi bi-robot" style="font-size:2rem;color:rgba(226,232,240,0.2);"></i>
+      <p class="mt-2 small" style="color:rgba(226,232,240,0.4);">No active instance for your business.</p>
+      <a href="{% url 'console_admin:hire_ai' %}" class="btn btn-hub-primary btn-sm">Hire {{ catalog.name }}</a>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right column: Approvals + Activity Log -->
+  <div class="col-lg-5">
+
+    <!-- Pending Approvals -->
+    {% if pending_approvals %}
+    <div class="glass-panel p-3 mb-4">
+      <h6 class="font-outfit fw-bold mb-3 d-flex align-items-center gap-2" style="color:#fbbf24;">
+        <i class="bi bi-hourglass-split"></i> Needs Your Approval
+        <span class="badge rounded-pill ms-auto" style="background:rgba(251,191,36,0.2);color:#fbbf24;font-size:0.65rem;">{{ pending_approvals|length }}</span>
+      </h6>
+      {% for pr in pending_approvals %}
+      <div class="approval-card">
+        <p class="small mb-2" style="color:#e2e8f0;">{{ pr.context|truncatechars:200 }}</p>
+        <div class="d-flex gap-2 flex-wrap mb-2">
+          <span class="badge" style="background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.2);font-size:0.7rem;">A: {{ pr.option_a|truncatechars:60 }}</span>
+          {% if pr.option_b %}
+          <span class="badge" style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.15);font-size:0.7rem;">B: {{ pr.option_b|truncatechars:60 }}</span>
+          {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm px-3" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;border-radius:8px;" onclick="decide({{ pr.pk }}, 'approved', this)">
+            <i class="bi bi-check2 me-1"></i>Approve
+          </button>
+          <button class="btn btn-sm px-3" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;border-radius:8px;" onclick="decide({{ pr.pk }}, 'denied', this)">
+            <i class="bi bi-x me-1"></i>Deny
+          </button>
+          <span class="ms-auto small" style="color:rgba(226,232,240,0.3);align-self:center;">{{ pr.created_at|timesince }} ago</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Activity Log -->
+    <div class="glass-panel p-3">
+      <h6 class="font-outfit fw-bold mb-3 d-flex align-items-center gap-2" style="color:#e2e8f0;">
+        <i class="bi bi-activity" style="color:var(--bb-accent-cyan);"></i> Recent Activity
+        <span class="badge ms-auto" style="background:rgba(255,255,255,0.05);color:rgba(226,232,240,0.4);font-size:0.65rem;">Last 30 runs</span>
+      </h6>
+      {% if logs %}
+        {% for log in logs %}
+        <div class="log-card">
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+            <span style="font-size:0.8rem;color:#e2e8f0;font-weight:500;">{{ log.action }}</span>
+            <span class="outcome-badge outcome-{{ log.outcome }} flex-shrink-0">{{ log.get_outcome_display }}</span>
+          </div>
+          {% if log.detail %}
+          <p class="small mb-1" style="color:rgba(226,232,240,0.45);font-size:0.75rem;margin:0;">{{ log.detail|truncatechars:120 }}</p>
+          {% endif %}
+          <div class="d-flex gap-3 mt-1">
+            <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">{{ log.created_at|timesince }} ago</span>
+            {% if log.duration_ms %}<span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">{{ log.duration_ms }}ms</span>{% endif %}
+            {% if log.tokens %}<span style="font-size:0.68rem;color:rgba(226,232,240,0.3);"><i class="bi bi-lightning me-1"></i>{{ log.tokens }} tokens</span>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-4">
+          <i class="bi bi-clock-history" style="font-size:1.5rem;color:rgba(226,232,240,0.15);"></i>
+          <p class="small mt-2 mb-0" style="color:rgba(226,232,240,0.3);">No activity yet. Use the chat above to interact with {{ catalog.name }}.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const AGENT_SLUG = "{{ catalog.slug }}";
+{% if console_biz %}
+const BIZ_SLUG   = "{{ console_biz.slug }}";
+{% else %}
+const BIZ_SLUG   = null;
+{% endif %}
+
+function getCookie(name) {
+  let v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+
+async function sendToAgent() {
+  if (!BIZ_SLUG) return;
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  const output  = document.getElementById('chat-output');
+  const loading = document.getElementById('chat-loading');
+  const btn     = document.getElementById('chat-send');
+
+  output.innerHTML += `<div class="msg-user"><strong>You:</strong> ${escHtml(text)}</div>`;
+  input.value = '';
+  loading.classList.remove('d-none');
+  btn.disabled = true;
+  output.scrollTop = output.scrollHeight;
+
+  try {
+    const res = await fetch(`/hub/${BIZ_SLUG}/agents/${AGENT_SLUG}/api/run/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ input: text }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      output.innerHTML += `<div class="msg-agent"><strong>{{ catalog.name }}:</strong> ${escHtml(data.result)}</div>`;
+    } else {
+      output.innerHTML += `<div class="msg-agent" style="color:#f87171;"><strong>Error:</strong> ${escHtml(data.error || 'Unknown error')}</div>`;
+    }
+  } catch (err) {
+    output.innerHTML += `<div class="msg-agent" style="color:#f87171;">Network error — please try again.</div>`;
+  } finally {
+    loading.classList.add('d-none');
+    btn.disabled = false;
+    output.scrollTop = output.scrollHeight;
+  }
+}
+
+async function decide(prPk, decision, btn) {
+  if (!BIZ_SLUG) return;
+  btn.disabled = true;
+  const card = btn.closest('.approval-card');
+  try {
+    const res = await fetch(`/hub/${BIZ_SLUG}/agents/${AGENT_SLUG}/api/approvals/${prPk}/decide/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ decision }),
+    });
+    if (res.ok) {
+      card.style.opacity = '0.4';
+      card.style.pointerEvents = 'none';
+      card.querySelector('p').textContent = decision === 'approved' ? '✓ Approved — agent resuming.' : '✗ Denied.';
+    }
+  } catch (err) {
+    btn.disabled = false;
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('chat-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAgent(); }
+});
+</script>
+{% endblock %}

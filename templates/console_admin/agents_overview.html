@@ -1,0 +1,93 @@
+{% extends 'console_admin/base_console.html' %}
+
+{% block title %}AI Agents — BengalBound Console{% endblock %}
+{% block page_title %}AI Agents{% endblock %}
+
+{% block extra_head %}
+<style>
+.agent-card { background: var(--bb-bg-card); border: 1px solid var(--bb-glass-border); border-radius: 14px; padding: 1.25rem; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+.agent-card:hover { border-color: var(--bb-accent-cyan); box-shadow: 0 0 20px rgba(0,245,212,0.08); transform: translateY(-2px); }
+.agent-card.hired { border-color: rgba(157,78,221,0.3); background: linear-gradient(135deg, rgba(157,78,221,0.07), rgba(0,245,212,0.04)); }
+.agent-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(157,78,221,0.2), rgba(0,245,212,0.1)); border: 1px solid rgba(0,245,212,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--bb-accent-cyan); flex-shrink: 0; }
+.status-pip { width: 8px; height: 8px; border-radius: 50%; }
+.cat-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(226,232,240,0.35); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="font-outfit fw-bold mb-1" style="color:#e2e8f0;">AI Agent Workforce</h4>
+    <p class="small mb-0" style="color:rgba(226,232,240,0.45);">{{ instances|length }} active agent{{ instances|length|pluralize }} · {{ all_agents|length }} available</p>
+  </div>
+  {% if total_pending %}
+  <a href="#pending" class="btn btn-sm" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:10px;">
+    <i class="bi bi-hourglass-split me-1"></i>{{ total_pending }} approval{{ total_pending|pluralize }} pending
+  </a>
+  {% endif %}
+</div>
+
+<!-- Active agents -->
+{% if instances %}
+<h6 class="cat-label mt-0">Active on Your Business</h6>
+<div class="row g-3 mb-4">
+  {% for inst in instances %}
+  <div class="col-sm-6 col-lg-4">
+    <a href="{% url 'console_admin:agent_workspace' inst.catalog.slug %}" class="agent-card hired">
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="agent-icon"><i class="bi {{ inst.catalog.icon|default:'bi-robot' }}"></i></div>
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="fw-semibold text-truncate" style="color:#e2e8f0;font-size:0.9rem;">{{ inst.catalog.name }}</div>
+          <div style="font-size:0.72rem;color:rgba(226,232,240,0.45);">{{ inst.catalog.role|truncatechars:40 }}</div>
+        </div>
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+          <div class="status-pip {% if inst.status == 'working' %}bg-success{% elif inst.status == 'waiting' %}bg-warning{% else %}bg-secondary{% endif %}"></div>
+          <span style="font-size:0.68rem;color:rgba(226,232,240,0.4);">{{ inst.get_status_display }}</span>
+        </div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between">
+        <span class="badge" style="background:rgba(157,78,221,0.15);color:#c084fc;font-size:0.65rem;">{{ inst.catalog.category }}</span>
+        {% if inst.last_run_at %}
+        <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">Last run {{ inst.last_run_at|timesince }} ago</span>
+        {% else %}
+        <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">Never run</span>
+        {% endif %}
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- All available agents (not yet hired) -->
+{% regroup all_agents by category as agents_by_category %}
+{% for group in agents_by_category %}
+  {% if group.grouper not in hired_categories %}
+  <h6 class="cat-label">{{ group.grouper }}</h6>
+  <div class="row g-3 mb-2">
+    {% for agent in group.list %}
+    {% if agent.slug not in hired_slugs %}
+    <div class="col-sm-6 col-lg-4">
+      <a href="{% url 'console_admin:hire_ai' %}" class="agent-card">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="agent-icon" style="opacity:0.6;"><i class="bi {{ agent.icon|default:'bi-robot' }}"></i></div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold text-truncate" style="color:rgba(226,232,240,0.7);font-size:0.9rem;">{{ agent.name }}</div>
+            <div style="font-size:0.72rem;color:rgba(226,232,240,0.35);">{{ agent.role|truncatechars:40 }}</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="badge" style="background:rgba(255,255,255,0.04);color:rgba(226,232,240,0.35);font-size:0.65rem;">{{ agent.category }}</span>
+          <span style="font-size:0.7rem;color:rgba(0,245,212,0.5);">+ Hire</span>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% endblock %}

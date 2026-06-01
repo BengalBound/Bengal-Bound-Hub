@@ -111,6 +111,31 @@
     {% endif %}
     </div>
 
+    <!-- AI Agents (hired instances) -->
+    {% if agent_instances %}
+    <div class="sb-section">
+    <div class="sb-section-label d-flex align-items-center gap-1">
+        AI Agents
+        {% if pending_agent_approvals %}
+        <span class="ms-auto badge rounded-pill" style="background:rgba(251,191,36,0.2);color:#fbbf24;font-size:0.55rem;padding:2px 6px;">{{ pending_agent_approvals }} pending</span>
+        {% endif %}
+    </div>
+    {% for inst in agent_instances %}
+    <a href="{% url 'console_admin:agent_workspace' inst.catalog.slug %}" class="sb-link {% if request.resolver_match.url_name == 'agent_workspace' and agent_slug == inst.catalog.slug %}active{% endif %}">
+        <i class="bi {{ inst.catalog.icon|default:'bi-robot' }}"></i>
+        <span class="text-truncate">{{ inst.catalog.name }}</span>
+        <span class="ms-auto rounded-circle flex-shrink-0" style="width:7px;height:7px;
+            {% if inst.status == 'working' %}background:#10b981;
+            {% elif inst.status == 'waiting' %}background:#f59e0b;
+            {% else %}background:#4b5563;{% endif %}"></span>
+    </a>
+    {% endfor %}
+    <a href="{% url 'console_admin:agents_overview' %}" class="sb-link" style="color:rgba(0,245,212,0.6);font-size:0.8rem;">
+        <i class="bi bi-grid-3x3-gap"></i> All Agents
+    </a>
+    </div>
+    {% endif %}
+
     <!-- Tools & Support -->
     <div class="sb-section">
     <div class="sb-section-label">Tools & Support</div>
@@ -155,14 +180,22 @@
     </a>
     
     <!-- Notification Bell -->
+    {% with total_alerts=unread_notification_count|add:pending_agent_approvals %}
     <a href="{% url 'console_admin:notifications_list' %}" class="position-relative d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--muted);text-decoration:none;" title="Notifications">
     <i class="bi bi-bell" style="font-size:0.9rem;"></i>
-    {% if unread_notification_count %}
-    <span class="position-absolute top-0 end-0 translate-middle-y rounded-circle d-flex align-items-center justify-content-center" style="width:16px;height:16px;background:#ef4444;font-size:0.55rem;font-weight:700;color:#fff;border:2px solid var(--bg);transform:translate(30%,-30%);">
-        {{ unread_notification_count|default:"" }}
+    {% if total_alerts %}
+    <span class="position-absolute top-0 end-0 rounded-circle d-flex align-items-center justify-content-center" style="width:16px;height:16px;background:#ef4444;font-size:0.55rem;font-weight:700;color:#fff;border:2px solid var(--bb-bg-deep);transform:translate(30%,-30%);">
+        {{ total_alerts }}
     </span>
     {% endif %}
     </a>
+    {% if pending_agent_approvals %}
+    <a href="{% url 'console_admin:agents_overview' %}" class="position-relative d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:8px;color:#fbbf24;text-decoration:none;" title="{{ pending_agent_approvals }} agent approval(s) needed">
+    <i class="bi bi-hourglass-split" style="font-size:0.9rem;"></i>
+    <span class="position-absolute top-0 end-0 rounded-circle d-flex align-items-center justify-content-center" style="width:16px;height:16px;background:#f59e0b;font-size:0.55rem;font-weight:700;color:#fff;border:2px solid var(--bb-bg-deep);transform:translate(30%,-30%);">{{ pending_agent_approvals }}</span>
+    </a>
+    {% endif %}
+    {% endwith %}
 
     <!-- Billing shortcut -->
     <a href="{% url 'console_admin:billing_overview' %}" class="d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--muted);text-decoration:none;" title="Billing">

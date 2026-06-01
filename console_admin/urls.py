@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from . import views, views_billing, views_totp
+from . import views, views_billing, views_totp, views_agents
 from django.contrib.auth import views as auth_views
 
 app_name = 'console_admin'
@@ -60,6 +60,10 @@ urlpatterns = [
     # Notification center
     path('notifications/', views.notifications_list, name='notifications_list'),
     path('notifications/mark-read/', views.notifications_mark_read, name='notifications_mark_read'),
+
+    # AI Agent workspaces
+    path('agents/', views_agents.agents_overview, name='agents_overview'),
+    path('agents/<slug:agent_slug>/', views_agents.agent_workspace, name='agent_workspace'),
 
     # Data exports
     path('export/moderation-logs/', views.export_moderation_logs_csv, name='export_moderation_logs'),

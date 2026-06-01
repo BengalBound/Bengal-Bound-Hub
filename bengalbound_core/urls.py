@@ -167,6 +167,9 @@ urlpatterns = [
     path('serea/', include('serea.urls', namespace='serea')),
     path('agents/', include('agents.urls')),
 
+    # Generic agent API — run / logs / status / approvals / decide (all 30 agents)
+    path('hub/<slug:slug>/agents/<str:agent_slug>/api/', include('agents.api_urls')),
+
     # AI Agents REST APIs
     path('hub/<slug:slug>/agents/aria/', include('agents.aria.urls', namespace='aria')),
     path('hub/<slug:slug>/agents/crux/', include('agents.crux.urls', namespace='crux')),

@@ -43,4 +43,25 @@ def console_modules_processor(request):
     except Exception:
         ctx['unread_notification_count'] = 0
 
+    # Agent instances for this business + pending approval count
+    try:
+        from agents.models import AgentInstance, AgentPermissionRequest
+        biz = ctx.get('console_biz')
+        if biz:
+            ctx['agent_instances'] = (
+                AgentInstance.objects
+                .filter(business=biz)
+                .select_related('catalog')
+                .order_by('catalog__category', 'catalog__name')
+            )
+            ctx['pending_agent_approvals'] = AgentPermissionRequest.objects.filter(
+                instance__business=biz, decision__isnull=True
+            ).count()
+        else:
+            ctx['agent_instances'] = []
+            ctx['pending_agent_approvals'] = 0
+    except Exception:
+        ctx['agent_instances'] = []
+        ctx['pending_agent_approvals'] = 0
+
     return ctx
