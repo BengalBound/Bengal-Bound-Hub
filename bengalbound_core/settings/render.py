@@ -44,9 +44,11 @@ CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.onrender.com',
-    'https://*.netlify.app',
-    'https://*.bengalbound.com',
+    'https://*.run.app',           # Google Cloud Run
+    'https://*.onrender.com',      # Render
+    'https://*.netlify.app',       # Netlify
+    'https://*.bengalbound.com',   # Production domain
+    'https://bengalbound.com',
 ]
 
 # ── Database — Supabase (or any DATABASE_URL) ─────────────────────────────────
