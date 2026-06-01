@@ -1,59 +1,182 @@
 {% extends 'workspace_admin/base_admin.html' %}
-{% block page_title %}Project Control{% endblock %}
+
+{% block title %}Project Control | WorkspaceAdmin{% endblock %}
+{% block page_title %}Project Control Center{% endblock %}
 
 {% block content %}
-{% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success mb-4">{{ msg }}</div>{% endfor %}{% endif %}
+<style>
+    .table-custom {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-custom th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-custom td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1rem 0.5rem;
+    }
+    .table-custom tbody tr { transition: background 0.2s ease; }
+    .table-custom tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .modal-glass {
+        background: rgba(15, 15, 20, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+    }
+    .form-custom-input, .form-custom-select, .form-custom-textarea {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+    .form-custom-input:focus, .form-custom-select:focus, .form-custom-textarea:focus {
+        border-color: var(--bb-accent-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(56,189,248,0.25) !important;
+    }
+</style>
 
-<div class="glass-panel p-4">
+{% if messages %}
+<div class="mb-4">
+    {% for msg in messages %}
+    <div class="alert alert-success border border-success border-opacity-25 bg-success bg-opacity-10 text-success d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ msg }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="glass-panel p-4 p-md-5 border-start border-primary border-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <i class="bi bi-collection-play text-primary-gradient fs-4"></i>
+        <h5 class="mb-0 font-outfit fw-bold text-white">Client Portfolio Overview</h5>
+    </div>
+
     <div class="table-responsive">
-        <table class="table table-dark table-hover table-borderless align-middle">
-            <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary">
-                <th>Project</th><th>Client</th><th>Type</th><th>Domain</th><th>Current Status</th><th>Last Updated</th><th>Update</th>
-            </tr></thead>
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Project Overview</th>
+                    <th>Client Association</th>
+                    <th>Engagement Type</th>
+                    <th>Target Domain</th>
+                    <th>Development Status</th>
+                    <th>Last Synchronized</th>
+                    <th class="text-end pe-3">Controls</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for project in all_projects %}
                 <tr>
-                    <td>
-                        <span class="fw-semibold text-white d-block">{{ project.name }}</span>
-                        <small class="text-white-50">{{ project.description|truncatechars:50 }}</small>
+                    <td class="ps-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary flex-shrink-0 mt-1" style="width:36px; height:36px;">
+                                <i class="bi bi-kanban text-white-50"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold text-white d-block mb-1">{{ project.name }}</span>
+                                <small class="text-white-50 d-block" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ project.description|default:"No description provided." }}</small>
+                            </div>
+                        </div>
                     </td>
-                    <td class="text-white-50 small">{{ project.client.email }}</td>
-                    <td><span class="badge bg-secondary bg-opacity-25 text-white-50">{{ project.get_project_type_display }}</span></td>
-                    <td class="text-white-50 small">{{ project.domain|default:"—" }}</td>
                     <td>
-                        {% if project.status == 'live' %}<span class="badge bg-success bg-opacity-25 text-success">Live</span>
-                        {% elif project.status == 'testing' %}<span class="badge bg-warning bg-opacity-25 text-warning">Testing</span>
-                        {% elif project.status == 'development' %}<span class="badge bg-primary bg-opacity-25 text-primary">Development</span>
-                        {% elif project.status == 'design' %}<span class="badge bg-info bg-opacity-25 text-info">Design</span>
-                        {% else %}<span class="badge bg-secondary bg-opacity-25 text-white-50">{{ project.get_status_display }}</span>{% endif %}
+                        <span class="badge bg-dark border border-secondary text-white-50 font-monospace small px-2 py-1">
+                            <i class="bi bi-building me-1 opacity-50"></i>{{ project.client.email }}
+                        </span>
                     </td>
-                    <td class="text-muted small">{{ project.updated_at|date:"M d, Y" }}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#updateModal{{ project.id }}">Update</button>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                            {{ project.get_project_type_display|upper }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if project.domain %}
+                        <a href="https://{{ project.domain }}" target="_blank" class="text-info small text-decoration-none d-inline-flex align-items-center gap-1 hover-text-white transition-all">
+                            {{ project.domain }} <i class="bi bi-box-arrow-up-right" style="font-size: 0.7rem;"></i>
+                        </a>
+                        {% else %}
+                        <span class="text-white-50 small fst-italic">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill px-3 py-1 border d-inline-flex align-items-center gap-1
+                            {% if project.status == 'live' %}bg-success bg-opacity-10 text-success border-success border-opacity-25
+                            {% elif project.status == 'testing' %}bg-warning bg-opacity-10 text-warning border-warning border-opacity-25
+                            {% elif project.status == 'development' %}bg-primary bg-opacity-10 text-primary border-primary border-opacity-25
+                            {% elif project.status == 'design' %}bg-info bg-opacity-10 text-info border-info border-opacity-25
+                            {% else %}bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25{% endif %}">
+                            {% if project.status == 'live' %}<i class="bi bi-globe2" style="font-size:0.65rem;"></i>
+                            {% elif project.status == 'testing' %}<i class="bi bi-bug" style="font-size:0.65rem;"></i>
+                            {% elif project.status == 'development' %}<i class="bi bi-code-slash" style="font-size:0.65rem;"></i>
+                            {% elif project.status == 'design' %}<i class="bi bi-palette" style="font-size:0.65rem;"></i>
+                            {% else %}<i class="bi bi-circle" style="font-size:0.65rem;"></i>{% endif %}
+                            {{ project.get_status_display|upper }}
+                        </span>
+                    </td>
+                    <td class="text-white-50 small font-monospace"><i class="bi bi-clock-history me-1 opacity-50"></i>{{ project.updated_at|date:"M d, Y" }}</td>
+                    <td class="text-end pe-3">
+                        <button class="btn btn-sm btn-outline-info rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#updateModal{{ project.id }}">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Update
+                        </button>
+
                         <!-- Milestone Update Modal -->
-                        <div class="modal fade" id="updateModal{{ project.id }}" tabindex="-1">
-                            <div class="modal-dialog"><div class="modal-content bg-dark border-secondary text-white">
-                                <div class="modal-header border-secondary"><h6 class="modal-title fw-bold">Update: {{ project.name }}</h6><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                                <form method="post"><div class="modal-body">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="project_id" value="{{ project.id }}">
-                                    <label class="form-label text-white-50 small">New Status</label>
-                                    <select name="status" class="form-select bg-dark text-white border-secondary mb-3">
-                                        {% for val, label in status_choices %}<option value="{{ val }}" {% if project.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
-                                    </select>
-                                    <label class="form-label text-white-50 small">Milestone Note <span class="text-muted">(optional)</span></label>
-                                    <textarea name="milestone_note" class="form-control bg-dark text-white border-secondary" rows="3" placeholder="e.g. Homepage design approved, moving to development..."></textarea>
+                        <div class="modal fade text-start" id="updateModal{{ project.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content modal-glass border-info border-opacity-50">
+                                    <div class="modal-header border-bottom border-secondary border-opacity-25 p-4">
+                                        <h5 class="modal-title font-outfit fw-bold text-white d-flex align-items-center gap-2">
+                                            <i class="bi bi-kanban text-info"></i> Project Milestone: {{ project.name }}
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <div class="modal-body p-4">
+                                            <input type="hidden" name="project_id" value="{{ project.id }}">
+                                            
+                                            <div class="mb-4">
+                                                <label class="form-label text-white-50 small fw-medium">Development Status</label>
+                                                <select name="status" class="form-select form-custom-select rounded-pill px-3">
+                                                    {% for val, label in status_choices %}
+                                                    <option value="{{ val }}" {% if project.status == val %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="mb-2">
+                                                <label class="form-label text-white-50 small fw-medium">Milestone Narrative <span class="fst-italic opacity-50">(optional)</span></label>
+                                                <textarea name="milestone_note" class="form-control form-custom-textarea" rows="4" placeholder="e.g., Homepage design finalized, migrating to development environment..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-top border-secondary border-opacity-25 p-4">
+                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-info rounded-pill px-4 shadow-glow">Commit Update</button>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="modal-footer border-secondary">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-sm btn-primary">Save Update</button>
-                                </div></form>
-                            </div></div>
+                            </div>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="text-center text-white-50 py-5">No client projects tracked yet.</td></tr>
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-collection-play fs-1 text-white-50 opacity-50"></i>
+                        </div>
+                        <h5 class="text-white fw-bold mb-1">No Active Portfolio</h5>
+                        <p class="text-white-50 mb-0 small">No client projects are currently being tracked.</p>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

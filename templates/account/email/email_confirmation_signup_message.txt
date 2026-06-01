@@ -1,0 +1,7 @@
+Welcome to BengalBound!
+
+Please confirm your email address by clicking on the link below:
+
+{{ activate_url }}
+
+If you didn't create an account, you can safely ignore this email.

@@ -1,47 +1,106 @@
 {% extends 'workspace_admin/base_admin.html' %}
 
-{% block page_title %}Internal Finance{% endblock %}
+{% block title %}Internal Finance | WorkspaceAdmin{% endblock %}
+{% block page_title %}Internal Ledger & Bookkeeping{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <button type="button" class="btn btn-success-gradient rounded-pill px-4 btn-sm shadow-glow d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createRecordModal" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;">
+        <i class="bi bi-plus-circle"></i> Log Transaction
+    </button>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="row g-4 mb-4">
-    <div class="col-12 text-end">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createRecordModal">
-            <i class="bi bi-wallet2 me-2"></i> Add Record
-        </button>
-    </div>
-</div>
+<style>
+    .table-custom {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-custom th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-custom td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1rem 0.5rem;
+    }
+    .table-custom tbody tr { transition: background 0.2s ease; }
+    .table-custom tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .modal-glass {
+        background: rgba(15, 15, 20, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+    }
+    .form-custom-input, .form-custom-select {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+    .form-custom-input:focus, .form-custom-select:focus {
+        border-color: var(--bb-accent-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(56,189,248,0.25) !important;
+    }
+</style>
 
-<div class="glass-panel p-4">
+<div class="glass-panel p-4 p-md-5">
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle">
-            <thead class="text-white-50">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Title / Ref</th>
-                    <th>Category</th>
-                    <th>Amount</th>
-                    <th>Recorded By</th>
+                    <th class="ps-3">Transaction Date</th>
+                    <th>Flow Direction</th>
+                    <th>Reference Ledger</th>
+                    <th>Categorization</th>
+                    <th>Monetary Value</th>
+                    <th class="text-end pe-3">Auditor</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in records %}
                 <tr>
-                    <td>{{ r.date|date:"M d, Y" }}</td>
+                    <td class="ps-3 text-white-50 small"><i class="bi bi-calendar-check me-1 opacity-50"></i>{{ r.date|date:"M d, Y" }}</td>
                     <td>
-                        <span class="badge {% if r.record_type == 'income' %}bg-success{% else %}bg-danger{% endif %} text-white">
-                            {{ r.get_record_type_display }}
+                        <span class="badge rounded-pill px-3 py-1 border
+                            {% if r.record_type == 'income' %}bg-success bg-opacity-10 text-success border-success border-opacity-25
+                            {% else %}bg-danger bg-opacity-10 text-danger border-danger border-opacity-25{% endif %}">
+                            <i class="bi {% if r.record_type == 'income' %}bi-arrow-down-left{% else %}bi-arrow-up-right{% endif %} me-1"></i>
+                            {{ r.get_record_type_display|upper }}
                         </span>
                     </td>
-                    <td><strong>{{ r.title }}</strong></td>
-                    <td class="text-white-50">{{ r.category }}</td>
-                    <td class="{% if r.record_type == 'income' %}text-success{% else %}text-danger{% endif %} fw-bold">
-                        {% if r.record_type == 'income' %}+{% else %}-{% endif %}${{ r.amount }}
+                    <td><span class="fw-bold text-white">{{ r.title }}</span></td>
+                    <td>
+                        <span class="badge bg-dark border border-secondary text-white-50 font-monospace small px-2 py-1">
+                            {{ r.category|upper }}
+                        </span>
                     </td>
-                    <td class="text-white-50 small">{{ r.recorded_by.email }}</td>
+                    <td>
+                        <span class="fw-bold fs-5 font-monospace {% if r.record_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            {% if r.record_type == 'income' %}+{% else %}-{% endif %}${{ r.amount }}
+                        </span>
+                    </td>
+                    <td class="text-end pe-3 text-white-50 small fst-italic">
+                        <i class="bi bi-person me-1 opacity-50"></i>{{ r.recorded_by.email }}
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="text-center text-white-50 py-3">No financial records matching criteria.</td></tr>
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-wallet2 fs-1 text-white-50 opacity-50"></i>
+                        </div>
+                        <h5 class="text-white fw-bold mb-1">Empty Ledger</h5>
+                        <p class="text-white-50 mb-0 small">No financial records matching criteria.</p>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -51,43 +110,52 @@
 <!-- Modal -->
 <div class="modal fade" id="createRecordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content glass-panel border-success">
+        <div class="modal-content modal-glass border-success border-opacity-50">
             <form method="POST">
                 {% csrf_token %}
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold text-success">Add Financial Record</h5>
+                <div class="modal-header border-bottom border-secondary border-opacity-25 p-4">
+                    <h5 class="modal-title font-outfit fw-bold text-white d-flex align-items-center gap-2">
+                        <i class="bi bi-receipt text-success"></i> Log Financial Record
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label text-white-50 small">Record Type</label>
-                        <select name="record_type" class="form-select form-control-premium bg-dark text-white" required>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small fw-medium">Capital Flow Type</label>
+                        <select name="record_type" class="form-select form-custom-select" required>
                             {% for val, label in record_types %}
                             <option value="{{ val }}">{{ label }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-white-50 small">Title / Reference</label>
-                        <input type="text" name="title" class="form-control form-control-premium" required>
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small fw-medium">Ledger Reference / Title</label>
+                        <input type="text" name="title" class="form-control form-custom-input" required>
                     </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label text-white-50 small">Amount ($)</label>
-                            <input type="number" step="0.01" name="amount" class="form-control form-control-premium" required>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label text-white-50 small fw-medium">Monetary Value</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-success">$</span>
+                                <input type="number" step="0.01" name="amount" class="form-control form-custom-input font-monospace text-success fw-bold" required>
+                            </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label text-white-50 small">Date</label>
-                            <input type="date" name="date" class="form-control form-control-premium" required>
+                        <div class="col-6">
+                            <label class="form-label text-white-50 small fw-medium">Execution Date</label>
+                            <input type="date" name="date" class="form-control form-custom-input" required>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-white-50 small">Category (e.g. Payroll, Subscriptions, Sales)</label>
-                        <input type="text" name="category" class="form-control form-control-premium" required>
+                    <div class="mb-2">
+                        <label class="form-label text-white-50 small fw-medium">Categorization Index</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-white-50"><i class="bi bi-tag"></i></span>
+                            <input type="text" name="category" class="form-control form-custom-input" placeholder="e.g. Payroll, Software, Sales" required>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="submit" class="btn btn-success">Save Record</button>
+                <div class="modal-footer border-top border-secondary border-opacity-25 p-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success-gradient rounded-pill px-4 shadow-glow" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;">Post to Ledger</button>
                 </div>
             </form>
         </div>

@@ -1,98 +1,160 @@
 {% extends "workspace_admin/base_admin.html" %}
+
 {% block title %}Storage Requests | WorkspaceAdmin{% endblock %}
-{% block page_title %}<i class="bi bi-hdd me-2 text-primary"></i>Storage Increase Requests{% endblock %}
+{% block page_title %}Storage Capacity Expansion{% endblock %}
 
 {% block content %}
-{% if messages %}{% for m in messages %}
-<div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
-    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}{% endif %}
+<style>
+    .table-storage {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-storage th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-storage td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1.25rem 0.5rem;
+    }
+    .table-storage tbody tr { transition: background 0.2s ease; }
+    .table-storage tbody tr:hover { background: rgba(255,255,255,0.02); }
+</style>
 
-<!-- Filter Tabs -->
-<div class="d-flex gap-2 mb-4">
-    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-        Pending
-    </a>
-    <a href="?status=approved" class="btn btn-sm {% if status_filter == 'approved' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-        Approved
-    </a>
-    <a href="?status=rejected" class="btn btn-sm {% if status_filter == 'rejected' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-        Rejected
-    </a>
-    <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-        All
-    </a>
-</div>
-
-{% if requests %}
-<div class="glass-panel p-0" style="overflow:hidden;">
-<table class="table table-dark table-hover mb-0" style="font-size:0.85rem;">
-<thead>
-    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <th class="px-4 py-3 text-white-50 fw-normal">Business</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Requested</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Current Storage</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Message</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Date</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Status</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Action</th>
-    </tr>
-</thead>
-<tbody>
-{% for req in requests %}
-<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-    <td class="px-4 py-3">
-        <div class="fw-semibold">{{ req.business.name }}</div>
-        <div class="text-white-50" style="font-size:0.75rem;">{{ req.business.get_business_type_display }}</div>
-    </td>
-    <td class="px-4 py-3 fw-bold" style="color:#38bdf8;">+{{ req.requested_gb|floatformat:0 }} GB</td>
-    <td class="px-4 py-3 text-white-50">{{ req.business.subscription.total_storage_gb|floatformat:0 }} GB</td>
-    <td class="px-4 py-3 text-white-50" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-        {{ req.message|default:"—" }}
-    </td>
-    <td class="px-4 py-3 text-white-50">{{ req.created_at|date:"M d, Y" }}</td>
-    <td class="px-4 py-3">
-        <span class="badge" style="font-size:0.7rem;
-            {% if req.status == 'approved' %}background:rgba(34,197,94,0.15);color:#22c55e;
-            {% elif req.status == 'rejected' %}background:rgba(248,113,113,0.15);color:#f87171;
-            {% else %}background:rgba(251,191,36,0.15);color:#fbbf24;{% endif %}">
-            {{ req.get_status_display }}
-        </span>
-    </td>
-    <td class="px-4 py-3">
-        {% if req.status == 'pending' %}
-        <div class="d-flex gap-1">
-            <form method="post" class="d-inline">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="approve">
-                <input type="hidden" name="request_id" value="{{ req.pk }}">
-                <button type="submit" class="btn btn-sm" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);" onclick="return confirm('Approve +{{ req.requested_gb }}GB for {{ req.business.name }}?')">
-                    <i class="bi bi-check-lg"></i>
-                </button>
-            </form>
-            <form method="post" class="d-inline">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="reject">
-                <input type="hidden" name="request_id" value="{{ req.pk }}">
-                <button type="submit" class="btn btn-sm" style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </form>
-        </div>
-        {% else %}
-        <span class="text-white-50" style="font-size:0.75rem;">{{ req.reviewed_at|date:"M d" }}</span>
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
-{% else %}
-<div class="glass-panel p-5 text-center">
-    <i class="bi bi-hdd" style="font-size:2.5rem;color:rgba(255,255,255,0.15);"></i>
-    <p class="text-white-50 mt-3 mb-0">No storage requests{% if status_filter %} with status "{{ status_filter }}"{% endif %}.</p>
+{% if messages %}
+<div class="mb-4">
+    {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} border border-{% if m.tags == 'error' %}danger{% else %}success{% endif %} border-opacity-25 bg-{% if m.tags == 'error' %}danger{% else %}success{% endif %} bg-opacity-10 text-{% if m.tags == 'error' %}danger{% else %}success{% endif %} d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-info-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ m }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
 </div>
 {% endif %}
+
+<div class="glass-panel p-4 p-md-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 mb-4">
+        <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+            <i class="bi bi-hdd-network text-primary-gradient"></i> Expansion Requests
+        </h5>
+        
+        <!-- Filter Pills -->
+        <div class="d-flex flex-wrap gap-2 p-1 bg-dark bg-opacity-50 rounded-pill border border-secondary border-opacity-25">
+            <a href="?" class="btn btn-sm rounded-pill px-4 transition-all {% if not status_filter %}bg-white text-dark fw-bold{% else %}text-white-50 hover-text-white{% endif %}">
+                All
+            </a>
+            <a href="?status=pending" class="btn btn-sm rounded-pill px-4 transition-all {% if status_filter == 'pending' %}bg-white text-dark fw-bold{% else %}text-white-50 hover-text-white{% endif %}">
+                Pending Review
+            </a>
+            <a href="?status=approved" class="btn btn-sm rounded-pill px-4 transition-all {% if status_filter == 'approved' %}bg-white text-dark fw-bold{% else %}text-white-50 hover-text-white{% endif %}">
+                Approved
+            </a>
+            <a href="?status=rejected" class="btn btn-sm rounded-pill px-4 transition-all {% if status_filter == 'rejected' %}bg-white text-dark fw-bold{% else %}text-white-50 hover-text-white{% endif %}">
+                Rejected
+            </a>
+        </div>
+    </div>
+
+    {% if requests %}
+    <div class="table-responsive">
+        <table class="table table-storage mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Tenant Profile</th>
+                    <th>Requested Delta</th>
+                    <th>Current Allocation</th>
+                    <th>Client Justification</th>
+                    <th>Submitted On</th>
+                    <th>Review Status</th>
+                    <th class="text-end pe-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for req in requests %}
+                <tr>
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary flex-shrink-0" style="width:40px; height:40px;">
+                                <i class="bi bi-building text-white-50"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">{{ req.business.name }}</div>
+                                <div class="badge bg-dark border border-secondary text-white-50 font-monospace small px-2">{{ req.business.get_business_type_display|upper }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-inline-flex align-items-center gap-1 bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 font-monospace fw-bold">
+                            <i class="bi bi-arrow-up-short"></i>{{ req.requested_gb|floatformat:0 }} GB
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2 text-white-50">
+                            <i class="bi bi-server opacity-50"></i>
+                            <span class="font-monospace">{{ req.business.subscription.total_storage_gb|floatformat:0 }} GB</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="text-white-50 small bg-dark bg-opacity-50 p-2 rounded-3 border border-secondary border-opacity-25" style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ req.message|default:'—' }}">
+                            <i class="bi bi-chat-left-text me-1 opacity-50"></i>{{ req.message|default:"—" }}
+                        </div>
+                    </td>
+                    <td class="text-white-50 small"><i class="bi bi-calendar-event me-1 opacity-50"></i>{{ req.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1
+                            {% if req.status == 'approved' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+                            {% elif req.status == 'rejected' %}bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25
+                            {% else %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25{% endif %}">
+                            {% if req.status == 'approved' %}<i class="bi bi-check-circle-fill" style="font-size:0.6rem;"></i>
+                            {% elif req.status == 'rejected' %}<i class="bi bi-x-circle-fill" style="font-size:0.6rem;"></i>
+                            {% else %}<i class="bi bi-clock-fill" style="font-size:0.6rem;"></i>{% endif %}
+                            {{ req.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-end pe-3">
+                        {% if req.status == 'pending' %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <form method="post" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="request_id" value="{{ req.pk }}">
+                                <button type="submit" class="btn btn-sm btn-outline-success rounded-circle d-flex align-items-center justify-content-center shadow-glow" style="width:32px; height:32px;" title="Approve Capacity" onclick="return confirm('Approve +{{ req.requested_gb }}GB for {{ req.business.name }}?')">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                            <form method="post" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="request_id" value="{{ req.pk }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;" title="Reject Request">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="text-white-50 small font-monospace">Reviewed {{ req.reviewed_at|date:"M d" }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+            <i class="bi bi-hdd-network fs-1 text-white-50 opacity-50"></i>
+        </div>
+        <h5 class="text-white fw-bold mb-1">No Storage Requests</h5>
+        <p class="text-white-50 mb-0 small">There are no capacity expansion requests{% if status_filter %} matching "{{ status_filter }}"{% endif %}.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

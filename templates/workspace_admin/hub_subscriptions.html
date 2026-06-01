@@ -1,125 +1,251 @@
 {% extends "workspace_admin/base_admin.html" %}
+
 {% block title %}Hub Subscriptions | WorkspaceAdmin{% endblock %}
-{% block page_title %}<i class="bi bi-credit-card me-2 text-primary"></i>Hub Subscriptions{% endblock %}
+{% block page_title %}Hub Subscriptions{% endblock %}
 
 {% block content %}
-{% if messages %}{% for m in messages %}
-<div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
-    {{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<style>
+    .stat-card-sub {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .stat-card-sub:hover { transform: translateY(-3px); }
+    .table-sub {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-sub th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-sub td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1rem 0.5rem;
+    }
+    .table-sub tbody tr { transition: background 0.2s ease; }
+    .table-sub tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .modal-glass {
+        background: rgba(15, 15, 20, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+    }
+    .form-custom-input {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+    .form-custom-select {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+</style>
+
+{% if messages %}
+<div class="mb-4">
+    {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} border border-{% if m.tags == 'error' %}danger{% else %}success{% endif %} border-opacity-25 bg-{% if m.tags == 'error' %}danger{% else %}success{% endif %} bg-opacity-10 text-{% if m.tags == 'error' %}danger{% else %}success{% endif %} d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-info-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ m }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
 </div>
-{% endfor %}{% endif %}
+{% endif %}
 
 <!-- Stats Row -->
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-5">
     <div class="col-md-3">
-        <div class="glass-panel p-3 text-center">
-            <div class="fw-bold" style="font-size:1.8rem;color:#38bdf8;">{{ subs|length }}</div>
-            <div class="text-white-50 small">Total Businesses</div>
+        <div class="glass-panel stat-card-sub p-4 text-center border-bottom border-primary border-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 48px; height: 48px;">
+                <i class="bi bi-buildings text-white-50"></i>
+            </div>
+            <div class="text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Total Businesses</div>
+            <div class="font-outfit fw-bold display-5 text-white">{{ subs|length }}</div>
         </div>
     </div>
     {% for plan in plan_counts %}
     <div class="col-md-3">
-        <div class="glass-panel p-3 text-center">
-            <div class="fw-bold" style="font-size:1.8rem;color:#c084fc;">{{ plan.count }}</div>
-            <div class="text-white-50 small">{{ plan.plan_type|title }}</div>
+        <div class="glass-panel stat-card-sub p-4 text-center border-bottom 
+            {% if plan.plan_type == 'freemium' %}border-secondary
+            {% elif plan.plan_type == 'standard' %}border-info
+            {% elif plan.plan_type == 'premium' %}border-primary
+            {% elif plan.plan_type == 'advance' %}border-warning
+            {% endif %} border-4">
+            
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 border
+                {% if plan.plan_type == 'freemium' %}bg-secondary bg-opacity-10 border-secondary border-opacity-25 text-secondary
+                {% elif plan.plan_type == 'standard' %}bg-info bg-opacity-10 border-info border-opacity-25 text-info
+                {% elif plan.plan_type == 'premium' %}bg-primary bg-opacity-10 border-primary border-opacity-25 text-primary
+                {% elif plan.plan_type == 'advance' %}bg-warning bg-opacity-10 border-warning border-opacity-25 text-warning
+                {% endif %}" style="width: 48px; height: 48px;">
+                <i class="bi 
+                  {% if plan.plan_type == 'freemium' %}bi-emoji-smile
+                  {% elif plan.plan_type == 'standard' %}bi-briefcase
+                  {% elif plan.plan_type == 'premium' %}bi-lightning-charge
+                  {% elif plan.plan_type == 'advance' %}bi-star-fill
+                  {% endif %}"></i>
+            </div>
+            <div class="text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">{{ plan.plan_type }}</div>
+            <div class="font-outfit fw-bold display-5 
+                {% if plan.plan_type == 'freemium' %}text-white
+                {% elif plan.plan_type == 'standard' %}text-info
+                {% elif plan.plan_type == 'premium' %}text-primary
+                {% elif plan.plan_type == 'advance' %}text-warning
+                {% endif %}">{{ plan.count }}</div>
         </div>
     </div>
     {% endfor %}
 </div>
 
-<div class="glass-panel p-0" style="overflow:hidden;">
-<table class="table table-dark table-hover mb-0" style="font-size:0.84rem;">
-<thead>
-    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        <th class="px-4 py-3 text-white-50 fw-normal">Business</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Plan</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Status</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Storage</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Install Types</th>
-        <th class="px-4 py-3 text-white-50 fw-normal">Actions</th>
-    </tr>
-</thead>
-<tbody>
-{% for sub in subs %}
-<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-    <td class="px-4 py-3">
-        <div class="fw-semibold">{{ sub.business.name }}</div>
-        <div class="text-white-50" style="font-size:0.75rem;">{{ sub.business.get_business_type_display }}</div>
-    </td>
-    <td class="px-4 py-3">
-        <span class="badge" style="
-            {% if sub.plan_type == 'freemium' %}background:rgba(255,255,255,0.08);color:#94a3b8;
-            {% elif sub.plan_type == 'standard' %}background:rgba(56,189,248,0.15);color:#38bdf8;
-            {% elif sub.plan_type == 'premium' %}background:rgba(192,132,252,0.15);color:#c084fc;
-            {% else %}background:rgba(236,72,153,0.15);color:#ec4899;{% endif %}
-            font-size:0.7rem;">{{ sub.get_plan_type_display }}</span>
-    </td>
-    <td class="px-4 py-3">
-        <span class="badge {% if sub.status == 'active' %}bg-success{% elif sub.status == 'trial' %}bg-warning text-dark{% else %}bg-danger{% endif %}" style="font-size:0.7rem;">
-            {{ sub.get_status_display }}
-        </span>
-    </td>
-    <td class="px-4 py-3 text-white-50">
-        {{ sub.total_storage_gb|floatformat:0 }} GB
-        {% if sub.extra_storage_gb > 0 %}<span class="badge bg-secondary ms-1" style="font-size:0.65rem;">+{{ sub.extra_storage_gb }}GB extra</span>{% endif %}
-    </td>
-    <td class="px-4 py-3 text-white-50" style="font-size:0.75rem;">
-        {% if sub.allows_cloud %}<span class="badge me-1" style="background:rgba(34,197,94,0.15);color:#22c55e;font-size:0.65rem;">Cloud</span>{% endif %}
-        {% if sub.allows_ip_locked %}<span class="badge me-1" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.65rem;">IP-Locked</span>{% endif %}
-        {% if sub.allows_self_hosted %}<span class="badge" style="background:rgba(251,191,36,0.15);color:#fbbf24;font-size:0.65rem;">Self-Hosted</span>{% endif %}
-    </td>
-    <td class="px-4 py-3">
-        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#subModal{{ sub.pk }}">
-            <i class="bi bi-pencil"></i>
-        </button>
-    </td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
+<!-- Table -->
+<div class="glass-panel p-4 p-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+            <i class="bi bi-card-checklist text-primary-gradient"></i> Active Subscriptions
+        </h5>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-sub align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-3">Business Profile</th>
+                    <th>Subscribed Plan</th>
+                    <th>Status</th>
+                    <th>Data Storage</th>
+                    <th>Install Architecture</th>
+                    <th class="text-end pe-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for sub in subs %}
+                <tr>
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary flex-shrink-0" style="width:40px; height:40px;">
+                                <i class="bi bi-building text-white-50"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">{{ sub.business.name }}</div>
+                                <div class="badge bg-dark border border-secondary text-white-50 font-monospace" style="font-size:0.65rem;">{{ sub.business.get_business_type_display|upper }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill px-3 py-1 border
+                            {% if sub.plan_type == 'freemium' %}bg-secondary bg-opacity-10 text-secondary border-secondary border-opacity-25
+                            {% elif sub.plan_type == 'standard' %}bg-info bg-opacity-10 text-info border-info border-opacity-25
+                            {% elif sub.plan_type == 'premium' %}bg-primary bg-opacity-10 text-primary border-primary border-opacity-25
+                            {% else %}bg-warning bg-opacity-10 text-warning border-warning border-opacity-25{% endif %}">
+                            {{ sub.get_plan_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1
+                            {% if sub.status == 'active' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+                            {% elif sub.status == 'trial' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+                            {% else %}bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25{% endif %}">
+                            {% if sub.status == 'active' %}<i class="bi bi-check-circle-fill" style="font-size:0.6rem;"></i>
+                            {% elif sub.status == 'trial' %}<i class="bi bi-clock-fill" style="font-size:0.6rem;"></i>
+                            {% else %}<i class="bi bi-x-circle-fill" style="font-size:0.6rem;"></i>{% endif %}
+                            {{ sub.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-hdd text-white-50"></i>
+                            <span class="text-white fw-medium">{{ sub.total_storage_gb|floatformat:0 }} GB</span>
+                        </div>
+                        {% if sub.extra_storage_gb > 0 %}
+                            <div class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 mt-1 px-2 py-1" style="font-size:0.6rem;">
+                                +{{ sub.extra_storage_gb }}GB ADDON
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if sub.allows_cloud %}<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1" style="font-size:0.6rem;">CLOUD</span>{% endif %}
+                            {% if sub.allows_ip_locked %}<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1" style="font-size:0.6rem;">IP-LOCKED</span>{% endif %}
+                            {% if sub.allows_self_hosted %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1" style="font-size:0.6rem;">SELF-HOSTED</span>{% endif %}
+                        </div>
+                    </td>
+                    <td class="text-end pe-3">
+                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#subModal{{ sub.pk }}">
+                            <i class="bi bi-pencil me-1"></i>Manage
+                        </button>
+                    </td>
+                </tr>
 
-{% for sub in subs %}
-<!-- Edit Modal -->
-<div class="modal fade" id="subModal{{ sub.pk }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);">
-            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);">
-                <h6 class="modal-title fw-semibold">{{ sub.business.name }} — Subscription</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Change Plan -->
-                <div class="mb-4">
-                    <div class="fw-semibold small mb-2">Change Plan</div>
-                    <form method="post" class="d-flex gap-2">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="change_plan">
-                        <input type="hidden" name="sub_id" value="{{ sub.pk }}">
-                        <select name="plan_type" class="form-select form-select-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;">
-                            <option value="freemium" {% if sub.plan_type == 'freemium' %}selected{% endif %}>Freemium</option>
-                            <option value="standard" {% if sub.plan_type == 'standard' %}selected{% endif %}>Standard</option>
-                            <option value="premium" {% if sub.plan_type == 'premium' %}selected{% endif %}>Premium</option>
-                            <option value="advance" {% if sub.plan_type == 'advance' %}selected{% endif %}>Advance</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
-                    </form>
+                <!-- Manage Modal -->
+                <div class="modal fade" id="subModal{{ sub.pk }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content modal-glass">
+                            <div class="modal-header border-bottom border-secondary border-opacity-25 p-4">
+                                <h5 class="modal-title font-outfit fw-bold text-white d-flex align-items-center gap-2">
+                                    <i class="bi bi-building text-primary-gradient"></i> Manage {{ sub.business.name }}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4 text-start">
+                                <!-- Change Plan -->
+                                <div class="mb-5">
+                                    <h6 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-arrow-left-right text-info"></i> Change Plan Tier
+                                    </h6>
+                                    <form method="post" class="d-flex align-items-end gap-3">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="change_plan">
+                                        <input type="hidden" name="sub_id" value="{{ sub.pk }}">
+                                        <div class="flex-grow-1">
+                                            <label class="form-label text-white-50 small mb-1">Select New Tier</label>
+                                            <select name="plan_type" class="form-select form-custom-select">
+                                                <option value="freemium" {% if sub.plan_type == 'freemium' %}selected{% endif %}>Freemium</option>
+                                                <option value="standard" {% if sub.plan_type == 'standard' %}selected{% endif %}>Standard</option>
+                                                <option value="premium" {% if sub.plan_type == 'premium' %}selected{% endif %}>Premium</option>
+                                                <option value="advance" {% if sub.plan_type == 'advance' %}selected{% endif %}>Advance</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-outline-info rounded-pill px-4">Apply</button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Add Storage -->
+                                <div class="p-4 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25">
+                                    <h6 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-hdd-network text-success"></i> Expand Storage Allocation
+                                    </h6>
+                                    <form method="post" class="d-flex align-items-end gap-3">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_storage">
+                                        <input type="hidden" name="sub_id" value="{{ sub.pk }}">
+                                        <div class="flex-grow-1">
+                                            <label class="form-label text-white-50 small mb-1">Additional GB</label>
+                                            <div class="input-group">
+                                                <input type="number" name="extra_gb" min="1" step="10" value="50" class="form-control form-custom-input font-monospace">
+                                                <span class="input-group-text bg-dark text-white-50 border-secondary">GB</span>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success-gradient rounded-pill px-4 shadow-glow" style="background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none;">Add Capacity</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!-- Add Storage -->
-                <div>
-                    <div class="fw-semibold small mb-2">Add Extra Storage</div>
-                    <form method="post" class="d-flex gap-2 align-items-center">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="add_storage">
-                        <input type="hidden" name="sub_id" value="{{ sub.pk }}">
-                        <input type="number" name="extra_gb" min="1" step="10" value="50" class="form-control form-control-sm" style="background:#1e293b;border-color:rgba(255,255,255,0.1);color:#f8fafc;max-width:100px;">
-                        <span class="small text-white-50">GB</span>
-                        <button type="submit" class="btn btn-success btn-sm">Add</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-{% endfor %}
 {% endblock %}

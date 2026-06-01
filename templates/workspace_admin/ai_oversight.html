@@ -1,126 +1,214 @@
 {% extends 'workspace_admin/base_admin.html' %}
-{% block page_title %}AI Oversight{% endblock %}
+{% block page_title %}AI Oversight Room{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <a href="{% url 'workspace_admin:serea_config' %}" class="btn btn-primary-gradient rounded-pill px-4 btn-sm shadow-glow d-flex align-items-center gap-2">
+        <i class="bi bi-sliders"></i> Serea Brain Config
+    </a>
+</div>
+{% endblock %}
 
 {% block content %}
-{% if messages %}{% for msg in messages %}
-<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success mb-3">{{ msg }}</div>
-{% endfor %}{% endif %}
+<style>
+    .stat-card-ai {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .stat-card-ai:hover { transform: translateY(-3px); }
+    .table-ai {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-ai th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-ai td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1rem 0.5rem;
+    }
+    .table-ai tbody tr { transition: background 0.2s ease; }
+    .table-ai tbody tr:hover { background: rgba(255,255,255,0.02); }
+</style>
+
+{% if messages %}
+<div class="mb-4">
+    {% for msg in messages %}
+    <div class="alert alert-success border border-success border-opacity-25 bg-success bg-opacity-10 text-success d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ msg }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <!-- Stats Row -->
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-5">
   <div class="col-md-3">
-    <div class="glass-panel p-3 text-center">
-      <div class="text-white-50 small mb-1">Total AI Employees</div>
-      <div class="font-outfit fw-bold fs-3 text-white">{{ all_agents.count }}</div>
+    <div class="glass-panel stat-card-ai p-4 text-center">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 48px; height: 48px;">
+          <i class="bi bi-people text-white-50"></i>
+      </div>
+      <div class="text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Total AI Employees</div>
+      <div class="font-outfit fw-bold display-5 text-white">{{ all_agents.count }}</div>
     </div>
   </div>
   <div class="col-md-3">
-    <div class="glass-panel p-3 text-center">
-      <div class="text-white-50 small mb-1">Active Employees</div>
-      <div class="font-outfit fw-bold fs-3 text-success">{{ all_agents|length }}</div>
+    <div class="glass-panel stat-card-ai p-4 text-center">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 border border-success border-opacity-25 mb-3" style="width: 48px; height: 48px;">
+          <i class="bi bi-lightning-charge text-success"></i>
+      </div>
+      <div class="text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Active Employees</div>
+      <div class="font-outfit fw-bold display-5 text-success">{{ all_agents|length }}</div>
     </div>
   </div>
   <div class="col-md-3">
-    <div class="glass-panel p-3 text-center">
-      <div class="text-white-50 small mb-1">Serea Agents Deployed</div>
-      <div class="font-outfit fw-bold fs-3 text-info">{{ serea_agents_total }}</div>
+    <div class="glass-panel stat-card-ai p-4 text-center position-relative">
+      <div class="position-absolute" style="top:-20px; right:-20px; width:80px; height:80px; background:radial-gradient(circle, rgba(56,189,248,0.2), transparent 70%); border-radius:50%;"></div>
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info bg-opacity-10 border border-info border-opacity-25 mb-3 position-relative z-1" style="width: 48px; height: 48px;">
+          <i class="bi bi-cpu text-info"></i>
+      </div>
+      <div class="text-white-50 small text-uppercase fw-bold mb-1 position-relative z-1" style="letter-spacing: 0.5px;">Serea Brains</div>
+      <div class="font-outfit fw-bold display-5 text-info position-relative z-1">{{ serea_agents_total }}</div>
     </div>
   </div>
   <div class="col-md-3">
-    <div class="glass-panel p-3 text-center">
-      <div class="text-white-50 small mb-1">Serea Agents Online</div>
-      <div class="font-outfit fw-bold fs-3 text-primary">{{ serea_active }}</div>
+    <div class="glass-panel stat-card-ai p-4 text-center">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 border border-primary border-opacity-25 mb-3" style="width: 48px; height: 48px;">
+          <i class="bi bi-broadcast text-primary"></i>
+      </div>
+      <div class="text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Agents Online</div>
+      <div class="font-outfit fw-bold display-5 text-primary">{{ serea_active }}</div>
     </div>
   </div>
 </div>
 
 <!-- Agent Table -->
-<div class="glass-panel p-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="fw-bold font-outfit mb-0">All AI Employees — Global View</h6>
-    <a href="{% url 'workspace_admin:serea_config' %}" class="btn btn-sm btn-outline-info rounded-pill px-3">
-      <i class="bi bi-sliders me-1"></i> Configure Serea Agents
-    </a>
+<div class="glass-panel p-4 p-md-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+        <i class="bi bi-globe text-primary-gradient"></i> Global AI Workforce
+    </h5>
   </div>
+  
   <div class="table-responsive">
-    <table class="table table-dark table-hover table-borderless align-middle">
+    <table class="table table-ai align-middle mb-0">
       <thead>
-        <tr class="text-white-50 small text-uppercase border-bottom border-secondary">
-          <th>AI Employee</th><th>Client</th><th>Tier</th><th>Serea Brain</th><th>Tokens Used</th><th>Status</th><th>Hired</th><th>Action</th>
+        <tr>
+          <th class="ps-3">AI Identity</th>
+          <th>Client Operator</th>
+          <th>Cognitive Tier</th>
+          <th>Serea Core</th>
+          <th>Token Usage</th>
+          <th>Status</th>
+          <th>Deployed On</th>
+          <th class="text-end pe-3">Controls</th>
         </tr>
       </thead>
       <tbody>
         {% for ai in all_agents %}
         <tr>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="rounded-circle d-flex align-items-center justify-content-center"
-                   style="width:36px;height:36px;background:linear-gradient(135deg,#38bdf8,#3b82f6);flex-shrink:0;">
-                <i class="bi bi-robot text-white small"></i>
+          <td class="ps-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                   style="width:40px;height:40px;background:linear-gradient(135deg,#38bdf8,#c084fc); padding: 2px;">
+                   <div class="w-100 h-100 bg-dark rounded-circle d-flex align-items-center justify-content-center">
+                       <i class="bi bi-robot text-white small"></i>
+                   </div>
               </div>
               <div>
-                <div class="fw-semibold text-white small">{{ ai.ai_name }}</div>
-                <div class="text-white-50" style="font-size:0.7rem;">#{{ ai.id }}</div>
+                <div class="fw-bold text-white mb-1">{{ ai.ai_name }}</div>
+                <div class="badge bg-dark border border-secondary text-white-50 font-monospace" style="font-size:0.65rem;">ID: {{ ai.id }}</div>
               </div>
             </div>
           </td>
-          <td class="text-white-50 small">{{ ai.employer.email }}</td>
+          <td>
+              <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-building text-white-50"></i>
+                  <span class="text-white-50 small">{{ ai.employer.email }}</span>
+              </div>
+          </td>
           <td>
             {% if ai.tier %}
-              <span class="badge bg-primary bg-opacity-25 text-primary">{{ ai.tier.get_name_display }}</span>
+              <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">{{ ai.tier.get_name_display }}</span>
             {% else %}
-              <span class="badge bg-secondary bg-opacity-25 text-white-50">No Tier</span>
+              <span class="badge rounded-pill bg-dark border border-secondary text-white-50 px-2 py-1">No Tier</span>
             {% endif %}
           </td>
           <td>
             {% if ai.serea %}
-              <span class="badge {% if ai.serea.status == 'working' %}bg-success{% elif ai.serea.status == 'waiting' %}bg-warning text-dark{% elif ai.serea.status == 'offline' %}bg-secondary{% else %}bg-info{% endif %} bg-opacity-25">
-                <i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i>{{ ai.serea.get_status_display }}
+              <span class="badge rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1
+                {% if ai.serea.status == 'working' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+                {% elif ai.serea.status == 'waiting' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+                {% elif ai.serea.status == 'offline' %}bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25
+                {% else %}bg-info bg-opacity-10 text-info border border-info border-opacity-25{% endif %}">
+                <span class="spinner-grow spinner-grow-sm {% if ai.serea.status == 'working' %}text-success{% elif ai.serea.status == 'waiting' %}text-warning{% else %}d-none{% endif %}" style="width:0.4rem;height:0.4rem;"></span>
+                {{ ai.serea.get_status_display }}
               </span>
             {% else %}
-              <span class="text-white-50 small">— No brain linked</span>
+              <span class="text-white-50 small fst-italic"><i class="bi bi-link-45deg"></i> Unlinked</span>
             {% endif %}
           </td>
           <td>
             {% if ai.tier %}
-              <div class="d-flex align-items-center gap-2">
-                <div style="width:60px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+              <div class="d-flex flex-column gap-1" style="width: 100px;">
+                <div class="d-flex justify-content-between text-white-50" style="font-size: 0.65rem;">
+                    <span>{{ ai.tokens_used_this_month }}</span>
+                    {% if ai.tier.token_limit > 0 %}<span>{{ ai.tier.token_limit }}</span>{% else %}<span>&infin;</span>{% endif %}
+                </div>
+                <div class="progress bg-dark" style="height:4px;">
                   {% if ai.tier.token_limit > 0 %}
-                  <div style="width:{% widthratio ai.tokens_used_this_month ai.tier.token_limit 100 %}%;height:100%;background:#38bdf8;border-radius:3px;"></div>
+                  <div class="progress-bar bg-info" style="width:{% widthratio ai.tokens_used_this_month ai.tier.token_limit 100 %}%;"></div>
                   {% else %}
-                  <div style="width:100%;height:100%;background:#10b981;border-radius:3px;"></div>
+                  <div class="progress-bar bg-success" style="width:100%;"></div>
                   {% endif %}
                 </div>
-                <span class="text-white-50 small">{{ ai.tokens_used_this_month }}</span>
               </div>
             {% else %}
-              <span class="text-white-50 small">{{ ai.tokens_used_this_month }}</span>
+              <span class="text-white-50 small font-monospace">{{ ai.tokens_used_this_month }}</span>
             {% endif %}
           </td>
           <td>
             {% if ai.is_active %}
-              <span class="badge bg-success bg-opacity-25 text-success">Active</span>
+              <i class="bi bi-check-circle-fill text-success fs-5"></i>
             {% else %}
-              <span class="badge bg-danger bg-opacity-25 text-danger">Inactive</span>
+              <i class="bi bi-x-circle-fill text-danger fs-5"></i>
             {% endif %}
           </td>
-          <td class="text-muted small">{{ ai.hired_at|date:"M d, Y" }}</td>
           <td>
-            <form method="post" class="d-inline" action="{% url 'workspace_admin:ai_oversight' %}">
+              <span class="text-white-50 small"><i class="bi bi-calendar me-1 opacity-50"></i>{{ ai.hired_at|date:"M d, Y" }}</span>
+          </td>
+          <td class="text-end pe-3">
+            <form method="post" class="m-0" action="{% url 'workspace_admin:ai_oversight' %}">
               {% csrf_token %}
               <input type="hidden" name="ai_id" value="{{ ai.id }}">
               {% if ai.is_active %}
-              <button name="action" value="deactivate" class="btn btn-sm btn-outline-danger rounded-pill px-3">Deactivate</button>
+              <button name="action" value="deactivate" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1">Halt</button>
               {% else %}
-              <button name="action" value="activate" class="btn btn-sm btn-outline-success rounded-pill px-3">Activate</button>
+              <button name="action" value="activate" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1">Engage</button>
               {% endif %}
             </form>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="8" class="text-center text-white-50 py-5">
-          <i class="bi bi-robot fs-2 d-block mb-2 opacity-25"></i>No AI employees deployed yet.
-        </td></tr>
+        <tr>
+            <td colspan="8" class="text-center py-5">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-robot fs-1 text-white-50 opacity-50"></i>
+                </div>
+                <h5 class="text-white fw-bold mb-1">No AI Employees</h5>
+                <p class="text-white-50 mb-0 small">The workforce is currently empty.</p>
+            </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

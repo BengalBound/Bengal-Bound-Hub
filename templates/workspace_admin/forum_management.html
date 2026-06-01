@@ -1,64 +1,115 @@
 {% extends 'workspace_admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}Forum Management | BengalBound Workspace Admin{% endblock %}
-
-{% block page_title %}Community Forum{% endblock %}
+{% block title %}Forum Management | WorkspaceAdmin{% endblock %}
+{% block page_title %}Community Forum Overview{% endblock %}
 
 {% block content %}
+<style>
+    .table-custom {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-custom th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-custom td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1rem 0.5rem;
+    }
+    .table-custom tbody tr { transition: background 0.2s ease; }
+    .table-custom tbody tr:hover { background: rgba(255,255,255,0.02); }
+</style>
+
 <div class="mb-4">
-    <p class="text-white-50">Oversee discussions, monitor user activity, and moderate content.</p>
+    <p class="text-white-50">Oversee discussions, monitor user activity, and moderate community content.</p>
 </div>
 
 {% if messages %}
+<div class="mb-4">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show glass-panel border-0 mb-4" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-{{ message.tags }} border border-{{ message.tags }} border-opacity-25 bg-{{ message.tags }} bg-opacity-10 text-{{ message.tags }} d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-info-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ message }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
     </div>
     {% endfor %}
+</div>
 {% endif %}
 
-<div class="glass-panel p-0 overflow-hidden">
+<div class="glass-panel p-4 p-md-5 border-start border-info border-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+            <i class="bi bi-chat-square-text text-primary-gradient"></i> Active Discussions
+        </h5>
+    </div>
+
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle mb-0">
+        <table class="table table-custom align-middle mb-0">
             <thead>
-                <tr class="border-bottom border-secondary">
-                    <th class="text-white-50 fw-medium px-4 py-3">Topic</th>
-                    <th class="text-white-50 fw-medium text-center">Replies</th>
-                    <th class="text-white-50 fw-medium">Status</th>
-                    <th class="text-white-50 fw-medium text-end px-4">Actions</th>
+                <tr>
+                    <th class="ps-3">Discussion Thread</th>
+                    <th class="text-center">Engagement</th>
+                    <th>State</th>
+                    <th class="text-end pe-3">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for topic in topics %}
-                <tr class="border-top border-secondary">
-                    <td class="px-4 py-3">
-                        <div class="fw-bold text-white mb-1">{{ topic.title }}</div>
-                        <div class="small text-white-50">
-                            <span class="badge bg-dark border border-secondary me-2">{{ topic.category.name }}</span>
-                            by <strong>{{ topic.creator.email }}</strong> &bull; {{ topic.created_at|date:"M d, Y" }}
+                <tr>
+                    <td class="ps-3">
+                        <div class="fw-bold text-white mb-2 fs-6">{{ topic.title }}</div>
+                        <div class="d-flex align-items-center gap-2 small text-white-50">
+                            <span class="badge bg-dark border border-secondary font-monospace">{{ topic.category.name|upper }}</span>
+                            <span class="fst-italic opacity-75">by {{ topic.creator.email }}</span>
+                            <span>&bull;</span>
+                            <span><i class="bi bi-calendar-event me-1 opacity-50"></i>{{ topic.created_at|date:"M d, Y" }}</span>
                         </div>
                     </td>
-                    <td class="text-center text-white-50">
-                        <i class="bi bi-chat-dots text-primary me-1"></i>{{ topic.posts.count }}
+                    <td class="text-center">
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-pill">
+                            <i class="bi bi-chat-dots text-primary"></i>
+                            <span class="fw-bold font-monospace text-white">{{ topic.posts.count }}</span>
+                        </div>
                     </td>
                     <td>
-                        {% if topic.is_locked %}<span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i>Locked</span>
-                        {% elif topic.is_solved %}<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Solved</span>
-                        {% elif topic.is_pinned %}<span class="badge bg-warning text-dark"><i class="bi bi-pin-fill me-1"></i>Pinned</span>
-                        {% else %}<span class="badge bg-secondary">Open</span>{% endif %}
+                        <div class="d-flex gap-1">
+                            {% if topic.is_locked %}
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-lock-fill" style="font-size:0.6rem;"></i> Locked
+                                </span>
+                            {% elif topic.is_solved %}
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-check-circle-fill" style="font-size:0.6rem;"></i> Solved
+                                </span>
+                            {% elif topic.is_pinned %}
+                                <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-pin-angle-fill" style="font-size:0.6rem;"></i> Pinned
+                                </span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-25 d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-door-open" style="font-size:0.6rem;"></i> Open
+                                </span>
+                            {% endif %}
+                        </div>
                     </td>
-                    <td class="text-end px-4">
-                        <div class="btn-group">
-                            <a href="{% url 'workspace_admin:forum_topic_detail' topic.pk %}" class="btn btn-sm btn-outline-info rounded-start-pill px-3">
-                                <i class="bi bi-eye"></i> View
+                    <td class="text-end pe-3">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'workspace_admin:forum_topic_detail' topic.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-glow">
+                                <i class="bi bi-eye"></i> View Thread
                             </a>
-                            <form method="post" class="d-inline" onsubmit="return confirm('Delete this entire topic and all its replies? This is permanent.');">
+                            <form method="post" class="m-0" onsubmit="return confirm('CRITICAL: Delete this entire topic and all its replies? This action is permanent and cannot be reversed.');">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="delete_topic">
                                 <input type="hidden" name="topic_id" value="{{ topic.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-end-pill px-3">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;" title="Purge Thread">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -67,9 +118,12 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center text-white-50 py-5">
-                        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                        No topics have been created yet.
+                    <td colspan="4" class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-inbox fs-1 text-white-50 opacity-50"></i>
+                        </div>
+                        <h5 class="text-white fw-bold mb-1">No Active Threads</h5>
+                        <p class="text-white-50 mb-0 small">The community forum is currently empty.</p>
                     </td>
                 </tr>
                 {% endfor %}

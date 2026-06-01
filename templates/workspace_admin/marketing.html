@@ -1,111 +1,401 @@
 {% extends 'workspace_admin/base_admin.html' %}
-{% block page_title %}Marketing Management{% endblock %}
+
+{% block title %}Marketing & Growth | WorkspaceAdmin{% endblock %}
+{% block page_title %}Marketing Control Center{% endblock %}
 
 {% block content %}
-{% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success mb-4">{{ msg }}</div>{% endfor %}{% endif %}
+<style>
+    /* Premium Tabs */
+    .nav-tabs-premium {
+        border-bottom: 2px solid rgba(255,255,255,0.05);
+        gap: 0.5rem;
+    }
+    .nav-tabs-premium .nav-item {
+        margin-bottom: -2px;
+    }
+    .nav-tabs-premium .nav-link {
+        color: rgba(255,255,255,0.5);
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        background: transparent;
+        border-radius: 0;
+    }
+    .nav-tabs-premium .nav-link:hover {
+        color: rgba(255,255,255,0.8);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .nav-tabs-premium .nav-link.active {
+        color: var(--bb-accent-primary);
+        background: transparent;
+        border-color: var(--bb-accent-primary);
+    }
 
-<ul class="nav nav-tabs border-secondary mb-4" id="mktTab">
-    <li class="nav-item"><a class="nav-link active text-white border-secondary" data-bs-toggle="tab" href="#blogs-tab">Blogs</a></li>
-    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#comments-tab">Comments {% if pending_comments.count %}<span class="badge bg-warning ms-1">{{ pending_comments.count }}</span>{% endif %}</a></li>
-    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#coupons-tab">Coupons</a></li>
-    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#notifs-tab">Notifications</a></li>
+    /* Table Styles */
+    .table-custom {
+        --bs-table-bg: transparent;
+        --bs-table-color: #f8fafc;
+    }
+    .table-custom th {
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.4);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 1rem;
+    }
+    .table-custom td {
+        vertical-align: middle;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding: 1rem 0.5rem;
+    }
+    .table-custom tbody tr { transition: background 0.2s ease; }
+    .table-custom tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    /* Form Inputs */
+    .form-custom-input, .form-custom-select, .form-custom-textarea {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+    .form-custom-input:focus, .form-custom-select:focus, .form-custom-textarea:focus {
+        border-color: var(--bb-accent-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(56,189,248,0.25) !important;
+    }
+</style>
+
+{% if messages %}
+<div class="mb-4">
+    {% for msg in messages %}
+    <div class="alert alert-success border border-success border-opacity-25 bg-success bg-opacity-10 text-success d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ msg }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<ul class="nav nav-tabs nav-tabs-premium mb-4" id="mktTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active d-flex align-items-center gap-2" id="blogs-tab-btn" data-bs-toggle="tab" data-bs-target="#blogs-tab" type="button" role="tab">
+            <i class="bi bi-journal-text"></i> Content Marketing
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center gap-2" id="comments-tab-btn" data-bs-toggle="tab" data-bs-target="#comments-tab" type="button" role="tab">
+            <i class="bi bi-chat-square-text"></i> Community Feedback 
+            {% if pending_comments.count %}
+            <span class="badge rounded-pill bg-warning text-dark ms-1">{{ pending_comments.count }}</span>
+            {% endif %}
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center gap-2" id="coupons-tab-btn" data-bs-toggle="tab" data-bs-target="#coupons-tab" type="button" role="tab">
+            <i class="bi bi-ticket-perforated"></i> Promotional Codes
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center gap-2" id="notifs-tab-btn" data-bs-toggle="tab" data-bs-target="#notifs-tab" type="button" role="tab">
+            <i class="bi bi-broadcast"></i> Global Broadcasts
+        </button>
+    </li>
 </ul>
 
 <div class="tab-content">
     <!-- Blogs -->
-    <div class="tab-pane fade show active" id="blogs-tab">
-        <div class="glass-panel p-4">
-            {% for blog in blogs %}
-            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="fw-semibold text-white">{{ blog.title }}</div>
-                    <div class="text-white-50 small">by {{ blog.author.email }} · {{ blog.created_at|date:"M d, Y" }}</div>
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                    {% if blog.is_published %}<span class="badge bg-success bg-opacity-25 text-success">Published</span>
-                    {% else %}
-                    <form method="post">{% csrf_token %}
-                        <input type="hidden" name="action" value="publish_blog">
-                        <input type="hidden" name="blog_id" value="{{ blog.id }}">
-                        <button class="btn btn-sm btn-outline-success rounded-pill px-3">Publish</button>
-                    </form>
-                    {% endif %}
-                </div>
+    <div class="tab-pane fade show active" id="blogs-tab" role="tabpanel">
+        <div class="glass-panel p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-25 pb-3">
+                <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-journals text-primary-gradient"></i> Blog Publication Pipeline
+                </h5>
             </div>
-            {% empty %}<div class="text-center text-white-50 py-4">No blog posts yet.</div>{% endfor %}
+            
+            <div class="d-flex flex-column gap-3">
+                {% for blog in blogs %}
+                <div class="p-4 bg-dark bg-opacity-50 rounded-4 border border-secondary border-opacity-25 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 transition-all hover-border-primary">
+                    <div>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <h6 class="fw-bold text-white mb-0">{{ blog.title }}</h6>
+                            {% if blog.is_published %}
+                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-inline-flex align-items-center gap-1" style="font-size:0.65rem;">
+                                <i class="bi bi-globe2"></i> LIVE
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 d-inline-flex align-items-center gap-1" style="font-size:0.65rem;">
+                                <i class="bi bi-pencil-square"></i> DRAFT
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center gap-3 text-white-50 small">
+                            <span title="Author"><i class="bi bi-person-circle me-1 opacity-50"></i>{{ blog.author.email }}</span>
+                            <span>&bull;</span>
+                            <span title="Created"><i class="bi bi-calendar-event me-1 opacity-50"></i>{{ blog.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center flex-shrink-0">
+                        {% if not blog.is_published %}
+                        <form method="post" class="m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="publish_blog">
+                            <input type="hidden" name="blog_id" value="{{ blog.id }}">
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-4 shadow-glow d-flex align-items-center gap-2">
+                                <i class="bi bi-rocket-takeoff"></i> Publish Now
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-4 disabled" disabled>
+                            <i class="bi bi-check-all me-1"></i> Published
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-journal-x fs-1 text-white-50 opacity-50"></i>
+                    </div>
+                    <h5 class="text-white fw-bold mb-1">Content Pipeline Empty</h5>
+                    <p class="text-white-50 mb-0 small">No blog posts have been authored yet.</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
     <!-- Comments -->
-    <div class="tab-pane fade" id="comments-tab">
-        <div class="glass-panel p-4">
-            {% for comment in pending_comments %}
-            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="fw-semibold text-white small">{{ comment.author_name }} on "{{ comment.post.title }}"</div>
-                    <p class="text-white-50 small mb-0 mt-1">{{ comment.content|truncatechars:150 }}</p>
-                </div>
-                <form method="post" class="ms-3 flex-shrink-0">{% csrf_token %}
-                    <input type="hidden" name="action" value="approve_comment">
-                    <input type="hidden" name="comment_id" value="{{ comment.id }}">
-                    <button class="btn btn-sm btn-outline-success rounded-pill px-3">Approve</button>
-                </form>
+    <div class="tab-pane fade" id="comments-tab" role="tabpanel">
+        <div class="glass-panel p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-25 pb-3">
+                <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-square-quote text-warning"></i> Moderation Queue
+                </h5>
+                {% if pending_comments %}
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-3 py-2 rounded-pill font-monospace">
+                    {{ pending_comments.count }} PENDING
+                </span>
+                {% endif %}
             </div>
-            {% empty %}<div class="text-center text-white-50 py-4"><i class="bi bi-check-circle d-block fs-2 mb-2 text-success"></i>No pending comments.</div>{% endfor %}
+
+            <div class="d-flex flex-column gap-3">
+                {% for comment in pending_comments %}
+                <div class="p-4 bg-dark bg-opacity-50 rounded-4 border border-secondary border-opacity-25 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-warning opacity-10" style="pointer-events: none;"></div>
+                    <div class="position-relative z-index-1 d-flex flex-column flex-md-row justify-content-between align-items-start gap-4">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary bg-opacity-25 text-white" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                    {{ comment.author_name|first|upper }}
+                                </div>
+                                <span class="fw-bold text-white small">{{ comment.author_name }}</span>
+                                <span class="text-white-50 small">commented on</span>
+                                <span class="badge bg-dark border border-secondary text-info font-monospace small px-2 py-1">"{{ comment.post.title }}"</span>
+                            </div>
+                            <div class="p-3 bg-black bg-opacity-25 rounded-3 border border-secondary border-opacity-25 text-white-50 small fst-italic">
+                                "{{ comment.content }}"
+                            </div>
+                        </div>
+                        <form method="post" class="flex-shrink-0 m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve_comment">
+                            <input type="hidden" name="comment_id" value="{{ comment.id }}">
+                            <button class="btn btn-sm btn-success-gradient rounded-pill px-4 shadow-glow d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none;">
+                                <i class="bi bi-shield-check"></i> Approve Comment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 border border-success border-opacity-25 mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-check2-all fs-1 text-success"></i>
+                    </div>
+                    <h5 class="text-white fw-bold mb-1">Queue Clear</h5>
+                    <p class="text-white-50 mb-0 small">There are no pending comments awaiting moderation.</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
     <!-- Coupons -->
-    <div class="tab-pane fade" id="coupons-tab">
-        <div class="glass-panel p-4 mb-4">
-            <h6 class="fw-bold font-outfit mb-3">Create Coupon</h6>
-            <form method="post" class="row g-3">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create_coupon">
-                <div class="col-md-3"><input type="text" name="code" class="form-control bg-dark text-white border-secondary" placeholder="COUPON CODE" required></div>
-                <div class="col-md-2"><input type="number" name="discount" class="form-control bg-dark text-white border-secondary" placeholder="Discount %" min="1" max="100" required></div>
-                <div class="col-md-3"><input type="datetime-local" name="valid_from" class="form-control bg-dark text-white border-secondary" required></div>
-                <div class="col-md-3"><input type="datetime-local" name="valid_until" class="form-control bg-dark text-white border-secondary" required></div>
-                <div class="col-md-1"><button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i></button></div>
-            </form>
-        </div>
-        <div class="glass-panel p-4">
-            <div class="table-responsive">
-                <table class="table table-dark table-borderless table-sm align-middle">
-                    <thead><tr class="text-white-50 small text-uppercase border-bottom border-secondary"><th>Code</th><th>Discount</th><th>Valid From</th><th>Valid Until</th><th>Active</th></tr></thead>
-                    <tbody>
-                        {% for coupon in coupons %}
-                        <tr>
-                            <td class="fw-bold text-primary">{{ coupon.code }}</td>
-                            <td class="text-white">{{ coupon.discount_percentage }}%</td>
-                            <td class="text-muted small">{{ coupon.valid_from|date:"M d, Y" }}</td>
-                            <td class="text-muted small">{{ coupon.valid_until|date:"M d, Y" }}</td>
-                            <td>{% if coupon.is_active %}<span class="badge bg-success bg-opacity-25 text-success">Yes</span>{% else %}<span class="badge bg-secondary bg-opacity-25 text-muted">No</span>{% endif %}</td>
-                        </tr>
-                        {% empty %}<tr><td colspan="5" class="text-center text-white-50 py-4">No coupons yet.</td></tr>{% endfor %}
-                    </tbody>
-                </table>
+    <div class="tab-pane fade" id="coupons-tab" role="tabpanel">
+        <div class="row g-4">
+            <!-- Create Form -->
+            <div class="col-lg-4">
+                <div class="glass-panel p-4 h-100 border-top border-primary border-4">
+                    <h5 class="font-outfit fw-bold text-white mb-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-circle-dotted text-primary-gradient"></i> Generate Campaign
+                    </h5>
+                    <form method="post" class="d-flex flex-column gap-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_coupon">
+                        
+                        <div>
+                            <label class="form-label text-white-50 small fw-medium">Campaign Code</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-primary"><i class="bi bi-upc-scan"></i></span>
+                                <input type="text" name="code" class="form-control form-custom-input font-monospace text-uppercase fw-bold" placeholder="e.g. SUMMER50" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label text-white-50 small fw-medium">Discount Value</label>
+                            <div class="input-group">
+                                <input type="number" name="discount" class="form-control form-custom-input font-monospace text-success fw-bold" placeholder="0" min="1" max="100" required>
+                                <span class="input-group-text bg-dark border-secondary text-success fw-bold">%</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label text-white-50 small fw-medium">Activation Timestamp</label>
+                            <input type="datetime-local" name="valid_from" class="form-control form-custom-input" required>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label text-white-50 small fw-medium">Expiration Timestamp</label>
+                            <input type="datetime-local" name="valid_until" class="form-control form-custom-input" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill py-2 shadow-glow mt-2">
+                            <i class="bi bi-magic me-2"></i>Generate Code
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List -->
+            <div class="col-lg-8">
+                <div class="glass-panel p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0 font-outfit fw-bold text-white d-flex align-items-center gap-2">
+                            <i class="bi bi-ticket-detailed text-info"></i> Active Promotional Campaigns
+                        </h5>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Promotion Code</th>
+                                    <th>Value</th>
+                                    <th>Active Window</th>
+                                    <th class="text-end pe-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for coupon in coupons %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="d-inline-flex align-items-center gap-2 bg-dark border border-secondary rounded px-3 py-2">
+                                            <i class="bi bi-tag-fill text-primary"></i>
+                                            <span class="fw-bold font-monospace text-white fs-6">{{ coupon.code }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success fs-5">{{ coupon.discount_percentage }}%</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column text-white-50 small font-monospace">
+                                            <span><i class="bi bi-play-circle text-success opacity-75 me-1"></i>{{ coupon.valid_from|date:"M d, Y" }}</span>
+                                            <span><i class="bi bi-stop-circle text-danger opacity-75 me-1"></i>{{ coupon.valid_until|date:"M d, Y" }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        {% if coupon.is_active %}
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1">
+                                            <i class="bi bi-check-circle-fill me-1" style="font-size:0.6rem;"></i> ACTIVE
+                                        </span>
+                                        {% else %}
+                                        <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-1">
+                                            <i class="bi bi-dash-circle me-1" style="font-size:0.6rem;"></i> INACTIVE
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5">
+                                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-dark border border-secondary mb-3" style="width: 80px; height: 80px;">
+                                            <i class="bi bi-ticket-perforated fs-1 text-white-50 opacity-50"></i>
+                                        </div>
+                                        <h5 class="text-white fw-bold mb-1">No Promotional Codes</h5>
+                                        <p class="text-white-50 mb-0 small">Generate a campaign code to offer discounts.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Notifications -->
-    <div class="tab-pane fade" id="notifs-tab">
-        <div class="glass-panel p-4 mb-4">
-            <h6 class="fw-bold font-outfit mb-3">Broadcast Notification</h6>
-            <form method="post" class="row g-3">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="send_notification">
-                <div class="col-md-8"><input type="text" name="notif_title" class="form-control bg-dark text-white border-secondary" placeholder="Notification Title" required></div>
-                <div class="col-md-4">
-                    <select name="user_ids" multiple class="form-select bg-dark text-white border-secondary" size="3">
-                        {% for u in all_users %}<option value="{{ u.id }}">{{ u.email }}</option>{% endfor %}
-                    </select>
-                    <div class="form-text text-muted small">Select none to send to ALL users</div>
+    <div class="tab-pane fade" id="notifs-tab" role="tabpanel">
+        <div class="row justify-content-center">
+            <div class="col-xl-8">
+                <div class="glass-panel p-4 p-md-5 position-relative overflow-hidden">
+                    <!-- Background Accent -->
+                    <div class="position-absolute top-0 end-0 p-5 opacity-10" style="pointer-events:none;">
+                        <i class="bi bi-broadcast text-primary" style="font-size: 15rem;"></i>
+                    </div>
+                    
+                    <div class="position-relative z-index-1">
+                        <div class="text-center mb-5">
+                            <h4 class="font-outfit fw-bold text-white mb-2">Global Comms Broadcast</h4>
+                            <p class="text-white-50 small">Dispatch immediate push notifications to targeted user segments or the entire active platform userbase.</p>
+                        </div>
+                        
+                        <form method="post" class="d-flex flex-column gap-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="send_notification">
+                            
+                            <div class="p-4 bg-dark bg-opacity-50 rounded-4 border border-secondary border-opacity-25">
+                                <label class="form-label text-white-50 small fw-medium mb-3"><i class="bi bi-bullseye me-2 text-info"></i>Target Audience Selection</label>
+                                <select name="user_ids" multiple class="form-select form-custom-select" size="5">
+                                    {% for u in all_users %}
+                                    <option value="{{ u.id }}" class="py-1 border-bottom border-secondary border-opacity-10">{{ u.email }} {% if u.first_name %}({{ u.first_name }} {{ u.last_name }}){% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <i class="bi bi-info-circle text-primary"></i>
+                                    <span class="text-white-50 small fst-italic">Leave all unselected to execute a GLOBAL broadcast to all active accounts.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    <label class="form-label text-white-50 small fw-medium">Transmission Header (Title)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark border-secondary text-primary"><i class="bi bi-type-h1"></i></span>
+                                        <input type="text" name="notif_title" class="form-control form-custom-input fw-bold text-white" placeholder="e.g. Scheduled Maintenance Alert" required>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-white-50 small fw-medium">Payload Body (Message)</label>
+                                    <textarea name="notif_message" class="form-control form-custom-textarea" rows="4" placeholder="Enter the exact message content to be transmitted..." required></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-2 pt-4 border-top border-secondary border-opacity-25">
+                                <button type="submit" class="btn btn-primary-gradient rounded-pill px-5 py-2 shadow-glow fw-semibold d-flex align-items-center gap-2" onclick="return confirm('Are you sure you want to dispatch this transmission? It cannot be recalled.')">
+                                    <i class="bi bi-send-fill"></i> Execute Broadcast
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="col-12"><textarea name="notif_message" class="form-control bg-dark text-white border-secondary" rows="2" placeholder="Message body..." required></textarea></div>
-                <div class="col-12"><button type="submit" class="btn btn-primary px-4"><i class="bi bi-send me-2"></i>Send Notification</button></div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

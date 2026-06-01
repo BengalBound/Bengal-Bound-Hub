@@ -1,70 +1,160 @@
 {% extends 'workspace_admin/base_admin.html' %}
 
-{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} {{ model_verbose_name }} | Workspace Admin{% endblock %}
-{% block page_title %}{% if is_edit %}Edit{% else %}Create{% endif %} {{ model_verbose_name }}{% endblock %}
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} {{ model_verbose_name }} | CMS Engine{% endblock %}
+{% block page_title %}{% if is_edit %}Modify Entity{% else %}Generate Entity{% endif %}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <a href="{% url 'workspace_admin:cms_list' model_name=model_name %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Back to {{ model_verbose_name }} List</a>
+<style>
+    /* Premium Form Inputs */
+    .form-custom-input, .form-custom-select, .form-custom-textarea {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+    }
+    .form-custom-input:focus, .form-custom-select:focus, .form-custom-textarea:focus {
+        background-color: rgba(0,0,0,0.5) !important;
+        border-color: var(--bb-accent-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(56,189,248,0.15) !important;
+    }
+    
+    /* Reset checkbox styling */
+    .glass-panel input[type="checkbox"], 
+    .glass-panel input[type="radio"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.15em;
+        vertical-align: top;
+        background-color: rgba(0,0,0,0.4);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        border: 1px solid rgba(255,255,255,0.25);
+        app-appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        border-radius: 0.25em;
+        margin-right: 10px;
+        transition: all 0.2s ease;
+    }
+    .glass-panel input[type="checkbox"]:checked {
+        background-color: var(--bb-accent-cyan);
+        border-color: var(--bb-accent-cyan);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+        box-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+    }
+    
+    /* File input styling */
+    .glass-panel input[type="file"] {
+        padding: 0.5rem;
+        background: rgba(0,0,0,0.2) !important;
+        color: rgba(255,255,255,0.7) !important;
+    }
+    .glass-panel input[type="file"]::file-selector-button {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+        border-radius: 4px;
+        padding: 0.25rem 0.75rem;
+        margin-right: 1rem;
+        transition: all 0.2s ease;
+    }
+    .glass-panel input[type="file"]::file-selector-button:hover {
+        background: rgba(255,255,255,0.2);
+    }
+</style>
+
+<div class="mb-4">
+    <a href="{% url 'workspace_admin:cms_list' model_name=model_name %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-inline-flex align-items-center gap-2 hover-text-white">
+        <i class="bi bi-arrow-left"></i> Return to {{ model_verbose_name|title }} Index
+    </a>
 </div>
 
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <div class="glass-panel p-4 p-md-5">
-            <h4 class="fw-bold mb-4">{% if is_edit %}Update existing{% else %}Add a new{% endif %} record</h4>
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        <div class="glass-panel p-4 p-md-5 border-top border-info border-4 position-relative overflow-hidden">
+            <!-- Background Graphic -->
+            <div class="position-absolute top-0 end-0 p-4 opacity-10" style="pointer-events: none;">
+                <i class="bi bi-database-gear text-info" style="font-size: 10rem; margin-top: -3rem; margin-right: -2rem;"></i>
+            </div>
             
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
+            <div class="position-relative z-index-1">
+                <div class="mb-5 border-bottom border-secondary border-opacity-25 pb-4">
+                    <span class="badge bg-dark border border-secondary text-info font-monospace small mb-2 px-2 py-1">DATA MANAGER</span>
+                    <h4 class="font-outfit fw-bold text-white mb-1">
+                        {% if is_edit %}Modify Entity Record{% else %}Generate New Entity{% endif %}
+                    </h4>
+                    <p class="text-white-50 small mb-0 font-monospace">Schema: {{ model_verbose_name|upper }}</p>
+                </div>
                 
-                {% for field in form %}
-                <div class="mb-3">
-                    <label for="{{ field.id_for_label }}" class="form-label text-white-50 fw-medium">
-                        {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
-                    </label>
-                    <div class="position-relative">
-                        {{ field }}
+                <form method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-4">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label text-white-50 small fw-medium text-uppercase tracking-wider d-flex align-items-center gap-2 mb-2">
+                            {{ field.label }} 
+                            {% if field.field.required %}
+                            <i class="bi bi-asterisk text-danger" style="font-size: 0.5rem;" title="Required"></i>
+                            {% endif %}
+                        </label>
+                        
+                        <div class="position-relative">
+                            {% if field.field.widget.input_type == "checkbox" %}
+                                <div class="d-flex align-items-center p-3 bg-dark bg-opacity-30 border border-secondary border-opacity-25 rounded-3">
+                                    {{ field }}
+                                    <span class="text-white ms-2 small">Enable / Activate this field</span>
+                                </div>
+                            {% else %}
+                                <!-- Render standard field, Django will output the HTML, we style it globally if possible, but Django forms don't let us easily add classes without custom widgets. The global styles above will catch input, select, textarea generally if we apply it to the form elements. -->
+                                <div class="django-field-wrapper">
+                                    {{ field }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if field.help_text %}
+                            <div class="form-text text-info small mt-2 d-flex gap-2">
+                                <i class="bi bi-info-circle mt-1" style="font-size: 0.75rem;"></i>
+                                <span>{{ field.help_text }}</span>
+                            </div>
+                        {% endif %}
+                        
+                        {% for error in field.errors %}
+                            <div class="invalid-feedback d-flex align-items-center gap-2 mt-2" style="display: block !important;">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
-                    {% if field.help_text %}
-                        <div class="form-text text-muted small mt-1">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% for error in field.errors %}
-                        <div class="invalid-feedback d-block">{{ error }}</div>
                     {% endfor %}
-                </div>
-                {% endfor %}
 
-                <div class="d-flex gap-3 mt-5">
-                    <button type="submit" class="btn btn-premium px-5">Save {{ model_verbose_name }}</button>
-                    <a href="{% url 'workspace_admin:cms_list' model_name=model_name %}" class="btn btn-outline-secondary px-4">Cancel</a>
-                </div>
-            </form>
+                    <div class="d-flex gap-3 mt-4 pt-4 border-top border-secondary border-opacity-25">
+                        <button type="submit" class="btn btn-primary-gradient rounded-pill px-5 shadow-glow fw-semibold d-flex align-items-center gap-2">
+                            <i class="bi bi-cloud-arrow-up-fill"></i> Commit Record
+                        </button>
+                        <a href="{% url 'workspace_admin:cms_list' model_name=model_name %}" class="btn btn-outline-secondary rounded-pill px-4 hover-text-white">Cancel</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-<style>
-/* Reset checkbox/radio input styling so they don't break the glass forms */
-.glass-panel input[type="checkbox"], 
-.glass-panel input[type="radio"] {
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-top: 0.15em;
-    vertical-align: top;
-    background-color: rgba(255,255,255,0.1);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    border: 1px solid rgba(255,255,255,0.25);
-    app-appearance: none;
-    -webkit-appearance: none;
-    cursor: pointer;
-    border-radius: 0.25em;
-    margin-right: 10px;
-}
-.glass-panel input[type="checkbox"]:checked {
-    background-color: var(--bb-accent-cyan);
-    border-color: var(--bb-accent-cyan);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
-}
-</style>
+<script>
+    // Apply styling to Django-rendered form fields dynamically
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.django-field-wrapper input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), .django-field-wrapper select, .django-field-wrapper textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control', 'form-custom-input');
+        });
+        
+        const files = document.querySelectorAll('.django-field-wrapper input[type="file"]');
+        files.forEach(input => {
+            input.classList.add('form-control');
+        });
+    });
+</script>
 {% endblock %}

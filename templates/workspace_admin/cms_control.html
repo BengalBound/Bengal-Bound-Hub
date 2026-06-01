@@ -1,185 +1,240 @@
 {% extends 'workspace_admin/base_admin.html' %}
 
-{% block title %}CMS & Site Content | Workspace Admin{% endblock %}
-{% block page_title %}CMS & Site Content{% endblock %}
+{% block title %}CMS Engine | WorkspaceAdmin{% endblock %}
+{% block page_title %}Content Management System{% endblock %}
 
 {% block content %}
+<style>
+    .hover-glow {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255,255,255,0.05);
+        background: linear-gradient(180deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+    }
+    .hover-glow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        border-color: rgba(255,255,255,0.15);
+    }
+    .btn-glass {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.7);
+        transition: all 0.2s ease;
+    }
+    .btn-glass:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: rgba(255,255,255,0.2);
+    }
+</style>
+
 <div class="row g-4">
     <div class="col-12">
-        <div class="glass-panel p-4 mb-4" style="border-left: 4px solid var(--bb-accent-cyan);">
-            <h4 class="fw-bold"><i class="bi bi-window-sidebar text-gradient-purple-cyan me-2"></i> Public Site CMS</h4>
-            <p class="text-white-50 mb-0">Select a content module below to add, edit, or remove entries from the public-facing website. These links will open the native data manager.</p>
+        <div class="glass-panel p-4 p-md-5 mb-4 position-relative overflow-hidden" style="border-left: 4px solid var(--bb-accent-cyan);">
+            <div class="position-absolute top-0 end-0 p-4 opacity-10" style="pointer-events: none;">
+                <i class="bi bi-diagram-3 text-info" style="font-size: 8rem; margin-top: -2rem; margin-right: -2rem;"></i>
+            </div>
+            <div class="position-relative z-index-1">
+                <h4 class="font-outfit fw-bold text-white mb-2 d-flex align-items-center gap-3">
+                    <i class="bi bi-database-gear text-primary-gradient"></i> Core Content Engine
+                </h4>
+                <p class="text-white-50 mb-0 max-w-2xl lh-lg small">
+                    Access modular data structures controlling the public-facing architecture. Select an entity category below to interface with the native data manager for creating, updating, or archiving database records.
+                </p>
+            </div>
         </div>
     </div>
+
+    <!-- Interface Structure Modules -->
+    <div class="col-12 mb-2 mt-4"><h6 class="font-outfit fw-bold text-white-50 text-uppercase tracking-wider small"><i class="bi bi-layout-wtf me-2"></i>Interface Structure</h6></div>
 
     <!-- Hero & Marketing -->
     <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-layout-text-window fs-3 text-primary me-3"></i>
-                <h5 class="fw-bold mb-0">Homepage Hero</h5>
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 border border-primary border-opacity-25" style="width: 48px; height: 48px;">
+                    <i class="bi bi-layout-text-window-reverse fs-4 text-primary"></i>
+                </div>
+                <span class="badge bg-dark border border-secondary text-white-50 font-monospace small">SINGLETON</span>
             </div>
-            <p class="text-white-50 small mb-4">Manage the massive typography and button links on the front page.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='homepagecontent' %}" class="btn btn-outline-primary btn-sm w-100 mt-auto">Manage Content <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-    </div>
-
-    <!-- Marketing & Landing Page -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-megaphone fs-3 text-info me-3"></i>
-                <h5 class="fw-bold mb-0">Marketing Content</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Manage Core Values, Platform Features, Work Process steps, and text Testimonials.</p>
-            <div class="d-flex flex-wrap gap-2 mt-auto">
-                <a href="{% url 'workspace_admin:cms_list' model_name='corevalue' %}" class="btn btn-outline-info btn-sm flex-fill">Core Values</a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='platformfeature' %}" class="btn btn-outline-info btn-sm flex-fill">Platform Features</a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='workprocessstep' %}" class="btn btn-outline-info btn-sm flex-fill">How it Works</a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='testimonial' %}" class="btn btn-outline-info btn-sm flex-fill">Testimonials</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Services -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-lightning-charge fs-3 text-warning me-3"></i>
-                <h5 class="fw-bold mb-0">Services</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Add or edit the primary services offered by BengalBound.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='service' %}" class="btn btn-outline-warning btn-sm w-100 mt-auto">Manage Services <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-    </div>
-
-    <!-- Products -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-box-seam fs-3 text-success me-3"></i>
-                <h5 class="fw-bold mb-0">Products & Tools</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Manage standard products, tools, and AI agents listed.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='product' %}" class="btn btn-outline-success btn-sm w-100 mt-auto">Manage Products <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-    </div>
-
-    <!-- Team Members -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-people fs-3 text-info me-3"></i>
-                <h5 class="fw-bold mb-0">Team Members</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Add team members that appear on the About Us page.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='teammember' %}" class="btn btn-outline-info btn-sm w-100 mt-auto">Manage Team <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-    </div>
-
-    <!-- Partners / Logos -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-building fs-3 text-secondary me-3"></i>
-                <h5 class="fw-bold mb-0">Partner Logos</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Manage the trusted partner logos scrolling on the homepage.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='partner' %}" class="btn btn-outline-secondary btn-sm w-100 mt-auto">Manage Partners <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-    </div>
-
-    <!-- FAQs -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-question-circle fs-3 text-danger me-3"></i>
-                <h5 class="fw-bold mb-0">FAQs</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Add to the frequently asked questions list across the site.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='faq' %}" class="btn btn-outline-danger btn-sm w-100 mt-auto">Manage FAQs <i class="bi bi-arrow-right ms-1"></i></a>
-        </div>
-    </div>
-
-    <!-- Videos & Demos -->
-    <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-camera-video fs-3 text-primary me-3"></i>
-                <h5 class="fw-bold mb-0">Videos & Reviews</h5>
-            </div>
-            <p class="text-white-50 small mb-4">Manage embedded video representations and client video reviews.</p>
-            <div class="d-flex gap-2 mt-auto">
-                <a href="{% url 'workspace_admin:cms_list' model_name='videorepresentation' %}" class="btn btn-outline-primary btn-sm flex-fill">Demos <i class="bi bi-arrow-right ms-1"></i></a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='videoreview' %}" class="btn btn-outline-primary btn-sm flex-fill">Reviews <i class="bi bi-arrow-right ms-1"></i></a>
-            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Homepage Hero</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Manage the primary typography, value proposition, and call-to-action routing on the main landing index.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='homepagecontent' %}" class="btn btn-glass rounded-pill btn-sm w-100 fw-medium d-flex justify-content-center align-items-center gap-2 py-2">
+                Launch Editor <i class="bi bi-box-arrow-up-right" style="font-size:0.7rem;"></i>
+            </a>
         </div>
     </div>
 
     <!-- Navigation & Footer Links -->
     <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-link-45deg fs-3 text-warning me-3"></i>
-                <h5 class="fw-bold mb-0">Navigation & Footer</h5>
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10 border border-warning border-opacity-25" style="width: 48px; height: 48px;">
+                    <i class="bi bi-compass fs-4 text-warning"></i>
+                </div>
+                <span class="badge bg-dark border border-secondary text-white-50 font-monospace small">ROUTING</span>
             </div>
-            <p class="text-white-50 small mb-4">Edit the structural links in the header navbar and the footer.</p>
-            <div class="d-flex gap-2 mt-auto">
-                <a href="{% url 'workspace_admin:cms_list' model_name='navbaritem' %}" class="btn btn-outline-warning btn-sm flex-fill">Navbar <i class="bi bi-arrow-right ms-1"></i></a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='footerlink' %}" class="btn btn-outline-warning btn-sm flex-fill">Footer <i class="bi bi-arrow-right ms-1"></i></a>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Global Navigation</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Configure structural hyperlink routing within the primary header navbar and secondary footer trees.</p>
+            <div class="d-flex gap-2">
+                <a href="{% url 'workspace_admin:cms_list' model_name='navbaritem' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Header</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='footerlink' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Footer</a>
             </div>
         </div>
     </div>
 
+    <!-- Partners / Logos -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary bg-opacity-25 border border-secondary border-opacity-50" style="width: 48px; height: 48px;">
+                    <i class="bi bi-buildings fs-4 text-white-50"></i>
+                </div>
+                <span class="badge bg-dark border border-secondary text-white-50 font-monospace small">ASSETS</span>
+            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Partner Network</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Manage corporate logos and identities for the infinite scrolling marquee of trusted partners.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='partner' %}" class="btn btn-glass rounded-pill btn-sm w-100 fw-medium d-flex justify-content-center align-items-center gap-2 py-2">
+                Manage Entities <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Core Business Modules -->
+    <div class="col-12 mb-2 mt-4"><h6 class="font-outfit fw-bold text-white-50 text-uppercase tracking-wider small"><i class="bi bi-briefcase me-2"></i>Core Business Logic</h6></div>
+
+    <!-- Services -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25);">
+                    <i class="bi bi-lightning-charge fs-4" style="color: #f59e0b;"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Service Offerings</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Define and categorize the primary service packages and capabilities offered by the agency.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='service' %}" class="btn btn-glass rounded-pill btn-sm w-100 fw-medium py-2">Manage Services</a>
+        </div>
+    </div>
+
+    <!-- Products -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 border border-success border-opacity-25" style="width: 48px; height: 48px;">
+                    <i class="bi bi-box-seam fs-4 text-success"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Products & Tools</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Catalogue digital products, SaaS integrations, and specialized AI agents available for deployment.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='product' %}" class="btn btn-glass rounded-pill btn-sm w-100 fw-medium py-2">Manage Products</a>
+        </div>
+    </div>
+
+    <!-- Marketing & Landing Page -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info bg-opacity-10 border border-info border-opacity-25" style="width: 48px; height: 48px;">
+                    <i class="bi bi-megaphone fs-4 text-info"></i>
+                </div>
+                <span class="badge bg-dark border border-secondary text-white-50 font-monospace small">MULTI-MODAL</span>
+            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Marketing Collateral</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Orchestrate Core Values, Platform Features, Operational Workflows, and Client Testimonials.</p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'workspace_admin:cms_list' model_name='corevalue' %}" class="btn btn-glass rounded-pill btn-sm flex-fill" style="font-size:0.75rem;">Values</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='platformfeature' %}" class="btn btn-glass rounded-pill btn-sm flex-fill" style="font-size:0.75rem;">Features</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='workprocessstep' %}" class="btn btn-glass rounded-pill btn-sm flex-fill" style="font-size:0.75rem;">Process</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='testimonial' %}" class="btn btn-glass rounded-pill btn-sm flex-fill" style="font-size:0.75rem;">Testimonials</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content & Knowledge Modules -->
+    <div class="col-12 mb-2 mt-4"><h6 class="font-outfit fw-bold text-white-50 text-uppercase tracking-wider small"><i class="bi bi-journal-richtext me-2"></i>Content & Knowledge Management</h6></div>
+
     <!-- Blogs & Categories -->
     <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-journal-text fs-3 text-success me-3"></i>
-                <h5 class="fw-bold mb-0">Blog System</h5>
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <i class="bi bi-journal-text fs-4" style="color: #10b981;"></i>
+                </div>
             </div>
-            <p class="text-white-50 small mb-4">Write blog posts, manage blog categories, and moderate comments.</p>
-            <div class="d-flex gap-2 mt-auto">
-                <a href="{% url 'workspace_admin:cms_list' model_name='blogpost' %}" class="btn btn-outline-success btn-sm flex-fill">Posts <i class="bi bi-arrow-right ms-1"></i></a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='blogcategory' %}" class="btn btn-outline-success btn-sm flex-fill">Categories <i class="bi bi-arrow-right ms-1"></i></a>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Publishing System</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Write and format editorial blog posts, organize hierarchical categories, and moderate reader engagement.</p>
+            <div class="d-flex gap-2">
+                <a href="{% url 'workspace_admin:cms_list' model_name='blogpost' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Articles</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='blogcategory' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Taxonomy</a>
             </div>
         </div>
     </div>
 
     <!-- Documentation -->
     <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-book fs-3 me-3" style="color: var(--bb-accent-cyan);"></i>
-                <h5 class="fw-bold mb-0">Documentation</h5>
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column border-info border-opacity-25 border">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info bg-opacity-10 border border-info border-opacity-25" style="width: 48px; height: 48px;">
+                    <i class="bi bi-book fs-4 text-info"></i>
+                </div>
             </div>
-            <p class="text-white-50 small mb-4">Add and manage documentation cards displayed on the homepage, with filter categories.</p>
-            <div class="d-flex gap-2 mt-auto flex-wrap">
-                <a href="{% url 'workspace_admin:cms_list' model_name='documentation' %}" class="btn btn-sm flex-fill" style="background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.25); color: var(--bb-accent-cyan);">Docs <i class="bi bi-arrow-right ms-1"></i></a>
-                <a href="{% url 'workspace_admin:cms_list' model_name='documentationcategory' %}" class="btn btn-outline-secondary btn-sm flex-fill">Categories</a>
+            <h5 class="fw-bold text-info mb-2 font-outfit">Technical Documentation</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Author detailed technical specs, API guides, and integration tutorials mapped to structural categories.</p>
+            <div class="d-flex gap-2">
+                <a href="{% url 'workspace_admin:cms_list' model_name='documentation' %}" class="btn btn-info rounded-pill btn-sm flex-fill fw-bold shadow-glow text-white">Docs DB</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='documentationcategory' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Categories</a>
             </div>
         </div>
     </div>
 
-    <!-- Partners (Marquee) -->
+    <!-- FAQs -->
     <div class="col-md-6 col-lg-4">
-        <div class="glass-panel p-4 h-100 position-relative transition-all hover-glow">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-building fs-3 me-3" style="color: #6c757d;"></i>
-                <h5 class="fw-bold mb-0">Partners / Clients</h5>
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 border border-danger border-opacity-25" style="width: 48px; height: 48px;">
+                    <i class="bi bi-question-circle fs-4 text-danger"></i>
+                </div>
             </div>
-            <p class="text-white-50 small mb-4">Manage the scrolling logo marquee displayed at the top of the homepage.</p>
-            <a href="{% url 'workspace_admin:cms_list' model_name='partner' %}" class="btn btn-outline-light btn-sm w-100 mt-auto">Manage Partners <i class="bi bi-arrow-right ms-1"></i></a>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Knowledge Base (FAQ)</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Maintain the repository of frequently asked questions utilized across support modules and the public site.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='faq' %}" class="btn btn-glass rounded-pill btn-sm w-100 fw-medium py-2">Manage Q&A Database</a>
+        </div>
+    </div>
+
+    <!-- Media & Personnel -->
+    <div class="col-12 mb-2 mt-4"><h6 class="font-outfit fw-bold text-white-50 text-uppercase tracking-wider small"><i class="bi bi-collection-play me-2"></i>Media & Personnel</h6></div>
+
+    <!-- Videos & Demos -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25);">
+                    <i class="bi bi-camera-video fs-4" style="color: #8b5cf6;"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Video Assets</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Configure external embedded video links for product demonstrations and recorded client testimonials.</p>
+            <div class="d-flex gap-2">
+                <a href="{% url 'workspace_admin:cms_list' model_name='videorepresentation' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Platform Demos</a>
+                <a href="{% url 'workspace_admin:cms_list' model_name='videoreview' %}" class="btn btn-glass rounded-pill btn-sm flex-fill fw-medium">Client Reviews</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members -->
+    <div class="col-md-6 col-lg-4">
+        <div class="glass-panel p-4 h-100 position-relative hover-glow rounded-4 d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.25);">
+                    <i class="bi bi-people fs-4" style="color: #ec4899;"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold text-white mb-2 font-outfit">Organization Chart</h5>
+            <p class="text-white-50 small mb-4 flex-grow-1 lh-lg">Curate public-facing team profiles, headshots, and social links displayed on the corporate About page.</p>
+            <a href="{% url 'workspace_admin:cms_list' model_name='teammember' %}" class="btn btn-glass rounded-pill btn-sm w-100 fw-medium py-2">Manage Personnel Roster</a>
         </div>
     </div>
 
 </div>
-
-<style>
-    .hover-glow:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        border-color: rgba(255,255,255,0.2) !important;
-    }
-</style>
 {% endblock %}
