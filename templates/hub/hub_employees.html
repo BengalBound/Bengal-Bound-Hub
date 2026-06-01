@@ -139,10 +139,10 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <a href="/manage-ai/{{ ai.id }}/" class="btn btn-hub-outline btn-sm flex-fill">
+                <a href="{% url 'console_admin:manage_ai' ai.id %}" class="btn btn-hub-outline btn-sm flex-fill">
                     <i class="bi bi-gear me-1"></i>Manage
                 </a>
-                <a href="/ai-chat/{{ ai.id }}/" class="btn btn-hub-outline btn-sm flex-fill">
+                <a href="{% url 'console_admin:ai_chat_with' ai.id %}" class="btn btn-hub-outline btn-sm flex-fill">
                     <i class="bi bi-chat-dots me-1"></i>Chat
                 </a>
             </div>

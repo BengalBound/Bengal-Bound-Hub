@@ -1,6 +1,6 @@
 # VPS Hosting + Ollama Profit Model
 # BengalBound Ltd — Bengal Bound
-**Owner:** CEO + CTO | **Updated:** May 2026
+**Owner:** CEO + CTO | **Updated:** June 2026
 
 > This document answers: what does it cost to run Bengal Bound on a VPS with local AI (Ollama),
 > what can we charge, and how much profit do we make at each growth stage?

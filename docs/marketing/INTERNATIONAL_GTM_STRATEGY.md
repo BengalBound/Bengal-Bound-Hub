@@ -1,6 +1,6 @@
 # International Go-To-Market Strategy
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Date:** May 2026 | **Owner:** CEO + Head of Marketing
+**Version:** 1.0 | **Date:** June 2026 | **Owner:** CEO + Head of Marketing
 
 ---
 

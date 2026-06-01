@@ -1,6 +1,6 @@
 # Master Document Index
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Last Updated:** May 2026
+**Version:** 1.1 | **Last Updated:** June 2026
 
 ---
 
@@ -23,6 +23,7 @@
 
 ### 📁 docs/dev/
 *   **[Developer Onboarding Kit](file:///d:/Bengal%20bound/dev-backoffice/docs/dev/DEV_KIT.md)**: API cloning commands, branch naming conventions, PEP 8 type hints, and dev environments.
+*   **[Debugging Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/dev/DEBUGGING_GUIDE.md)**: Common errors, fix commands, Django shell recipes, and environment variable reference.
 
 ### 📁 docs/testing/
 *   **[QA & Testing Playbook](file:///d:/Bengal%20bound/dev-backoffice/docs/testing/QA_AND_TESTING_PLAYBOOK.md)**: Test suites guidelines and coverage commands.
@@ -30,9 +31,11 @@
 
 ### 📁 docs/crm/
 *   **[CRM & Leads Spec](file:///d:/Bengal%20bound/dev-backoffice/docs/crm/CRM_MODULE_SPEC.md)**: Contacts and deals models schema, external CRM syncing, and SDR pipelines.
+*   **[CRM Operations Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/crm/CRM_OPERATIONS_GUIDE.md)**: Pipeline stages, Crux + Lead Hunter agent integration, access control, and key URLs.
 
 ### 📁 docs/ceo/
 *   **[CEO Briefing](file:///d:/Bengal%20bound/dev-backoffice/docs/ceo/CEO_BRIEFING.md)**: Platform overview, revenue model, competitive position, deployment status, and action items for the CEO.
+*   **[Post-Bank Action Plan](file:///d:/Bengal%20bound/dev-backoffice/docs/ceo/POST_BANK_ACTION_PLAN.md)**: Step-by-step commercialization playbook — payment gateways, first customers, and revenue scaling post-bank-account setup.
 
 ### 📁 docs/legal/
 *   **[Legal & Compliance Standards](file:///d:/Bengal%20bound/dev-backoffice/docs/legal/COMPLIANCE_AND_LEGAL_STANDARDS.md)**: GDPR, EU AI Act, PDPA, and Bangladesh privacy controls specifications.
@@ -54,6 +57,14 @@
 *   **[Technical Standards](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/TECHNICAL_STANDARDS_AND_GUIDELINES.md)**: Coding standards, API design, testing requirements.
 *   **[Deployment Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/DEPLOYMENT_GUIDE.md)**: Step-by-step production deployment — Netlify + Render + Supabase + Groq + Stripe.
 
+### 📁 docs/cto/
+*   **[CTO Briefing](file:///d:/Bengal%20bound/dev-backoffice/docs/cto/CTO_BRIEFING.md)**: Platform technical overview for the CTO.
+*   **[Infrastructure Runbook](file:///d:/Bengal%20bound/dev-backoffice/docs/cto/INFRASTRUCTURE_RUNBOOK.md)**: Env vars, Render deploy, Supabase, VPS scaling path, SSL, incident response.
+
+### 📁 docs/ai/
+*   **[AI & Agent Framework Strategy](file:///d:/Bengal%20bound/dev-backoffice/docs/ai/AI_STRATEGY.md)**: Dual-mode AI architecture, LiteLLM routing, provider strategy, VPS scaling.
+*   **[Agent Deployment Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/ai/AGENT_DEPLOYMENT_GUIDE.md)**: How to add, configure, test, and schedule AI agents; Inspector gate integration.
+
 ### 📁 docs/testing/
 *   **[QA & Testing Playbook](file:///d:/Bengal%20bound/dev-backoffice/docs/testing/QA_AND_TESTING_PLAYBOOK.md)**: Test suites guidelines and coverage commands.
 *   **[ISO 29119 Test Plan](file:///d:/Bengal%20bound/dev-backoffice/docs/testing/TEST_PLAN.md)**: Unit tests mocks, Playwright E2E flows, security vulnerability scans.
@@ -66,6 +77,7 @@
 
 ### 📁 docs/internal/
 *   **[BengalBound OS spec](file:///d:/Bengal%20bound/dev-backoffice/docs/internal/BENGAL_BOUND_OS.md)**: CEO executive terminal, free employee unlocking grids, and impact reporting.
+*   **[Sprint Tracker](file:///d:/Bengal%20bound/dev-backoffice/docs/internal/SPRINT_TRACKER.md)**: Completed milestones, in-progress work, known issues, and pre-launch checklist.
 
 ### 📁 docs/antigravity/
 *   **[Antigravity Guidelines](file:///d:/Bengal%20bound/dev-backoffice/docs/antigravity/ANTIGRAVITY_INSTRUCTIONS.md)**: Operating rules, prompts safety, and PEP 8 guidelines for AI coding assistants.

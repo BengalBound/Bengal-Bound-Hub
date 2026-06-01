@@ -1,6 +1,6 @@
 # International Launch Plan
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Date:** May 2026 | **Owner:** CEO + Head of Growth
+**Version:** 1.0 | **Date:** June 2026 | **Owner:** CEO + Head of Growth
 
 ---
 

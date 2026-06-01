@@ -1,6 +1,6 @@
 # System Architecture & Diagrams
 # BengalBound HUB — BengalBound Ltd
-**Version:** 2.0 | Updated: May 2026 | ISO/IEC 25010 Aligned
+**Version:** 2.1 | Updated: June 2026 | ISO/IEC 25010 Aligned
 
 ---
 
@@ -428,5 +428,5 @@ AI calls:
 
 ---
 
-*BengalBound HUB — Architecture v2.0 — Updated May 2026*
+*BengalBound HUB — Architecture v2.1 — Updated June 2026*
 *Diagrams use ASCII art for universal compatibility*

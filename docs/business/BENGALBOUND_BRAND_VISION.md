@@ -223,5 +223,5 @@ See `docs/business/VPS_PROFIT_MODEL.md` for the full financial model.
 
 ---
 
-*BengalBound Ltd — Brand Vision v1.1 | Updated May 2026*
+*BengalBound Ltd — Brand Vision v1.1 | Updated June 2026*
 *This document is the North Star. Every product decision flows from here.*

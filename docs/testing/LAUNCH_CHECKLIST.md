@@ -1,6 +1,6 @@
 # Pre-Launch Checklist
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Date:** May 2026 | **Owner:** CTO + CEO
+**Version:** 1.0 | **Date:** June 2026 | **Owner:** CTO + CEO
 
 > Run this checklist before every market launch. Items marked [DONE] are already complete in the codebase.
 
@@ -43,6 +43,8 @@
 - [DONE] HTTPS enforced
 - [DONE] CSRF protection active
 - [DONE] Field encryption working (FIELD_ENCRYPTION_KEY set)
+- [DONE] Glass-morphism UI applied to all auth pages
+- [ ] **Re-enable email verification** — set `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'` in base.py (currently disabled for testing)
 - [ ] Test full signup → email verification → login flow
 - [ ] Test Google OAuth in production
 - [ ] Test 2FA setup and login

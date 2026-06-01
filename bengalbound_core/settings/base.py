@@ -314,7 +314,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/console/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 DEFAULT_FROM_EMAIL = 'noreply@bengalbound.local'
@@ -350,9 +350,22 @@ NOWPAYMENTS_API_URL  = env('NOWPAYMENTS_API_URL',  default='https://api-sandbox.
 # ── Encryption ────────────────────────────────────────────────────────────────
 FIELD_ENCRYPTION_KEY = env('FIELD_ENCRYPTION_KEY', default='')
 
+# ── Redis & Caching ───────────────────────────────────────────────────────────
+REDIS_URL = env('REDIS_URL', default='redis://127.0.0.1:6379/1')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
 # ── Celery ────────────────────────────────────────────────────────────────────
-CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='memory://')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='cache+memory://')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default=REDIS_URL)
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default=REDIS_URL)
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

@@ -3,7 +3,7 @@
 
 > **Document Class:** Module Specification Document  
 > **Target Audience:** Frontend Engineers, Backend Engineers, and AI Integration Teams  
-> **Date:** May 2026 | **Version:** 1.0  
+> **Date:** June 2026 | **Version:** 1.0  
 
 ---
 

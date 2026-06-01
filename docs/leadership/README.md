@@ -15,6 +15,8 @@ This folder contains strategic and operational documentation for BengalBound's l
 | [CEO Million Dollar Goals](ceo/CEO_MILLION_DOLLAR_GOALS.md) | 2026–2030 ARR targets, AppSumo LTD model, exit strategy |
 | [Documents Checklist](ceo/DOCUMENTS_CHECKLIST.md) | RJSC, TIN/VAT, bank accounts, app store requirements |
 
+Also see `docs/ceo/POST_BANK_ACTION_PLAN.md` — commercialization sequence once corporate bank account is active.
+
 ### `cto/` — Chief Technology Officer
 | Document | Purpose |
 |---|---|

@@ -3,7 +3,7 @@
 
 > **Document Class:** Corporate Governance & Compliance Policy  
 > **Target Audience:** CTO, DPO (Data Protection Officer), Legal Counsel, Compliance Engineers  
-> **Date:** May 2026 | **Version:** 1.0  
+> **Date:** June 2026 | **Version:** 1.0  
 
 ---
 

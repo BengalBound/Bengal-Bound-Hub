@@ -1,6 +1,6 @@
 # CEO Briefing — BengalBound HUB
 # BengalBound Ltd | "Light. Easy. Powerful."
-**Version:** 1.0 | **Date:** May 2026 | **Audience:** CEO, Founders, Board
+**Version:** 1.1 | **Date:** June 2026 | **Audience:** CEO, Founders, Board
 
 ---
 
@@ -114,12 +114,18 @@ Multi-currency pricing is live: USD, EUR, GBP, BDT, INR (auto-detected by sessio
 | Django backend + all modules | Ready to deploy | Render (free tier) |
 | Database | Ready | Supabase (free, 500MB) |
 | AI (33 agents) | Working locally | Groq free tier |
-| Payment processing | Needs Stripe keys | Stripe (global) |
+| Premium UI (glass-morphism) | ✅ Complete (June 2026) | All templates |
+| Payment processing | Needs Stripe live keys | Stripe (global) |
 | Domain + DNS | Needs setup | Cloudflare |
+| Email verification | Disabled for testing — re-enable before launch | allauth |
 
 **Two steps to go live today:**
 1. Connect GitHub → Netlify (auto-deploys on push)
 2. Create Supabase project → paste `DATABASE_URL` in Render dashboard
+
+**Pre-launch: re-enable email verification** — set `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'` in `base.py` and remove the `EMAIL_VERIFICATION_DISABLED` override.
+
+See `docs/ceo/POST_BANK_ACTION_PLAN.md` for the full post-bank commercialization sequence.
 
 ---
 

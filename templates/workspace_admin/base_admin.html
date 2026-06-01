@@ -1,271 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Workspace Admin | BengalBound{% endblock %}</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/index.css' %}">
-    
-    <style>
-        :root {
-            --bb-bg-dark: #0a0a0f;
-            --bb-sidebar-bg: rgba(15, 15, 20, 0.65);
-            --bb-card-bg: rgba(18, 18, 24, 0.75);
-            --bb-accent-primary: #38bdf8;
-            --bb-accent-purple: #c084fc;
-            --bb-accent-pink: #ec4899;
-            --bb-border: rgba(255, 255, 255, 0.08);
-            --bb-hover: rgba(255, 255, 255, 0.05);
-        }
+{% extends 'base_dashboard.html' %}
 
-        body { 
-            background-color: var(--bb-bg-dark); 
-            color: #f8fafc; 
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
+{% block title %}Workspace Admin | BengalBound{% endblock %}
 
-        /* Ambient Glow */
-        .ambient-glow {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.04), transparent 50%),
-                        radial-gradient(circle at 85% 30%, rgba(192, 132, 252, 0.04), transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
+{% block sidebar_subtitle %}Admin{% endblock %}
 
-        /* Sidebar Styling */
-        .sidebar { 
-            min-height: 100vh; 
-            background: var(--bb-sidebar-bg); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid var(--bb-border); 
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-        
-        /* Modern Scrollbar for Sidebar */
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
-        /* Nav Links with Micro-Animations */
-        .nav-link {
-            color: rgba(255, 255, 255, 0.6) !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-        }
-        .nav-link:hover {
-            color: #fff !important;
-            background: var(--bb-hover);
-            transform: translateX(4px);
-        }
-        .nav-link i { transition: transform 0.2s ease; }
-        .nav-link:hover i { transform: scale(1.1); }
-        
-        .nav-link.active { 
-            background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), transparent); 
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            color: #fff !important; 
-            box-shadow: inset 3px 0 0 var(--bb-accent-primary);
-        }
-        .nav-link.active i { color: var(--bb-accent-primary); }
-
-        /* Glass Panels */
-        .glass-panel { 
-            background: var(--bb-card-bg); 
-            backdrop-filter: blur(16px); 
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--bb-border); 
-            border-radius: 16px; 
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-        .glass-panel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.05);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .text-primary-gradient {
-            background: linear-gradient(135deg, var(--bb-accent-primary), var(--bb-accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .font-outfit { font-family: 'Outfit', sans-serif; }
-    </style>
-</head>
-<body>
-    <div class="ambient-glow"></div>
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <nav class="sidebar p-3 d-flex flex-column overflow-y-auto" style="width: 260px; flex-shrink: 0;">
-            <a href="{% url 'workspace_admin:dashboard' %}" class="text-decoration-none text-white fs-4 fw-bold font-outfit mb-4 mt-2 px-2 text-center">
-                Workspace<span class="text-primary-gradient">Admin</span>
-            </a>
-            
-            <ul class="nav nav-pills flex-column mb-auto gap-1">
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:dashboard' %}" class="nav-link px-3 py-2.5 rounded-3 {% if request.path == '/' %}active{% endif %}">
-                        <i class="bi bi-grid-1x2 me-3 fs-5"></i> Dashboard
-                    </a>
-                </li>
-                <!-- Staff Management -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">INTERNAL</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:manage_user' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/users/manage' in request.path %}active{% endif %}">
-                        <i class="bi bi-people-fill me-3 fs-5"></i> Manage Staff
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:office_projects' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/office/projects' in request.path %}active{% endif %}">
-                        <i class="bi bi-diagram-3-fill me-3 fs-5"></i> Internal Projects
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:office_tasks' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/office/tasks' in request.path %}active{% endif %}">
-                        <i class="bi bi-list-task me-3 fs-5"></i> Internal Tasks
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:office_finance' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/office/finance' in request.path %}active{% endif %}">
-                        <i class="bi bi-wallet2 me-3 fs-5"></i> Bookkeeping
-                    </a>
-                </li>
-                <!-- AI Section -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">AI WORKFORCE</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:ai_oversight' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/ai-oversight' in request.path %}active{% endif %}">
-                        <i class="bi bi-robot me-3 fs-5"></i> AI Oversight Room
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:serea_config' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/serea-config' in request.path %}active{% endif %}">
-                        <i class="bi bi-cpu me-3 fs-5"></i> Serea AI Config
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:ai_tiers' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/ai-tiers' in request.path %}active{% endif %}">
-                        <i class="bi bi-layers me-3 fs-5"></i> AI Tier Mgmt
-                    </a>
-                </li>
-                <!-- Projects -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">PROJECTS</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:project_control' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/projects' in request.path %}active{% endif %}">
-                        <i class="bi bi-diagram-3 me-3 fs-5"></i> Project Control
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:project_monitoring' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/monitoring' in request.path %}active{% endif %}">
-                        <i class="bi bi-display me-3 fs-5"></i> Live Monitoring
-                    </a>
-                </li>
-                <!-- CRM / Support -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">CRM & SUPPORT</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:crm_support' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/crm' in request.path %}active{% endif %}">
-                        <i class="bi bi-headset me-3 fs-5"></i> CRM & Support
-                    </a>
-                </li>
-                <!-- Data -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">DATA & ANALYTICS</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:data_traffic' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/data' in request.path %}active{% endif %}">
-                        <i class="bi bi-bar-chart-line me-3 fs-5"></i> Data & Traffic
-                    </a>
-                </li>
-                <!-- Marketing -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">MARKETING</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:marketing' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/marketing' in request.path %}active{% endif %}">
-                        <i class="bi bi-megaphone me-3 fs-5"></i> Marketing
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:cms_control' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/cms' in request.path %}active{% endif %}">
-                        <i class="bi bi-window-sidebar me-3 fs-5"></i> CMS &amp; Site Content
-                    </a>
-                </li>
-                <!-- Hub / Business 360 -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">HUB / B360</span></li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:hub_plans' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/hub/plans' in request.path %}active{% endif %}">
-                        <i class="bi bi-tags me-3 fs-5"></i> Plan Config
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:module_pricing' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/hub/module-pricing' in request.path %}active{% endif %}">
-                        <i class="bi bi-currency-dollar me-3 fs-5"></i> Module Pricing
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:hub_subscriptions' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/hub/subscriptions' in request.path %}active{% endif %}">
-                        <i class="bi bi-credit-card me-3 fs-5"></i> Subscriptions
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:storage_requests' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/hub/storage-requests' in request.path %}active{% endif %}">
-                        <i class="bi bi-hdd me-3 fs-5"></i> Storage Requests
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'workspace_admin:advance_quotes' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/hub/advance-quotes' in request.path %}active{% endif %}">
-                        <i class="bi bi-stars me-3 fs-5"></i> Advance Quotes
-                    </a>
-                </li>
-                <!-- Community Forum -->
-                <li class="nav-item mt-4 mb-1"><span class="text-uppercase text-muted small fw-bold px-3" style="font-size:0.65rem;letter-spacing:1.5px;">COMMUNITY</span></li>
-                <li class="nav-item mb-4">
-                    <a href="{% url 'workspace_admin:forum_management' %}" class="nav-link px-3 py-2.5 rounded-3 {% if '/forum' in request.path %}active{% endif %}">
-                        <i class="bi bi-chat-dots me-3 fs-5"></i> Forum Management
-                    </a>
-                </li>
-            </ul>
-
-            <hr class="border-secondary mt-auto">
-            <div class="dropdown">
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle px-2 py-1 rounded hover-bg-dark transition-all" data-bs-toggle="dropdown">
-                    <div class="rounded-circle bg-primary-gradient d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                        <i class="bi bi-person text-white"></i>
-                    </div>
-                    <strong class="small text-truncate" style="max-width: 150px;">{{ request.user.email }}</strong>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-dark text-small shadow border-secondary border-opacity-50">
-                    <li><a class="dropdown-item py-2" href="/accounts/email/"><i class="bi bi-gear me-2"></i> Settings</a></li>
-                    <li><hr class="dropdown-divider border-secondary"></li>
-                    <li><a class="dropdown-item text-danger py-2" href="/accounts/logout/"><i class="bi bi-box-arrow-right me-2"></i> Sign out</a></li>
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Main Content Area -->
-        <main class="flex-grow-1 p-4 p-xl-5 overflow-auto" style="height: 100vh; position: relative;">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom border-secondary border-opacity-25">
-                <h1 class="h3 font-outfit fw-bold mb-0">{% block page_title %}Dashboard{% endblock %}</h1>
-                {% block page_actions %}{% endblock %}
-            </div>
-            
-            <div class="content-wrapper" style="max-width: 1400px; margin: 0 auto;">
-                {% block content %}{% endblock %}
-            </div>
-        </main>
+{% block sidebar_nav %}
+    <!-- Staff Management -->
+    <div class="sb-section mt-1">
+        <div class="sb-section-label">INTERNAL</div>
+        <a href="{% url 'workspace_admin:manage_user' %}" class="sb-link {% if '/users/manage' in request.path %}active{% endif %}">
+            <i class="bi bi-people-fill"></i> Manage Staff
+        </a>
+        <a href="{% url 'workspace_admin:office_projects' %}" class="sb-link {% if '/office/projects' in request.path %}active{% endif %}">
+            <i class="bi bi-diagram-3-fill"></i> Internal Projects
+        </a>
+        <a href="{% url 'workspace_admin:office_tasks' %}" class="sb-link {% if '/office/tasks' in request.path %}active{% endif %}">
+            <i class="bi bi-list-task"></i> Internal Tasks
+        </a>
+        <a href="{% url 'workspace_admin:office_finance' %}" class="sb-link {% if '/office/finance' in request.path %}active{% endif %}">
+            <i class="bi bi-wallet2"></i> Bookkeeping
+        </a>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <!-- AI Section -->
+    <div class="sb-section">
+        <div class="sb-section-label">AI WORKFORCE</div>
+        <a href="{% url 'workspace_admin:ai_oversight' %}" class="sb-link {% if '/ai-oversight' in request.path %}active{% endif %}">
+            <i class="bi bi-robot"></i> AI Oversight Room
+        </a>
+        <a href="{% url 'workspace_admin:serea_config' %}" class="sb-link {% if '/serea-config' in request.path %}active{% endif %}">
+            <i class="bi bi-cpu"></i> Serea AI Config
+        </a>
+        <a href="{% url 'workspace_admin:ai_tiers' %}" class="sb-link {% if '/ai-tiers' in request.path %}active{% endif %}">
+            <i class="bi bi-layers"></i> AI Tier Mgmt
+        </a>
+    </div>
+
+    <!-- Projects -->
+    <div class="sb-section">
+        <div class="sb-section-label">PROJECTS</div>
+        <a href="{% url 'workspace_admin:project_control' %}" class="sb-link {% if '/projects' in request.path %}active{% endif %}">
+            <i class="bi bi-diagram-3"></i> Project Control
+        </a>
+        <a href="{% url 'workspace_admin:project_monitoring' %}" class="sb-link {% if '/monitoring' in request.path %}active{% endif %}">
+            <i class="bi bi-display"></i> Live Monitoring
+        </a>
+    </div>
+
+    <!-- CRM / Support -->
+    <div class="sb-section">
+        <div class="sb-section-label">CRM & SUPPORT</div>
+        <a href="{% url 'workspace_admin:crm_support' %}" class="sb-link {% if '/crm' in request.path %}active{% endif %}">
+            <i class="bi bi-headset"></i> CRM & Support
+        </a>
+    </div>
+
+    <!-- Data -->
+    <div class="sb-section">
+        <div class="sb-section-label">DATA & ANALYTICS</div>
+        <a href="{% url 'workspace_admin:data_traffic' %}" class="sb-link {% if '/data' in request.path %}active{% endif %}">
+            <i class="bi bi-bar-chart-line"></i> Data & Traffic
+        </a>
+    </div>
+
+    <!-- Marketing -->
+    <div class="sb-section">
+        <div class="sb-section-label">MARKETING</div>
+        <a href="{% url 'workspace_admin:marketing' %}" class="sb-link {% if '/marketing' in request.path %}active{% endif %}">
+            <i class="bi bi-megaphone"></i> Marketing
+        </a>
+        <a href="{% url 'workspace_admin:cms_control' %}" class="sb-link {% if '/cms' in request.path %}active{% endif %}">
+            <i class="bi bi-window-sidebar"></i> CMS &amp; Site Content
+        </a>
+    </div>
+
+    <!-- Hub / Business 360 -->
+    <div class="sb-section">
+        <div class="sb-section-label">HUB / B360</div>
+        <a href="{% url 'workspace_admin:hub_plans' %}" class="sb-link {% if '/hub/plans' in request.path %}active{% endif %}">
+            <i class="bi bi-tags"></i> Plan Config
+        </a>
+        <a href="{% url 'workspace_admin:module_pricing' %}" class="sb-link {% if '/hub/module-pricing' in request.path %}active{% endif %}">
+            <i class="bi bi-currency-dollar"></i> Module Pricing
+        </a>
+        <a href="{% url 'workspace_admin:hub_subscriptions' %}" class="sb-link {% if '/hub/subscriptions' in request.path %}active{% endif %}">
+            <i class="bi bi-credit-card"></i> Subscriptions
+        </a>
+        <a href="{% url 'workspace_admin:storage_requests' %}" class="sb-link {% if '/hub/storage-requests' in request.path %}active{% endif %}">
+            <i class="bi bi-hdd"></i> Storage Requests
+        </a>
+        <a href="{% url 'workspace_admin:advance_quotes' %}" class="sb-link {% if '/hub/advance-quotes' in request.path %}active{% endif %}">
+            <i class="bi bi-stars"></i> Advance Quotes
+        </a>
+    </div>
+
+    <!-- Community Forum -->
+    <div class="sb-section">
+        <div class="sb-section-label">COMMUNITY</div>
+        <a href="{% url 'workspace_admin:forum_management' %}" class="sb-link {% if '/forum' in request.path %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i> Forum Management
+        </a>
+    </div>
+{% endblock %}
+
+{% block user_role %}Super Admin{% endblock %}
+
+{% block user_dropdown_links %}
+    <li><a class="dropdown-item py-2" href="/accounts/email/"><i class="bi bi-gear me-2"></i> Settings</a></li>
+{% endblock %}
+
+{% block breadcrumbs %}
+    Workspace &rsaquo; <span class="page-name">{% block page_title %}Dashboard{% endblock %}</span>
+{% endblock %}
+
+{% block header_actions %}
+    {% block page_actions %}{% endblock %}
+{% endblock %}

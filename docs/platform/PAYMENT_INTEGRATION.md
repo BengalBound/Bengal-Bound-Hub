@@ -1,6 +1,6 @@
 # Payment Integration Guide
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Date:** May 2026 | **Owner:** CTO + Finance
+**Version:** 1.0 | **Date:** June 2026 | **Owner:** CTO + Finance
 
 ---
 

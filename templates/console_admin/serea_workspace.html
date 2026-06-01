@@ -191,8 +191,10 @@
         <i class="bi bi-check2-all text-success display-6"></i>
         <div>
           <div class="fw-semibold text-white">Looking good!</div>
-          <div class="text-white-50 small">You've uploaded business content. Head to the chat and tell Serea you're ready — she'll confirm setup and start working.</div>
-          <a href="/ai-chat/" class="btn btn-sm btn-success rounded-pill mt-2"><i class="bi bi-chat-dots me-2"></i>Chat with Serea →</a>
+          <div class="text-white-50 small">You've uploaded business content.          <p class="mb-0 text-muted small mt-2">
+            Ask for a report on the latest social trends.
+          </p>
+          <a href="{% url 'console_admin:ai_chat' %}" class="btn btn-sm btn-success rounded-pill mt-2"><i class="bi bi-chat-dots me-2"></i>Chat with Serea &rarr;</a>
         </div>
       </div>
     </div>
@@ -202,8 +204,10 @@
         <i class="bi bi-stars text-primary display-6"></i>
         <div>
           <div class="fw-semibold text-white">Serea is fully set up</div>
-          <div class="text-white-50 small">She's actively using your knowledge base to manage your platforms.</div>
-          <a href="/ai-chat/" class="btn btn-sm btn-outline-primary rounded-pill mt-2"><i class="bi bi-chat-dots me-2"></i>Open chat</a>
+          <p class="mb-0 text-muted small mt-2">
+            Send emails to 50 targeted accounts this week.
+          </p>
+          <a href="{% url 'console_admin:ai_chat' %}" class="btn btn-sm btn-outline-primary rounded-pill mt-2"><i class="bi bi-chat-dots me-2"></i>Open chat</a>
         </div>
       </div>
     </div>

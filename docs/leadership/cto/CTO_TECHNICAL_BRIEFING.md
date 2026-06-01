@@ -4,7 +4,7 @@
 > **Document Class:** System Architecture & Infrastructure Spec  
 > **Prepared for:** Chief Technology Officer (CTO) & Lead Architects  
 > **Prepared by:** Principal AI Infrastructure Architect  
-> **Date:** May 2026 | **Version:** 1.0  
+> **Date:** June 2026 | **Version:** 1.0  
 
 ---
 

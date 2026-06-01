@@ -3,7 +3,7 @@
 
 > **Document Class:** Content Strategy & Growth Spec  
 > **Target Audience:** Head of Marketing, Product Managers, Frontend Engineers  
-> **Date:** May 2026 | **Version:** 1.0  
+> **Date:** June 2026 | **Version:** 1.0  
 
 ---
 

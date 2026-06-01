@@ -1,6 +1,6 @@
 # UX Design Principles — Bengal Bound
 # BengalBound Ltd | "Light. Easy. Powerful."
-**Version:** 1.0
+**Version:** 1.1 | **Updated:** June 2026
 
 ---
 
@@ -165,5 +165,104 @@ If any answer is "no" — it's not ready.
 
 ---
 
-*BengalBound Ltd — UX Principles v1.0*
+## BengalBound Design System — Glass-Morphism (June 2026)
+
+The entire platform UI was overhauled in June 2026 to a premium **glass-morphism** aesthetic. All new templates and components must follow these tokens.
+
+### CSS Architecture
+
+Two stylesheet files:
+- `static/css/index.css` — global tokens and base styles
+- `static/css/console.css` — console/dashboard-specific layout
+
+### Design Tokens
+
+```css
+/* Colors */
+--bb-accent-cyan:    #00F5D4;   /* primary action, logo gradient start */
+--bb-accent-purple:  #7B2FBE;   /* gradient end, highlights */
+--bb-glass-border:   rgba(255,255,255,0.08);  /* glass panel edge */
+--text:              rgba(255,255,255,0.9);
+--muted:             rgba(255,255,255,0.5);
+--border:            rgba(255,255,255,0.1);
+
+/* Typography */
+--font-body:    'Inter', sans-serif;      /* weights: 300, 400, 500, 600, 700 */
+--font-heading: 'Outfit', sans-serif;     /* weights: 400, 600, 700, 800 */
+
+/* Glass Panel */
+background: rgba(10, 10, 15, 0.6);
+backdrop-filter: blur(24px);
+-webkit-backdrop-filter: blur(24px);
+border: 1px solid var(--bb-glass-border);
+
+/* Topbar */
+background: rgba(3, 3, 5, 0.7);
+backdrop-filter: blur(20px);
+border-bottom: 1px solid rgba(0, 245, 212, 0.15);  /* cyan glow hint */
+```
+
+### Animated Background Orbs
+
+Every console and workspace page uses three animated orbs behind the content:
+
+```html
+<div class="bg-animated-wrapper">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+</div>
+```
+
+### Layout Structure
+
+```
+<body>
+  .bg-animated-wrapper   ← animated background orbs (fixed, behind everything)
+  .bb-wrap               ← flex row container
+    .bb-sidebar          ← fixed left sidebar (280px), glass panel
+    .bb-main             ← flex column, margin-left: 280px
+      .bb-topbar         ← sticky top bar (64px), glass, cyan glow border
+      .bb-content        ← scrollable content area (padding: 2rem)
+```
+
+### Gradient Text Pattern
+
+Used on logo and key headings:
+
+```css
+background: linear-gradient(135deg, var(--bb-accent-cyan) 0%, var(--bb-accent-purple) 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+```
+
+### Card / Component Rules
+
+| Property | Value |
+|---|---|
+| Card background | `rgba(255,255,255,0.03)` |
+| Card border | `1px solid rgba(255,255,255,0.08)` |
+| Card border-radius | `12px` |
+| Hover border | `var(--bb-accent-cyan)` |
+| Hover glow | `box-shadow: 0 0 15px rgba(0, 245, 212, 0.1)` |
+| Transition | `all 0.2s ease` |
+
+### Font CDN
+
+```html
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+```
+
+### Dependencies
+
+| Library | Version | Purpose |
+|---|---|---|
+| Bootstrap | 5.3.3 | Layout grid + components |
+| Bootstrap Icons | 1.11.3 | All icons (`bi-*` classes) |
+| Inter | Google Fonts | Body text |
+| Outfit | Google Fonts | Headings and logo |
+
+---
+
+*BengalBound Ltd — UX Principles v1.1 — June 2026*
 *Light. Easy. The next generation starts here.*

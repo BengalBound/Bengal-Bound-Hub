@@ -320,7 +320,7 @@ All AI calls route through the LiteLLM proxy (`LITELLM_BASE_URL`). Use `agent_ch
 ---
 
 *Module Owner:* BengalBound HUB Engineering & Legal
-*Compliance Standards Last Reviewed:* May 2026
+*Compliance Standards Last Reviewed:* June 2026
 *Next Scheduled Review:* November 2026
 *Governing Frameworks:* ISO/IEC 42001 · NIST AI RMF · EU AI Act · OWASP LLM Top 10 · 40+ national data laws
 

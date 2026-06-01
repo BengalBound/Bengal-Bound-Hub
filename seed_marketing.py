@@ -1,22 +1,20 @@
 import os
 import django
 
-if 'K_SERVICE' in os.environ:
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bengalbound_core.settings.production')
-else:
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bengalbound_core.settings.development')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bengalbound_core.settings.development')
 django.setup()
 
 from public_site.models import (
     CompanyDetails, FAQ, CoreValue, PlatformFeature, WorkProcessStep, 
     DocumentationCategory, Documentation, BlogCategory, BlogPost, HomepageContent,
-    VideoRepresentation, Service
+    VideoRepresentation
 )
 from django.contrib.auth import get_user_model
 
+User = get_user_model()
+admin = User.objects.filter(is_superuser=True).first()
+
 def seed_db():
-    User = get_user_model()
-    admin = User.objects.filter(is_superuser=True).first()
     print("Seeding CompanyDetails...")
     CompanyDetails.objects.get_or_create(id=1, defaults={
         'address': '123 AI Boulevard\nTech District, Innovation City 90210',
@@ -90,18 +88,6 @@ def seed_db():
         'description': 'Watch a 2-minute demonstration of how our ecosystem unified 4 disparate tools into one cohesive, AI-powered platform.',
         'is_active': True
     })
-
-    print("Seeding Services...")
-    services = [
-        ("AI Operations Manager", "Automate workflows and coordinate team operations round the clock.", "bi-robot"),
-        ("Data Analyst Agent", "Instantly transform raw data into actionable dashboards and insights.", "bi-bar-chart-fill"),
-        ("Customer Support Bot", "Handle customer inquiries with human-like empathy 24/7.", "bi-headset"),
-        ("Sales Outreach AI", "Personalize outreach and nurture leads automatically.", "bi-envelope-paper-heart"),
-        ("Financial Auditor", "Monitor transactions and flag anomalies in real time.", "bi-bank"),
-        ("Marketing Content Gen", "Draft blogs, social media posts, and ad copy at scale.", "bi-pen")
-    ]
-    for i, (t, d, ic) in enumerate(services):
-        Service.objects.get_or_create(slug=t.lower().replace(' ', '-'), defaults={'title': t, 'description': d, 'icon_class': ic})
 
     print("Done!")
 

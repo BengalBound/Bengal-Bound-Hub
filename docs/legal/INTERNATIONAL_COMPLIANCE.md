@@ -1,6 +1,6 @@
 # International Compliance Guide
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Date:** May 2026 | **Owner:** Legal / DPO
+**Version:** 1.0 | **Date:** June 2026 | **Owner:** Legal / DPO
 
 ---
 

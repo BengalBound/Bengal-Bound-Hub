@@ -57,6 +57,7 @@ Welcome, UI/UX Designer Agent. This document is your single source of truth and 
 Before you begin modifying or executing mockups for any screen, review these mandatory guidelines:
 - **Design Tokens:** Follow the strict rules inside [docs/design/UX_PRINCIPLES.md](file:///d:/Bengal%20bound/dev-backoffice/docs/design/UX_PRINCIPLES.md) (8px spacing, 12px card border radius, Inter/Outfit fonts).
 - **Core Philosophy:** All designs must pass the **60-Second Rule** (business owners must immediately grasp context) and the **Apple Test** (forgiveness undo toggles, zero learning curve onboarding).
+- **Glass-Morphism System (June 2026):** All templates now use the premium glass-morphism design. Key rules: dark background with animated orbs, glass panels (`backdrop-filter: blur(24px)`), cyan (`#00F5D4`) and purple (`#7B2FBE`) accent gradient, Bootstrap 5.3.3 + Bootstrap Icons 1.11.3. Never introduce new CSS frameworks — all styling goes in `index.css` or `console.css`. See [UX_PRINCIPLES.md §BengalBound Design System](UX_PRINCIPLES.md) for full token reference.
 
 ---
 

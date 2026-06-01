@@ -1,6 +1,6 @@
 # Production Deployment Guide
 # BengalBound HUB — BengalBound Ltd
-**Version:** 1.0 | **Date:** May 2026 | **Owner:** CTO
+**Version:** 1.1 | **Date:** June 2026 | **Owner:** CTO
 
 ---
 
@@ -126,6 +126,19 @@ Free option: **Brevo** (300 emails/day free)
 4. Set up webhooks: Stripe Dashboard → Webhooks → Add endpoint → `https://app.bengalbound.com/stripe/webhook/`
 
 For Bangladesh: set up **SSLCommerz** separately (see `docs/platform/PAYMENT_INTEGRATION.md`)
+
+---
+
+## Step 7b — Re-enable Email Verification
+
+Email verification is currently **disabled** in `base.py` for development testing. Before going live, set it back:
+
+```python
+# bengalbound_core/settings/base.py
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'   # change from 'optional' / 'none'
+```
+
+Also verify that `EMAIL_HOST` and `EMAIL_HOST_USER` are set in the production environment (Step 6 above) so verification emails actually send.
 
 ---
 
