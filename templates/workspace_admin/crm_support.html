@@ -1,90 +1,266 @@
 {% extends 'workspace_admin/base_admin.html' %}
 {% block page_title %}CRM & Support{% endblock %}
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <button class="btn btn-outline-info rounded-pill px-4 btn-sm d-flex align-items-center gap-2">
+        <i class="bi bi-download"></i> Export Data
+    </button>
+    <button class="btn btn-primary-gradient rounded-pill px-4 btn-sm shadow-glow d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle"></i> New Contact
+    </button>
+</div>
+{% endblock %}
 
 {% block content %}
-{% if messages %}{% for msg in messages %}<div class="alert alert-success border-0 small bg-success bg-opacity-25 text-success mb-4">{{ msg }}</div>{% endfor %}{% endif %}
+<style>
+    .nav-tabs-custom {
+        border-bottom: none;
+        gap: 0.5rem;
+    }
+    .nav-tabs-custom .nav-link {
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 50rem;
+        color: rgba(255,255,255,0.6);
+        padding: 0.6rem 1.25rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        background: rgba(0,0,0,0.2);
+    }
+    .nav-tabs-custom .nav-link:hover {
+        border-color: rgba(255,255,255,0.15);
+        color: #fff;
+    }
+    .nav-tabs-custom .nav-link.active {
+        background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(59,130,246,0.15));
+        border-color: rgba(56,189,248,0.3);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(56,189,248,0.1);
+    }
+    .ticket-card {
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+        border-left-color: var(--bb-accent-primary);
+        background: rgba(255,255,255,0.03);
+    }
+</style>
+
+{% if messages %}
+<div class="mb-4">
+    {% for msg in messages %}
+    <div class="alert alert-success border border-success border-opacity-25 bg-success bg-opacity-10 text-success d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ msg }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <!-- Tab Nav -->
-<ul class="nav nav-tabs border-secondary mb-4" id="crmTab">
-    <li class="nav-item"><a class="nav-link active text-white border-secondary" data-bs-toggle="tab" href="#tickets-tab">Tickets <span class="badge bg-danger ms-1">{{ tickets.count }}</span></a></li>
-    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#inquiries-tab">Inquiries <span class="badge bg-warning ms-1">{{ inquiries.count }}</span></a></li>
-    <li class="nav-item"><a class="nav-link text-white-50 border-secondary" data-bs-toggle="tab" href="#consult-tab">Consultation Calendar <span class="badge bg-primary ms-1">{{ consultations.count }}</span></a></li>
+<ul class="nav nav-tabs nav-tabs-custom mb-4" id="crmTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#tickets-tab" type="button" role="tab">
+            <i class="bi bi-ticket-detailed"></i> Active Tickets 
+            <span class="badge rounded-pill bg-danger bg-opacity-20 text-danger border border-danger border-opacity-25 ms-1">{{ tickets.count }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#inquiries-tab" type="button" role="tab">
+            <i class="bi bi-envelope-paper"></i> Web Inquiries 
+            <span class="badge rounded-pill bg-warning bg-opacity-20 text-warning border border-warning border-opacity-25 ms-1">{{ inquiries.count }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center gap-2" data-bs-toggle="tab" data-bs-target="#consult-tab" type="button" role="tab">
+            <i class="bi bi-calendar-event"></i> Consultations 
+            <span class="badge rounded-pill bg-info bg-opacity-20 text-info border border-info border-opacity-25 ms-1">{{ consultations.count }}</span>
+        </button>
+    </li>
 </ul>
 
 <div class="tab-content">
     <!-- Tickets -->
-    <div class="tab-pane fade show active" id="tickets-tab">
+    <div class="tab-pane fade show active" id="tickets-tab" role="tabpanel">
         <div class="glass-panel p-4">
-            {% for ticket in tickets %}
-            <div class="glass-panel p-3 mb-3">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <span class="fw-semibold text-white">Ticket #{{ ticket.id }}: {{ ticket.subject }}</span>
-                        <small class="text-white-50 ms-2">from {{ ticket.client.email }}</small>
-                    </div>
-                    {% if ticket.status == 'resolved' %}<span class="badge bg-success bg-opacity-25 text-success">Resolved</span>
-                    {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning bg-opacity-25 text-warning">In Progress</span>
-                    {% else %}<span class="badge bg-danger bg-opacity-25 text-danger">Open</span>{% endif %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 font-outfit fw-bold text-white">Support Tickets</h5>
+                <div class="input-group" style="max-width: 250px;">
+                    <span class="input-group-text bg-dark border-secondary text-white-50"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control bg-dark border-secondary text-white shadow-none" placeholder="Search tickets...">
                 </div>
-                <p class="text-white-50 small mb-2">{{ ticket.description }}</p>
-                <form method="post" class="d-flex gap-2 align-items-center mt-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="reply_ticket">
-                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-                    <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:180px;">
-                        <option value="open">Open</option>
-                        <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                        <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
-                    </select>
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Update & Notify Client</button>
-                </form>
             </div>
-            {% empty %}<div class="text-center text-white-50 py-4"><i class="bi bi-emoji-smile d-block fs-2 mb-2 text-success"></i>No open tickets!</div>
-            {% endfor %}
+
+            <div class="d-flex flex-column gap-3">
+                {% for ticket in tickets %}
+                <div class="glass-panel ticket-card p-3 p-md-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-dark border border-secondary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                <i class="bi bi-person text-white-50"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold text-white" style="font-size: 1.1rem;">{{ ticket.subject }}</span>
+                                    <span class="badge rounded-pill bg-dark border border-secondary text-white-50 font-monospace" style="font-size: 0.7rem;">#{{ ticket.id }}</span>
+                                </div>
+                                <div class="text-white-50 small mt-1">
+                                    <i class="bi bi-envelope me-1"></i> {{ ticket.client.email }}
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            {% if ticket.status == 'resolved' %}
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2"><i class="bi bi-check-circle me-1"></i> Resolved</span>
+                            {% elif ticket.status == 'in_progress' %}
+                                <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2"><i class="bi bi-arrow-repeat me-1"></i> In Progress</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2"><i class="bi bi-exclamation-circle me-1"></i> Open</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 rounded bg-black bg-opacity-25 border border-secondary border-opacity-25 mb-3">
+                        <p class="text-white-50 small mb-0 lh-lg">{{ ticket.description }}</p>
+                    </div>
+
+                    <form method="post" class="d-flex flex-wrap gap-2 align-items-center mt-2 border-top border-secondary border-opacity-25 pt-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reply_ticket">
+                        <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                        
+                        <div class="d-flex align-items-center gap-2 me-auto">
+                            <span class="text-white-50 small">Change Status:</span>
+                            <select name="status" class="form-select form-select-sm bg-dark text-white border-secondary rounded-pill shadow-none" style="width:140px; font-size: 0.8rem;">
+                                <option value="open">Open</option>
+                                <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-4 text-white">Update & Notify Client</button>
+                    </form>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);">
+                        <i class="bi bi-emoji-smile fs-1 text-success"></i>
+                    </div>
+                    <h5 class="text-white fw-bold">All caught up!</h5>
+                    <p class="text-white-50 mb-0">No open tickets at the moment.</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
     <!-- Inquiries -->
-    <div class="tab-pane fade" id="inquiries-tab">
+    <div class="tab-pane fade" id="inquiries-tab" role="tabpanel">
         <div class="glass-panel p-4">
-            {% for inq in inquiries %}
-            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="fw-semibold text-white small">{{ inq.subject }}</div>
-                    <div class="text-white-50 small">{{ inq.email }} · {{ inq.created_at|date:"M d, Y" }}</div>
-                    <p class="text-white-50 small mt-1 mb-0">{{ inq.message|truncatechars:120 }}</p>
+            <h5 class="mb-4 font-outfit fw-bold text-white">Web Contact Inquiries</h5>
+            
+            <div class="row g-3">
+                {% for inq in inquiries %}
+                <div class="col-md-6 col-xl-4">
+                    <div class="glass-panel h-100 p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="fw-bold text-white text-truncate pe-2" title="{{ inq.subject }}">{{ inq.subject }}</div>
+                            {% if not inq.is_resolved %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill flex-shrink-0">New</span>
+                            {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill flex-shrink-0">Resolved</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-white-50 small mb-3 flex-grow-1">
+                            <p class="mb-0 lh-base">{{ inq.message|truncatechars:150 }}</p>
+                        </div>
+                        
+                        <div class="mt-auto pt-3 border-top border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-person-badge text-info"></i>
+                                <span class="text-white-50 small text-truncate">{{ inq.email }}</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white-50" style="font-size: 0.7rem;">{{ inq.created_at|date:"M d, Y" }}</span>
+                                {% if not inq.is_resolved %}
+                                <form method="post" class="m-0">{% csrf_token %}
+                                    <input type="hidden" name="action" value="resolve_inquiry">
+                                    <input type="hidden" name="inquiry_id" value="{{ inq.id }}">
+                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3 py-1" style="font-size: 0.75rem;">Mark Resolved</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                {% if not inq.is_resolved %}
-                <form method="post" class="ms-3 flex-shrink-0">{% csrf_token %}
-                    <input type="hidden" name="action" value="resolve_inquiry">
-                    <input type="hidden" name="inquiry_id" value="{{ inq.id }}">
-                    <button class="btn btn-sm btn-outline-success rounded-pill px-3">Mark Resolved</button>
-                </form>
-                {% else %}<span class="badge bg-success bg-opacity-25 text-success flex-shrink-0">Resolved</span>{% endif %}
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-white-50 opacity-50 mb-3 d-block"></i>
+                    <p class="text-white-50 mb-0">No contact inquiries yet.</p>
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}<div class="text-center text-white-50 py-4">No contact inquiries yet.</div>{% endfor %}
         </div>
     </div>
 
     <!-- Consultation Calendar -->
-    <div class="tab-pane fade" id="consult-tab">
+    <div class="tab-pane fade" id="consult-tab" role="tabpanel">
         <div class="glass-panel p-4">
-            {% for c in consultations %}
-            <div class="glass-panel p-3 mb-3 d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="fw-semibold text-white">{{ c.name }} <span class="text-white-50 fw-normal small">— {{ c.company_name }}</span></div>
-                    <div class="text-primary small"><i class="bi bi-calendar me-1"></i>{{ c.preferred_date }} at {{ c.preferred_time }}</div>
-                    {% if c.notes %}<div class="text-white-50 small mt-1">{{ c.notes|truncatechars:80 }}</div>{% endif %}
+            <h5 class="mb-4 font-outfit fw-bold text-white">Consultation Bookings</h5>
+            
+            <div class="d-flex flex-column gap-3">
+                {% for c in consultations %}
+                <div class="glass-panel p-3 p-md-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-5">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 border border-primary border-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                    <i class="bi bi-calendar-event text-primary fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white fs-5 mb-1">{{ c.name }}</div>
+                                    <div class="text-white-50 small"><i class="bi bi-building me-1"></i> {{ c.company_name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 border-start border-secondary ps-md-4">
+                            <div class="d-inline-flex align-items-center gap-2 mb-2 px-3 py-1 rounded-pill bg-info bg-opacity-10 border border-info border-opacity-25">
+                                <i class="bi bi-clock text-info"></i>
+                                <span class="text-info fw-medium small">{{ c.preferred_date }} at {{ c.preferred_time }}</span>
+                            </div>
+                            {% if c.notes %}
+                            <p class="text-white-50 small mb-0 mt-2 text-truncate" title="{{ c.notes }}">
+                                <i class="bi bi-chat-left-text opacity-50 me-1"></i> {{ c.notes }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-3 text-md-end">
+                            {% if not c.is_confirmed %}
+                            <form method="post" class="m-0">{% csrf_token %}
+                                <input type="hidden" name="action" value="confirm_consult">
+                                <input type="hidden" name="consult_id" value="{{ c.id }}">
+                                <button class="btn btn-primary-gradient rounded-pill px-4 shadow-glow w-100 w-md-auto">Confirm Booking</button>
+                            </form>
+                            {% else %}
+                            <div class="d-inline-flex align-items-center justify-content-center gap-2 bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-4 py-2 w-100 w-md-auto">
+                                <i class="bi bi-check-circle-fill"></i> Confirmed
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                {% if not c.is_confirmed %}
-                <form method="post" class="ms-3">{% csrf_token %}
-                    <input type="hidden" name="action" value="confirm_consult">
-                    <input type="hidden" name="consult_id" value="{{ c.id }}">
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Confirm</button>
-                </form>
-                {% else %}<span class="badge bg-success bg-opacity-25 text-success">Confirmed</span>{% endif %}
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x fs-1 text-white-50 opacity-50 mb-3 d-block"></i>
+                    <p class="text-white-50 mb-0">No consultation bookings yet.</p>
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}<div class="text-center text-white-50 py-4">No consultation bookings yet.</div>{% endfor %}
         </div>
     </div>
 </div>
