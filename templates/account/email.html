@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Manage Email Addresses | BengalBound{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 d-flex align-items-center position-relative overflow-hidden py-5 mt-5">
+    <!-- Gradient background glow -->
+    <div class="position-absolute" style="top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 50%, rgba(59,130,246,0.12) 0%, transparent 60%); z-index:0; pointer-events:none;"></div>
+
+    <div class="container" style="position:relative;z-index:1;">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+
+                <!-- Glass Card -->
+                <div class="glass-card p-4 p-lg-5" style="background:rgba(10, 10, 15, 0.6); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.08); border-radius:1.5rem; box-shadow:0 15px 35px rgba(0,0,0,0.5), 0 0 30px rgba(59, 130, 246, 0.15);">
+                    
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle position-relative" 
+                             style="width: 70px; height: 70px; background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+                            <i class="bi bi-envelope text-primary fs-2"></i>
+                        </div>
+                        <h1 class="fw-bold font-outfit text-white mb-2" style="font-size:1.5rem;">
+                            {% trans "Manage Email Addresses" %}
+                        </h1>
+                        <p class="text-white-50 small mb-0">
+                            View and manage the email addresses associated with your BengalBound account.
+                        </p>
+                    </div>
+
+                    {% if user.emailaddress_set.all %}
+                        <form action="{% url 'account_email' %}" class="email_list mb-5" method="post">
+                            {% csrf_token %}
+                            
+                            <div class="list-group mb-4 bg-transparent">
+                            {% for emailaddress in user.emailaddress_set.all %}
+                                <div class="list-group-item bg-dark border border-secondary border-opacity-50 text-white p-3 mb-2 rounded d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-check m-0">
+                                            <input class="form-check-input bg-transparent border-secondary shadow-none" type="radio" name="email" id="email_radio_{{forloop.counter}}" value="{{emailaddress.email}}" {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked"{% endif %}/>
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-medium font-monospace small" style="letter-spacing: 0.5px;">{{ emailaddress.email }}</span>
+                                            <div class="d-flex gap-2 mt-1">
+                                                {% if emailaddress.verified %}
+                                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill" style="font-size: 0.7rem;">Verified</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 rounded-pill" style="font-size: 0.7rem;">Unverified</span>
+                                                {% endif %}
+                                                {% if emailaddress.primary %}
+                                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size: 0.7rem;">Primary</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-primary-gradient rounded-pill px-4 py-2 small fw-semibold shadow-glow flex-grow-1" type="submit" name="action_primary">
+                                    {% trans 'Make Primary' %}
+                                </button>
+                                <button class="btn btn-outline-info rounded-pill px-4 py-2 small flex-grow-1" type="submit" name="action_send">
+                                    {% trans 'Re-send Verification' %}
+                                </button>
+                                <button class="btn btn-outline-danger rounded-pill px-4 py-2 small flex-grow-1" type="submit" name="action_remove">
+                                    {% trans 'Remove' %}
+                                </button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 text-warning small mb-4">
+                            <strong>{% trans 'Warning:'%}</strong> {% trans "You currently do not have any e-mail address set up. You should really add an e-mail address so you can receive notifications, reset your password, etc." %}
+                        </div>
+                    {% endif %}
+
+                    <hr class="border-secondary border-opacity-50 my-4">
+
+                    <h2 class="h5 fw-bold font-outfit text-white mb-3">{% trans "Add Email Address" %}</h2>
+
+                    <!-- Form styling helper -->
+                    <style>
+                        .allauth-form-field input {
+                            background-color: #0d0d12 !important;
+                            color: #ffffff !important;
+                            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                            border-radius: 50rem !important;
+                            padding: 0.75rem 1.25rem !important;
+                            width: 100% !important;
+                            box-shadow: none !important;
+                            transition: all 0.2s ease !important;
+                            font-size: 0.9rem !important;
+                        }
+                        .allauth-form-field input:focus {
+                            border-color: var(--bb-accent-cyan) !important;
+                            box-shadow: 0 0 10px rgba(0, 245, 212, 0.2) !important;
+                            outline: none !important;
+                        }
+                    </style>
+
+                    <form method="post" action="{% url 'account_email' %}" class="add_email">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="allauth-form-field mb-3 text-start">
+                                <label class="form-label text-white-50 small fw-medium ms-2 mb-1.5">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1 ms-2" style="font-size:0.75rem;">{{ field.errors.as_text }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button class="btn btn-outline-premium w-100 rounded-pill py-2.5 mt-2 fw-semibold" name="action_add" type="submit">
+                            {% trans "Add Email" %} <i class="bi bi-plus-circle ms-1"></i>
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

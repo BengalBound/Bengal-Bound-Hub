@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "cloud-run": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/cloud-run-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "serea-ai-agent-489222",
+        "GOOGLE_CLOUD_REGION": "us-south1",
+        "DEFAULT_SERVICE_NAME": "bengal-bound-hub",
+        "SKIP_IAM_CHECK": "true"
+      }
+    },
+    "supabase": {
+      "serverUrl": "https://mcp.supabase.com/mcp?project_ref=wfbfbflnmhkfmyexnmre"
+    }
+  }
+}
