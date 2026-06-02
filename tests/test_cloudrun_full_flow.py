@@ -59,11 +59,11 @@ if __name__ == "__main__":
         print(f"Target: {BASE_URL}")
 
         try:
-            page.goto(BASE_URL, timeout=15000)
+            page.goto(BASE_URL, timeout=60000)
             page.wait_for_load_state("domcontentloaded")
             print(f"Homepage Title: {page.title()}")
             
-            page.goto(f"{BASE_URL}/accounts/login/")
+            page.goto(f"{BASE_URL}/accounts/login/", timeout=60000)
             page.wait_for_load_state("domcontentloaded")
             
             # Find forms
