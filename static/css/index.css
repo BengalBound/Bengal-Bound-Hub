@@ -158,35 +158,21 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 
 /* Buttons */
 .btn-premium {
-    background: linear-gradient(135deg, var(--bb-accent-purple), var(--bb-accent-cyan));
-    color: white !important;
-    border: none;
+    background: linear-gradient(135deg, var(--bb-accent-purple), var(--bb-accent-cyan)) !important;
+    color: #ffffff !important;
+    border: none !important;
     border-radius: 50rem;
     padding: 0.75rem 2rem;
     font-weight: 600;
     transition: all 0.3s ease;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-}
-
-.btn-premium::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, var(--bb-accent-cyan), var(--bb-accent-purple));
-    z-index: -1;
-    transition: opacity 0.3s ease;
-    opacity: 0;
+    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
 }
 
 .btn-premium:hover {
+    background: linear-gradient(135deg, var(--bb-accent-cyan), var(--bb-accent-purple)) !important;
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(157, 78, 221, 0.4);
-}
-
-.btn-premium:hover::before {
-    opacity: 1;
+    box-shadow: 0 8px 25px rgba(0, 245, 212, 0.4);
+    color: #ffffff !important;
 }
 
 .btn-outline-premium {
@@ -863,9 +849,9 @@ select.form-control option:checked {
     right: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
-    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.1));
-    color: white;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, var(--bb-accent-purple), var(--bb-accent-cyan));
+    color: #ffffff !important;
+    border: none;
     border-radius: 0.5rem;
     padding: 0.4rem 1.25rem;
     font-weight: 600;
@@ -874,8 +860,8 @@ select.form-control option:checked {
 }
 
 .btn-newsletter-submit:hover {
-    background: rgba(255,255,255,0.15);
-    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, var(--bb-accent-cyan), var(--bb-accent-purple));
+    box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
 }
 
 .social-links-bar a {
