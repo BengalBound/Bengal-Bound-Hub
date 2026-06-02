@@ -1,15 +1,41 @@
-from django.test import TestCase
-from .models import User, WorkspaceProfile, CustomerProfile
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
-class UserModelTest(TestCase):
-    def test_model_exists(self):
-        self.assertTrue(hasattr(User, "objects"))
+User = get_user_model()
 
-class WorkspaceProfileModelTest(TestCase):
-    def test_model_exists(self):
-        self.assertTrue(hasattr(WorkspaceProfile, "objects"))
-
-class CustomerProfileModelTest(TestCase):
-    def test_model_exists(self):
-        self.assertTrue(hasattr(CustomerProfile, "objects"))
-
+class SecurityEnhancementTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            email='mfa@test.com',
+            username='mfa@test.com',
+            password='Password123!',
+            first_name='MFA',
+            last_name='User'
+        )
+        
+    def test_totp_setup_requires_login(self):
+        url = reverse('accounts:totp_setup')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+        
+    def test_totp_challenge_intercepts_login(self):
+        # Create a confirmed device
+        TOTPDevice.objects.create(user=self.user, name='Phone', confirmed=True)
+        
+        # Try to login
+        url = reverse('accounts:login')
+        response = self.client.post(url, {
+            'username': 'mfa@test.com',
+            'password': 'Password123!'
+        }, HTTP_HOST='console.localhost:1234')
+        
+        # Should redirect to challenge, NOT to the dashboard
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('accounts:totp_challenge'))
+        
+        # Verify session has the totp_auth_user_id
+        self.assertEqual(self.client.session.get('totp_auth_user_id'), self.user.id)

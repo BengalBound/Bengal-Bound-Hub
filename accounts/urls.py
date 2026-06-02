@@ -15,4 +15,8 @@ urlpatterns = [
     # Cross-subdomain SSO
     path('sso/redirect/', views.sso_redirect_view, name='sso_redirect'),
     path('sso/consume/', views.sso_consume_view, name='sso_consume'),
+
+    # Two-Factor Authentication
+    path('2fa/setup/', views.totp_setup_view, name='totp_setup'),
+    path('2fa/challenge/', views.totp_challenge_view, name='totp_challenge'),
 ]

@@ -233,6 +233,10 @@ def custom_login_view(request):
                 messages.error(request, "Staff accounts log in at workspace.localhost:1234")
                 return render(request, 'accounts/login.html', {'is_workspace': False})
 
+            if user.totpdevice_set.filter(confirmed=True).exists():
+                request.session['totp_auth_user_id'] = user.id
+                return redirect('accounts:totp_challenge')
+
             login(request, user)
             return _post_auth_redirect(request, user)
         else:
@@ -280,3 +284,64 @@ def sso_consume_view(request):
             pass
 
     return redirect(next_url)
+
+# ─── Two-Factor Authentication (TOTP) ─────────────────────────────────────────
+
+import qrcode
+import qrcode.image.svg
+from io import BytesIO
+from django.contrib.auth.decorators import login_required
+from django_otp.plugins.otp_totp.models import TOTPDevice
+
+@login_required
+def totp_setup_view(request):
+    user = request.user
+    device, created = TOTPDevice.objects.get_or_create(user=user, name='Default Device', defaults={'confirmed': False})
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'disable':
+            device.delete()
+            messages.success(request, 'Two-Factor Authentication disabled.')
+            return redirect('accounts:totp_setup')
+            
+        code = request.POST.get('totp_code')
+        if device.verify_token(code):
+            device.confirmed = True
+            device.save()
+            messages.success(request, 'Two-Factor Authentication enabled successfully!')
+            return redirect('accounts:totp_setup')
+        else:
+            messages.error(request, 'Invalid code. Please try again.')
+            
+    url = device.config_url
+    factory = qrcode.image.svg.SvgImage
+    img = qrcode.make(url, image_factory=factory)
+    stream = BytesIO()
+    img.save(stream)
+    svg = stream.getvalue().decode()
+    
+    return render(request, 'accounts/totp_setup.html', {'qr_svg': svg, 'device': device})
+
+@ratelimit(key='ip', rate='10/m', block=False)
+def totp_challenge_view(request):
+    user_id = request.session.get('totp_auth_user_id')
+    if not user_id:
+        return redirect('accounts:login')
+        
+    if getattr(request, 'limited', False):
+        messages.error(request, "Too many attempts. Please wait.")
+        return render(request, 'accounts/totp_challenge.html')
+        
+    if request.method == 'POST':
+        code = request.POST.get('totp_code')
+        user = User.objects.get(id=user_id)
+        device = user.totpdevice_set.filter(confirmed=True).first()
+        if device and device.verify_token(code):
+            del request.session['totp_auth_user_id']
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return _post_auth_redirect(request, user)
+        else:
+            messages.error(request, 'Invalid code.')
+            
+    return render(request, 'accounts/totp_challenge.html')
