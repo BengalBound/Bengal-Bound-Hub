@@ -1,0 +1,88 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}Call Center Settings — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'call_center:dashboard' slug=biz.slug %}" style="color:rgba(226,232,240,0.4);font-size:0.8rem;"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+  <h4 class="fw-bold mb-0" style="color:#e2e8f0;">Call Center Settings</h4>
+</div>
+
+<div class="row g-4 justify-content-center">
+  <div class="col-lg-6">
+    <!-- Twilio Config -->
+    <div style="background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.75rem;" class="mb-4">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(251,60,37,0.1);border:1px solid rgba(251,60,37,0.2);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-telephone-fill" style="color:#fb3c25;font-size:1.1rem;"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="color:#e2e8f0;">Twilio Configuration</div>
+          <div style="font-size:0.72rem;color:rgba(226,232,240,0.4);">Connect your Twilio account to enable real phone calls</div>
+        </div>
+        {% if config.is_active %}
+        <span class="ms-auto" style="font-size:0.65rem;padding:3px 10px;border-radius:50rem;background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);">Connected</span>
+        {% else %}
+        <span class="ms-auto" style="font-size:0.65rem;padding:3px 10px;border-radius:50rem;background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);">Not Active</span>
+        {% endif %}
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Account SID</label>
+          <input type="text" name="account_sid" value="{{ config.account_sid }}"
+            class="form-control" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;font-family:monospace;"
+            placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Auth Token</label>
+          <input type="password" name="auth_token" value="{{ config.auth_token }}"
+            class="form-control" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;font-family:monospace;"
+            placeholder="••••••••••••••••••••••••••••••••">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Default From Number <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">E.164 format</span></label>
+          <input type="text" name="default_from_number" value="{{ config.default_from_number }}"
+            class="form-control" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;"
+            placeholder="+14155552671">
+        </div>
+        <div class="mb-4">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">TwiML App SID <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">For browser-based calls (Twilio.js)</span></label>
+          <input type="text" name="twiml_app_sid" value="{{ config.twiml_app_sid }}"
+            class="form-control" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;font-family:monospace;"
+            placeholder="APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <button type="submit" class="btn w-100" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:10px;">
+          Save Twilio Settings
+        </button>
+      </form>
+    </div>
+
+    <!-- Webhook info -->
+    <div style="background:rgba(5,5,10,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:1.5rem;">
+      <h6 class="fw-bold mb-3" style="font-size:0.8rem;color:rgba(226,232,240,0.5);letter-spacing:1px;text-transform:uppercase;">Twilio Webhook URLs</h6>
+      <p class="small mb-3" style="color:rgba(226,232,240,0.4);">Point your Twilio number webhooks to these URLs. Set "Voice" to the Inbound URL and "Status Callback" to the Status URL.</p>
+
+      {% for label, url in webhook_urls.items %}
+      <div class="mb-2">
+        <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.05em;">{{ label }}</div>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <code style="font-size:0.75rem;color:var(--bb-accent-cyan);background:rgba(0,245,212,0.05);padding:4px 10px;border-radius:6px;flex-grow:1;word-break:break-all;">{{ url }}</code>
+          <button onclick="navigator.clipboard.writeText('{{ url }}')" style="background:none;border:none;color:rgba(226,232,240,0.3);cursor:pointer;" title="Copy">
+            <i class="bi bi-clipboard"></i>
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="mt-3 p-3" style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.15);border-radius:8px;">
+        <p class="small mb-0" style="color:rgba(251,191,36,0.7);">
+          <i class="bi bi-info-circle me-1"></i>
+          In Twilio Console → Phone Numbers → your number → Voice Configuration → set the Webhook URL to the Inbound URL above with method POST.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

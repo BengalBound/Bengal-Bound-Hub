@@ -1,0 +1,50 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}IVR Menus — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#e2e8f0;">IVR Builder</h4>
+    <p class="small mb-0" style="color:rgba(226,232,240,0.4);">Interactive Voice Response menus</p>
+  </div>
+  <a href="{% url 'call_center:ivr_create' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:10px;">
+    <i class="bi bi-plus-lg me-1"></i> New IVR Menu
+  </a>
+</div>
+
+<div class="row g-3">
+  {% for menu in menus %}
+  <div class="col-md-6 col-lg-4">
+    <div style="background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.25rem;">
+      <div class="d-flex align-items-start justify-content-between mb-2">
+        <div>
+          <div class="fw-semibold" style="color:#e2e8f0;">{{ menu.name }}</div>
+          <div style="font-size:0.72rem;color:rgba(226,232,240,0.35);">{{ menu.options.count }} option{{ menu.options.count|pluralize }}</div>
+        </div>
+        <span style="font-size:0.65rem;padding:2px 8px;border-radius:50rem;background:{% if menu.is_active %}rgba(34,197,94,0.1);color:#22c55e{% else %}rgba(148,163,184,0.08);color:rgba(148,163,184,0.4){% endif %};">
+          {% if menu.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+      </div>
+      <p style="font-size:0.78rem;color:rgba(226,232,240,0.45);" class="mb-3">{{ menu.welcome_message|truncatechars:80 }}</p>
+      <!-- Option preview -->
+      {% for opt in menu.options.all %}
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span style="width:22px;height:22px;border-radius:6px;background:rgba(0,245,212,0.08);border:1px solid rgba(0,245,212,0.15);color:var(--bb-accent-cyan);font-size:0.7rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ opt.digit }}</span>
+        <span style="font-size:0.75rem;color:rgba(226,232,240,0.55);">{{ opt.label }}</span>
+        <span style="font-size:0.65rem;color:rgba(226,232,240,0.25);margin-left:auto;">{{ opt.get_action_display }}</span>
+      </div>
+      {% endfor %}
+      <a href="{% url 'call_center:ivr_detail' slug=biz.slug pk=menu.pk %}" class="btn btn-sm w-100 mt-3" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(226,232,240,0.6);border-radius:8px;font-size:0.78rem;">
+        Edit Menu
+      </a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5">
+    <i class="bi bi-diagram-3 display-3 mb-3 d-block" style="color:rgba(226,232,240,0.1);"></i>
+    <p style="color:rgba(226,232,240,0.3);">No IVR menus yet. <a href="{% url 'call_center:ivr_create' slug=biz.slug %}" style="color:var(--bb-accent-cyan);">Create your first menu</a></p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

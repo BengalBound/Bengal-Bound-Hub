@@ -1,0 +1,110 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}Call Log — {{ biz.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.filter-bar { background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:12px;padding:1rem 1.25rem; }
+.log-table th { font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(226,232,240,0.35);padding:0 1rem 0.75rem;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.06); }
+.log-table td { font-size:0.82rem;padding:0.65rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(226,232,240,0.75);vertical-align:middle; }
+.log-table tr:hover td { background:rgba(255,255,255,0.02); }
+.dir-badge { font-size:0.65rem;padding:2px 8px;border-radius:50rem;font-weight:700; }
+.dir-inbound { background:rgba(56,189,248,0.1);color:#38bdf8; }
+.dir-outbound { background:rgba(192,132,252,0.1);color:#c084fc; }
+.status-pill { font-size:0.65rem;padding:2px 8px;border-radius:50rem; }
+</style>
+{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#e2e8f0;">Call Log</h4>
+    <p class="small mb-0" style="color:rgba(226,232,240,0.4);">{{ calls|length }} calls shown</p>
+  </div>
+  <a href="{% url 'call_center:dashboard' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(226,232,240,0.7);border-radius:10px;">
+    <i class="bi bi-speedometer2 me-1"></i> Wallboard
+  </a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="filter-bar mb-4">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search number or notes…"
+        class="form-control form-control-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+    </div>
+    <div class="col-md-2">
+      <select name="direction" class="form-select form-select-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+        <option value="">All directions</option>
+        <option value="inbound" {% if direction == 'inbound' %}selected{% endif %}>Inbound</option>
+        <option value="outbound" {% if direction == 'outbound' %}selected{% endif %}>Outbound</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select form-select-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+        <option value="">All statuses</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="date" name="date_from" value="{{ date_from }}"
+        class="form-control form-control-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+    </div>
+    <div class="col-md-2">
+      <input type="date" name="date_to" value="{{ date_to }}"
+        class="form-control form-control-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+    </div>
+    <div class="col-md-1">
+      <button type="submit" class="btn btn-sm w-100" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:8px;">Filter</button>
+    </div>
+  </div>
+</form>
+
+<!-- Table -->
+<div style="background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;overflow:hidden;">
+  <table class="w-100 log-table">
+    <thead>
+      <tr>
+        <th>Direction</th>
+        <th>Caller</th>
+        <th>Queue</th>
+        <th>Agent</th>
+        <th>Wait</th>
+        <th>Duration</th>
+        <th>Status</th>
+        <th>Time</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for call in calls %}
+      <tr>
+        <td><span class="dir-badge dir-{{ call.direction }}">{{ call.direction|capfirst }}</span></td>
+        <td>
+          <div style="color:#e2e8f0;">{{ call.caller_number }}</div>
+          {% if call.contact %}<div style="font-size:0.68rem;color:rgba(0,245,212,0.5);">{{ call.contact.full_name|truncatechars:20 }}</div>{% endif %}
+        </td>
+        <td>{{ call.queue.name|default:"—" }}</td>
+        <td>{{ call.agent.get_full_name|default:call.agent.email|default:"—" }}</td>
+        <td>{{ call.wait_display }}</td>
+        <td>{{ call.duration_display }}</td>
+        <td>
+          <span class="status-pill" style="background:{% if call.status == 'completed' %}rgba(34,197,94,0.1);color:#22c55e{% elif call.status == 'in-progress' %}rgba(251,191,36,0.1);color:#fbbf24{% elif call.status == 'voicemail' %}rgba(129,140,248,0.1);color:#818cf8{% else %}rgba(148,163,184,0.08);color:rgba(148,163,184,0.5){% endif %};">
+            {{ call.get_status_display }}
+          </span>
+          {% if call.recording_url %}<i class="bi bi-mic-fill ms-1" style="color:rgba(0,245,212,0.4);font-size:0.65rem;" title="Recording available"></i>{% endif %}
+        </td>
+        <td style="color:rgba(226,232,240,0.35);">{{ call.started_at|date:"d M H:i" }}</td>
+        <td>
+          <a href="{% url 'call_center:call_detail' slug=biz.slug pk=call.pk %}" style="color:rgba(0,245,212,0.5);font-size:0.75rem;">View</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" style="text-align:center;padding:2rem;color:rgba(226,232,240,0.3);">No calls match your filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

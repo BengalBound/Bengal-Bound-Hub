@@ -1,0 +1,182 @@
+{% extends 'hub/base_hub.html' %}
+{% load static %}
+
+{% block title %}Call Center — {{ biz.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.stat-card { background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.25rem 1.5rem; }
+.stat-num { font-size:2rem;font-weight:800;line-height:1;letter-spacing:-0.04em; }
+.stat-label { font-size:0.72rem;color:rgba(226,232,240,0.4);text-transform:uppercase;letter-spacing:1px;margin-top:0.25rem; }
+.agent-row { display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.04); }
+.agent-row:last-child { border-bottom:none; }
+.status-badge { font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:50rem;text-transform:uppercase;letter-spacing:0.05em; }
+.status-available { background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.2); }
+.status-on_call { background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.2); }
+.status-wrap_up { background:rgba(56,189,248,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.2); }
+.status-break { background:rgba(192,132,252,0.12);color:#c084fc;border:1px solid rgba(192,132,252,0.2); }
+.status-offline { background:rgba(148,163,184,0.1);color:rgba(148,163,184,0.5);border:1px solid rgba(148,163,184,0.1); }
+.call-row td { padding:0.5rem 0.75rem;font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.04); }
+.queue-card { background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:12px;padding:1rem 1.25rem; }
+.pulse-dot { display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)} }
+</style>
+{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#e2e8f0;">Call Center <span class="pulse-dot ms-2"></span></h4>
+    <p class="small mb-0" style="color:rgba(226,232,240,0.4);">Supervisor Wallboard — live view</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'call_center:agent_console' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:10px;">
+      <i class="bi bi-telephone-fill me-1"></i> My Console
+    </a>
+    <a href="{% url 'call_center:call_log' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(226,232,240,0.7);border-radius:10px;">
+      <i class="bi bi-list-ul me-1"></i> Call Log
+    </a>
+    {% if not twilio_config.is_configured %}
+    <a href="{% url 'call_center:settings' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:10px;">
+      <i class="bi bi-exclamation-triangle me-1"></i> Setup Twilio
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="border-color:rgba(251,191,36,0.2);">
+      <div class="stat-num" style="color:#fbbf24;">{{ stats.calls_waiting }}</div>
+      <div class="stat-label">Calls Waiting</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="border-color:rgba(34,197,94,0.2);">
+      <div class="stat-num" style="color:#22c55e;">{{ stats.agents_available }}</div>
+      <div class="stat-label">Agents Available</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="border-color:rgba(56,189,248,0.2);">
+      <div class="stat-num" style="color:#38bdf8;">{{ stats.completed_today }}</div>
+      <div class="stat-label">Calls Today</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="border-color:rgba(248,113,113,0.2);">
+      <div class="stat-num" style="color:#f87171;">{{ stats.abandoned_today }}</div>
+      <div class="stat-label">Abandoned</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Agent Status Grid -->
+  <div class="col-lg-5">
+    <div class="stat-card h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0" style="font-size:0.8rem;color:rgba(226,232,240,0.5);letter-spacing:1px;text-transform:uppercase;">Agent Board</h6>
+        <a href="{% url 'call_center:queue_list' slug=biz.slug %}" class="small" style="color:rgba(0,245,212,0.6);font-size:0.72rem;">Manage queues</a>
+      </div>
+      {% for s in agent_statuses %}
+      <div class="agent-row">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;background:rgba(255,255,255,0.06);font-size:0.75rem;color:rgba(226,232,240,0.6);">
+          {{ s.agent.get_full_name|first|upper|default:s.agent.email|first|upper }}
+        </div>
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="fw-semibold text-truncate" style="font-size:0.82rem;color:#e2e8f0;">{{ s.agent.get_full_name|default:s.agent.email }}</div>
+          {% if s.current_call %}<div style="font-size:0.68rem;color:rgba(226,232,240,0.35);">{{ s.current_call.caller_number }}</div>{% endif %}
+        </div>
+        <span class="status-badge status-{{ s.status }}">{{ s.get_status_display }}</span>
+      </div>
+      {% empty %}
+      <p class="text-center text-white-50 small py-3">No agents online yet. <a href="{% url 'call_center:queue_list' slug=biz.slug %}" style="color:var(--bb-accent-cyan);">Add agents to queues</a></p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Right column: queues + recent calls -->
+  <div class="col-lg-7">
+    <!-- Queues -->
+    {% if queues %}
+    <div class="mb-3">
+      <h6 class="fw-bold mb-2" style="font-size:0.72rem;color:rgba(226,232,240,0.4);letter-spacing:1px;text-transform:uppercase;">Active Queues</h6>
+      <div class="row g-2">
+        {% for q in queues %}
+        <div class="col-sm-6">
+          <div class="queue-card">
+            <div class="fw-semibold mb-1" style="font-size:0.85rem;color:#e2e8f0;">{{ q.name }}</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span style="font-size:0.72rem;color:rgba(226,232,240,0.4);">{{ q.phone_number|default:"No number" }}</span>
+              <div class="d-flex gap-2">
+                <span style="font-size:0.72rem;color:#fbbf24;">{{ q.calls_waiting }} waiting</span>
+                <span style="font-size:0.72rem;color:#22c55e;">{{ q.available_agents.count }} free</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent calls -->
+    <div class="stat-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0" style="font-size:0.8rem;color:rgba(226,232,240,0.5);letter-spacing:1px;text-transform:uppercase;">Recent Calls</h6>
+        <a href="{% url 'call_center:call_log' slug=biz.slug %}" style="font-size:0.72rem;color:rgba(0,245,212,0.6);">View all</a>
+      </div>
+      <table class="w-100" style="border-collapse:collapse;">
+        <thead>
+          <tr style="color:rgba(226,232,240,0.3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;">
+            <td style="padding:0 0.75rem 0.5rem;">Caller</td>
+            <td style="padding:0 0.75rem 0.5rem;">Queue</td>
+            <td style="padding:0 0.75rem 0.5rem;">Duration</td>
+            <td style="padding:0 0.75rem 0.5rem;">Status</td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for call in recent_calls %}
+          <tr>
+            <td class="call-row">
+              <a href="{% url 'call_center:call_detail' slug=biz.slug pk=call.pk %}" style="color:#e2e8f0;text-decoration:none;">
+                {{ call.caller_number }}
+              </a>
+              {% if call.contact %}<div style="font-size:0.65rem;color:rgba(0,245,212,0.5);">{{ call.contact.full_name|truncatechars:20 }}</div>{% endif %}
+            </td>
+            <td class="call-row" style="color:rgba(226,232,240,0.45);">{{ call.queue.name|default:"—" }}</td>
+            <td class="call-row" style="color:rgba(226,232,240,0.45);">{{ call.duration_display }}</td>
+            <td class="call-row">
+              <span class="status-badge status-{% if call.status == 'completed' %}available{% elif call.status == 'in-progress' %}on_call{% elif call.status in 'queued,ringing' %}wrap_up{% else %}offline{% endif %}">
+                {{ call.get_status_display }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="call-row text-center" style="color:rgba(226,232,240,0.3);">No calls yet today</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh wallboard every 15 seconds
+let refreshTimer = setInterval(() => {
+  fetch("{% url 'call_center:api_stats' slug=biz.slug %}")
+    .then(r => r.json())
+    .then(data => {
+      // Update waiting badge if it changes
+      document.title = data.calls_waiting > 0
+        ? `(${data.calls_waiting} waiting) Call Center — {{ biz.name }}`
+        : 'Call Center — {{ biz.name }}';
+    })
+    .catch(() => {});
+}, 15000);
+</script>
+{% endblock %}

@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import TemplateView
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from modules.forms_builder.views import form_public
 from public_site.sitemaps import StaticPageSitemap, BlogSitemap
 
@@ -36,8 +37,17 @@ urlpatterns = [
     path('workspace/', include('workspace_admin.urls', namespace='workspace_admin')),
     path('console/', include('console_admin.urls', namespace='console_admin')),
     path('community/', include('community_forum.urls', namespace='community_forum')),
+
+    # Swagger / OpenAPI
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
     path('hub/<slug:slug>/board/', include('modules.task_board.urls', namespace='task_board')),
     path('hub/<slug:slug>/chat/', include('modules.team_chat.urls', namespace='team_chat')),
+
+    # Call Center
+    path('hub/<slug:slug>/call-center/', include('modules.call_center.urls', namespace='call_center')),
 
     # CRM & Sales
     path('hub/<slug:slug>/crm/', include('modules.crm.urls', namespace='crm')),

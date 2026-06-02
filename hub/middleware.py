@@ -45,6 +45,7 @@ class BusinessAccessMiddleware:
             'sis', 'lms', 'assessments', 'timetable', 'parent-portal',
             'properties', 'deals', 'commission', 're-marketing', 're-portal',
             'omnichannel', 'planogram', 'product-catalog', 'b2b', 'store-ops',
+            'call-center',
         ])
         if slug in _SKIP_SEGMENTS:
             return self.get_response(request)

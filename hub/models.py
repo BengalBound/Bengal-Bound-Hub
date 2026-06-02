@@ -17,7 +17,7 @@ INDUSTRY_MODULE_PRIORITY = {
     # Manufacturing
     'factory':       ['erp', 'mes', 'plm', 'production', 'bom', 'inventory', 'quality_control', 'maintenance', 'asset_management', 'cadcam', 'payroll', 'hr', 'attendance'],
     # General Business
-    'business':      ['crm', 'invoicing', 'hr', 'payroll', 'accounting', 'task_board', 'contracts', 'docs', 'business_calendar'],
+    'business':      ['crm', 'invoicing', 'hr', 'payroll', 'accounting', 'task_board', 'contracts', 'docs', 'business_calendar', 'call_center'],
     # Service Station
     'station':       ['pos', 'inventory', 'maintenance', 'crm', 'invoicing', 'shift_planning'],
     # Hospitality & Food

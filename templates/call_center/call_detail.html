@@ -1,0 +1,96 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}Call #{{ call.pk }} — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'call_center:call_log' slug=biz.slug %}" style="color:rgba(226,232,240,0.4);font-size:0.8rem;"><i class="bi bi-arrow-left me-1"></i>Call Log</a>
+  <h4 class="fw-bold mb-0" style="color:#e2e8f0;">Call Detail</h4>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div style="background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.5rem;">
+      <div class="row g-3">
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Direction</div>
+          <div class="fw-semibold" style="color:#e2e8f0;">{{ call.get_direction_display }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Status</div>
+          <div class="fw-semibold" style="color:#e2e8f0;">{{ call.get_status_display }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Caller</div>
+          <div class="fw-semibold" style="color:#e2e8f0;">{{ call.caller_number }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Called</div>
+          <div class="fw-semibold" style="color:#e2e8f0;">{{ call.called_number }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Queue</div>
+          <div style="color:rgba(226,232,240,0.7);">{{ call.queue.name|default:"—" }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Agent</div>
+          <div style="color:rgba(226,232,240,0.7);">{{ call.agent.get_full_name|default:call.agent.email|default:"—" }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Wait Time</div>
+          <div style="color:rgba(226,232,240,0.7);">{{ call.wait_display }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Duration</div>
+          <div style="color:rgba(226,232,240,0.7);">{{ call.duration_display }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Started</div>
+          <div style="color:rgba(226,232,240,0.7);">{{ call.started_at|date:"d M Y H:i:s" }}</div>
+        </div>
+        <div class="col-6">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">IVR Path</div>
+          <div style="color:rgba(226,232,240,0.7);">{{ call.ivr_path|default:"—" }}</div>
+        </div>
+        {% if call.contact %}
+        <div class="col-12">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">CRM Contact</div>
+          <div style="color:var(--bb-accent-cyan);">{{ call.contact.full_name }}</div>
+        </div>
+        {% endif %}
+        {% if call.twilio_call_sid %}
+        <div class="col-12">
+          <div style="font-size:0.68rem;color:rgba(226,232,240,0.35);text-transform:uppercase;letter-spacing:0.08em;">Twilio SID</div>
+          <div style="color:rgba(226,232,240,0.4);font-family:monospace;font-size:0.75rem;">{{ call.twilio_call_sid }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if call.recording_url %}
+      <div class="mt-4 pt-3 border-top border-white border-opacity-5">
+        <h6 style="font-size:0.72rem;color:rgba(226,232,240,0.4);letter-spacing:1px;text-transform:uppercase;" class="mb-2">Recording</h6>
+        <audio controls style="width:100%;filter:invert(0.8);">
+          <source src="{{ call.recording_url }}">
+        </audio>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="col-lg-5">
+    <div style="background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.5rem;">
+      <h6 style="font-size:0.72rem;color:rgba(226,232,240,0.4);letter-spacing:1px;text-transform:uppercase;" class="mb-3">Notes</h6>
+      <form method="post">
+        {% csrf_token %}
+        <textarea name="notes" rows="8"
+          style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#e2e8f0;padding:0.75rem;font-size:0.85rem;resize:vertical;"
+          placeholder="Add call notes here…">{{ call.notes }}</textarea>
+        <button type="submit" class="btn btn-sm mt-2 w-100" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:8px;">
+          Save Notes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -255,6 +255,21 @@ ALL_MODULES = [
         'url_namespace': 'loyalty',
     },
 
+    # ── Call Center ───────────────────────────────────────────────────────────
+    {
+        'module_id': 'call_center',
+        'name': 'Call Center',
+        'tagline': 'Inbound queues, IVR, agent console & live wallboard.',
+        'description': 'Full call center suite — Twilio-powered inbound/outbound calls, IVR builder, call queues, real-time supervisor wallboard, agent softphone, call recording, and CRM screen-pop.',
+        'category': 'communication',
+        'icon': 'bi-telephone-fill',
+        'is_free': False,
+        'monthly_price_usd': '29.99',
+        'applicable_to': ['business', 'agency', 'clinic', 'hotel', 'shop', 'retail_chain', 'consulting', 'other'],
+        'display_order': 5,
+        'url_namespace': 'call_center',
+    },
+
     # ── Communication ─────────────────────────────────────────────────────────
     {
         'module_id': 'team_chat',

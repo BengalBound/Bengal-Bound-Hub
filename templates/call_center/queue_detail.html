@@ -1,0 +1,103 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}{% if queue %}{{ queue.name }}{% else %}New Queue{% endif %} — {{ biz.name }}{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'call_center:queue_list' slug=biz.slug %}" style="color:rgba(226,232,240,0.4);font-size:0.8rem;"><i class="bi bi-arrow-left me-1"></i>Queues</a>
+  <h4 class="fw-bold mb-0" style="color:#e2e8f0;">{% if queue %}{{ queue.name }}{% else %}New Queue{% endif %}</h4>
+</div>
+
+<div class="row g-4 justify-content-center">
+  <div class="col-lg-7">
+    <div style="background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.75rem;">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Queue Name</label>
+          <input type="text" name="name" value="{{ queue.name|default:'' }}" required class="form-control"
+            style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Twilio Phone Number <span style="color:rgba(226,232,240,0.3);font-size:0.68rem;">E.164 format e.g. +14155552671</span></label>
+          <input type="text" name="phone_number" value="{{ queue.phone_number|default:'' }}" class="form-control"
+            style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;" placeholder="+14155552671">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Routing Strategy</label>
+            <select name="strategy" class="form-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+              {% for val, label in strategy_choices %}
+              <option value="{{ val }}" {% if queue.strategy == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Max Wait (seconds)</label>
+            <input type="number" name="max_wait_seconds" value="{{ queue.max_wait_seconds|default:120 }}" min="30" max="600" class="form-control"
+              style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Greeting Message <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">(spoken when caller enters queue)</span></label>
+          <textarea name="greeting_text" rows="2" class="form-control"
+            style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;font-size:0.85rem;">{{ queue.greeting_text|default:"Thank you for calling. Please hold while we connect you." }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">IVR Menu <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">(optional — plays before queue)</span></label>
+          <select name="ivr_menu" class="form-select" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;">
+            <option value="">— No IVR, go straight to queue —</option>
+            {% for m in ivr_menus %}<option value="{{ m.pk }}" {% if queue.ivr_menu_id == m.pk %}selected{% endif %}>{{ m.name }}</option>{% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <input type="checkbox" name="voicemail_enabled" id="vmCheck" class="form-check-input" {% if queue.voicemail_enabled or not queue %}checked{% endif %}>
+            <label for="vmCheck" class="form-check-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Enable Voicemail</label>
+          </div>
+          <textarea name="voicemail_text" rows="2" class="form-control"
+            style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;font-size:0.85rem;" placeholder="Voicemail message…">{{ queue.voicemail_text|default:"Sorry we missed you. Please leave a message after the tone." }}</textarea>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">Agents in this Queue</label>
+          <div style="max-height:180px;overflow-y:auto;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.75rem;">
+            {% for member in team %}
+            <div class="form-check mb-1">
+              <input type="checkbox" name="agents" value="{{ member.pk }}" id="agent_{{ member.pk }}" class="form-check-input"
+                {% if queue and member in queue.agents.all %}checked{% endif %}>
+              <label for="agent_{{ member.pk }}" class="form-check-label" style="font-size:0.82rem;color:rgba(226,232,240,0.7);">
+                {{ member.get_full_name|default:member.email }}
+              </label>
+            </div>
+            {% empty %}
+            <p style="font-size:0.78rem;color:rgba(226,232,240,0.3);">No team members yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn w-100 mb-2" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:10px;">
+          Save Queue
+        </button>
+      </form>
+
+      {% if queue %}
+      <form method="post" onsubmit="return confirm('Delete this queue?')">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" class="btn w-100" style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:#f87171;border-radius:10px;">
+          Delete Queue
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

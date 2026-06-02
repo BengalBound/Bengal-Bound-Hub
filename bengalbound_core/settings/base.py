@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'rest_framework',
+    'drf_spectacular',
     'django_apscheduler',
 
     # Custom apps
@@ -113,6 +114,9 @@ INSTALLED_APPS = [
     # Modules — core collaboration
     'modules.task_board',
     'modules.team_chat',
+
+    # Modules — Call Center
+    'modules.call_center',
 
     # Modules — CRM & Sales
     'modules.crm',
@@ -247,6 +251,19 @@ MIDDLEWARE = [
     'bengalbound_core.middleware.SubdomainRoutingMiddleware',
     'hub.middleware.BusinessAccessMiddleware',
 ]
+
+# ── REST Framework & Swagger ──────────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BengalBound HUB API',
+    'DESCRIPTION': 'API documentation for BengalBound HUB modules and AI agents.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+}
 
 # Trusted proxies for safe IP detection (empty = trust REMOTE_ADDR only)
 TRUSTED_PROXIES = env.list('TRUSTED_PROXIES', default=[])

@@ -1,0 +1,234 @@
+{% extends 'hub/base_hub.html' %}
+{% load static %}
+
+{% block title %}Agent Console — {{ biz.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.console-card { background:var(--bb-bg-card);border:1px solid var(--bb-glass-border);border-radius:14px;padding:1.5rem; }
+.softphone { background:rgba(5,5,10,0.8);border:1px solid rgba(0,245,212,0.15);border-radius:16px;padding:1.5rem;text-align:center;max-width:320px;margin:0 auto; }
+.dial-btn { width:72px;height:72px;border-radius:50%;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;font-size:1.4rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;margin:0 auto; }
+.dial-btn:hover { background:rgba(34,197,94,0.25);transform:scale(1.05); }
+.hangup-btn { background:rgba(248,113,113,0.15);border-color:rgba(248,113,113,0.3);color:#f87171; }
+.hangup-btn:hover { background:rgba(248,113,113,0.25); }
+.status-btn { padding:0.4rem 1rem;border-radius:50rem;font-size:0.75rem;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all 0.2s; }
+.keypad { display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;max-width:220px;margin:0 auto; }
+.key { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:0.75rem;font-size:1rem;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all 0.15s;text-align:center; }
+.key:hover { background:rgba(255,255,255,0.12); }
+.call-hist td { padding:0.5rem 0.75rem;font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(226,232,240,0.7); }
+</style>
+{% endblock %}
+
+{% block hub_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-1" style="color:#e2e8f0;">Agent Console</h4>
+    <p class="small mb-0" style="color:rgba(226,232,240,0.4);">Your personal call station</p>
+  </div>
+  <a href="{% url 'call_center:dashboard' slug=biz.slug %}" class="btn btn-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(226,232,240,0.7);border-radius:10px;">
+    <i class="bi bi-grid me-1"></i> Wallboard
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Softphone -->
+  <div class="col-lg-5">
+    <div class="console-card h-100">
+      <!-- Status selector -->
+      <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap">
+        {% for val, label in status_choices %}
+        <button onclick="setStatus('{{ val }}')"
+          class="status-btn {% if my_status.status == val %}active-status-{{ val }}{% endif %}"
+          style="background:{% if my_status.status == val %}rgba(0,245,212,0.12);border-color:rgba(0,245,212,0.3);color:var(--bb-accent-cyan){% else %}rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);color:rgba(226,232,240,0.5){% endif %};"
+          id="status-btn-{{ val }}">
+          {{ label }}
+        </button>
+        {% endfor %}
+      </div>
+
+      <div class="softphone mb-4">
+        <div class="mb-1" style="font-size:0.7rem;color:rgba(226,232,240,0.3);text-transform:uppercase;letter-spacing:1px;" id="callStateLabel">
+          {% if my_status.status == 'available' %}Ready for calls{% elif my_status.status == 'on_call' %}On Call{% else %}{{ my_status.get_status_display }}{% endif %}
+        </div>
+
+        <!-- Number display -->
+        <div id="numberDisplay" style="font-size:1.4rem;font-weight:700;color:#e2e8f0;letter-spacing:0.1em;min-height:2.2rem;margin:0.75rem 0;">
+          &nbsp;
+        </div>
+
+        <!-- Keypad -->
+        <div class="keypad mb-4">
+          {% for key in "1234567890*#" %}
+          <div class="key" onclick="pressKey('{{ key }}')">{{ key }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Call / Hangup -->
+        <div class="d-flex justify-content-center gap-4">
+          <button class="dial-btn" id="callBtn" onclick="makeCall()" title="Call">
+            <i class="bi bi-telephone-fill"></i>
+          </button>
+          <button class="dial-btn hangup-btn d-none" id="hangupBtn" onclick="hangup()" title="Hang up">
+            <i class="bi bi-telephone-x-fill"></i>
+          </button>
+        </div>
+
+        {% if not twilio_config.is_configured %}
+        <p class="mt-3 small" style="color:rgba(251,191,36,0.7);">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          <a href="{% url 'call_center:settings' slug=biz.slug %}" style="color:#fbbf24;">Configure Twilio</a> to enable calls.
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- My Queues -->
+      {% if my_queues %}
+      <div>
+        <h6 class="fw-semibold mb-2" style="font-size:0.72rem;color:rgba(226,232,240,0.4);letter-spacing:1px;text-transform:uppercase;">My Queues</h6>
+        {% for q in my_queues %}
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-white border-opacity-5">
+          <div style="font-size:0.82rem;color:#e2e8f0;">{{ q.name }}</div>
+          <div class="d-flex gap-3">
+            <span style="font-size:0.7rem;color:#fbbf24;">{{ q.calls_waiting }} waiting</span>
+            <span style="font-size:0.7rem;color:rgba(226,232,240,0.35);">{{ q.phone_number|default:"—" }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent calls -->
+  <div class="col-lg-7">
+    <div class="console-card h-100">
+      <h6 class="fw-bold mb-3" style="font-size:0.8rem;color:rgba(226,232,240,0.5);letter-spacing:1px;text-transform:uppercase;">My Recent Calls</h6>
+      <table class="w-100" style="border-collapse:collapse;">
+        <thead>
+          <tr style="color:rgba(226,232,240,0.3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;">
+            <td style="padding:0 0.75rem 0.5rem;">Caller</td>
+            <td style="padding:0 0.75rem 0.5rem;">Queue</td>
+            <td style="padding:0 0.75rem 0.5rem;">Duration</td>
+            <td style="padding:0 0.75rem 0.5rem;">Status</td>
+            <td style="padding:0 0.75rem 0.5rem;">Time</td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for call in recent_calls %}
+          <tr>
+            <td class="call-hist">
+              <a href="{% url 'call_center:call_detail' slug=biz.slug pk=call.pk %}" style="color:#e2e8f0;text-decoration:none;">{{ call.caller_number }}</a>
+              {% if call.contact %}<div style="font-size:0.65rem;color:rgba(0,245,212,0.5);">{{ call.contact.full_name|truncatechars:18 }}</div>{% endif %}
+            </td>
+            <td class="call-hist">{{ call.queue.name|default:"—" }}</td>
+            <td class="call-hist">{{ call.duration_display }}</td>
+            <td class="call-hist">
+              <span style="font-size:0.68rem;padding:2px 8px;border-radius:50rem;background:{% if call.status == 'completed' %}rgba(34,197,94,0.1){% else %}rgba(148,163,184,0.08){% endif %};color:{% if call.status == 'completed' %}#22c55e{% else %}rgba(148,163,184,0.5){% endif %};">
+                {{ call.get_status_display }}
+              </span>
+            </td>
+            <td class="call-hist" style="color:rgba(226,232,240,0.3);">{{ call.started_at|timesince }} ago</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="call-hist text-center" style="color:rgba(226,232,240,0.3);">No calls yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const BIZ_SLUG = "{{ biz.slug }}";
+let dialBuffer = '';
+let device = null;
+let activeCall = null;
+
+function pressKey(k) {
+  dialBuffer += k;
+  document.getElementById('numberDisplay').textContent = dialBuffer;
+  if (activeCall) activeCall.sendDigits(k);
+}
+
+function setStatus(status) {
+  fetch(`/hub/${BIZ_SLUG}/call-center/api/agent-status/`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+    body: JSON.stringify({status})
+  })
+  .then(r => r.json())
+  .then(() => {
+    document.querySelectorAll('.status-btn').forEach(b => {
+      b.style.background = 'rgba(255,255,255,0.04)';
+      b.style.borderColor = 'rgba(255,255,255,0.08)';
+      b.style.color = 'rgba(226,232,240,0.5)';
+    });
+    const active = document.getElementById(`status-btn-${status}`);
+    if (active) {
+      active.style.background = 'rgba(0,245,212,0.12)';
+      active.style.borderColor = 'rgba(0,245,212,0.3)';
+      active.style.color = 'var(--bb-accent-cyan)';
+    }
+    document.getElementById('callStateLabel').textContent =
+      {available:'Ready for calls', on_call:'On Call', wrap_up:'Wrap Up', break:'On Break', offline:'Offline'}[status] || status;
+  });
+}
+
+function makeCall() {
+  if (!dialBuffer) return;
+  if (!device) { alert('Twilio device not initialised. Check Twilio settings.'); return; }
+  activeCall = device.connect({ params: { To: dialBuffer, BizSlug: BIZ_SLUG } });
+  activeCall.on('disconnect', onCallEnded);
+  document.getElementById('callBtn').classList.add('d-none');
+  document.getElementById('hangupBtn').classList.remove('d-none');
+  setStatus('on_call');
+}
+
+function hangup() {
+  if (activeCall) activeCall.disconnect();
+  onCallEnded();
+}
+
+function onCallEnded() {
+  activeCall = null;
+  document.getElementById('callBtn').classList.remove('d-none');
+  document.getElementById('hangupBtn').classList.add('d-none');
+  dialBuffer = '';
+  document.getElementById('numberDisplay').innerHTML = '&nbsp;';
+  setStatus('wrap_up');
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+
+// Initialise Twilio.js if configured
+{% if twilio_config.is_configured %}
+fetch(`/hub/${BIZ_SLUG}/call-center/twilio/token/`, {
+  method: 'POST',
+  headers: {'X-CSRFToken': getCookie('csrftoken')}
+})
+.then(r => r.json())
+.then(data => {
+  if (data.token && typeof Twilio !== 'undefined') {
+    device = new Twilio.Device(data.token, {codecPreferences: ['opus','pcmu'], fakeLocalDTMF: true});
+    device.on('incoming', call => {
+      activeCall = call;
+      call.accept();
+      document.getElementById('callBtn').classList.add('d-none');
+      document.getElementById('hangupBtn').classList.remove('d-none');
+      document.getElementById('numberDisplay').textContent = call.parameters.From || 'Inbound';
+      setStatus('on_call');
+    });
+  }
+})
+.catch(() => {});
+{% endif %}
+</script>
+{% if twilio_config.is_configured %}
+<script src="https://sdk.twilio.com/js/client/releases/1.14.0/twilio.js"></script>
+{% endif %}
+{% endblock %}
