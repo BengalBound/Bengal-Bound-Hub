@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BengalBound for Retail & E-Commerce{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5 position-relative overflow-hidden">
+    <!-- Glowing Orbs -->
+    <div class="position-absolute rounded-circle" style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, transparent 70%); top: -150px; left: -200px; z-index: -1;"></div>
+    <div class="position-absolute rounded-circle" style="width: 400px; height: 400px; background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%); bottom: -100px; right: -150px; z-index: -1;"></div>
+
+    <div class="container py-5">
+        <div class="text-center mb-5 pb-3 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block text-pink border-pink" style="color: #ec4899 !important; border-color: rgba(236,72,153,0.5) !important;">Retail & E-Commerce</span>
+            <h1 class="display-4 fw-bold font-outfit mb-4">Sell Everywhere.<br>With <span class="text-gradient-purple-cyan">AI Merchandisers.</span></h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 750px;">
+                Whether you run a boutique on Main Street or ship globally, BengalBound syncs your physical POS with your digital storefront, while AI agents handle customer support and reorder low stock automatically.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5 fade-up delay-100">
+            <div class="col-lg-5">
+                <div class="bento-card p-5 h-100">
+                    <h3 class="fw-bold text-white mb-4">Omnichannel Platform</h3>
+                    <ul class="list-unstyled mb-0 mt-4">
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-shop text-pink fs-4 me-3 mt-1" style="color: #ec4899;"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Unified Inventory</h6>
+                                <p class="text-white-50 small mb-0">When a shirt sells in-store, it instantly updates on your website.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-box-seam text-purple fs-4 me-3 mt-1" style="color: #a855f7;"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Order Fulfillment</h6>
+                                <p class="text-white-50 small mb-0">Generate shipping labels, track packages, and process returns.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="bento-card p-5 h-100 glow-hover-purple position-relative overflow-hidden" style="border: 1px solid rgba(168, 85, 247, 0.3);">
+                    <h3 class="fw-bold text-white mb-4">The AI Support Team</h3>
+                    <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4 mb-3">
+                        <h5 class="text-white fw-bold"><i class="bi bi-robot text-pink me-2" style="color: #ec4899;"></i>Aura</h5>
+                        <p class="text-white-50 small mb-0">Monitors your Shopify/WooCommerce store 24/7. Answers "Where is my order?" chats instantly, processes refunds based on your policy, and recommends complementary products to shoppers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

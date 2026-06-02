@@ -311,3 +311,12 @@ def solution_health_beauty(request):
 
 def solution_gas_convenience(request):
     return render(request, 'public_site/solutions/gas_convenience.html')
+
+def solution_restaurants(request):
+    return render(request, 'public_site/solutions/restaurants.html')
+
+def solution_retail(request):
+    return render(request, 'public_site/solutions/retail_ecommerce.html')
+
+def solution_hospitality(request):
+    return render(request, 'public_site/solutions/hospitality_rentals.html')

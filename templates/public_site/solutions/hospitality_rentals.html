@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BengalBound for Motels, B&Bs & Rentals{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5 position-relative overflow-hidden">
+    <!-- Glowing Orbs -->
+    <div class="position-absolute rounded-circle" style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%); top: -150px; left: -200px; z-index: -1;"></div>
+    <div class="position-absolute rounded-circle" style="width: 400px; height: 400px; background: radial-gradient(circle, rgba(234, 179, 8, 0.15) 0%, transparent 70%); bottom: -100px; right: -150px; z-index: -1;"></div>
+
+    <div class="container py-5">
+        <div class="text-center mb-5 pb-3 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block text-info border-info">Motels, B&Bs & Vacation Rentals</span>
+            <h1 class="display-4 fw-bold font-outfit mb-4">Host Effortlessly.<br>With <span class="text-gradient-purple-cyan">AI Property Managers.</span></h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 750px;">
+                Tired of double bookings and missed check-in messages? BengalBound acts as your digital front desk, syncing calendars across Airbnb/Booking.com, automating guest communication, and dispatching your cleaning crews.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5 fade-up delay-100">
+            <div class="col-lg-5">
+                <div class="bento-card p-5 h-100">
+                    <h3 class="fw-bold text-white mb-4">Property Management</h3>
+                    <ul class="list-unstyled mb-0 mt-4">
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-calendar2-check text-info fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Channel Manager</h6>
+                                <p class="text-white-50 small mb-0">Sync your availability across all major booking platforms instantly to prevent double-bookings.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-stars text-warning fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Housekeeping Routes</h6>
+                                <p class="text-white-50 small mb-0">Automatically generate cleaning schedules based on check-outs.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="bento-card p-5 h-100 glow-hover-cyan position-relative overflow-hidden" style="border: 1px solid rgba(14, 165, 233, 0.3);">
+                    <h3 class="fw-bold text-white mb-4">The AI Front Desk</h3>
+                    <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4 mb-3">
+                        <h5 class="text-white fw-bold"><i class="bi bi-robot text-info me-2"></i>Haven</h5>
+                        <p class="text-white-50 small mb-0">Sends automated check-in instructions, answers common guest questions ("What is the Wi-Fi password?"), and flags urgent issues directly to your phone. Operates in over 30 languages.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
