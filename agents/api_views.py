@@ -171,3 +171,16 @@ class AgentDecideView(APIView):
             logger.warning("Could not queue resume_after_permission pk=%s: %s", pk, exc)
 
         return Response({'status': 'success', 'decision': decision})
+
+# ── Global Agent Catalog API ────────────────────────────────────────────────
+from rest_framework import viewsets, permissions
+from .serializers import AgentCatalogSerializer
+
+class AgentCatalogViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Publicly accessible catalog of available AI agents.
+    """
+    queryset = AgentCatalog.objects.filter(is_active=True)
+    serializer_class = AgentCatalogSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'slug'

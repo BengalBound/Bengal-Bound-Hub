@@ -39,6 +39,9 @@ urlpatterns = [
     path('community/', include('community_forum.urls', namespace='community_forum')),
     path('i18n/', include('django.conf.urls.i18n')),
 
+    # API v1
+    path('api/v1/', include('bengalbound_core.api_urls')),
+
     # Swagger / OpenAPI
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
