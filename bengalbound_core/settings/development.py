@@ -36,6 +36,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# ── Cache — use local-memory instead of Redis for local dev ──────────────────
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
 # ── Test Database Override ───────────────────────────────────────────────────
 import sys
 if 'pytest' in sys.modules:
