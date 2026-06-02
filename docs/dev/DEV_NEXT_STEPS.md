@@ -21,12 +21,10 @@ Hardening the platform against abuse and attacks.
 
 - **Status:** Complete. We have implemented Two-Factor Authentication (TOTP) UI for user logins, configured DRF API Rate Limiting (throttling), and tuned `django-axes` alongside adding strict HTTP security headers (like `SECURE_REFERRER_POLICY`).
 
-## 4. Test Coverage (High Priority)
+## 4. Test Coverage (Done)
 The current test suite is thin and needs robust coverage before we scale.
 
-- **Task:** Increase test coverage to 80% on core components (`hub/`, `accounts/`, `serea/`).
-- **Tools:** Integrate `pytest-django` and `factory_boy` for mock data generation.
-- **Focus:** Test `BusinessAccessMiddleware` thoroughly, ensure AI tools are mocked, and validate Celery task execution.
+- **Status:** Complete. We achieved 80%+ test coverage for `hub`, `accounts`, and `serea`. Hanging tests fixed by overriding celery behavior in eager tests using `.apply()`.
 
 ## 5. Real-time Features (WebSockets)
 Serea AI chat currently relies on HTTP polling.
@@ -34,8 +32,7 @@ Serea AI chat currently relies on HTTP polling.
 - **Task:** Implement Django Channels.
 - **Scope:** Replace `/serea/agent/<id>/chat/` polling with a WebSocket connection for real-time streaming of AI responses. Configure a Redis channel layer.
 
-## 6. Framework Upgrades
+## 6. Framework Upgrades (Done)
 Stay ahead of LTS deprecation cycles.
 
-- **Task:** Plan migration from Django 4.2 LTS to Django 5.x.
-- **Scope:** Audit existing third-party packages for Django 5 compatibility. Upgrade Python requirement if necessary.
+- **Status:** Complete. Migrated to Django 5.0.x successfully and validated via `check --deploy`.

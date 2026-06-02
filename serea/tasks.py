@@ -627,4 +627,25 @@ def process_chat_message_task(agent_id: int, user_message: str, sender_email: st
         logger.error("process_chat_message_task error for agent %s: %s", agent_id, exc)
         reply = f"I encountered an issue responding. Please try again. ({exc})"
 
-    ConversationMessage.objects.create(agent=agent, sender='serea', message_text=reply)
+    serea_msg = ConversationMessage.objects.create(agent=agent, sender='serea', message_text=reply)
+
+    # Broadcast Serea's reply via Channels
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    channel_layer = get_channel_layer()
+    if channel_layer:
+        payload = {
+            'id': serea_msg.id,
+            'sender': 'serea',
+            'text': serea_msg.message_text,
+            'is_permission_request': serea_msg.is_permission_request,
+            'permission_granted': serea_msg.permission_granted,
+            'created_at': serea_msg.created_at.isoformat(),
+        }
+        async_to_sync(channel_layer.group_send)(
+            f"agent_{agent_id}",
+            {
+                'type': 'chat_message',
+                'message': payload
+            }
+        )

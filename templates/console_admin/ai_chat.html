@@ -196,14 +196,114 @@
     if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
     const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const indicator = document.getElementById('typingIndicator');
+    
+    // WebSocket Setup
+    {% if serea_agent %}
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/agent/{{ serea_agent.id }}/chat/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const msg = data.message;
+        
+        // Hide typing indicator when serea replies
+        if (msg.sender === 'serea') {
+            if (indicator) indicator.classList.add('d-none');
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+            }
+        }
+        
+        const isSerea = (msg.sender === 'serea');
+        const timeStr = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        let html = '';
+        if (msg.is_permission_request) {
+            html = `
+            <div class="d-flex justify-content-start" id="perm-${msg.id}">
+                <div class="px-3 py-3 rounded-3 small w-100"
+                     style="max-width:85%;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.35);">
+                    <div class="text-warning fw-semibold mb-2" style="font-size:0.72rem;">
+                        <i class="bi bi-shield-exclamation me-1"></i>
+                        {{ active_ai.ai_name }} &mdash; Permission Request &middot; ${timeStr}
+                    </div>
+                    <div class="text-white" style="white-space:pre-line;">${msg.text}</div>
+                    <div class="perm-actions mt-3">
+                        <button class="btn btn-sm btn-success px-3 me-2" onclick="respondPermission(${msg.id}, 'approve', this)">
+                            <i class="bi bi-check-lg me-1"></i>Approve
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger px-3" onclick="respondPermission(${msg.id}, 'deny', this)">
+                            <i class="bi bi-x-lg me-1"></i>Deny
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        } else {
+            const justifyClass = isSerea ? 'justify-content-start' : 'justify-content-end';
+            const bgClass = isSerea ? 'rgba(99,102,241,0.15)' : 'rgba(14,165,233,0.15)';
+            const borderClass = isSerea ? 'rgba(99,102,241,0.3)' : 'rgba(14,165,233,0.3)';
+            const senderName = isSerea ? '{{ active_ai.ai_name }}' : 'You';
+            
+            html = `
+            <div class="d-flex ${justifyClass}">
+                <div class="px-3 py-2 rounded-3 small"
+                     style="max-width:70%; background:${bgClass}; border:1px solid ${borderClass};">
+                    <div class="text-white-50 mb-1" style="font-size:0.68rem;">
+                        ${senderName} &middot; ${timeStr}
+                    </div>
+                    <div class="text-white" style="white-space:pre-line;">${msg.text}</div>
+                </div>
+            </div>`;
+        }
+        
+        // Append before typing indicator if it exists
+        if (indicator) {
+            indicator.insertAdjacentHTML('beforebegin', html);
+        } else {
+            chatBox.insertAdjacentHTML('beforeend', html);
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', function (e) {
+            e.preventDefault(); // Stop normal form submission
+            
+            const message = messageInput.value.trim();
+            if (message) {
+                chatSocket.send(JSON.stringify({ 'message': message }));
+                messageInput.value = '';
+                
+                // Show typing indicator since we know we sent a message
+                if (indicator) {
+                    indicator.classList.remove('d-none');
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+                if (sendBtn) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                }
+            }
+        });
+    }
+    {% else %}
     if (chatForm) {
         chatForm.addEventListener('submit', function () {
-            const indicator = document.getElementById('typingIndicator');
-            const sendBtn   = document.getElementById('sendBtn');
             if (indicator) { indicator.classList.remove('d-none'); chatBox.scrollTop = chatBox.scrollHeight; }
             if (sendBtn)    { sendBtn.disabled = true; sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
         });
     }
+    {% endif %}
 
     function respondPermission(msgId, decision, btn) {
         const card       = document.getElementById('perm-' + msgId);
@@ -220,10 +320,8 @@
             const div = card.querySelector('.perm-actions');
             if (data.status === 'approved') {
                 div.innerHTML = '<span class="text-success small"><i class="bi bi-check-circle me-1"></i>Approved &mdash; Serea is executing the action.</span>';
-                setTimeout(() => location.reload(), 3000);
             } else if (data.status === 'denied') {
                 div.innerHTML = '<span class="text-danger small"><i class="bi bi-x-circle me-1"></i>Denied &mdash; Serea will skip this action.</span>';
-                setTimeout(() => location.reload(), 2000);
             } else {
                 btn.disabled  = false;
                 btn.textContent = decision === 'approve' ? 'Approve' : 'Deny';
