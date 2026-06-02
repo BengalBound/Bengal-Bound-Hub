@@ -28,7 +28,21 @@ def set_currency(request):
     currency = request.GET.get('currency', 'USD')
     if currency in EXCHANGE_RATES:
         request.session['currency'] = currency
+        
+        # Link currency selection to default native language for localization (i18n)
+        currency_to_lang = {
+            'USD': 'en',
+            'GBP': 'en',
+            'EUR': 'fr',
+            'BDT': 'bn',
+            'INR': 'hi'
+        }
+        lang_code = currency_to_lang.get(currency, 'en')
+        from django.utils.translation import LANGUAGE_SESSION_KEY
+        request.session[LANGUAGE_SESSION_KEY] = lang_code
+        
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
 
 
 def home(request):
