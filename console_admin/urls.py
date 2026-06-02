@@ -20,6 +20,12 @@ urlpatterns = [
     path('my-ai/', views.my_ai, name='my_ai'),
     path('hire-ai/', views.hire_ai, name='hire_ai'),
     path('onboarding/', views.serea_onboarding, name='serea_onboarding'),
+    
+    # Hybrid Onboarding Flow
+    path('setup/', views.hybrid_onboarding, name='hybrid_onboarding'),
+    path('setup/chat/', views.api_onboarding_chat, name='api_onboarding_chat'),
+    path('setup/checkout/', views.process_onboarding_checkout, name='process_onboarding_checkout'),
+    
     path('manage-ai/<int:ai_id>/', views.manage_ai, name='manage_ai'),
     path('fire-ai/<int:ai_id>/', views.fire_ai, name='fire_ai'),
     path('nowpayments/webhook/', views.nowpayments_webhook, name='nowpayments_webhook'),

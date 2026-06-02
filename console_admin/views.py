@@ -363,6 +363,9 @@ def dashboard(request):
     from serea.models import ConversationMessage, ModerationLog, ContentQueue, SereaReport, SereaTask
 
     biz = BusinessInstance.objects.filter(owner=request.user, is_active=True).first()
+    
+    if not biz:
+        return redirect('console_admin:hybrid_onboarding')
 
     active_module_records = ConsoleModuleActivation.objects.filter(client=request.user, is_active=True)
     active_modules = [m.module_id for m in active_module_records]
@@ -506,86 +509,44 @@ def hire_ai(request):
 
         tier = get_object_or_404(AIEmployeeTier, id=tier_id)
 
-        if tier.monthly_price_usd > 0:
-            total_price = float(tier.monthly_price_usd) * duration_months
+        # BYPASS PAYMENT FOR NOW: Instantly provision all tiers
+        from django.utils import timezone
+        from datetime import timedelta
 
-            # Create a pending subscription record.
-            # We don't link it to a HiredAIEmployee yet because it's not paid.
-            trial_sub = Subscription.objects.create(
-                client=request.user,
-                tier=tier,
-                billing_cycle='annual' if duration_months >= 12 else 'monthly',
-                status='trialing', # Using 'trialing' as 'pending' for now
-                amount_paid_usd=total_price
-            )
+        # Check if user already has an active AI of this tier
+        existing_ai = HiredAIEmployee.objects.filter(
+            employer=request.user,
+            is_active=True,
+            tier=tier
+        ).exists()
 
-            from console_admin.nowpayments_service import create_invoice
+        if existing_ai:
+            messages.warning(request, f"You already have an active {tier.get_name_display()} employee.")
+            return redirect('console_admin:dashboard')
 
-            # Passing sub_id and duration in order_description so the webhook knows what to do
-            order_description = f"Sub:{trial_sub.id}|Duration:{duration_months}"
+        # Provision the actual AI first
+        new_ai = HiredAIEmployee.objects.create(
+            employer=request.user,
+            tier=tier,
+            ai_name=f"Serea ({tier.get_name_display()})"
+        )
 
-            # Build absolute URLs for redirects
-            # (Assuming standard django settings or request.build_absolute_uri)
-            success_url = request.build_absolute_uri(reverse('console_admin:dashboard'))
-            cancel_url = request.build_absolute_uri(reverse('console_admin:hire_ai'))
+        total_price = float(tier.monthly_price_usd) * duration_months
 
-            # Create NowPayments invoice
-            invoice_data = create_invoice(
-                price_amount=total_price,
-                price_currency='usd',
-                order_id=f"SUB-{trial_sub.id}",
-                order_description=order_description,
-                success_url=success_url,
-                cancel_url=cancel_url
-            )
+        # Create an active subscription linked to the AI
+        sub = Subscription.objects.create(
+            client=request.user,
+            tier=tier,
+            hired_ai=new_ai,
+            billing_cycle='annual' if duration_months >= 12 else 'monthly',
+            status='active',
+            amount_paid_usd=total_price, # Pretend it's paid for now
+            started_at=timezone.now(),
+            current_period_end=timezone.now() + timedelta(days=30 * duration_months) if tier.monthly_price_usd > 0 else timezone.now() + timedelta(days=365*10)
+        )
 
-            if invoice_data and 'invoice_url' in invoice_data:
-                # Save the invoice URL and ID for tracking
-                trial_sub.nowpayments_order_id = invoice_data.get('id')
-                trial_sub.nowpayments_invoice_url = invoice_data.get('invoice_url')
-                trial_sub.save(update_fields=['nowpayments_order_id', 'nowpayments_invoice_url'])
-
-                # Redirect user to the NowPayments checkout
-                return redirect(invoice_data['invoice_url'])
-            else:
-                messages.error(request, "Error connecting to payment gateway. Please try again.")
-                return redirect('console_admin:hire_ai')
-        else:
-            # Free tier: Instantly provision
-            from django.utils import timezone
-            from datetime import timedelta
-
-            # Check if user already has this free tier
-            existing_free_ai = HiredAIEmployee.objects.filter(
-                employer=request.user,
-                is_active=True,
-                tier=tier
-            ).exists()
-
-            if existing_free_ai:
-                messages.warning(request, f"You already have an active {tier.get_name_display()} employee.")
-                return redirect('console_admin:dashboard')
-
-            # Provision the actual AI first
-            new_ai = HiredAIEmployee.objects.create(
-                employer=request.user,
-                tier=tier,
-                ai_name=f"Serea ({tier.get_name_display()})"
-            )
-
-            # Create an active subscription linked to the AI
-            sub = Subscription.objects.create(
-                client=request.user,
-                tier=tier,
-                hired_ai=new_ai,
-                billing_cycle='monthly',
-                status='active',
-                started_at=timezone.now(),
-                current_period_end=timezone.now() + timedelta(days=365*10) # 10 years for free tier
-            )
-
-            messages.success(request, f"Free tier activated! Say hello to your new {tier.get_name_display()} employee.")
-            return redirect('console_admin:serea_onboarding')
+        messages.success(request, f"{tier.get_name_display()} activated! Say hello to your new AI employee.")
+        return redirect('console_admin:serea_onboarding')
 
     return render(request, 'console_admin/hire_ai.html', {
         'tiers': tiers
@@ -1683,3 +1644,119 @@ def export_moderation_logs_csv(request):
         except Exception:
             pass
     return serea_moderation_csv(logs)
+
+# ─── Hybrid Onboarding ────────────────────────────────────────────────────────
+
+@console_user_required(login_url='/accounts/login/')
+def hybrid_onboarding(request):
+    """
+    The Hybrid Onboarding interface. 
+    Shows a traditional form (business details + module checklist) alongside the AI assistant.
+    """
+    from hub.models import ModuleCatalog, BUSINESS_TYPES
+    from workspace_admin.models import AIEmployeeTier
+    
+    # If the user already has an active business, maybe redirect them to the dashboard
+    # but we'll allow them to access it for now.
+    
+    modules = ModuleCatalog.objects.filter(is_available=True)
+    ai_tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
+    
+    return render(request, 'console_admin/hybrid_onboarding.html', {
+        'modules': modules,
+        'ai_tiers': ai_tiers,
+        'business_types': BUSINESS_TYPES
+    })
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+@console_user_required(login_url='/accounts/login/')
+def api_onboarding_chat(request):
+    """
+    AJAX endpoint for the onboarding AI assistant.
+    Expects JSON: {"messages": [{"role": "user", "content": "..."}]}
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            messages = data.get('messages', [])
+            
+            from agents.onboarding_agent import get_onboarding_chat_response
+            response_data = get_onboarding_chat_response(messages)
+            
+            return JsonResponse(response_data)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@console_user_required(login_url='/accounts/login/')
+def process_onboarding_checkout(request):
+    """
+    Processes the cart payload from the hybrid onboarding page.
+    Bypasses NowPayments/Stripe and instantly provisions everything.
+    """
+    if request.method == 'POST':
+        business_name = request.POST.get('business_name', 'My Business')
+        industry = request.POST.get('business_type', 'business')
+        selected_modules = request.POST.getlist('modules')
+        ai_tier_id = request.POST.get('ai_tier')
+        
+        from hub.models import BusinessInstance, TenantModule, ModuleCatalog
+        from workspace_admin.models import HiredAIEmployee, Subscription, AIEmployeeTier
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # 1. Create Business
+        business, created = BusinessInstance.objects.get_or_create(
+            owner=request.user,
+            defaults={
+                'name': business_name,
+                'slug': business_name.lower().replace(' ', '-').replace('_', '-') + f'-{request.user.id}',
+                'business_type': industry
+            }
+        )
+        
+        # 2. Provision Modules
+        for mod_id in selected_modules:
+            try:
+                module = ModuleCatalog.objects.get(module_id=mod_id)
+                TenantModule.objects.get_or_create(
+                    business=business,
+                    module=module,
+                    defaults={'tier': 'free', 'is_active': True}
+                )
+            except ModuleCatalog.DoesNotExist:
+                continue
+                
+        # 3. Hire AI Agent
+        if ai_tier_id:
+            try:
+                tier = AIEmployeeTier.objects.get(id=ai_tier_id)
+                new_ai = HiredAIEmployee.objects.create(
+                    employer=request.user,
+                    tier=tier,
+                    ai_name=f"Serea ({tier.get_name_display()})"
+                )
+                
+                # Activate Subscription (Bypass payment)
+                Subscription.objects.create(
+                    client=request.user,
+                    tier=tier,
+                    hired_ai=new_ai,
+                    billing_cycle='monthly',
+                    status='active',
+                    amount_paid_usd=tier.monthly_price_usd,
+                    started_at=timezone.now(),
+                    current_period_end=timezone.now() + timedelta(days=30)
+                )
+            except AIEmployeeTier.DoesNotExist:
+                pass
+                
+        from django.contrib import messages
+        messages.success(request, f"Welcome aboard! Your workspace '{business.name}' is ready.")
+        return redirect('console_admin:dashboard')
+        
+    return redirect('console_admin:hybrid_onboarding')

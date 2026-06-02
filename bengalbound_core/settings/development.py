@@ -35,3 +35,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # ── Celery — run tasks synchronously so no broker is required ────────────────
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# ── Test Database Override ───────────────────────────────────────────────────
+import sys
+if 'pytest' in sys.modules:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }

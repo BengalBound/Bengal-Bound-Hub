@@ -1,0 +1,216 @@
+{% extends 'console_admin/base_console.html' %}
+{% load static %}
+
+{% block title %}Setup Workspace | BengalBound{% endblock %}
+{% block page_title %}Workspace Setup{% endblock %}
+{% block page_subtitle %}Build your workspace manually or chat with our AI Solutions Architect.{% endblock %}
+
+{% block content %}
+<div class="row h-100 g-4">
+    <!-- Left Column: The Checkout Cart Form -->
+    <div class="col-lg-7 h-100 d-flex flex-column">
+        <div class="glass-panel p-4 flex-grow-1 overflow-auto">
+            <h4 class="font-outfit fw-bold text-white mb-4">
+                <i class="bi bi-cart3 me-2 text-primary"></i> Your Subscription Package
+            </h4>
+            
+            <form id="checkoutForm" method="post" action="{% url 'console_admin:process_onboarding_checkout' %}">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-semibold">BUSINESS DETAILS</label>
+                    <input type="text" name="business_name" class="form-control glass-input mb-3" placeholder="Company Name" required>
+                    <select name="business_type" class="form-select glass-input text-white" required>
+                        <option value="" disabled selected>Select Industry</option>
+                        {% for value, label in business_types %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-white-50 small fw-semibold">AVAILABLE MODULES</label>
+                    <div class="row g-2" id="modulesList">
+                        {% for mod in modules %}
+                        <div class="col-md-6">
+                            <div class="form-check p-2 rounded border" style="border-color: rgba(255,255,255,0.1) !important;">
+                                <input class="form-check-input ms-1" type="checkbox" name="modules" value="{{ mod.module_id }}" id="mod_{{ mod.module_id }}">
+                                <label class="form-check-label text-white ms-2" for="mod_{{ mod.module_id }}">
+                                    <i class="bi {{ mod.icon }} text-primary me-1"></i> {{ mod.name }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label text-white-50 small fw-semibold">AI EMPLOYEE TIER</label>
+                    <select name="ai_tier" class="form-select glass-input text-white" id="aiTierSelect">
+                        <option value="">No AI Agent (Self-Managed)</option>
+                        {% for tier in ai_tiers %}
+                            <option value="{{ tier.id }}">{{ tier.get_name_display }} - ${{ tier.monthly_price_usd }}/mo</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg w-100 shadow-glow">
+                    <i class="bi bi-lightning-charge me-2"></i> Launch Workspace Instantly
+                </button>
+                <div class="text-center text-white-50 small mt-2">
+                    <i class="bi bi-shield-check text-success"></i> Payment bypassed for early access.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: AI Solutions Architect -->
+    <div class="col-lg-5 h-100 d-flex flex-column">
+        <div class="glass-panel p-0 flex-grow-1 d-flex flex-column overflow-hidden" style="border: 1px solid rgba(56, 189, 248, 0.3);">
+            <div class="p-3 bg-primary bg-opacity-10 border-bottom border-primary border-opacity-25 d-flex align-items-center">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                    <i class="bi bi-robot text-white fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 text-white font-outfit fw-bold">Solutions Architect</h6>
+                    <small class="text-primary">Online &bull; Tell me about your business</small>
+                </div>
+            </div>
+            
+            <div id="chatWindow" class="p-4 flex-grow-1 overflow-auto" style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="d-flex align-items-start gap-2">
+                    <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px; height:32px;">
+                        <i class="bi bi-robot text-primary" style="font-size:0.9rem;"></i>
+                    </div>
+                    <div class="p-3 rounded bg-white bg-opacity-10 text-white shadow-sm" style="max-width: 85%; font-size: 0.9rem;">
+                        Hi! I'm your AI Solutions Architect. Tell me a bit about what your business does, and I'll automatically build the perfect workspace package for you on the left!
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-3 border-top border-white border-opacity-10">
+                <div class="input-group">
+                    <input type="text" id="chatInput" class="form-control glass-input text-white" placeholder="e.g., I run a retail store and need help with inventory...">
+                    <button class="btn btn-primary px-4" type="button" id="chatSendBtn">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const chatWindow = document.getElementById('chatWindow');
+    let messageHistory = [];
+
+    function appendMessage(role, content) {
+        const wrapper = document.createElement('div');
+        wrapper.className = role === 'user' ? 'd-flex align-items-start gap-2 flex-row-reverse' : 'd-flex align-items-start gap-2';
+        
+        const avatar = document.createElement('div');
+        avatar.className = `rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 ${role === 'user' ? 'bg-secondary' : 'bg-primary bg-opacity-25'}`;
+        avatar.style = "width:32px; height:32px;";
+        avatar.innerHTML = role === 'user' ? '<i class="bi bi-person text-white" style="font-size:0.9rem;"></i>' : '<i class="bi bi-robot text-primary" style="font-size:0.9rem;"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = `p-3 rounded text-white shadow-sm ${role === 'user' ? 'bg-primary' : 'bg-white bg-opacity-10'}`;
+        bubble.style = "max-width: 85%; font-size: 0.9rem;";
+        bubble.innerText = content;
+
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+        chatWindow.appendChild(wrapper);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        if (role === 'user') {
+            messageHistory.push({role: "user", content: content});
+        }
+    }
+
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        appendMessage('user', text);
+        chatInput.value = '';
+        chatInput.disabled = true;
+        chatSendBtn.disabled = true;
+
+        // Show typing indicator
+        const typingId = 'typing-' + Date.now();
+        const typingHTML = `
+        <div id="${typingId}" class="d-flex align-items-start gap-2">
+            <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px; height:32px;">
+                <i class="bi bi-robot text-primary" style="font-size:0.9rem;"></i>
+            </div>
+            <div class="p-3 rounded bg-white bg-opacity-10 text-white-50 fst-italic" style="font-size: 0.85rem;">
+                Architect is thinking...
+            </div>
+        </div>`;
+        chatWindow.insertAdjacentHTML('beforeend', typingHTML);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        try {
+            const response = await fetch("{% url 'console_admin:api_onboarding_chat' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: messageHistory })
+            });
+            const data = await response.json();
+            
+            document.getElementById(typingId).remove();
+
+            if (data.reply) {
+                appendMessage('assistant', data.reply);
+                messageHistory.push({role: "assistant", content: data.reply});
+            }
+
+            if (data.cart_update) {
+                applyCartUpdate(data.cart_update);
+            }
+
+        } catch (e) {
+            document.getElementById(typingId).remove();
+            appendMessage('assistant', 'Sorry, I encountered an error. You can still pick modules manually!');
+        }
+
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
+        chatInput.focus();
+    }
+
+    function applyCartUpdate(update) {
+        if (update.add_modules) {
+            update.add_modules.forEach(modId => {
+                const cb = document.getElementById('mod_' + modId);
+                if (cb) cb.checked = true;
+            });
+        }
+        if (update.remove_modules) {
+            update.remove_modules.forEach(modId => {
+                const cb = document.getElementById('mod_' + modId);
+                if (cb) cb.checked = false;
+            });
+        }
+        if (update.ai_tier) {
+            const select = document.getElementById('aiTierSelect');
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].text.toLowerCase().includes(update.ai_tier.toLowerCase())) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    chatSendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+});
+</script>
+{% endblock %}
