@@ -47,7 +47,7 @@ def agent_chat(
         agent_slug:  Catalog slug — selects the correct subset of hub tools
     """
     from langchain.agents import create_agent
-    from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+    from langchain_core.messages import HumanMessage, AIMessage
     from .toolkit import get_universal_tools
 
     # --- Parse the OpenAI-format message list ---

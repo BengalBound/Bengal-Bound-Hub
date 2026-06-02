@@ -1,12 +1,8 @@
 """
 Console-facing agent workspace views.
 """
-import json
 import logging
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 
 from .decorators import console_user_required
 from agents.models import AgentCatalog, AgentInstance, AgentLog, AgentPermissionRequest
@@ -66,10 +62,12 @@ def agents_overview(request):
 
     all_agents = AgentCatalog.objects.filter(is_active=True).order_by('category', 'name')
     hired_slugs = {i.catalog.slug for i in instances}
+    available_agents = all_agents.exclude(slug__in=hired_slugs)
 
     return render(request, 'console_admin/agents_overview.html', {
         'instances': instances,
         'all_agents': all_agents,
+        'available_agents': available_agents,
         'hired_slugs': hired_slugs,
         'total_pending': total_pending,
     })

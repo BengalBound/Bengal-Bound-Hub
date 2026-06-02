@@ -1,10 +1,272 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products — BengalBound HUB | Business OS + 30 AI Employees{% endblock %}
+{% block meta_description %}BengalBound HUB: 60+ business modules for every industry, and a marketplace of 30 specialised AI employees — CRM, HR, Finance, Marketing, Operations and more.{% endblock %}
 
 {% block content %}
-<div class="container py-5 mt-5 text-center fade-in">
-    <h1 class="display-4 fw-bold mb-4 fade-up">Our <span class="text-gradient-purple-cyan">Products</span></h1>
-    <p class="lead text-white-50 w-75 mx-auto mb-5 fade-up delay-100">
-        Explore Serea, our flagship Social Media Moderation AI, alongside our proprietary CMS tools.
-    </p>
+
+<!-- Hero -->
+<section class="py-5 mt-5 position-relative z-2 overflow-hidden">
+    <div class="position-absolute rounded-circle" style="width:500px;height:500px;background:radial-gradient(circle,rgba(157,78,221,0.12) 0%,transparent 70%);top:-150px;right:-100px;z-index:-1;"></div>
+    <div class="position-absolute rounded-circle" style="width:350px;height:350px;background:radial-gradient(circle,rgba(0,245,212,0.08) 0%,transparent 70%);bottom:0;left:-80px;z-index:-1;"></div>
+
+    <div class="container text-center py-5 fade-in">
+        <div class="badge-premium d-inline-flex align-items-center mb-4 fade-up">
+            <i class="bi bi-box-seam me-2 text-cyan"></i> BengalBound Product Suite
+        </div>
+        <h1 class="display-3 fw-bolder mb-4 fade-up" style="letter-spacing:-0.04em;line-height:1.1;">
+            One Platform.<br>
+            <span class="text-gradient-purple-cyan">Everything Your Business Needs.</span>
+        </h1>
+        <p class="lead text-white-50 mx-auto mb-5 fade-up delay-100" style="max-width:640px;font-size:1.2rem;">
+            BengalBound HUB combines a 60-module business operating system with a marketplace of 30 AI employees — built to run your entire operation from day one.
+        </p>
+        <div class="d-flex justify-content-center gap-3 fade-up delay-200 flex-wrap">
+            <a href="{% url 'public_site:trial_request' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill">Start Free Trial</a>
+            <a href="{% url 'public_site:pricing' %}" class="btn btn-outline-premium fs-5 px-5 py-3 rounded-pill bg-transparent border-white text-white">View Pricing</a>
+        </div>
+    </div>
+</section>
+
+<!-- ── Product 1: Business 360 Platform ── -->
+<section class="py-5 border-top border-white border-opacity-10 position-relative z-2">
+<div class="container py-5">
+    <div class="text-center mb-5 fade-up">
+        <div class="badge-premium d-inline-flex align-items-center mb-3">
+            <i class="bi bi-grid-3x3-gap me-2"></i> Product 1
+        </div>
+        <h2 class="display-5 fw-bold mb-3">Business 360 <span class="text-gradient-purple-cyan">Platform</span></h2>
+        <p class="text-white-50 lead mx-auto" style="max-width:620px;">60+ pluggable modules tailored to your industry — from POS and invoicing to HR, ERP, and cloud collaboration. One hub, every department.</p>
+    </div>
+
+    <!-- Industry tiles -->
+    <div class="row g-3 mb-5 justify-content-center">
+        <div class="col-md-2 col-4 fade-up"><div class="bento-card p-3 text-center h-100"><i class="bi bi-shop" style="font-size:1.8rem;color:#c084fc;"></i><div class="fw-semibold mt-2 text-white small">Retail</div></div></div>
+        <div class="col-md-2 col-4 fade-up"><div class="bento-card p-3 text-center h-100"><i class="bi bi-gear" style="font-size:1.8rem;color:#38bdf8;"></i><div class="fw-semibold mt-2 text-white small">Manufacturing</div></div></div>
+        <div class="col-md-2 col-4 fade-up"><div class="bento-card p-3 text-center h-100"><i class="bi bi-cup-hot" style="font-size:1.8rem;color:#ec4899;"></i><div class="fw-semibold mt-2 text-white small">Restaurant</div></div></div>
+        <div class="col-md-2 col-4 fade-up"><div class="bento-card p-3 text-center h-100"><i class="bi bi-building" style="font-size:1.8rem;color:#fbbf24;"></i><div class="fw-semibold mt-2 text-white small">Hotel</div></div></div>
+        <div class="col-md-2 col-4 fade-up"><div class="bento-card p-3 text-center h-100"><i class="bi bi-heart-pulse" style="font-size:1.8rem;color:#f87171;"></i><div class="fw-semibold mt-2 text-white small">Clinic</div></div></div>
+        <div class="col-md-2 col-4 fade-up"><div class="bento-card p-3 text-center h-100"><i class="bi bi-mortarboard" style="font-size:1.8rem;color:#22c55e;"></i><div class="fw-semibold mt-2 text-white small">School</div></div></div>
+        <div class="col-md-2 col-4 fade-up delay-100"><div class="bento-card p-3 text-center h-100"><i class="bi bi-briefcase" style="font-size:1.8rem;color:#a78bfa;"></i><div class="fw-semibold mt-2 text-white small">Agency</div></div></div>
+        <div class="col-md-2 col-4 fade-up delay-100"><div class="bento-card p-3 text-center h-100"><i class="bi bi-truck" style="font-size:1.8rem;color:#34d399;"></i><div class="fw-semibold mt-2 text-white small">Logistics</div></div></div>
+        <div class="col-md-2 col-4 fade-up delay-100"><div class="bento-card p-3 text-center h-100"><i class="bi bi-house-door" style="font-size:1.8rem;color:#fb923c;"></i><div class="fw-semibold mt-2 text-white small">Real Estate</div></div></div>
+        <div class="col-md-2 col-4 fade-up delay-100"><div class="bento-card p-3 text-center h-100"><i class="bi bi-airplane" style="font-size:1.8rem;color:#818cf8;"></i><div class="fw-semibold mt-2 text-white small">Travel</div></div></div>
+        <div class="col-md-2 col-4 fade-up delay-100"><div class="bento-card p-3 text-center h-100"><i class="bi bi-car-front" style="font-size:1.8rem;color:#e879f9;"></i><div class="fw-semibold mt-2 text-white small">Automotive</div></div></div>
+        <div class="col-md-2 col-4 fade-up delay-100"><div class="bento-card p-3 text-center h-100"><i class="bi bi-tree" style="font-size:1.8rem;color:#86efac;"></i><div class="fw-semibold mt-2 text-white small">Garden & Care</div></div></div>
+    </div>
+
+    <!-- Module category cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4 col-md-6 fade-up">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(56,189,248,0.2);">
+                <h5 class="fw-bold mb-2"><i class="bi bi-people me-2" style="color:#38bdf8;"></i>Sales & CRM</h5>
+                <p class="text-white-50 small mb-3">Full pipeline from lead to closed deal. Contacts, deals, scoring, and B2B portal.</p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;">CRM</span>
+                    <span class="badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;">Leads</span>
+                    <span class="badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;">B2B Portal</span>
+                    <span class="badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;">Omnichannel</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 fade-up delay-100">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(34,197,94,0.2);">
+                <h5 class="fw-bold mb-2"><i class="bi bi-cash-stack me-2" style="color:#22c55e;"></i>Finance</h5>
+                <p class="text-white-50 small mb-3">Invoicing, accounting, payroll, expense, budgeting — all in one place.</p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;">Invoicing</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;">Accounting</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;">Payroll</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;">Expense</span>
+                    <span class="badge" style="background:rgba(34,197,94,0.1);color:#22c55e;">Budgeting</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 fade-up delay-200">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(192,132,252,0.2);">
+                <h5 class="fw-bold mb-2"><i class="bi bi-person-badge me-2" style="color:#c084fc;"></i>HR & People</h5>
+                <p class="text-white-50 small mb-3">Employee records, recruitment, attendance, shift planning, training, and LMS.</p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge" style="background:rgba(192,132,252,0.1);color:#c084fc;">HR</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.1);color:#c084fc;">Recruitment</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.1);color:#c084fc;">Attendance</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.1);color:#c084fc;">Shift Planning</span>
+                    <span class="badge" style="background:rgba(192,132,252,0.1);color:#c084fc;">LMS</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 fade-up">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(251,191,36,0.2);">
+                <h5 class="fw-bold mb-2"><i class="bi bi-box-seam me-2" style="color:#fbbf24;"></i>Inventory & Supply Chain</h5>
+                <p class="text-white-50 small mb-3">Stock, orders, BOM, production, quality control, delivery, and WMS.</p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">Inventory</span>
+                    <span class="badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">Orders</span>
+                    <span class="badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">BOM</span>
+                    <span class="badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">Production</span>
+                    <span class="badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">WMS</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 fade-up delay-100">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(248,113,113,0.2);">
+                <h5 class="fw-bold mb-2"><i class="bi bi-shop-window me-2" style="color:#f87171;"></i>Retail & Commerce</h5>
+                <p class="text-white-50 small mb-3">POS, eCommerce, loyalty, planogram, store ops, and product catalogue.</p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;">POS</span>
+                    <span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;">eCommerce</span>
+                    <span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;">Loyalty</span>
+                    <span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;">Planogram</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 fade-up delay-200">
+            <div class="bento-card p-4 h-100" style="border-color:rgba(129,140,248,0.2);">
+                <h5 class="fw-bold mb-2"><i class="bi bi-envelope me-2" style="color:#818cf8;"></i>Productivity Suite</h5>
+                <p class="text-white-50 small mb-3">Business mail, HD video meetings, shared calendar, cloud drive, docs, sheets, and slides.</p>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge" style="background:rgba(129,140,248,0.1);color:#818cf8;">Business Mail</span>
+                    <span class="badge" style="background:rgba(129,140,248,0.1);color:#818cf8;">Video Meet</span>
+                    <span class="badge" style="background:rgba(129,140,248,0.1);color:#818cf8;">Cloud Drive</span>
+                    <span class="badge" style="background:rgba(129,140,248,0.1);color:#818cf8;">Docs</span>
+                    <span class="badge" style="background:rgba(129,140,248,0.1);color:#818cf8;">Sheets</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center fade-up">
+        <a href="{% url 'public_site:pricing' %}" class="btn btn-outline-premium px-5 py-3 rounded-pill fs-5">See Platform Plans</a>
+    </div>
 </div>
+</section>
+
+<!-- ── Product 2: AI Agent Marketplace ── -->
+<section class="py-5 border-top border-white border-opacity-10 position-relative z-2" style="background:rgba(5,5,10,0.6);">
+<div class="container py-5">
+    <div class="text-center mb-5 fade-up">
+        <div class="badge-premium d-inline-flex align-items-center mb-3">
+            <i class="bi bi-robot me-2 text-cyan"></i> Product 2
+        </div>
+        <h2 class="display-5 fw-bold mb-3">AI Agent <span class="text-gradient-purple-cyan">Marketplace</span></h2>
+        <p class="text-white-50 lead mx-auto" style="max-width:640px;">30 specialised AI employees — each an expert in their domain. Hire the ones your business needs. They work 24/7, connect to your live data, and escalate to you only when they need approval.</p>
+    </div>
+
+    <!-- How agents work -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 fade-up">
+            <div class="bento-card p-4 text-center h-100">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:52px;height:52px;background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.2);">
+                    <i class="bi bi-person-plus-fill" style="font-size:1.4rem;color:var(--bb-accent-cyan);"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Hire</div>
+                <div class="text-white-50 small">Pick from 30 specialist agents. Hire in one click — no setup, no config.</div>
+            </div>
+        </div>
+        <div class="col-md-3 fade-up delay-100">
+            <div class="bento-card p-4 text-center h-100">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:52px;height:52px;background:rgba(192,132,252,0.1);border:1px solid rgba(192,132,252,0.2);">
+                    <i class="bi bi-chat-dots-fill" style="font-size:1.4rem;color:#c084fc;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Chat</div>
+                <div class="text-white-50 small">Talk to them in plain language. They read your live business data to answer.</div>
+            </div>
+        </div>
+        <div class="col-md-3 fade-up delay-200">
+            <div class="bento-card p-4 text-center h-100">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:52px;height:52px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);">
+                    <i class="bi bi-alarm-fill" style="font-size:1.4rem;color:#fbbf24;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Automate</div>
+                <div class="text-white-50 small">Agents run scheduled tasks daily — audits, reports, alerts — without you lifting a finger.</div>
+            </div>
+        </div>
+        <div class="col-md-3 fade-up delay-300">
+            <div class="bento-card p-4 text-center h-100">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:52px;height:52px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);">
+                    <i class="bi bi-check-circle-fill" style="font-size:1.4rem;color:#22c55e;"></i>
+                </div>
+                <div class="fw-bold text-white mb-2">Approve</div>
+                <div class="text-white-50 small">For consequential actions, they pause and ask your permission. You stay in control.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent grid by category -->
+    <div class="mb-4 fade-up">
+        <h5 class="fw-semibold mb-4" style="color:rgba(226,232,240,0.5);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;">Analytics & Reporting</h5>
+        <div class="row g-3 mb-4">
+            {% for agent in "clarity,nova,pulse,scout,reporting-bot"|make_list %}{% endfor %}
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.2);"><i class="bi bi-bar-chart-fill" style="color:#818cf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Clarity</div><div class="text-white-50" style="font-size:0.72rem;">Feedback Analyst</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.2);"><i class="bi bi-cpu-fill" style="color:#818cf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Nova</div><div class="text-white-50" style="font-size:0.72rem;">Data Scientist</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.2);"><i class="bi bi-graph-up-arrow" style="color:#818cf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Pulse</div><div class="text-white-50" style="font-size:0.72rem;">Market Research</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.2);"><i class="bi bi-eye-fill" style="color:#818cf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Scout</div><div class="text-white-50" style="font-size:0.72rem;">Competitor Intel</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(129,140,248,0.12);border:1px solid rgba(129,140,248,0.2);"><i class="bi bi-file-earmark-bar-graph" style="color:#818cf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Reporting Bot</div><div class="text-white-50" style="font-size:0.72rem;">Automated Reports</div></div></div></div>
+        </div>
+
+        <h5 class="fw-semibold mb-4" style="color:rgba(226,232,240,0.5);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;">Sales & CRM</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.2);"><i class="bi bi-diagram-3-fill" style="color:var(--bb-accent-cyan);"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Crux</div><div class="text-white-50" style="font-size:0.72rem;">CRM Manager</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.2);"><i class="bi bi-binoculars-fill" style="color:var(--bb-accent-cyan);"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Lead Hunter</div><div class="text-white-50" style="font-size:0.72rem;">B2B Prospector</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.2);"><i class="bi bi-star-fill" style="color:var(--bb-accent-cyan);"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Mira</div><div class="text-white-50" style="font-size:0.72rem;">Customer Success</div></div></div></div>
+        </div>
+
+        <h5 class="fw-semibold mb-4" style="color:rgba(226,232,240,0.5);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;">Marketing</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.2);"><i class="bi bi-brush-fill" style="color:#ec4899;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Luma</div><div class="text-white-50" style="font-size:0.72rem;">Brand & PR</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.2);"><i class="bi bi-search" style="color:#ec4899;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Oracle</div><div class="text-white-50" style="font-size:0.72rem;">SEO Specialist</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.2);"><i class="bi bi-pencil-fill" style="color:#ec4899;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Content Architect</div><div class="text-white-50" style="font-size:0.72rem;">Content Strategist</div></div></div></div>
+        </div>
+
+        <h5 class="fw-semibold mb-4" style="color:rgba(226,232,240,0.5);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;">HR & Operations</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-people-fill" style="color:#22c55e;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Hera</div><div class="text-white-50" style="font-size:0.72rem;">HR Agent</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-book-fill" style="color:#22c55e;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Nexus</div><div class="text-white-50" style="font-size:0.72rem;">L&D Coordinator</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-cash-coin" style="color:#22c55e;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Cash</div><div class="text-white-50" style="font-size:0.72rem;">Payroll Processor</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-calendar3" style="color:#22c55e;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Atlas</div><div class="text-white-50" style="font-size:0.72rem;">Executive Assistant</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-box2-fill" style="color:#22c55e;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Payload</div><div class="text-white-50" style="font-size:0.72rem;">Procurement Manager</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);"><i class="bi bi-truck-flatbed" style="color:#22c55e;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Flux</div><div class="text-white-50" style="font-size:0.72rem;">Supply Chain Manager</div></div></div></div>
+        </div>
+
+        <h5 class="fw-semibold mb-4" style="color:rgba(226,232,240,0.5);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;">Support & Communication</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);"><i class="bi bi-headset" style="color:#38bdf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Aria</div><div class="text-white-50" style="font-size:0.72rem;">Customer Support</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);"><i class="bi bi-translate" style="color:#38bdf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Babel</div><div class="text-white-50" style="font-size:0.72rem;">Translation Specialist</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);"><i class="bi bi-telephone-fill" style="color:#38bdf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Voice Receptionist</div><div class="text-white-50" style="font-size:0.72rem;">Phone Receptionist</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);"><i class="bi bi-gem" style="color:#38bdf8;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Concierge</div><div class="text-white-50" style="font-size:0.72rem;">Client Concierge</div></div></div></div>
+        </div>
+
+        <h5 class="fw-semibold mb-4" style="color:rgba(226,232,240,0.5);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;">Technology, Legal & Specialist</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-terminal-fill" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Kai</div><div class="text-white-50" style="font-size:0.72rem;">DevOps Engineer</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-shield-fill-check" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Shield</div><div class="text-white-50" style="font-size:0.72rem;">IT Helpdesk</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-file-earmark-law" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Sage</div><div class="text-white-50" style="font-size:0.72rem;">Legal Reviewer</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-file-text-fill" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Dox</div><div class="text-white-50" style="font-size:0.72rem;">Technical Writer</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-calendar-event" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Tempo</div><div class="text-white-50" style="font-size:0.72rem;">Events Manager</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-house-fill" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Realt</div><div class="text-white-50" style="font-size:0.72rem;">Real Estate Assistant</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-bag-fill" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Merch</div><div class="text-white-50" style="font-size:0.72rem;">eCommerce Manager</div></div></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="bento-card p-3 d-flex align-items-center gap-3"><div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);"><i class="bi bi-hospital-fill" style="color:#fbbf24;"></i></div><div><div class="fw-semibold text-white" style="font-size:0.88rem;">Medibook</div><div class="text-white-50" style="font-size:0.72rem;">Medical Scheduler</div></div></div></div>
+        </div>
+    </div>
+
+    <div class="text-center fade-up">
+        <a href="{% url 'public_site:ai_job_portal' %}" class="btn btn-premium px-5 py-3 rounded-pill fs-5 me-3">Browse AI Marketplace</a>
+        <a href="{% url 'public_site:pricing' %}" class="btn btn-outline-premium px-5 py-3 rounded-pill fs-5 bg-transparent border-white text-white">See AI Pricing</a>
+    </div>
+</div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="py-5 border-top border-white border-opacity-10">
+<div class="container py-5 text-center">
+    <h2 class="display-5 fw-bold mb-3 fade-up">Ready to build your<br><span class="text-gradient-purple-cyan">AI-powered business?</span></h2>
+    <p class="text-white-50 lead mb-5 fade-up delay-100">Start with the platform, hire the agents you need, and grow without limits.</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap fade-up delay-200">
+        <a href="{% url 'public_site:trial_request' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill">Start Free Trial</a>
+        <a href="{% url 'public_site:consult' %}" class="btn btn-outline-premium fs-5 px-5 py-3 rounded-pill bg-transparent border-white text-white">Book a Consultation</a>
+    </div>
+</div>
+</section>
+
 {% endblock %}

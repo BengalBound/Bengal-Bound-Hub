@@ -15,10 +15,7 @@
             <span class="text-gradient-purple-cyan">{% if hero_content %}{{ hero_content.hero_title2 }}{% else %}Built for Scale & Performance.{% endif %}</span>
         </h1>
         <p class="lead text-white-50 mx-auto mb-5 font-inter fade-up delay-100" style="font-size: 1.25rem;">
-            {% if hero_content %}{{ hero_content.hero_subtitle }}{% else %}BengalBound provides leading SaaS (Software
-            as a Service) and AIaaS (AI as a Service).
-            Hire digital employees customized to save costs, increase productivity, and scale your operations
-            limitlessly.{% endif %}
+            {% if hero_content %}{{ hero_content.hero_subtitle }}{% else %}BengalBound HUB is a complete business operating system — 60+ modules for every department, and a marketplace of 30 AI employees that work 24/7, connect to your live data, and run your operations on autopilot.{% endif %}
         </p>
 
         <div class="d-flex justify-content-center gap-3 fade-up delay-200">
@@ -352,6 +349,119 @@
     <div class="text-center fade-up">
         <a href="{% url 'public_site:pricing' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill me-3">View Pricing</a>
         <a href="{% url 'public_site:trial_request' %}" class="btn btn-outline-premium fs-5 px-5 py-3 rounded-pill">Start Free Trial</a>
+    </div>
+</div>
+</section>
+
+<!-- ── AI Agent Marketplace Teaser ── -->
+<section class="py-5 my-3 border-top border-white border-opacity-10 position-relative z-2">
+<div class="container py-5">
+    <div class="text-center mb-5 fade-up">
+        <div class="badge-premium d-inline-flex align-items-center mb-3">
+            <i class="bi bi-robot me-2 text-cyan"></i> AI Employee Marketplace
+        </div>
+        <h2 class="display-5 fw-bold mb-3">Meet Your <span class="text-gradient-purple-cyan">30 AI Employees</span></h2>
+        <p class="text-white-50 lead mx-auto" style="max-width:620px;">Each agent is a domain expert trained for a specific business role. They work 24/7, access your live data, and ask for approval before taking consequential actions.</p>
+    </div>
+
+    <!-- Featured agents — 3 rows of 3 -->
+    <div class="row g-3 mb-4">
+        <!-- Row 1 — Sales, HR, Finance -->
+        <div class="col-sm-6 col-lg-4 fade-up">
+            <div class="bento-card p-4 h-100 d-flex align-items-start gap-3" style="border-color:rgba(0,245,212,0.15);">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.2);">
+                    <i class="bi bi-diagram-3-fill" style="color:var(--bb-accent-cyan);font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white mb-1">Crux — CRM Manager</div>
+                    <div class="text-white-50 small">Audits your pipeline daily, scores contacts, and flags deals at risk. Reads your live CRM data.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4 fade-up delay-100">
+            <div class="bento-card p-4 h-100 d-flex align-items-start gap-3" style="border-color:rgba(34,197,94,0.15);">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);">
+                    <i class="bi bi-people-fill" style="color:#22c55e;font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white mb-1">Hera — HR Agent</div>
+                    <div class="text-white-50 small">Manages employee lifecycle, onboarding checklists, leave tracking, and policy compliance automatically.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4 fade-up delay-200">
+            <div class="bento-card p-4 h-100 d-flex align-items-start gap-3" style="border-color:rgba(251,191,36,0.15);">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);">
+                    <i class="bi bi-cash-coin" style="color:#fbbf24;font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white mb-1">Cash — Payroll Processor</div>
+                    <div class="text-white-50 small">Runs payroll calculations weekly, flags anomalies, and generates payslip summaries — zero manual work.</div>
+                </div>
+            </div>
+        </div>
+        <!-- Row 2 — Analytics, Marketing, Support -->
+        <div class="col-sm-6 col-lg-4 fade-up">
+            <div class="bento-card p-4 h-100 d-flex align-items-start gap-3" style="border-color:rgba(129,140,248,0.15);">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:rgba(129,140,248,0.1);border:1px solid rgba(129,140,248,0.2);">
+                    <i class="bi bi-cpu-fill" style="color:#818cf8;font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white mb-1">Nova — Data Scientist</div>
+                    <div class="text-white-50 small">Analyses your CRM, HR, and finance data weekly. Finds patterns and produces executive summaries.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4 fade-up delay-100">
+            <div class="bento-card p-4 h-100 d-flex align-items-start gap-3" style="border-color:rgba(236,72,153,0.15);">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.2);">
+                    <i class="bi bi-search" style="color:#ec4899;font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white mb-1">Oracle — SEO Specialist</div>
+                    <div class="text-white-50 small">Runs weekly SEO audits, researches keywords, and identifies content gaps to grow your organic traffic.</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4 fade-up delay-200">
+            <div class="bento-card p-4 h-100 d-flex align-items-start gap-3" style="border-color:rgba(56,189,248,0.15);">
+                <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.2);">
+                    <i class="bi bi-headset" style="color:#38bdf8;font-size:1.1rem;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white mb-1">Aria — Customer Support</div>
+                    <div class="text-white-50 small">Handles inbound support queries, triages tickets, and escalates complex issues to the right team member.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="bento-card p-4 d-flex flex-wrap justify-content-around gap-4 text-center fade-up delay-100 mb-5">
+        <div>
+            <div class="fw-bold mb-1 text-gradient-purple-cyan" style="font-size:2rem;">30</div>
+            <div class="text-white-50 small">Specialist AI Agents</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
+        <div>
+            <div class="fw-bold mb-1 text-gradient-purple-cyan" style="font-size:2rem;">24/7</div>
+            <div class="text-white-50 small">Always Working</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
+        <div>
+            <div class="fw-bold mb-1 text-gradient-purple-cyan" style="font-size:2rem;">Live</div>
+            <div class="text-white-50 small">Real Business Data</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
+        <div>
+            <div class="fw-bold mb-1 text-gradient-purple-cyan" style="font-size:2rem;">Human</div>
+            <div class="text-white-50 small">Approval Before Actions</div>
+        </div>
+    </div>
+
+    <div class="text-center fade-up delay-200">
+        <a href="{% url 'public_site:ai_job_portal' %}" class="btn btn-premium fs-5 px-5 py-3 rounded-pill me-3">Browse All 30 Agents</a>
+        <a href="{% url 'public_site:products' %}" class="btn btn-outline-premium fs-5 px-5 py-3 rounded-pill bg-transparent border-white text-white">See Full Product Suite</a>
     </div>
 </div>
 </section>
