@@ -173,3 +173,99 @@ class SampleOrderModelTest(TestCase):
     def test_model_exists(self):
         self.assertTrue(hasattr(SampleOrder, "objects"))
 
+
+class E2EFactoryFlowTest(TestCase):
+    def setUp(self):
+        from hub.models import BusinessInstance
+        self.business = BusinessInstance.objects.create(
+            name="Test Factory",
+            domain="testfactory.bengalbound.com"
+        )
+
+    def test_full_production_lifecycle(self):
+        from django.utils import timezone
+        # 1. Raw Material setup
+        raw_mat = RawMaterial.objects.create(
+            business=self.business,
+            item_id="RM-001",
+            name="Premium Leather",
+            category="Leather",
+            on_hand=1000,
+            unit_cost=5.00
+        )
+        self.assertEqual(raw_mat.on_hand, 1000)
+
+        # 2. Production Order creation
+        order = ProductionOrder.objects.create(
+            business=self.business,
+            order_id="PO-999",
+            style="Oxford Classic",
+            buyer="Boutique Co",
+            qty=100
+        )
+        self.assertEqual(order.current_stage, "planned")
+
+        # 3. Material Issue (consume raw material)
+        issue = MaterialIssue.objects.create(
+            business=self.business,
+            issue_id="MI-999",
+            issue_date=timezone.now().date(),
+            production_order_ref=order.order_id,
+            material_name=raw_mat.name,
+            issued_qty=250,
+            standard_qty=200
+        )
+        
+        # Assuming manual decrement logic is required in view layer
+        raw_mat.on_hand -= issue.issued_qty
+        raw_mat.save()
+        self.assertEqual(raw_mat.on_hand, 750)
+        
+        # Move order to materials ready
+        order.current_stage = "materials"
+        order.stage_materials = True
+        order.save()
+
+        # 4. WIP Lot Tracking
+        wip = WIPLot.objects.create(
+            business=self.business,
+            wip_id="WIP-999-1",
+            style=order.style,
+            production_order_ref=order.order_id,
+            current_stage="cutting",
+            qty=100
+        )
+        wip.current_stage = "stitching"
+        wip.save()
+        self.assertEqual(wip.current_stage, "stitching")
+
+        # 5. Quality Control
+        qc = QCInspection.objects.create(
+            business=self.business,
+            inspection_id="QC-999",
+            checkpoint="Upper Stitching Final",
+            production_order_ref=order.order_id,
+            inspection_date=timezone.now().date(),
+            lot_size=100,
+            checked=20,
+            defects_found=1
+        )
+        self.assertEqual(qc.defect_rate_pct, 5.0)
+
+        # 6. Finished Goods completion
+        fg = FinishedGoodsLot.objects.create(
+            business=self.business,
+            fg_id="FG-999",
+            style=order.style,
+            production_order_ref=order.order_id,
+            qty=99,
+            unit_cost=25.00
+        )
+        self.assertEqual(fg.total_value, 99 * 25.00)
+
+        # Update order to complete
+        order.current_stage = "shipped"
+        order.stage_shipped = True
+        order.save()
+        
+        self.assertFalse(order.is_overdue)
