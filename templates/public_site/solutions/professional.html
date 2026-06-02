@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BengalBound for Professional & Creative Services{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5 position-relative overflow-hidden">
+    <!-- Glowing Orbs -->
+    <div class="position-absolute rounded-circle" style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%); top: -150px; right: -200px; z-index: -1;"></div>
+    <div class="position-absolute rounded-circle" style="width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,245,212,0.15) 0%, transparent 70%); bottom: -100px; left: -150px; z-index: -1;"></div>
+
+    <div class="container py-5">
+        <!-- Hero -->
+        <div class="text-center mb-5 pb-3 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block">Professional Services</span>
+            <h1 class="display-4 fw-bold font-outfit mb-4">Cure Time Poverty.<br>Hire <span class="text-gradient-purple-cyan">AI Executives.</span></h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 750px;">
+                Designed exclusively for Agencies, Consultants, and Accountants. BengalBound provides an all-in-one suite to manage projects, invoices, and clients—powered by autonomous AI agents that handle the busywork so you can focus on billable hours.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5 fade-up delay-100">
+            <!-- Left: Module Stack -->
+            <div class="col-lg-5">
+                <div class="bento-card p-5 h-100">
+                    <h3 class="fw-bold text-white mb-4">The All-in-One Suite</h3>
+                    <p class="text-white-50 mb-4">Replace Salesforce, Asana, and QuickBooks with one unified platform.</p>
+                    
+                    <ul class="list-unstyled mb-0">
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-person-lines-fill text-cyan fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">CRM & Lead Management</h6>
+                                <p class="text-white-50 small mb-0">Track every prospect, client, and deal pipeline seamlessly.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-kanban text-purple fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Project & Task Boards</h6>
+                                <p class="text-white-50 small mb-0">Kanban boards, time tracking, and team collaboration.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start">
+                            <i class="bi bi-receipt text-success fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Automated Invoicing</h6>
+                                <p class="text-white-50 small mb-0">Send digital contracts and get paid instantly via Stripe integration.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right: AI Agents -->
+            <div class="col-lg-7">
+                <div class="bento-card p-5 h-100 glow-hover-cyan position-relative overflow-hidden" style="border: 1px solid rgba(0, 245, 212, 0.3);">
+                    <!-- Pulse effect -->
+                    <div class="position-absolute top-0 end-0 p-4 opacity-50">
+                        <div class="spinner-grow spinner-grow-sm text-cyan" role="status"></div>
+                    </div>
+
+                    <h3 class="fw-bold text-white mb-4">Your AI Leadership Team</h3>
+                    <p class="text-white-50 mb-4">These aren't chatbots. These are autonomous agents that execute tasks inside your CRM and project boards.</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4 h-100">
+                                <h5 class="text-white fw-bold"><i class="bi bi-robot text-cyan me-2"></i>Crux</h5>
+                                <span class="badge bg-secondary bg-opacity-25 text-white-50 mb-2">CRM Manager</span>
+                                <p class="text-white-50 small mb-0">Crux automatically scores new leads, flags dormant clients, and triggers follow-up email sequences.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4 h-100">
+                                <h5 class="text-white fw-bold"><i class="bi bi-robot text-purple me-2"></i>Atlas</h5>
+                                <span class="badge bg-secondary bg-opacity-25 text-white-50 mb-2">Executive Assistant</span>
+                                <p class="text-white-50 small mb-0">Atlas delivers your morning briefing, alerts you of overdue tasks, and organizes your client meetings.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4">
+                                <h5 class="text-white fw-bold"><i class="bi bi-robot text-success me-2"></i>Reporting Bot</h5>
+                                <span class="badge bg-secondary bg-opacity-25 text-white-50 mb-2">Automated Analytics</span>
+                                <p class="text-white-50 small mb-0">Generates stunning weekly PDF reports on campaign performance or financials and automatically emails them to your clients.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 pt-4 fade-up delay-200">
+            <h3 class="text-white fw-bold mb-3">Ready to scale your agency?</h3>
+            <p class="text-white-50 mb-4">Start replacing admin work with AI logic today.</p>
+            <a href="{% url 'public_site:consult' %}" class="btn btn-premium px-5 py-3 rounded-pill fw-bold fs-5">Book a Demo</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

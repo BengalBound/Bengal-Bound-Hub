@@ -297,3 +297,14 @@ def privacy(request):
 
 def terms(request):
     return render(request, 'public_site/terms.html')
+
+# ── Industry Vertical Solutions ───────────────────────────────────────────────
+
+def solution_professional(request):
+    return render(request, 'public_site/solutions/professional.html')
+
+def solution_field(request):
+    return render(request, 'public_site/solutions/field.html')
+
+def solution_health_beauty(request):
+    return render(request, 'public_site/solutions/health_beauty.html')

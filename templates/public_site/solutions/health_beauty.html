@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BengalBound for Health, Wellness & Beauty{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5 position-relative overflow-hidden">
+    <!-- Glowing Orbs -->
+    <div class="position-absolute rounded-circle" style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,245,212,0.15) 0%, transparent 70%); top: -150px; left: -200px; z-index: -1;"></div>
+    <div class="position-absolute rounded-circle" style="width: 400px; height: 400px; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%); bottom: -100px; right: -150px; z-index: -1;"></div>
+
+    <div class="container py-5">
+        <!-- Hero -->
+        <div class="text-center mb-5 pb-3 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block">Health, Wellness & Beauty</span>
+            <h1 class="display-4 fw-bold font-outfit mb-4">Eliminate No-Shows.<br>Keep Your Calendar <span class="text-gradient-purple-cyan">Fully Booked.</span></h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 750px;">
+                Designed for Salons, Gyms, and Therapists. BengalBound integrates Point of Sale, online booking, and membership management with autonomous AI agents that handle all appointment scheduling and client reminders automatically.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5 fade-up delay-100">
+            <!-- Left: Module Stack -->
+            <div class="col-lg-5">
+                <div class="bento-card p-5 h-100">
+                    <h3 class="fw-bold text-white mb-4">Seamless Operations</h3>
+                    <p class="text-white-50 mb-4">Give your clients a premium booking experience while you focus on delivering exceptional service.</p>
+                    
+                    <ul class="list-unstyled mb-0 mt-4">
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-calendar2-check text-cyan fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Smart Scheduling</h6>
+                                <p class="text-white-50 small mb-0">24/7 online booking portal synchronized perfectly with your staff availability.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start mb-4">
+                            <i class="bi bi-shop text-purple fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Point of Sale (POS)</h6>
+                                <p class="text-white-50 small mb-0">Process payments, sell retail products, and manage gift cards from one interface.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start">
+                            <i class="bi bi-award text-success fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Memberships & Loyalty</h6>
+                                <p class="text-white-50 small mb-0">Set up recurring billing and reward points to keep your best clients coming back.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right: AI Agents -->
+            <div class="col-lg-7">
+                <div class="bento-card p-5 h-100 glow-hover-cyan position-relative overflow-hidden" style="border: 1px solid rgba(0, 245, 212, 0.3);">
+                    <!-- Pulse effect -->
+                    <div class="position-absolute top-0 end-0 p-4 opacity-50">
+                        <div class="spinner-grow spinner-grow-sm text-cyan" role="status"></div>
+                    </div>
+
+                    <h3 class="fw-bold text-white mb-4">Your AI Front Desk</h3>
+                    <p class="text-white-50 mb-4">Say goodbye to playing phone tag. Let AI handle the back-and-forth.</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4 h-100">
+                                <h5 class="text-white fw-bold"><i class="bi bi-robot text-cyan me-2"></i>MediBook / Concierge</h5>
+                                <span class="badge bg-secondary bg-opacity-25 text-white-50 mb-2">Scheduling Agent</span>
+                                <p class="text-white-50 small mb-0">Integrates with Google/Outlook to read your calendar and autonomously negotiate appointment times with clients via email or phone.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4 h-100">
+                                <h5 class="text-white fw-bold"><i class="bi bi-robot text-purple me-2"></i>Aria</h5>
+                                <span class="badge bg-secondary bg-opacity-25 text-white-50 mb-2">Customer Support</span>
+                                <p class="text-white-50 small mb-0">Answers FAQs about your services, pricing, and location instantly across your website and social media.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="bg-dark border border-secondary border-opacity-25 p-3 rounded-4">
+                                <h5 class="text-white fw-bold"><i class="bi bi-bell text-warning me-2"></i>Automated Reminders</h5>
+                                <p class="text-white-50 small mb-0 mt-2">Built-in triggers automatically send 24-hour and 2-hour SMS/Email reminders to drastically cut down no-shows and protect your bottom line.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 pt-4 fade-up delay-200">
+            <h3 class="text-white fw-bold mb-3">Transform your client experience.</h3>
+            <p class="text-white-50 mb-4">Book your free consultation to see the AI in action.</p>
+            <a href="{% url 'public_site:consult' %}" class="btn btn-premium px-5 py-3 rounded-pill fw-bold fs-5">Book a Demo</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

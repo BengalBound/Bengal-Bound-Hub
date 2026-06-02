@@ -15,6 +15,11 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('consult/', views.consult, name='consult'),
     path('set-currency/', views.set_currency, name='set_currency'),
+    # Solutions / Industry Verticals
+    path('solutions/professional-services/', views.solution_professional, name='solution_professional'),
+    path('solutions/field-services/', views.solution_field, name='solution_field'),
+    path('solutions/health-wellness-beauty/', views.solution_health_beauty, name='solution_health_beauty'),
+
     # Phase 4 additions
     path('hire-ai/', views.ai_job_portal, name='ai_job_portal'),
     path('affiliates/', views.affiliate_portal, name='affiliate_portal'),

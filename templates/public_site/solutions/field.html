@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BengalBound for Field & Hands-On Services{% endblock %}
+
+{% block content %}
+<section class="min-vh-100 pt-5 mt-5 pb-5 position-relative overflow-hidden">
+    <!-- Glowing Orbs -->
+    <div class="position-absolute rounded-circle" style="width: 500px; height: 500px; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%); top: -150px; left: -200px; z-index: -1;"></div>
+    <div class="position-absolute rounded-circle" style="width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,245,212,0.15) 0%, transparent 70%); bottom: -100px; right: -150px; z-index: -1;"></div>
+
+    <div class="container py-5">
+        <!-- Hero -->
+        <div class="text-center mb-5 pb-3 fade-up">
+            <span class="badge-cyan mb-3 d-inline-block">Field & Hands-On Services</span>
+            <h1 class="display-4 fw-bold font-outfit mb-4">Never Miss a Call.<br>Run Your Business <span class="text-gradient-purple-cyan">From the Field.</span></h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 750px;">
+                Built for Plumbers, Landscapers, Cleaners, and Contractors. BengalBound gives you a mobile-first platform to dispatch teams, manage inventory, and process payments on-site—backed by an AI Receptionist that answers calls while your hands are full.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5 fade-up delay-100">
+            <!-- Left: AI Agents -->
+            <div class="col-lg-6">
+                <div class="bento-card p-5 h-100 glow-hover-purple position-relative overflow-hidden" style="border: 1px solid rgba(168, 85, 247, 0.3);">
+                    <!-- Pulse effect -->
+                    <div class="position-absolute top-0 start-0 p-4 opacity-50">
+                        <div class="spinner-grow spinner-grow-sm text-purple" role="status"></div>
+                    </div>
+
+                    <h3 class="fw-bold text-white mb-4">The 24/7 AI Voice Receptionist</h3>
+                    <p class="text-white-50 mb-4">When you're under a sink or on a roof, you can't answer the phone. Our AI answers in native languages, understands emergencies, and books the job.</p>
+
+                    <div class="sim-phone-screen bg-black rounded-4 p-3 border border-purple border-opacity-25 shadow-lg mb-4">
+                        <!-- Transcript -->
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="rounded-circle bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0;"><i class="bi bi-telephone-fill text-white-50 small"></i></div>
+                            <div class="bg-dark p-3 rounded-3" style="border-bottom-left-radius: 0;">
+                                <p class="mb-0 text-white small lh-base">"Hi, I have a massive leak in my kitchen. Are you available today?"</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Internal JSON Trace (Animated) -->
+                        <div class="bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-3 p-3 mb-3 font-monospace text-purple small" style="font-size: 0.75rem; overflow-x: hidden;">
+                            [Intent: Emergency Leak]<br>
+                            [Action: Escalate to On-Call Tech]<br>
+                            [Action: Send SMS to Customer]
+                        </div>
+
+                        <!-- System Action -->
+                        <div class="d-flex gap-3 flex-row-reverse mb-2">
+                            <div class="rounded-circle bg-purple bg-opacity-25 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0;"><i class="bi bi-robot text-purple small"></i></div>
+                            <div class="bg-purple bg-opacity-10 border border-purple border-opacity-25 p-3 rounded-3" style="border-bottom-right-radius: 0;">
+                                <p class="mb-0 text-white-50 small" style="font-size: 0.8rem;">
+                                    "I've flagged this as an emergency and paged our on-call technician. They will be there within the hour."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Module Stack -->
+            <div class="col-lg-6">
+                <div class="bento-card p-5 h-100">
+                    <h3 class="fw-bold text-white mb-4">Mobile-First Field Ops</h3>
+                    <p class="text-white-50 mb-4">Everything you need to run operations without opening a laptop.</p>
+                    
+                    <ul class="list-unstyled mb-0 mt-4">
+                        <li class="d-flex align-items-start mb-4">
+                            <div class="rounded-circle bg-cyan bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                <i class="bi bi-truck text-cyan fs-5"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Mobile Dispatch & Routing</h6>
+                                <p class="text-white-50 small mb-0">Assign jobs to field workers and track status in real-time.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start mb-4">
+                            <div class="rounded-circle bg-purple bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                <i class="bi bi-boxes text-purple fs-5"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">Inventory Management</h6>
+                                <p class="text-white-50 small mb-0">Track parts and materials used on-site to ensure accurate billing.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start">
+                            <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                <i class="bi bi-credit-card text-success fs-5"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-white fw-bold mb-1">On-Site Invoicing</h6>
+                                <p class="text-white-50 small mb-0">Generate invoices from your phone and accept payments before leaving the driveway.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 pt-4 fade-up delay-200">
+            <h3 class="text-white fw-bold mb-3">Stop losing jobs to missed calls.</h3>
+            <p class="text-white-50 mb-4">Let our AI secure your revenue while you do the work.</p>
+            <a href="{% url 'public_site:consult' %}" class="btn btn-premium px-5 py-3 rounded-pill fw-bold fs-5">Get Started Now</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

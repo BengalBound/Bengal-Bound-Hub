@@ -82,6 +82,18 @@
                     <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:why_us' %}">Why Us</a></li>
                     <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:services' %}">Services</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3" href="#" id="solutionsDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Solutions
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark glass-card border-0"
+                            aria-labelledby="solutionsDropdown">
+                            <li><a class="dropdown-item" href="{% url 'public_site:solution_professional' %}">Professional Services</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:solution_field' %}">Field & Hands-On Services</a></li>
+                            <li><a class="dropdown-item" href="{% url 'public_site:solution_health_beauty' %}">Health, Wellness & Beauty</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link px-3" href="{% url 'public_site:ai_job_portal' %}">AI
                             Employees</a></li>
                     <li class="nav-item dropdown">
