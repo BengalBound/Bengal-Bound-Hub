@@ -87,3 +87,39 @@ def deliver_ready_reports():
 
     logger.info("reporting_bot.deliver_ready_reports: delivered %d reports", delivered)
     return delivered
+
+
+# ── P3C live task: uses all hub data via LangChain ───────────────────────────
+
+@shared_task(name="agents.reporting_bot.live_kpi_digest")
+def live_kpi_digest():
+    """Daily KPI digest across CRM, HR, and Invoice — reads all hub modules via LangChain tools."""
+    from agents.models import AgentInstance, AgentCatalog
+    from agents.scheduled import run_scheduled_agent_task
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='reporting-bot')
+    except AgentCatalog.DoesNotExist:
+        return 0
+
+    count = 0
+    for instance in (
+        AgentInstance.objects
+        .filter(catalog=catalog, status='idle')
+        .select_related('business', 'catalog')
+    ):
+        run_scheduled_agent_task(
+            instance=instance,
+            task_name='live_kpi_digest',
+            task_prompt=(
+                "Generate today's full business KPI digest using all your data tools.\n\n"
+                "Section 1 — CRM: pipeline summary (open deals, total value, stage breakdown, won this month).\n"
+                "Section 2 — HR: active headcount by department, pending leave requests count.\n"
+                "Section 3 — Finance: total invoiced, amount collected, outstanding balance, overdue count.\n\n"
+                "Format each section with a headline metric, 2–3 supporting stats, and one action item. "
+                "Keep the whole digest under 400 words."
+            ),
+        )
+        count += 1
+    logger.info("reporting_bot.live_kpi_digest: ran for %d businesses", count)
+    return count

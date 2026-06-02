@@ -78,3 +78,38 @@ def weekly_pipeline_digest():
     }
     logger.info("lead_hunter.weekly_pipeline_digest: %s", stats)
     return stats
+
+
+# ── P3C live task: uses hub CRM contacts via LangChain ───────────────────────
+
+@shared_task(name="agents.lead_hunter.live_lead_scan")
+def live_lead_scan():
+    """Daily lead scan using live CRM contact data — reads modules/crm/ via LangChain tools."""
+    from agents.models import AgentInstance, AgentCatalog
+    from agents.scheduled import run_scheduled_agent_task
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='lead-hunter')
+    except AgentCatalog.DoesNotExist:
+        return 0
+
+    count = 0
+    for instance in (
+        AgentInstance.objects
+        .filter(catalog=catalog, status='idle')
+        .select_related('business', 'catalog')
+    ):
+        run_scheduled_agent_task(
+            instance=instance,
+            task_name='live_lead_scan',
+            task_prompt=(
+                "Perform your daily B2B lead scan using your CRM tools.\n"
+                "1. Review current contacts — identify 3–5 most promising leads to pursue today.\n"
+                "2. Check the deal pipeline — flag any stalled deals in early stages.\n"
+                "3. Write a specific outreach message for the single highest-priority contact.\n"
+                "Be direct and actionable — this briefing goes straight to the sales team."
+            ),
+        )
+        count += 1
+    logger.info("lead_hunter.live_lead_scan: ran for %d businesses", count)
+    return count

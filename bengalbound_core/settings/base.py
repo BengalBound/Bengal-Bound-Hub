@@ -399,6 +399,7 @@ CELERY_BEAT_SCHEDULE = {
     # ── Cash — Payroll ────────────────────────────────────────────────────────
     'cash-payroll-reminder': {'task': 'agents.cash.monthly_payroll_reminder', 'schedule': 86400},
     'cash-anomaly-check':    {'task': 'agents.cash.anomaly_check_all',      'schedule': 86400},
+    'cash-live-invoice':     {'task': 'agents.cash.live_invoice_review',    'schedule': 604800},  # weekly
 
     # ── Clarity — Feedback Analyst ────────────────────────────────────────────
     'clarity-score-themes':  {'task': 'agents.clarity.auto_score_themes',        'schedule': 86400},
@@ -417,6 +418,7 @@ CELERY_BEAT_SCHEDULE = {
     'crux-score-contacts':    {'task': 'agents.crux.score_new_contacts',    'schedule': 86400},
     'crux-pipeline-review':   {'task': 'agents.crux.daily_pipeline_review', 'schedule': 86400},
     'crux-dormant-alert':     {'task': 'agents.crux.dormant_contact_alert', 'schedule': 86400},
+    'crux-live-audit':        {'task': 'agents.crux.live_pipeline_audit',   'schedule': 86400},  # daily live
 
     # ── Dox — Technical Writer ────────────────────────────────────────────────
     'dox-scan-outdated':     {'task': 'agents.dox.scan_outdated_docs',         'schedule': 604800},
@@ -430,6 +432,7 @@ CELERY_BEAT_SCHEDULE = {
     'hera-answer-queries':      {'task': 'agents.hera.auto_answer_pending_queries', 'schedule': 86400},
     'hera-onboarding-check':    {'task': 'agents.hera.overdue_onboarding_check',    'schedule': 86400},
     'hera-onboarding-status':   {'task': 'agents.hera.weekly_onboarding_status',    'schedule': 604800},
+    'hera-live-hr-check':       {'task': 'agents.hera.live_hr_check',              'schedule': 604800},  # weekly
 
     # ── Kai — DevOps Engineer ─────────────────────────────────────────────────
     'kai-pipeline-health':      {'task': 'agents.kai.pipeline_health_monitor',      'schedule': 1800},  # every 30 min
@@ -440,6 +443,7 @@ CELERY_BEAT_SCHEDULE = {
     'lead-hunter-score':        {'task': 'agents.lead_hunter.score_new_prospects',     'schedule': 86400},
     'lead-hunter-sequences':    {'task': 'agents.lead_hunter.activate_ready_sequences','schedule': 86400},
     'lead-hunter-digest':       {'task': 'agents.lead_hunter.weekly_pipeline_digest',  'schedule': 604800},
+    'lead-hunter-live-scan':    {'task': 'agents.lead_hunter.live_lead_scan',          'schedule': 86400},  # daily live
 
     # ── Luma — Brand & PR ─────────────────────────────────────────────────────
     'luma-crisis-check':        {'task': 'agents.luma.crisis_alert_check',       'schedule': 1800},   # every 30 min
@@ -491,6 +495,7 @@ CELERY_BEAT_SCHEDULE = {
     # ── Reporting Bot — Automated Reporting ──────────────────────────────────
     'reporting-bot-generate':   {'task': 'agents.reporting_bot.scheduled_report_generation', 'schedule': 86400},
     'reporting-bot-deliver':    {'task': 'agents.reporting_bot.deliver_ready_reports',       'schedule': 86400},
+    'reporting-bot-live-digest':{'task': 'agents.reporting_bot.live_kpi_digest',            'schedule': 86400},  # daily live
 
     # ── Sage — Legal Reviewer ─────────────────────────────────────────────────
     'sage-review-documents':    {'task': 'agents.sage.auto_review_queued_documents', 'schedule': 14400},

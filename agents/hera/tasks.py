@@ -66,3 +66,38 @@ def weekly_onboarding_status():
              .annotate(count=Count("id")))
     logger.info("hera.weekly_onboarding_status: %d stat rows", len(stats))
     return list(stats)
+
+
+# ── P3C live task: uses hub HR data via LangChain ────────────────────────────
+
+@shared_task(name="agents.hera.live_hr_check")
+def live_hr_check():
+    """Weekly HR check using live hub data — reads modules/hr/ via LangChain tools."""
+    from agents.models import AgentInstance, AgentCatalog
+    from agents.scheduled import run_scheduled_agent_task
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='hera')
+    except AgentCatalog.DoesNotExist:
+        return 0
+
+    count = 0
+    for instance in (
+        AgentInstance.objects
+        .filter(catalog=catalog, status='idle')
+        .select_related('business', 'catalog')
+    ):
+        run_scheduled_agent_task(
+            instance=instance,
+            task_name='live_hr_check',
+            task_prompt=(
+                "Perform your weekly HR health check using your data tools.\n"
+                "1. Get headcount by department — flag any that seem understaffed.\n"
+                "2. List all pending leave requests that need approval.\n"
+                "3. Check for any employees with upcoming performance reviews due.\n"
+                "Provide a concise HR status report with clear recommended actions."
+            ),
+        )
+        count += 1
+    logger.info("hera.live_hr_check: ran for %d businesses", count)
+    return count

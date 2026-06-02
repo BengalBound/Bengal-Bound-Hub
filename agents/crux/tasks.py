@@ -91,3 +91,38 @@ def dormant_contact_alert():
     dormant.update(is_cold=True)
     logger.warning("crux.dormant_contact_alert: marked %d contacts as cold", count)
     return count
+
+
+# ── P3C live task: uses hub CRM data via LangChain ───────────────────────────
+
+@shared_task(name="agents.crux.live_pipeline_audit")
+def live_pipeline_audit():
+    """Daily CRM audit using live hub data — reads modules/crm/ via LangChain tools."""
+    from agents.models import AgentInstance, AgentCatalog
+    from agents.scheduled import run_scheduled_agent_task
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='crux')
+    except AgentCatalog.DoesNotExist:
+        return 0
+
+    count = 0
+    for instance in (
+        AgentInstance.objects
+        .filter(catalog=catalog, status='idle')
+        .select_related('business', 'catalog')
+    ):
+        run_scheduled_agent_task(
+            instance=instance,
+            task_name='live_pipeline_audit',
+            task_prompt=(
+                "Perform your daily CRM pipeline audit using your data tools.\n"
+                "1. Pull the pipeline summary — show deal counts and total value by stage.\n"
+                "2. Identify the top 5 highest-value open deals and their current stage.\n"
+                "3. Flag any contacts or deals that need immediate follow-up.\n"
+                "Provide a concise executive briefing with specific action items."
+            ),
+        )
+        count += 1
+    logger.info("crux.live_pipeline_audit: ran for %d businesses", count)
+    return count

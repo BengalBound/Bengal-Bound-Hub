@@ -68,3 +68,38 @@ def anomaly_check_all():
 
     logger.info("cash.anomaly_check_all: %d runs flagged", flagged)
     return flagged
+
+
+# ── P3C live task: uses hub Invoice data via LangChain ───────────────────────
+
+@shared_task(name="agents.cash.live_invoice_review")
+def live_invoice_review():
+    """Weekly cash flow review using live hub data — reads modules/invoicing/ via LangChain tools."""
+    from agents.models import AgentInstance, AgentCatalog
+    from agents.scheduled import run_scheduled_agent_task
+
+    try:
+        catalog = AgentCatalog.objects.get(slug='cash')
+    except AgentCatalog.DoesNotExist:
+        return 0
+
+    count = 0
+    for instance in (
+        AgentInstance.objects
+        .filter(catalog=catalog, status='idle')
+        .select_related('business', 'catalog')
+    ):
+        run_scheduled_agent_task(
+            instance=instance,
+            task_name='live_invoice_review',
+            task_prompt=(
+                "Perform your weekly cash flow review using your data tools.\n"
+                "1. Get the revenue summary — total invoiced, collected, and outstanding balance.\n"
+                "2. List any overdue invoices and identify clients who owe the most.\n"
+                "3. Recommend specific follow-up actions for the top 3 overdue accounts.\n"
+                "Provide a concise cash flow briefing with urgency-ranked action items."
+            ),
+        )
+        count += 1
+    logger.info("cash.live_invoice_review: ran for %d businesses", count)
+    return count
