@@ -67,7 +67,7 @@
 ## 4. Launch Sequence
 
 ### Pre-Launch (4 weeks before)
-- [ ] Build waitlist landing page on Netlify
+- [ ] Build waitlist landing page on Cloud Run
 - [ ] Set up email capture with Brevo/Mailchimp
 - [ ] Post teaser content on LinkedIn + Twitter/X
 - [ ] Reach out to 50 target businesses for beta access
@@ -132,7 +132,7 @@
 - [ ] `sitemap.xml` at `/sitemap.xml/` (use `django.contrib.sitemaps`)
 - [ ] `robots.txt` at `/robots.txt/`
 - [ ] Open Graph tags for social sharing
-- [ ] Page speed: Netlify CDN handles public site, Whitenoise for app assets
+- [ ] Page speed: Cloud Run CDN handles public site, Whitenoise for app assets
 - [ ] Google Search Console setup
 - [ ] Google Analytics 4 / Plausible Analytics
 

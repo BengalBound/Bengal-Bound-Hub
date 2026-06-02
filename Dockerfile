@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=bengalbound_core.settings.render
+ENV DJANGO_SETTINGS_MODULE=bengalbound_core.settings.production
 
 WORKDIR /app
 
@@ -20,4 +20,4 @@ EXPOSE 8080
 
 # At startup: collect static → migrate → seed → start gunicorn
 # /tmp/staticfiles is always writable in Cloud Run containers
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate --noinput && python seed_marketing.py && gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 120 bengalbound_core.wsgi:application"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate --noinput && python seed_marketing.py && gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 bengalbound_core.wsgi:application"]

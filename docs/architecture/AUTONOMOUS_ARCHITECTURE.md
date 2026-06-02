@@ -333,7 +333,7 @@ Publishes event to message queue
 | **Console** | Django templates (DRF + Next.js in future roadmap) | Server-rendered, dev-ready |
 | **Mobile/Desktop** | Web (Django templates) — mobile deferred | Web-first, pragmatic |
 | **IoT** | EMQX Cloud + Paho MQTT | 100M+ device scale |
-| **Hosting** | Gunicorn + Nginx on VPS (API) + Netlify (Web) | Fixed-cost, maintainable |
+| **Hosting** | Gunicorn + Nginx on VPS (API) + Cloud Run (Web) | Fixed-cost, maintainable |
 | **Monitoring** | Sentry + Datadog (Phase 2) + OpenClaw | Full observability |
 | **CI/CD** | GitHub Actions | Automated, secure |
 

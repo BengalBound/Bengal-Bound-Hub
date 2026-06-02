@@ -78,8 +78,8 @@ SubdomainRoutingMiddleware (bengalbound_core/middleware.py)
 ```
 
 **Deployment:**
-- Backend: Render free tier (`render.yaml`, `bengalbound_core/settings/render.py`, Supabase PostgreSQL)
-- Public site: Netlify (`netlify.toml`, export via `python manage.py export_static --settings=netlify_settings`)
+- Backend: Cloud Run free tier (`render.yaml`, `bengalbound_core/settings/render.py`, Supabase PostgreSQL)
+- Public site: Cloud Run (served via Django templates)
 - AI: Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free) via litellm library; LiteLLM proxy optional for VPS prod
 
 **Dev setup** — add to `C:\Windows\System32\drivers\etc\hosts`:
@@ -358,15 +358,15 @@ GitHub Actions triggered
     │
     └─── Tests PASS
               │
-              ├── Render (auto-deploy on push — render.yaml)
+              ├── Cloud Run (auto-deploy on push — render.yaml)
               │     ├── pip install -r requirements.txt
               │     ├── python manage.py migrate
               │     ├── python manage.py seed_modules
               │     ├── python manage.py seed_agents
               │     └── python manage.py collectstatic --no-input
               │
-              ├── Netlify (public site — netlify.toml)
-              │     └── python manage.py export_static --settings=netlify_settings
+              ├── Cloud Run (public site — )
+              │     └── python manage.py collectstatic
               │
               └── VPS (manual deploy)
                   ├── SSH to server
@@ -413,7 +413,7 @@ INTERNET
 └─────────────────────────────────────────────────────┘
 
 AI calls:
-  Dev/Render: litellm Python library → Groq (meta-llama/llama-4-scout-17b-16e-instruct, 30k TPM free)
+  Dev/Cloud Run: litellm Python library → Groq (meta-llama/llama-4-scout-17b-16e-instruct, 30k TPM free)
   VPS prod:   LiteLLM proxy at LITELLM_BASE_URL → Groq / OpenRouter / Gemini
 ```
 

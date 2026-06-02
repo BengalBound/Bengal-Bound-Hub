@@ -135,7 +135,7 @@ BengalBound is built for the world but launching from Bangladesh. Our strategy i
 
 ## 7. Launch Day Checklist
 
-- [ ] Domain live and pointing to Netlify (public site) + Render (app)
+- [ ] Domain live and pointing to Cloud Run (public site) + Cloud Run (app)
 - [ ] Stripe keys set, test payment working end-to-end
 - [ ] Email working (Brevo/Mailgun SMTP configured)
 - [ ] SSL certificates active (Cloudflare handles this)

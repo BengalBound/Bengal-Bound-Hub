@@ -33,8 +33,6 @@ else:
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.run.app',           # Google Cloud Run
-    'https://*.onrender.com',      # Render
-    'https://*.netlify.app',       # Netlify preview
     'https://*.bengalbound.com',   # Production domain
     'https://bengalbound.com',
 ]

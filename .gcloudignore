@@ -1,0 +1,10 @@
+.git/
+.venv/
+.env
+__pycache__/
+*.sqlite3
+.coverage
+.ruff_cache/
+.github/
+.claude/
+.agents/

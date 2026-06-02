@@ -44,7 +44,7 @@ BengalBound HUB runs a decoupled, subdomain-routed Django architecture serving m
 ### Blended Model Routing Schema
 We operate a centralized AI routing layer inside `agents.utils.agent_chat()`. This decouples the agent logic from underlying API models.
 
-**Dev / Render (no proxy):** `GROQ_API_KEY` → litellm library → Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free)
+**Dev / Cloud Run (no proxy):** `GROQ_API_KEY` → litellm library → Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free)
 **Production (proxy set):** `LITELLM_BASE_URL` → HTTP proxy → routed model per task key
 
 ```python

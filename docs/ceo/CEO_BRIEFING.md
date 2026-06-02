@@ -11,8 +11,8 @@ BengalBound HUB is a **multi-tenant SaaS Business Operating System** built in Ba
 **One-line pitch:** "Hire a full-stack AI workforce for your business from $9/month."
 
 **Live URLs (once deployed):**
-- Public site: Netlify (`bengalbound.com`)
-- Backend platform: Render (`bengalbound-web.onrender.com`)
+- Public site: Cloud Run (`bengalbound.com`)
+- Backend platform: Cloud Run (`bengalbound-hub-*.run.app`)
 - Subdomains: `workspace.`, `console.`, `community.`
 
 ---
@@ -77,7 +77,7 @@ Multi-currency pricing is live: USD, EUR, GBP, BDT, INR (auto-detected by sessio
 
 **Unit economics (100 clients, Standard tier):**
 - Revenue: ~$4,900/mo
-- Infrastructure: ~$250/mo (Render + Supabase + Groq)
+- Infrastructure: ~$250/mo (Cloud Run + Supabase + Groq)
 - Gross margin: ~95%
 
 ---
@@ -110,8 +110,8 @@ Multi-currency pricing is live: USD, EUR, GBP, BDT, INR (auto-detected by sessio
 
 | Layer | Status | Platform |
 |---|---|---|
-| Public marketing site | Ready to deploy | Netlify (free) |
-| Django backend + all modules | Ready to deploy | Render (free tier) |
+| Public marketing site | Ready to deploy | Cloud Run (free) |
+| Django backend + all modules | Ready to deploy | Cloud Run |
 | Database | Ready | Supabase (free, 500MB) |
 | AI (33 agents) | Working locally | Groq free tier |
 | Premium UI (glass-morphism) | ✅ Complete (June 2026) | All templates |
@@ -120,8 +120,8 @@ Multi-currency pricing is live: USD, EUR, GBP, BDT, INR (auto-detected by sessio
 | Email verification | Disabled for testing — re-enable before launch | allauth |
 
 **Two steps to go live today:**
-1. Connect GitHub → Netlify (auto-deploys on push)
-2. Create Supabase project → paste `DATABASE_URL` in Render dashboard
+1. Connect GitHub → Cloud Run (auto-deploys on push)
+2. Create Supabase project → paste `DATABASE_URL` in Cloud Run dashboard
 
 **Pre-launch: re-enable email verification** — set `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'` in `base.py` and remove the `EMAIL_VERIFICATION_DISABLED` override.
 
@@ -134,8 +134,8 @@ See `docs/ceo/POST_BANK_ACTION_PLAN.md` for the full post-bank commercialization
 - [ ] Register `bengalbound.com` domain (if not owned)
 - [ ] Set up Cloudflare DNS (free tier)
 - [ ] Create Stripe account → get `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY`
-- [ ] Create Supabase project → paste `DATABASE_URL` into Render
-- [ ] Set `FIELD_ENCRYPTION_KEY` in Render dashboard
+- [ ] Create Supabase project → paste `DATABASE_URL` into Cloud Run
+- [ ] Set `FIELD_ENCRYPTION_KEY` in Cloud Run dashboard
 - [ ] Connect LinkedIn, Facebook, Instagram for Serea social agent
 - [ ] Set up Brevo/Mailgun for transactional email (free 300/day)
 - [ ] Launch on Product Hunt, AppSumo, and relevant Bangladesh tech communities

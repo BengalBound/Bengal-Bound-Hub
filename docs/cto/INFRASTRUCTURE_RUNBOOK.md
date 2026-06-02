@@ -8,36 +8,36 @@
 
 | Service | Platform | Plan | Purpose |
 |---|---|---|---|
-| Django backend | Render | Free → Starter ($7/mo) | Main application server |
+| Django backend | Cloud Run | Free → Starter ($7/mo) | Main application server |
 | Database | Supabase | Free (500MB) → Pro ($25/mo) | PostgreSQL |
 | AI inference | Groq | Free (30k TPM) | All 33 AI agents |
-| Static files | Whitenoise (via Render) | Free | CSS/JS/images |
+| Static files | Whitenoise (via Cloud Run) | Free | CSS/JS/images |
 | DNS + CDN | Cloudflare | Free | Edge layer, SSL |
 | Email | Brevo | Free (300/day) | Transactional email |
 | Error tracking | Sentry (planned) | Free | Exception monitoring |
 
 ---
 
-## Critical Environment Variables (Render)
+## Critical Environment Variables (Cloud Run)
 
 | Variable | Description | How to rotate |
 |---|---|---|
 | `SECRET_KEY` | Django secret key | Generate new, re-deploy |
 | `FIELD_ENCRYPTION_KEY` | Fernet key for encrypted fields | **Never rotate** — data is lost |
-| `DATABASE_URL` | Supabase postgres:// URI | Update in Render dashboard |
+| `DATABASE_URL` | Supabase postgres:// URI | Update in Cloud Run dashboard |
 | `GROQ_API_KEY` | Groq AI inference key | Replace key in dashboard |
 | `STRIPE_SECRET_KEY` | Payment processing | Replace, update Stripe webhooks |
 
 ---
 
-## Render Deployment
+## Cloud Run Deployment
 
 ### Auto-Deploy on Push
-Render is connected to the `main` branch of `github.com/Adre-melech/BengalBound`. Any push to `main` triggers a new deployment.
+Cloud Run is connected to the `main` branch of `github.com/Adre-melech/BengalBound`. Any push to `main` triggers a new deployment.
 
 ### Manual Deploy Steps
 ```bash
-# Trigger via Render dashboard or CLI
+# Trigger via Cloud Run dashboard or CLI
 render deploy --service bengalbound-web
 ```
 
@@ -50,7 +50,7 @@ python manage.py seed_agents --settings=bengalbound_core.settings.render
 python manage.py collectstatic --no-input --settings=bengalbound_core.settings.render
 ```
 
-### Render-Specific Settings (`settings/render.py`)
+### Cloud Run-Specific Settings (`settings/render.py`)
 - `DEBUG = False`
 - Whitenoise serves static files (no Nginx)
 - Celery tasks run eagerly (no Redis needed)
@@ -84,7 +84,7 @@ pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
 
 ## AI Infrastructure
 
-### Current Setup (Dev + Render)
+### Current Setup (Dev + Cloud Run)
 ```
 GROQ_API_KEY → litellm library → Groq API (llama-4-scout-17b, 30k TPM free)
 ```
@@ -93,7 +93,7 @@ No proxy server needed. All 33 agents share the 30k TPM free tier, which is suff
 
 ### Production Upgrade Path (VPS)
 
-**Stage 1 (0–50 clients): Render + Groq free**
+**Stage 1 (0–50 clients): Cloud Run + Groq free**
 - Zero AI cost, zero infrastructure setup
 
 **Stage 2 (50–200 clients): Hetzner CX42 + LiteLLM proxy**
@@ -160,8 +160,8 @@ systemctl start gunicorn celery nginx
 
 ## SSL / HTTPS
 
-### Render + Cloudflare
-Render provides free TLS. Cloudflare adds edge SSL. Set Cloudflare SSL mode to **Full (Strict)**.
+### Cloud Run + Cloudflare
+Cloud Run provides free TLS. Cloudflare adds edge SSL. Set Cloudflare SSL mode to **Full (Strict)**.
 
 ### VPS (Let's Encrypt via Certbot)
 ```bash
@@ -188,10 +188,10 @@ certbot --nginx -d bengalbound.com -d www.bengalbound.com -d workspace.bengalbou
 ## Incident Response
 
 ### Site Down
-1. Check Render dashboard → service logs
+1. Check Cloud Run dashboard → service logs
 2. Check database status at Supabase dashboard
 3. Check Groq status at status.groq.com
-4. Roll back if recent deploy caused issue: Render → Deploys → Rollback
+4. Roll back if recent deploy caused issue: Cloud Run → Deploys → Rollback
 
 ### AI Agents Not Responding
 1. Check `GROQ_API_KEY` validity

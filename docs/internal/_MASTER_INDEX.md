@@ -55,11 +55,11 @@
 
 ### 📁 docs/tech/
 *   **[Technical Standards](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/TECHNICAL_STANDARDS_AND_GUIDELINES.md)**: Coding standards, API design, testing requirements.
-*   **[Deployment Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/DEPLOYMENT_GUIDE.md)**: Step-by-step production deployment — Netlify + Render + Supabase + Groq + Stripe.
+*   **[Deployment Guide](file:///d:/Bengal%20bound/dev-backoffice/docs/tech/DEPLOYMENT_GUIDE.md)**: Step-by-step production deployment — Cloud Run + Cloud Run + Supabase + Groq + Stripe.
 
 ### 📁 docs/cto/
 *   **[CTO Briefing](file:///d:/Bengal%20bound/dev-backoffice/docs/cto/CTO_BRIEFING.md)**: Platform technical overview for the CTO.
-*   **[Infrastructure Runbook](file:///d:/Bengal%20bound/dev-backoffice/docs/cto/INFRASTRUCTURE_RUNBOOK.md)**: Env vars, Render deploy, Supabase, VPS scaling path, SSL, incident response.
+*   **[Infrastructure Runbook](file:///d:/Bengal%20bound/dev-backoffice/docs/cto/INFRASTRUCTURE_RUNBOOK.md)**: Env vars, Cloud Run deploy, Supabase, VPS scaling path, SSL, incident response.
 
 ### 📁 docs/ai/
 *   **[AI & Agent Framework Strategy](file:///d:/Bengal%20bound/dev-backoffice/docs/ai/AI_STRATEGY.md)**: Dual-mode AI architecture, LiteLLM routing, provider strategy, VPS scaling.

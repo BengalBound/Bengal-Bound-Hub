@@ -8,7 +8,7 @@
 
 BengalBound HUB uses a **dual-mode AI architecture**: in development and on free-tier hosting, AI calls go directly through the `litellm` Python library to Groq (using `GROQ_API_KEY`). In production with a proxy server, calls route through an HTTP LiteLLM proxy at `LITELLM_BASE_URL`. The same `agent_chat()` function handles both modes transparently.
 
-**Dev / Render (no proxy server):** `GROQ_API_KEY` → `litellm` library → Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free)
+**Dev / Cloud Run (no proxy server):** `GROQ_API_KEY` → `litellm` library → Groq `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free)
 **Production (with proxy):** `LITELLM_BASE_URL` (remote) → HTTP proxy → Groq / OpenRouter / Gemini
 
 This gives us:
@@ -62,7 +62,7 @@ SEREA_TASK_MODELS = {
 }
 ```
 
-All of these nickname keys map to `groq/meta-llama/llama-4-scout-17b-16e-instruct` when running via the direct litellm library path (dev / Render). In production with a proxy, each key can be routed to a different model.
+All of these nickname keys map to `groq/meta-llama/llama-4-scout-17b-16e-instruct` when running via the direct litellm library path (dev / Cloud Run). In production with a proxy, each key can be routed to a different model.
 
 | Task type | Nickname key | Dev model (Groq direct) | Prod model (proxy, configurable) |
 |---|---|---|---|
@@ -77,7 +77,7 @@ All of these nickname keys map to `groq/meta-llama/llama-4-scout-17b-16e-instruc
 
 ## 3. AI Provider Strategy
 
-### Dev / Render Free Tier (Current — No Proxy Required)
+### Dev / Cloud Run Free Tier (Current — No Proxy Required)
 
 `GROQ_API_KEY` is the only required key. The `litellm` Python library calls Groq directly:
 

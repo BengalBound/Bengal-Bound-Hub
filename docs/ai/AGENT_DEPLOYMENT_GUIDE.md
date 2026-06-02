@@ -57,7 +57,7 @@ result = agent_chat(
 
 | Environment | LLM used |
 |---|---|
-| Dev / Render | `ChatGroq` → `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free) |
+| Dev / Cloud Run | `ChatGroq` → `meta-llama/llama-4-scout-17b-16e-instruct` (30k TPM free) |
 | VPS (prod) | `ChatOpenAI` → LiteLLM proxy at `LITELLM_BASE_URL` |
 
 `get_llm()` in `agents/utils.py` handles the routing automatically based on whether `LITELLM_BASE_URL` is set to a non-localhost URL.
@@ -189,7 +189,7 @@ CELERY_BEAT_SCHEDULE = {
 }
 ```
 
-**Note:** On Render free tier, Celery runs eagerly (synchronous). On VPS production, a real Redis + Celery worker is required.
+**Note:** On Cloud Run free tier, Celery runs eagerly (synchronous). On VPS production, a real Redis + Celery worker is required.
 
 ---
 
@@ -233,7 +233,7 @@ Tools are added automatically by `agent_chat(business=..., agent_slug=...)` — 
 
 | Variable | Purpose | Required |
 |---|---|---|
-| `GROQ_API_KEY` | Direct Groq inference (dev/Render) | Yes |
+| `GROQ_API_KEY` | Direct Groq inference (dev/Cloud Run) | Yes |
 | `LITELLM_BASE_URL` | HTTP proxy URL (VPS prod only) | Optional |
 | `LITELLM_MASTER_KEY` | Proxy auth key | If proxy set |
 | `SEREA_MODEL_CHAT` | Override default model key | No |

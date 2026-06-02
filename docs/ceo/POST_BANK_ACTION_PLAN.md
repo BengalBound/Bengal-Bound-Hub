@@ -13,7 +13,7 @@ With the bank account active, the immediate priority is enabling the platform to
 1. **Stripe Activation (Primary Gateway)**
    - Create a live Stripe account using the official company name and bank details.
    - Complete KYC/KYB (Know Your Business) verification on Stripe.
-   - **Technical Step:** Replace the sandbox `STRIPE_PUBLIC_KEY` and `STRIPE_SECRET_KEY` in the Render production environment with the LIVE keys.
+   - **Technical Step:** Replace the sandbox `STRIPE_PUBLIC_KEY` and `STRIPE_SECRET_KEY` in the Cloud Run production environment with the LIVE keys.
    - Configure Stripe Webhooks to point to `https://bengalbound.com/console/webhooks/stripe/`.
 
 2. **NowPayments (Crypto/Alternative)**
@@ -43,7 +43,7 @@ Before the first marketing push, ensure the platform is legally and technically 
 
 3. **Cloud Infrastructure Funding**
    - Attach the corporate debit/credit card to critical infrastructure:
-     - **Render** (Backend Hosting)
+     - **Cloud Run** (Backend Hosting)
      - **Supabase** (Database)
      - **Groq / OpenAI** (AI Inference - buy $50-$100 of initial API credits to prevent agent downtime).
 

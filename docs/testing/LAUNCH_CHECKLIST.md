@@ -9,9 +9,9 @@
 ## 1. Infrastructure
 
 - [ ] Domain registered and pointing to Cloudflare DNS
-- [ ] Netlify site live at `bengalbound.com` (public site)
-- [ ] Render app live at `app.bengalbound.com` (Django backend)
-- [ ] Supabase PostgreSQL connected (`DATABASE_URL` set in Render)
+- [ ] Cloud Run site live at `bengalbound.com` (public site)
+- [ ] Cloud Run app live at `app.bengalbound.com` (Django backend)
+- [ ] Supabase PostgreSQL connected (`DATABASE_URL` set in Cloud Run)
 - [ ] SSL certificates active on all domains
 - [ ] Custom 404 and 500 error pages working
 - [ ] Health check endpoint `/` returns 200
@@ -28,7 +28,7 @@
 - [DONE] `GROQ_API_KEY` set and AI responding
 - [DONE] `agent_chat()` works via litellm library (no proxy needed)
 - [DONE] SereaBrain working with `llama-4-scout` (30k TPM)
-- [ ] GROQ_API_KEY set in Render environment variables
+- [ ] GROQ_API_KEY set in Cloud Run environment variables
 - [ ] Test one live agent conversation in production
 - [ ] `seed_agents` run — 33 agents in catalog
 - [ ] `seed_modules` run — 83 modules available
@@ -52,11 +52,11 @@
 
 ---
 
-## 4. Public Site (Netlify)
+## 4. Public Site (Cloud Run)
 
 - [DONE] `export_static` command works (all 12 pages exported)
-- [DONE] `netlify.toml` configured
-- [ ] All 12 pages loading on live Netlify URL
+- [DONE] `` configured
+- [ ] All 12 pages loading on live Cloud Run URL
 - [ ] Logo and images loading correctly
 - [ ] Pricing page showing correct local prices
 - [ ] Contact form submitting correctly
@@ -140,7 +140,7 @@ python manage.py check --deploy --settings=bengalbound_core.settings.render
 python scripts/test_agents_ui.py
 
 # Test public site export
-python manage.py export_static --settings=netlify_settings
+python manage.py collectstatic
 
 # Check AI is working
 python -c "
@@ -158,7 +158,7 @@ Expected: all 33 agents pass, AI responds, export completes with 12 pages.
 
 ## 11. Post-Launch (First 48 Hours)
 
-- [ ] Monitor Render logs for errors (`render.com/logs`)
+- [ ] Monitor Cloud Run logs for errors (`render.com/logs`)
 - [ ] Monitor Sentry for exceptions
 - [ ] Check Supabase dashboard for DB connections
 - [ ] Confirm first real user signup completes end-to-end

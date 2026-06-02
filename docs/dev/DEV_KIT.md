@@ -93,7 +93,7 @@ GROQ_API_KEY=your-groq-api-key-here
 
 Get a free Groq API key at: https://console.groq.com
 
-### Production Setup (Render — Free Tier):
+### Production Setup (Cloud Run — Free Tier):
 *   Settings: `bengalbound_core/settings/render.py`
 *   Database: Supabase PostgreSQL (`DATABASE_URL` env var)
 *   Static files: Whitenoise (no Nginx)
@@ -105,7 +105,5 @@ Get a free Groq API key at: https://console.groq.com
 *   `DJANGO_SETTINGS_MODULE=bengalbound_core.settings.production`
 *   Production Gunicorn binding behind Nginx gateway.
 
-### Public Site (Netlify):
-*   Export: `python manage.py export_static --settings=netlify_settings`
-*   Output: `netlify_dist/`
-*   Config: `netlify.toml`
+### Public Site (Cloud Run):
+*   Served directly via Django templates.

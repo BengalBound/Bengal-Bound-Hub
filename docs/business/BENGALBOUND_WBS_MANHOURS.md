@@ -29,7 +29,7 @@
 | Hetzner VPS + IAM + Secret Manager | 4 | DevOps |
 | Railway.app PostgreSQL + env setup | 2 | DevOps |
 | GitHub Actions CI/CD skeleton | 6 | DevOps |
-| Netlify + Vercel deploy pipelines | 3 | DevOps |
+| Cloud Run + Vercel deploy pipelines | 3 | DevOps |
 | **Subtotal** | **17 hrs** | |
 
 ### 0.2 Django Backend Scaffold

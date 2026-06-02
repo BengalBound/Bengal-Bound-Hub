@@ -155,7 +155,7 @@ Enable **Stripe Tax** in dashboard to auto-handle EU/UK/US VAT.
 
 ## 9. Implementation Checklist
 
-- [ ] Stripe account verified + live keys set in Render
+- [ ] Stripe account verified + live keys set in Cloud Run
 - [ ] SSLCommerz account approved (for BD market)
 - [ ] Subscription model wired to `AIEmployeeTier` + `HubPlanConfig`
 - [ ] Webhook handlers created for payment events

@@ -28,7 +28,7 @@ BengalBound operates in a multi-jurisdiction environment. This document covers l
 - [ ] **Cookie consent banner** (use `django-cookie-consent` or JS banner)
 - [ ] **Data Subject Request form** — right to access, right to erasure
 - [ ] **DPO appointment** (required if processing large-scale EU data)
-- [ ] **Data Processing Agreements (DPAs)** with Supabase, Render, Groq
+- [ ] **Data Processing Agreements (DPAs)** with Supabase, Cloud Run, Groq
 - [ ] **GDPR-compliant email unsubscribe** in all marketing emails
 - [ ] **Explicit consent logs** for account creation + marketing
 

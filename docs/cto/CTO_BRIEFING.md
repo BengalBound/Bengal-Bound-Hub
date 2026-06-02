@@ -54,7 +54,7 @@ The current dev branch represents a **complete, production-ready backend scaffol
 ┌────────────▼───────────────┐  ┌───────────────────────────────┐
 │   PostgreSQL (production)  │  │   Redis / memory broker        │
 │   SQLite (development)     │  │   Celery Beat (scheduled AI)   │
-│   Supabase (Render tier)   │  │   memory broker used locally   │
+│   Supabase (Cloud Run tier)   │  │   memory broker used locally   │
 └────────────────────────────┘  └───────────────────────────────┘
 ```
 
@@ -398,14 +398,14 @@ bengalbound_core/settings/
 
 ### 9.2 Deployment Options
 
-#### Render (Free Tier — Django backend)
+#### Cloud Run (Free Tier — Django backend)
 
 Settings: `bengalbound_core/settings/render.py`. Config: `render.yaml`.
-Database: Supabase PostgreSQL (set `DATABASE_URL` env var in Render dashboard).
+Database: Supabase PostgreSQL (set `DATABASE_URL` env var in Cloud Run dashboard).
 Static files: served by Whitenoise (no Nginx needed).
 
 ```bash
-# Render build command (in render.yaml):
+# Cloud Run build command (in render.yaml):
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_modules
@@ -413,15 +413,9 @@ python manage.py seed_agents
 python manage.py collectstatic --no-input
 ```
 
-#### Netlify (Public marketing site — static export)
+#### Cloud Run (Public marketing site — static export)
 
-Public site templates (`templates/public_site/`) exported to `netlify_dist/`:
-
-```bash
-python manage.py export_static --settings=netlify_settings
-```
-
-Config: `netlify.toml`. Settings: `netlify_settings.py`.
+Public site templates (`templates/public_site/`) are served directly by Cloud Run.
 
 #### VPS (Hetzner — Full production)
 

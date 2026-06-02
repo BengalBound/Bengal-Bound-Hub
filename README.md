@@ -322,22 +322,9 @@ Add to `/etc/hosts` (or `C:\Windows\System32\drivers\etc\hosts`):
 
 ## Production Deployment
 
-### Public Site — Netlify (Static Export)
+### Public Site & Hub — Unified Cloud Run Deployment
 
-The public-facing marketing site (`/`, `/about/`, `/services/`, `/pricing/`, etc.) is exported as static HTML and deployed to Netlify separately from the Django backend.
-
-**How it works:**
-1. `netlify.toml` tells Netlify to run `migrate → collectstatic → export_static`
-2. `export_static` renders all 12 public pages via Django's test client into `netlify_dist/`
-3. `netlify_dist/` is published as the Netlify site
-
-**To deploy:**
-1. Connect this repo to Netlify (New site → Import from Git)
-2. Netlify auto-detects `netlify.toml` — no extra configuration needed
-3. Optionally set `SECRET_KEY` in Netlify → Site settings → Environment variables
-
-**To add a new public page to the export**, append to `PAGES` in [`public_site/management/commands/export_static.py`](public_site/management/commands/export_static.py).
-
+Both the public-facing marketing site and the SaaS backend are served directly by Django on Google Cloud Run.
 ### Django Backend — Required Environment Variables
 
 ```bash
@@ -407,8 +394,7 @@ Agents are hired per-business via `workspace_admin.HiredAIEmployee → AgentCata
 | Document | Purpose |
 |----------|---------|
 | [`CLAUDE.md`](CLAUDE.md) | AI assistant rules for this codebase |
-| [`netlify.toml`](netlify.toml) | Netlify build config for public site static export |
-| [`netlify_settings.py`](netlify_settings.py) | Django settings used during Netlify build |
+
 | [`docs/agents/AGENT_TEMPLATE.md`](docs/agents/AGENT_TEMPLATE.md) | Full mini-platform pattern for new agents |
 | [`docs/architecture/AGENT_MODULE_INTEGRATION.md`](docs/architecture/AGENT_MODULE_INTEGRATION.md) | Agent ↔ module integration map + external deployment guide |
 | [`docs/architecture/SYSTEM_ARCHITECTURE.md`](docs/architecture/SYSTEM_ARCHITECTURE.md) | Full system architecture |

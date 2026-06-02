@@ -95,12 +95,12 @@ The platform is feature-complete for MVP. All 33 AI agents are implemented and w
 
 ### 📋 Pre-Launch Checklist
 - [ ] Re-enable email verification (`ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`)
-- [ ] Set production `SECRET_KEY` in Render
-- [ ] Set `FIELD_ENCRYPTION_KEY` in Render and Netlify
-- [ ] Connect GitHub → Netlify
-- [ ] Connect GitHub → Render
+- [ ] Set production `SECRET_KEY` in Cloud Run
+- [ ] Set `FIELD_ENCRYPTION_KEY` in Cloud Run and Cloud Run
+- [ ] Connect GitHub → Cloud Run
+- [ ] Connect GitHub → Cloud Run
 - [ ] Set `DATABASE_URL` from Supabase
-- [ ] Set `GROQ_API_KEY` in Render
+- [ ] Set `GROQ_API_KEY` in Cloud Run
 - [ ] Configure Brevo email (free 300/day)
 - [ ] End-to-end payment test ($1 real transaction)
 - [ ] Run `docs/testing/LAUNCH_CHECKLIST.md` 80-point checklist
@@ -119,7 +119,7 @@ The platform is feature-complete for MVP. All 33 AI agents are implemented and w
 | Issue | Priority | Notes |
 |---|---|---|
 | Email verification disabled | HIGH | Re-enable before production launch |
-| Celery eager on Render | MEDIUM | Upgrade to dedicated Render worker or VPS for scheduled agents |
+| Celery eager on Cloud Run | MEDIUM | Upgrade to dedicated Cloud Run worker or VPS for scheduled agents |
 | Stripe integration incomplete | HIGH | Waiting for corporate bank account |
 | `AgentCatalog` Sprint A model | DONE | Seeded and working |
 | Community subdomain routing | LOW | Placeholder — no forum content yet |
@@ -128,11 +128,11 @@ The platform is feature-complete for MVP. All 33 AI agents are implemented and w
 
 ## Key Branch: `dev`
 
-All active development happens on the `dev` branch. PRs merge to `main` which auto-deploys to Render.
+All active development happens on the `dev` branch. PRs merge to `main` which auto-deploys to Cloud Run.
 
 ```
 dev   → active development
-main  → production (Render auto-deploy)
+main  → production (Cloud Run auto-deploy)
 ```
 
 ---
