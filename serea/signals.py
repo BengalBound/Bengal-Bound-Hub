@@ -77,3 +77,32 @@ def provision_serea_agent(sender, instance, created, **kwargs):
             "SereaAgent(s) for HiredAIEmployee #%s marked offline.",
             instance.id,
         )
+
+@receiver(post_save, sender='serea.ConversationMessage')
+def broadcast_chat_message(sender, instance, created, **kwargs):
+    """
+    Broadcast new ConversationMessages directly to connected WebSockets.
+    """
+    if not created:
+        return
+
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    
+    channel_layer = get_channel_layer()
+    if channel_layer:
+        payload = {
+            'id': instance.id,
+            'sender': instance.sender,
+            'text': instance.message_text,
+            'is_permission_request': instance.is_permission_request,
+            'permission_granted': instance.permission_granted,
+            'created_at': instance.created_at.isoformat(),
+        }
+        async_to_sync(channel_layer.group_send)(
+            f'agent_{instance.agent_id}',
+            {
+                'type': 'chat_message',
+                'message': payload
+            }
+        )

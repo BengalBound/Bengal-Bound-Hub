@@ -36,6 +36,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
 # ── Installed apps ────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.sitemaps',
 
+    'channels',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -668,3 +670,24 @@ SIMPLE_JWT = {
 STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
+
+# ── WebSockets (Channels) ─────────────────────────────────────────────────────
+ASGI_APPLICATION = 'bengalbound_core.asgi.application'
+
+# In production.py, we will override this to point to Memorystore Redis.
+# For local development or tests without Redis, use InMemoryChannelLayer.
+if env('REDIS_URL', default=''):
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [env('REDIS_URL')],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer'
+        }
+    }

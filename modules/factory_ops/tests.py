@@ -178,8 +178,7 @@ class E2EFactoryFlowTest(TestCase):
     def setUp(self):
         from hub.models import BusinessInstance
         self.business = BusinessInstance.objects.create(
-            name="Test Factory",
-            domain="testfactory.bengalbound.com"
+            name="Test Factory"
         )
 
     def test_full_production_lifecycle(self):
