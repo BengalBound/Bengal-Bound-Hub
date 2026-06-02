@@ -5,15 +5,13 @@ With the core backend successfully deployed to Google Cloud Run, the development
 
 ---
 
-## 1. REST API Layer (High Priority)
+## 1. REST API Layer (Done)
 The platform currently relies entirely on Django templates. To support future Next.js, Flutter mobile apps, or third-party integrations, we need a robust API.
 
-- **Task:** Integrate Django REST Framework (DRF).
-- **Scope:** Create `serializers.py` and `api_views.py` (ViewSets) for every core `hub/` resource and major module.
-- **Auth:** Implement JWT authentication or token-based auth for remote clients.
-- **Routing:** Mount APIs under `/hub/<slug>/api/...` and `/api/agents/...`.
+- **Status:** Phase 1 complete. DRF and SimpleJWT are installed. Global routing at `/api/v1/` is set up. Core `hub` and `agents` APIs are live with JWT authentication.
+- **Next:** Expand API coverage to other modules (`serea/`, `billing/`, etc.) as needed.
 
-## 2. Stripe Billing Integration
+## 2. Stripe Billing Integration (High Priority)
 The current console relies on NowPayments. We need standard fiat processing.
 
 - **Task:** Implement the `billing/` app with Stripe Checkout and Customer Portal.
