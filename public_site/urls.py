@@ -19,6 +19,7 @@ urlpatterns = [
     path('solutions/professional-services/', views.solution_professional, name='solution_professional'),
     path('solutions/field-services/', views.solution_field, name='solution_field'),
     path('solutions/health-wellness-beauty/', views.solution_health_beauty, name='solution_health_beauty'),
+    path('solutions/gas-convenience/', views.solution_gas_convenience, name='solution_gas_convenience'),
 
     # Phase 4 additions
     path('hire-ai/', views.ai_job_portal, name='ai_job_portal'),

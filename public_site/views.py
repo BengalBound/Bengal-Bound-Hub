@@ -308,3 +308,6 @@ def solution_field(request):
 
 def solution_health_beauty(request):
     return render(request, 'public_site/solutions/health_beauty.html')
+
+def solution_gas_convenience(request):
+    return render(request, 'public_site/solutions/gas_convenience.html')
