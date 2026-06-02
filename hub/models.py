@@ -751,6 +751,10 @@ class BusinessSubscription(models.Model):
     status = models.CharField(max_length=20, choices=STATUS, default='active')
     billing_cycle = models.CharField(max_length=10, choices=BILLING, default='monthly')
 
+    # Stripe Billing
+    stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True, help_text="Stripe Subscription ID")
+    stripe_price_id = models.CharField(max_length=255, blank=True, null=True, help_text="Stripe Price ID")
+
     # Storage
     extra_storage_gb = models.FloatField(default=0)
 

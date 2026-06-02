@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'community_forum',
     'serea',
     'booking_calendar',
+    'billing',
     'hub.apps.HubConfig',
     'agents',
     'agents.aria',
@@ -654,3 +655,8 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# ── Stripe Billing ────────────────────────────────────────────────────────────
+STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')

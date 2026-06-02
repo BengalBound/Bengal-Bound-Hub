@@ -32,6 +32,7 @@ _sitemaps = {
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('billing/', include('billing.urls')),
     path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
     path('', include('public_site.urls', namespace='public_site')),
     path('workspace/', include('workspace_admin.urls', namespace='workspace_admin')),
