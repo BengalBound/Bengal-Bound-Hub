@@ -104,19 +104,19 @@ def register_view(request):
 
         if not all([first_name, email, password, business_name]):
             messages.error(request, "Please fill in all required fields.")
-            return render(request, 'accounts/register.html', _register_ctx())
+            return render(request, 'accounts/register.html', _register_ctx(request))
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'accounts/register.html', _register_ctx())
+            return render(request, 'accounts/register.html', _register_ctx(request))
 
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters.")
-            return render(request, 'accounts/register.html', _register_ctx())
+            return render(request, 'accounts/register.html', _register_ctx(request))
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "An account with this email already exists.")
-            return render(request, 'accounts/register.html', _register_ctx())
+            return render(request, 'accounts/register.html', _register_ctx(request))
 
         user = User.objects.create_user(
             email=email,
@@ -158,15 +158,41 @@ def register_view(request):
         request.session.save()
         return redirect(f"/accounts/verify-otp/?email={email}")
 
-    return render(request, 'accounts/register.html', _register_ctx())
+    return render(request, 'accounts/register.html', _register_ctx(request))
 
 
-def _register_ctx():
+def _social_providers(request):
+    """Return list of configured social providers safe for template rendering."""
+    try:
+        from allauth.socialaccount.adapter import get_adapter
+        from allauth.socialaccount.models import SocialApp
+        adapter = get_adapter(request)
+        providers = []
+        for provider_id in ('google', 'github', 'facebook'):
+            try:
+                provider = adapter.get_provider(request, provider_id)
+                providers.append({
+                    'id': provider_id,
+                    'name': provider.name,
+                    'url': provider.get_login_url(request, action='authenticate'),
+                    'icon': f'bi-{provider_id}',
+                })
+            except SocialApp.DoesNotExist:
+                pass
+        return providers
+    except Exception:
+        return []
+
+
+def _register_ctx(request=None):
     from hub.models import BUSINESS_TYPES, INSTALLATION_TYPES
-    return {
+    ctx = {
         'business_types': BUSINESS_TYPES,
         'installation_types': INSTALLATION_TYPES,
     }
+    if request is not None:
+        ctx['social_providers'] = _social_providers(request)
+    return ctx
 
 
 # ─── OTP Verification ─────────────────────────────────────────────────────────

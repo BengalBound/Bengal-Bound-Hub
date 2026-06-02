@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load socialaccount %}
 
 {% block title %}Create Account | BengalBound{% endblock %}
 
@@ -115,23 +114,17 @@
                         <hr class="border-secondary border-opacity-50">
                         <span class="position-absolute top-50 start-50 translate-middle px-2 small text-white-50" style="background:#0f172a;">or sign up with</span>
                     </div>
+                    {% if social_providers %}
                     <div class="row g-2 mb-4">
+                        {% for provider in social_providers %}
                         <div class="col-4">
-                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
-                                <i class="bi bi-google"></i><span class="d-none d-sm-inline">Google</span>
+                            <a href="{{ provider.url }}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
+                                <i class="{{ provider.icon }}"></i><span class="d-none d-sm-inline">{{ provider.name }}</span>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% provider_login_url 'github' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
-                                <i class="bi bi-github"></i><span class="d-none d-sm-inline">GitHub</span>
-                            </a>
-                        </div>
-                        <div class="col-4">
-                            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
-                                <i class="bi bi-facebook"></i><span class="d-none d-sm-inline">Facebook</span>
-                            </a>
-                        </div>
+                        {% endfor %}
                     </div>
+                    {% endif %}
                     <p class="text-center text-white-50 small mb-0">Already have an account? <a href="{% url 'accounts:login' %}" class="text-primary-gradient text-decoration-none fw-medium">Sign in</a></p>
                 </div>
 

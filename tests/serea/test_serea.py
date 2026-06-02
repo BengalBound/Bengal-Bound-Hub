@@ -517,15 +517,16 @@ class TestSereaBrainLLMSelection(TestCase):
         )
 
     def test_litellm_chatopenai_selected_with_correct_settings(self):
-        from django.conf import settings
-        with patch('langchain_openai.ChatOpenAI') as MockChatOpenAI:
+        proxy_url = 'https://ai.example.com/v1'
+        with self.settings(LITELLM_BASE_URL=proxy_url, LITELLM_MASTER_KEY='sk-test'), \
+             patch('langchain_openai.ChatOpenAI') as MockChatOpenAI:
             MockChatOpenAI.return_value = MagicMock()
             brain = SereaBrain(agent_id=self.agent.pk)
             llm = brain.llm
             MockChatOpenAI.assert_called_once()
             call_kwargs = MockChatOpenAI.call_args.kwargs
-            self.assertEqual(call_kwargs['openai_api_base'], settings.LITELLM_BASE_URL)
-            self.assertEqual(call_kwargs['openai_api_key'], settings.LITELLM_MASTER_KEY)
+            self.assertEqual(call_kwargs['openai_api_base'], proxy_url)
+            self.assertEqual(call_kwargs['openai_api_key'], 'sk-test')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -719,6 +720,10 @@ class TestSereaBrainModerationMocked(TestCase):
         with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         brain._run = MagicMock(return_value=(mock_text, 200))
+        # Force structured-output path to fail so _run fallback is used
+        mock_llm = MagicMock()
+        mock_llm.with_structured_output.side_effect = Exception("structured output not supported in test")
+        brain._get_llm = MagicMock(return_value=mock_llm)
         return brain
 
     def test_process_comment_returns_dict(self):
@@ -750,6 +755,10 @@ class TestSereaBrainModerationMocked(TestCase):
         with patch('langchain_openai.ChatOpenAI'):
             brain = SereaBrain(agent_id=self.agent.pk)
         brain._run = MagicMock(side_effect=Exception("network error"))
+        # Force structured-output to fail so _run fallback is reached (and raises)
+        mock_llm = MagicMock()
+        mock_llm.with_structured_output.side_effect = Exception("structured output not supported in test")
+        brain._get_llm = MagicMock(return_value=mock_llm)
         result = brain.process_comment("test")
         self.assertEqual(result['action'], 'flag')
         self.assertTrue(result['requires_human'])
