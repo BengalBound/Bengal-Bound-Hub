@@ -24,6 +24,14 @@ DATABASES = {
     }
 }
 
+# Override cache to use LocMemCache to prevent Redis connection errors in tests (e.g. from django-axes)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
 CELERY_TASK_ALWAYS_EAGER = True

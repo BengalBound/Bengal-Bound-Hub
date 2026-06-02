@@ -380,7 +380,7 @@ def generate_daily_report_task(agent_id: int):
     mod_logs = ModerationLog.objects.filter(agent=agent, created_at__date=today)
 
     content_posted = ContentQueue.objects.filter(
-        agent=agent, status='posted', updated_at__date=today
+        agent=agent, status='posted', post_date__date=today
     )
 
     # ── Generate narrative summary via LLM ───────────────────────────────────

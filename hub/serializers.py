@@ -26,7 +26,7 @@ class BusinessEmployeeSerializer(serializers.ModelSerializer):
         model = BusinessEmployee
         fields = [
             'id', 'user_email', 'user_full_name', 'role', 'role_display',
-            'is_active', 'joined_at', 'last_active'
+            'is_active', 'joined_at'
         ]
 
 class HubPlanConfigSerializer(serializers.ModelSerializer):
