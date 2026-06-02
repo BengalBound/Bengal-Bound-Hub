@@ -118,6 +118,26 @@ else:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
+# ── Cache — use Redis if available, otherwise local-memory ────────────────────
+if _redis:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': _redis,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'bengalbound-prod-fallback',
+        }
+    }
+
+
 # ── Remove debug toolbar ──────────────────────────────────────────────────────
 INSTALLED_APPS = [a for a in INSTALLED_APPS if 'debug_toolbar' not in a]  # noqa: F405
 MIDDLEWARE     = [m for m in MIDDLEWARE if 'debug_toolbar' not in m]
