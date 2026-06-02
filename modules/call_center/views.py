@@ -310,6 +310,8 @@ def cc_settings(request, slug):
         config.auth_token = request.POST.get('auth_token', '').strip()
         config.default_from_number = request.POST.get('default_from_number', '').strip()
         config.twiml_app_sid = request.POST.get('twiml_app_sid', '').strip()
+        config.api_key_sid = request.POST.get('api_key_sid', '').strip()
+        config.api_key_secret = request.POST.get('api_key_secret', '').strip()
         config.is_active = config.is_configured
         config.save()
         messages.success(request, 'Twilio settings saved.' if config.is_active else 'Settings saved — fill all fields to activate.')
@@ -587,10 +589,18 @@ def twilio_token(request, slug):
         from twilio.jwt.access_token.grants import VoiceGrant
 
         identity = str(request.user.pk)
+        # Prefer API Key over Auth Token — API Keys can be revoked individually
+        if config.has_api_key:
+            signing_key_sid = config.api_key_sid
+            signing_key_secret = config.api_key_secret
+        else:
+            signing_key_sid = config.account_sid
+            signing_key_secret = config.auth_token
+
         token = AccessToken(
             config.account_sid,
-            config.auth_token,      # in prod use API Key / Secret instead
-            config.auth_token,
+            signing_key_sid,
+            signing_key_secret,
             identity=identity,
             ttl=3600,
         )

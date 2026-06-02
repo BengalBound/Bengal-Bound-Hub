@@ -11,7 +11,10 @@ class TwilioConfig(models.Model):
         related_name='twilio_config'
     )
     account_sid = models.CharField(max_length=64, blank=True)
-    auth_token = models.CharField(max_length=64, blank=True)
+    auth_token = models.CharField(max_length=64, blank=True, help_text='Master Auth Token — used only to validate Twilio webhook signatures')
+    # API Key is safer than Auth Token for generating browser tokens
+    api_key_sid = models.CharField(max_length=64, blank=True, help_text='API Key SID (SK...) — create in Twilio Console → API Keys')
+    api_key_secret = models.CharField(max_length=64, blank=True, help_text='API Key Secret — shown once when created')
     default_from_number = models.CharField(max_length=20, blank=True, help_text='E.164 format e.g. +14155552671')
     twiml_app_sid = models.CharField(max_length=64, blank=True, help_text='TwiML App SID for browser calls')
     is_active = models.BooleanField(default=False)
@@ -24,6 +27,10 @@ class TwilioConfig(models.Model):
     @property
     def is_configured(self):
         return bool(self.account_sid and self.auth_token and self.default_from_number)
+
+    @property
+    def has_api_key(self):
+        return bool(self.api_key_sid and self.api_key_secret)
 
 
 class CallQueue(models.Model):

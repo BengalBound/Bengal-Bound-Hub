@@ -47,12 +47,35 @@
             class="form-control" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;"
             placeholder="+14155552671">
         </div>
-        <div class="mb-4">
+        <div class="mb-3">
           <label class="form-label" style="font-size:0.78rem;color:rgba(226,232,240,0.5);">TwiML App SID <span style="font-size:0.68rem;color:rgba(226,232,240,0.3);">For browser-based calls (Twilio.js)</span></label>
           <input type="text" name="twiml_app_sid" value="{{ config.twiml_app_sid }}"
             class="form-control" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;border-radius:8px;font-family:monospace;"
             placeholder="APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
         </div>
+
+        <!-- API Key — recommended over Auth Token for browser tokens -->
+        <div class="p-3 mb-4" style="background:rgba(0,245,212,0.04);border:1px solid rgba(0,245,212,0.12);border-radius:10px;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-shield-check" style="color:var(--bb-accent-cyan);"></i>
+            <span style="font-size:0.78rem;font-weight:600;color:rgba(226,232,240,0.7);">API Key <span style="font-size:0.68rem;color:rgba(226,232,240,0.4);font-weight:400;">(recommended — safer than Auth Token for browser calls)</span></span>
+            {% if config.has_api_key %}<span style="font-size:0.65rem;padding:2px 8px;border-radius:50rem;background:rgba(34,197,94,0.1);color:#22c55e;margin-left:auto;">Active</span>{% endif %}
+          </div>
+          <p style="font-size:0.72rem;color:rgba(226,232,240,0.35);" class="mb-2">Create in Twilio Console → Account → API Keys & Tokens → Create API Key (Standard). The Secret is shown once only.</p>
+          <div class="mb-2">
+            <label class="form-label" style="font-size:0.75rem;color:rgba(226,232,240,0.45);">API Key SID</label>
+            <input type="text" name="api_key_sid" value="{{ config.api_key_sid }}"
+              class="form-control form-control-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#e2e8f0;border-radius:8px;font-family:monospace;"
+              placeholder="SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.75rem;color:rgba(226,232,240,0.45);">API Key Secret</label>
+            <input type="password" name="api_key_secret" value="{{ config.api_key_secret }}"
+              class="form-control form-control-sm" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#e2e8f0;border-radius:8px;font-family:monospace;"
+              placeholder="••••••••••••••••••••••••••••••••">
+          </div>
+        </div>
+
         <button type="submit" class="btn w-100" style="background:rgba(0,245,212,0.1);border:1px solid rgba(0,245,212,0.25);color:var(--bb-accent-cyan);border-radius:10px;">
           Save Twilio Settings
         </button>
