@@ -37,6 +37,7 @@ urlpatterns = [
     path('workspace/', include('workspace_admin.urls', namespace='workspace_admin')),
     path('console/', include('console_admin.urls', namespace='console_admin')),
     path('community/', include('community_forum.urls', namespace='community_forum')),
+    path('i18n/', include('django.conf.urls.i18n')),
 
     # Swagger / OpenAPI
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

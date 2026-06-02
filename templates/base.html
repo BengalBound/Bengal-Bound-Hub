@@ -7,6 +7,7 @@
     <title>{% block title %}BengalBound | WaaS & AIaaS{% endblock %}</title>
 
     {% load static %}
+    {% load i18n %}
 
     <!-- SEO Meta -->
     <meta name="description" content="{% block meta_description %}BengalBound HUB — Hire AI Employees for your business. 33 autonomous AI agents + 83 business modules. From $9/month.{% endblock %}">
@@ -99,6 +100,28 @@
                         </ul>
                     </li>
                     
+                    
+                    <!-- Language Toggle -->
+                    <li class="nav-item dropdown">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        <a class="nav-link dropdown-toggle px-3 text-uppercase" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ LANGUAGE_CODE }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark glass-card border-0" aria-labelledby="languageDropdown" style="min-width: 120px;">
+                            {% get_available_languages as LANGUAGES %}
+                            {% for lang_code, lang_name in LANGUAGES %}
+                                <li>
+                                    <form action="{% url 'set_language' %}" method="post" class="m-0 p-0">
+                                        {% csrf_token %}
+                                        <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                        <input name="language" type="hidden" value="{{ lang_code }}">
+                                        <button type="submit" class="dropdown-item w-100 text-start border-0 bg-transparent {% if lang_code == LANGUAGE_CODE %}fw-bold text-cyan{% endif %}">{{ lang_name }}</button>
+                                    </form>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+
                     <!-- Currency Toggle -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle px-3" href="#" id="currencyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
