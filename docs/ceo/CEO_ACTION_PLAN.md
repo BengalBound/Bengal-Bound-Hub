@@ -30,3 +30,7 @@ Leverage the "built in Bangladesh for the world" narrative.
 
 - [ ] **Apply for SME Grants:** Submit applications for USAID or Gates Foundation SME technology grants, highlighting how BengalBound democratizes AI for developing markets.
 - [ ] **Prepare Pitch Deck:** Ensure the AI Video Pitch Presenter agent (Sylvia) is loaded with the latest financial projections ($216K ARR Year 1 target) for angel investor outreach.
+
+## 5. Telephony & Global Operations
+- [ ] **Acquire International Phone Numbers:** Purchase local Twilio numbers (e.g., UK +44, US +1) to serve as dedicated entry points for the multi-country AI call center.
+- [ ] **Configure Regional Call Queues:** Integrate the new numbers with the `CallQueue` module and set the Voice Receptionist's `language_code` and `tts_voice` appropriately for each region (e.g., French, Spanish, Bengali).
