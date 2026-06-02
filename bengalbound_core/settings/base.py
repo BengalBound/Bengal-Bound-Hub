@@ -378,6 +378,11 @@ SEREA_TASK_MODELS  = {
     'gemini':     env('GEMINI_MODEL',           default='gemini/gemini-1.5-flash'),
 }
 
+# ── Twilio ───────────────────────────────────────────────────────────────────
+TWILIO_ACCOUNT_SID  = env('TWILIO_ACCOUNT_SID',  default='')
+TWILIO_AUTH_TOKEN   = env('TWILIO_AUTH_TOKEN',   default='')
+TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER', default='')
+
 # ── Payments (NowPayments) ────────────────────────────────────────────────────
 NOWPAYMENTS_API_KEY  = env('NOWPAYMENTS_API_KEY',  default='')
 NOWPAYMENTS_IPN_SECRET = env('NOWPAYMENTS_IPN_SECRET', default='')
