@@ -130,6 +130,14 @@ def register_view(request):
             role='console_user',
         )
 
+        # Create allauth EmailAddress record to support allauth email verification system
+        from allauth.account.models import EmailAddress
+        EmailAddress.objects.get_or_create(
+            user=user,
+            email=email,
+            defaults={'primary': True, 'verified': False}
+        )
+
         from hub.models import BusinessInstance, BusinessEmployee
         slug = _unique_business_slug(business_name)
         biz = BusinessInstance.objects.create(
@@ -228,6 +236,11 @@ def verify_otp_view(request):
             user.otp = ''
             user.otp_created_at = None
             user.save(update_fields=['is_email_verified', 'otp', 'otp_created_at'])
+
+            # Verify allauth EmailAddress record
+            from allauth.account.models import EmailAddress
+            EmailAddress.objects.filter(user=user, email=user.email).update(verified=True)
+
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, "Email verified! Welcome to BengalBound.")
             return _post_auth_redirect(request, user)
@@ -248,6 +261,7 @@ def custom_login_view(request):
         return _post_auth_redirect(request, request.user)
 
     host = request.get_host().split(':')[0].lower()
+    email = ''
 
     if request.method == 'POST':
         email = request.POST.get('username', '').strip().lower()
@@ -257,11 +271,11 @@ def custom_login_view(request):
         if user:
             if host == 'workspace.localhost' and not user.is_workspace_user:
                 messages.error(request, "This login is for BengalBound staff only.")
-                return render(request, 'accounts/login.html', {'is_workspace': True, 'social_providers': []})
+                return render(request, 'accounts/login.html', {'is_workspace': True, 'social_providers': [], 'username': email})
 
             if host == 'console.localhost' and user.is_workspace_user:
                 messages.error(request, "Staff accounts log in at workspace.localhost:1234")
-                return render(request, 'accounts/login.html', {'is_workspace': False, 'social_providers': _social_providers(request)})
+                return render(request, 'accounts/login.html', {'is_workspace': False, 'social_providers': _social_providers(request), 'username': email})
 
             if user.totpdevice_set.filter(confirmed=True).exists():
                 request.session['totp_auth_user_id'] = user.id
@@ -276,6 +290,7 @@ def custom_login_view(request):
     return render(request, 'accounts/login.html', {
         'is_workspace': host == 'workspace.localhost',
         'social_providers': _social_providers(request),
+        'username': email,
     })
 
 

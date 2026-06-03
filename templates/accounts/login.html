@@ -44,13 +44,13 @@
 
                         <div class="mb-3">
                             <label class="form-label text-white-50 small fw-medium">Email Address</label>
-                            <input type="email" name="username" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="name@company.com" required autofocus>
+                            <input type="email" name="username" value="{{ username|default:'' }}" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="name@company.com" required autofocus>
                         </div>
 
                         <div class="mb-3">
                             <div class="d-flex justify-content-between">
                                 <label class="form-label text-white-50 small fw-medium">Password</label>
-                                <a href="#" class="text-white-50 small text-decoration-none" style="font-size:0.75rem;">Forgot password?</a>
+                                <a href="{% url 'account_reset_password' %}" class="text-white-50 small text-decoration-none" style="font-size:0.75rem;">Forgot password?</a>
                             </div>
                             <input type="password" name="password" class="form-control bg-dark text-white border-secondary shadow-none" placeholder="••••••••" required>
                         </div>

@@ -17,8 +17,14 @@
                         <p class="text-white-50 small">Log in to your continuous cloud workspace.</p>
                     </div>
 
-                    {% if form.errors %}
-                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small mb-4">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% elif form.errors %}
+                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small mb-4">
                             Invalid email or password.
                         </div>
                     {% endif %}
@@ -30,7 +36,7 @@
                         {% endif %}
                         <div class="mb-4">
                             <label for="id_login" class="form-label text-white-50 small fw-medium">Email Address</label>
-                            <input type="email" name="login" class="form-control bg-dark text-white border-secondary shadow-none" id="id_login" placeholder="name@company.com" required>
+                            <input type="email" name="login" value="{{ form.login.value|default:'' }}" class="form-control bg-dark text-white border-secondary shadow-none" id="id_login" placeholder="name@company.com" required>
                         </div>
                         <div class="mb-4">
                             <label for="id_password" class="form-label text-white-50 small fw-medium">Password</label>

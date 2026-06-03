@@ -18,8 +18,14 @@
                         <p class="text-white-50 small">Join BengalBound and build your cloud workspace.</p>
                     </div>
 
-                    {% if form.errors %}
-                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small mb-4">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% elif form.errors %}
+                        <div class="alert alert-danger bg-danger bg-opacity-25 text-danger border-0 small mb-4">
                             Please correct the errors below.
                         </div>
                     {% endif %}
@@ -33,7 +39,7 @@
                         {% for field in form %}
                         <div class="mb-4">
                             <label for="{{ field.id_for_label }}" class="form-label text-white-50 small fw-medium">{{ field.label }}</label>
-                            <input type="{% if 'password' in field.name %}password{% elif 'email' in field.name %}email{% else %}text{% endif %}" name="{{ field.name }}" class="form-control bg-dark text-white border-secondary shadow-none {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" {% if field.field.required %}required{% endif %} placeholder="{{ field.label }}">
+                            <input type="{% if 'password' in field.name %}password{% elif 'email' in field.name %}email{% else %}text{% endif %}" name="{{ field.name }}" value="{% if not 'password' in field.name %}{{ field.value|default:'' }}{% endif %}" class="form-control bg-dark text-white border-secondary shadow-none {% if field.errors %}is-invalid{% endif %}" id="{{ field.id_for_label }}" {% if field.field.required %}required{% endif %} placeholder="{{ field.label }}">
                             {% if field.errors %}
                                 <div class="invalid-feedback">
                                     {{ field.errors|striptags }}
