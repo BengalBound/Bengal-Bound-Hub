@@ -313,3 +313,124 @@ class NextRedirectPreservationTest(TestCase):
         })
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'value="/custom/dashboard/"')
+
+
+class FirebaseAuthBridgeTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.sync_url = reverse('accounts:firebase_sync')
+
+    def test_sync_new_user_provisions_account_and_business(self):
+        import jwt
+        import json
+        from hub.models import BusinessEmployee
+
+        payload = {
+            "uid": "fb_uid_123",
+            "email": "new_fb_user@example.com",
+            "name": "John Doe"
+        }
+        token = jwt.encode(payload, "a_very_secure_mock_token_secret_key_32_chars_long", algorithm="HS256")
+
+        response = self.client.post(
+            self.sync_url,
+            data=json.dumps({"id_token": token}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("access", data)
+        self.assertIn("refresh", data)
+        self.assertEqual(data["user"]["email"], "new_fb_user@example.com")
+        self.assertEqual(data["user"]["firebase_uid"], "fb_uid_123")
+        self.assertEqual(data["user"]["first_name"], "John")
+        self.assertEqual(data["user"]["last_name"], "Doe")
+
+        # Verify User created
+        user = User.objects.filter(email="new_fb_user@example.com").first()
+        self.assertIsNotNone(user)
+        self.assertEqual(user.firebase_uid, "fb_uid_123")
+        self.assertTrue(user.is_email_verified)
+
+        # Verify Business created and mapped to owner
+        biz = BusinessInstance.objects.filter(owner=user).first()
+        self.assertIsNotNone(biz)
+        self.assertEqual(biz.name, "John's Company")
+
+        # Verify BusinessEmployee created
+        employee = BusinessEmployee.objects.filter(business=biz, user=user).first()
+        self.assertIsNotNone(employee)
+        self.assertEqual(employee.role, "owner")
+
+    def test_sync_existing_user_by_email_updates_firebase_uid(self):
+        import jwt
+        import json
+
+        existing_user = User.objects.create_user(
+            email="existing_user@example.com",
+            username="existing_user@example.com",
+            password="SomePassword123!",
+            is_email_verified=True,
+            first_name="Jane",
+            last_name="Smith"
+        )
+        self.assertIsNone(existing_user.firebase_uid)
+
+        payload = {
+            "uid": "fb_existing_uid",
+            "email": "existing_user@example.com",
+            "name": "Jane Smith"
+        }
+        token = jwt.encode(payload, "a_very_secure_mock_token_secret_key_32_chars_long", algorithm="HS256")
+
+        response = self.client.post(
+            self.sync_url,
+            data=json.dumps({"id_token": token}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        
+        existing_user.refresh_from_db()
+        self.assertEqual(existing_user.firebase_uid, "fb_existing_uid")
+
+    def test_sync_existing_user_by_uid_authenticates(self):
+        import jwt
+        import json
+
+        user = User.objects.create_user(
+            email="uid_match@example.com",
+            username="uid_match@example.com",
+            password="SomePassword123!",
+            is_email_verified=True,
+            firebase_uid="fb_uid_match"
+        )
+
+        payload = {
+            "uid": "fb_uid_match",
+            "email": "another_email@example.com"
+        }
+        token = jwt.encode(payload, "a_very_secure_mock_token_secret_key_32_chars_long", algorithm="HS256")
+
+        response = self.client.post(
+            self.sync_url,
+            data=json.dumps({"id_token": token}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["user"]["email"], "uid_match@example.com")
+
+    def test_sync_missing_token_or_invalid_claims(self):
+        import jwt
+        import json
+
+        # Missing token
+        response = self.client.post(self.sync_url, data=json.dumps({}), content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+
+        # Missing email/uid
+        token = jwt.encode({"name": "No Info User"}, "a_very_secure_mock_token_secret_key_32_chars_long", algorithm="HS256")
+        response = self.client.post(self.sync_url, data=json.dumps({"id_token": token}), content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+

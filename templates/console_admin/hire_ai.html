@@ -9,6 +9,22 @@
 {% endblock %}
 
 {% block content %}
+{% if agent_catalog %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="glass-panel p-4 d-flex align-items-center gap-3" style="border-left: 4px solid var(--bb-accent-cyan); background: rgba(0, 245, 212, 0.04);">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: linear-gradient(135deg, rgba(0, 245, 212, 0.2), rgba(157, 78, 221, 0.15)); border: 1px solid rgba(0, 245, 212, 0.2); font-size: 1.2rem; color: var(--bb-accent-cyan);">
+                <i class="bi {{ agent_catalog.icon|default:'bi-robot' }}"></i>
+            </div>
+            <div>
+                <h5 class="font-outfit fw-bold text-white mb-0">Hiring: {{ agent_catalog.name }}</h5>
+                <p class="text-white-50 small mb-0">{{ agent_catalog.role }} &middot; Requires at least the <strong>{{ agent_catalog.tier_required|title }} Level</strong> tier.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row mb-5">
     <div class="col-12">
         <div class="glass-panel p-5 text-center position-relative overflow-hidden">
@@ -69,8 +85,15 @@
                 <form method="post" action="{% url 'console_admin:hire_ai' %}">
                     {% csrf_token %}
                     <input type="hidden" name="tier_id" value="{{ tier.id }}">
-                    <button type="submit" class="btn {% if forloop.counter == 3 %}btn-primary-gradient shadow-glow text-white{% else %}btn-outline-light{% endif %} w-100 fw-semibold py-2 rounded-3">
-                        Select {{ tier.name|title }}
+                    {% if agent_catalog %}
+                        <input type="hidden" name="agent_slug" value="{{ agent_catalog.slug }}">
+                    {% endif %}
+                    <button type="submit" class="btn {% if tier.is_disabled %}btn-outline-secondary text-muted{% elif forloop.counter == 3 %}btn-primary-gradient shadow-glow text-white{% else %}btn-outline-light{% endif %} w-100 fw-semibold py-2 rounded-3" {% if tier.is_disabled %}disabled{% endif %}>
+                        {% if tier.is_disabled %}
+                            Requires {{ agent_catalog.tier_required|title }}+
+                        {% else %}
+                            Select {{ tier.name|title }}
+                        {% endif %}
                     </button>
                     <div class="text-center mt-2">
                         <small class="text-white-50" style="font-size: 0.65rem;">Powered by NowPayments Sandbox</small>

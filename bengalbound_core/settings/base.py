@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     'serea',
     'booking_calendar',
     'billing',
+    'inspector',
     'hub.apps.HubConfig',
     'agents',
     'agents.aria',
@@ -255,6 +256,7 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
     'bengalbound_core.middleware.SubdomainRoutingMiddleware',
     'hub.middleware.BusinessAccessMiddleware',
+    'inspector.middleware.InspectorMiddleware',
 ]
 
 SPECTACULAR_SETTINGS = {
@@ -670,6 +672,9 @@ SIMPLE_JWT = {
 STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
+
+# ── Firebase Authentication ───────────────────────────────────────────────────
+FIREBASE_PROJECT_ID = env('FIREBASE_PROJECT_ID', default='bengalbound-prod')
 
 # ── WebSockets (Channels) ─────────────────────────────────────────────────────
 ASGI_APPLICATION = 'bengalbound_core.asgi.application'

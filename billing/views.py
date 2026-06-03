@@ -13,8 +13,13 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def checkout_redirect(request, plan_type):
-    # Determine the business context. For now, we assume the user owns exactly one business instance for simplicity.
-    business = BusinessInstance.objects.filter(owner=request.user).first()
+    business_id = request.GET.get('business_id')
+    if business_id:
+        from django.shortcuts import get_object_or_404
+        business = get_object_or_404(BusinessInstance, id=business_id, owner=request.user)
+    else:
+        business = BusinessInstance.objects.filter(owner=request.user).first()
+
     if not business:
         return HttpResponse("No business instance found.", status=404)
         
@@ -29,7 +34,13 @@ def checkout_redirect(request, plan_type):
 
 @login_required
 def portal_redirect(request):
-    business = BusinessInstance.objects.filter(owner=request.user).first()
+    business_id = request.GET.get('business_id')
+    if business_id:
+        from django.shortcuts import get_object_or_404
+        business = get_object_or_404(BusinessInstance, id=business_id, owner=request.user)
+    else:
+        business = BusinessInstance.objects.filter(owner=request.user).first()
+
     if not business:
         return HttpResponse("No business instance found.", status=404)
         
@@ -42,10 +53,49 @@ def portal_redirect(request):
         return HttpResponse(str(e), status=400)
 
 def success_view(request):
-    return HttpResponse("Payment successful! Your subscription is now active.")
+    business_id = request.GET.get('business_id')
+    business = None
+    sub = None
+    if business_id:
+        try:
+            business = BusinessInstance.objects.get(id=business_id)
+            sub = getattr(business, 'subscription', None)
+        except BusinessInstance.DoesNotExist:
+            pass
+            
+    # Fallback context sidebar variables
+    user_businesses = []
+    if request.user.is_authenticated:
+        user_businesses = BusinessInstance.objects.filter(owner=request.user)
+
+    return render(request, 'billing/success.html', {
+        'biz': business,
+        'current_business': business,
+        'sub': sub,
+        'user_businesses': user_businesses,
+        'hub_is_owner': business.owner == request.user if business else False,
+    })
 
 def cancel_view(request):
-    return HttpResponse("Payment cancelled.")
+    business_id = request.GET.get('business_id')
+    business = None
+    if business_id:
+        try:
+            business = BusinessInstance.objects.get(id=business_id)
+        except BusinessInstance.DoesNotExist:
+            pass
+
+    # Fallback context sidebar variables
+    user_businesses = []
+    if request.user.is_authenticated:
+        user_businesses = BusinessInstance.objects.filter(owner=request.user)
+
+    return render(request, 'billing/cancel.html', {
+        'biz': business,
+        'current_business': business,
+        'user_businesses': user_businesses,
+        'hub_is_owner': business.owner == request.user if business else False,
+    })
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -65,19 +115,25 @@ def stripe_webhook(request):
         return HttpResponse(status=400)
 
     # Log event
+    try:
+        payload_dict = json.loads(payload)
+        event_obj = payload_dict.get('data', {}).get('object', {})
+    except Exception:
+        event_obj = {}
+
     BillingEvent.objects.create(
-        stripe_customer_id=event.data.object.get('customer'),
+        stripe_customer_id=getattr(event.data.object, 'customer', None),
         event_id=event.id,
         event_type=event.type,
-        payload=event.data.object
+        payload=event_obj
     )
 
     # Handle event
     if event.type == 'checkout.session.completed':
         session = event.data.object
-        customer_id = session.get('customer')
-        subscription_id = session.get('subscription')
-        client_reference_id = session.get('client_reference_id')
+        customer_id = getattr(session, 'customer', None)
+        subscription_id = getattr(session, 'subscription', None)
+        client_reference_id = getattr(session, 'client_reference_id', None)
 
         if client_reference_id and subscription_id:
             try:
@@ -94,11 +150,13 @@ def stripe_webhook(request):
                 sub.status = 'active'
                 
                 # Extract plan info from metadata if passed in checkout session
-                metadata = session.get('metadata', {})
-                if metadata.get('plan_type'):
-                    sub.plan_type = metadata.get('plan_type')
-                if metadata.get('billing_cycle'):
-                    sub.billing_cycle = metadata.get('billing_cycle')
+                metadata = getattr(session, 'metadata', {}) or {}
+                plan_type = metadata.get('plan_type') if hasattr(metadata, 'get') else getattr(metadata, 'plan_type', None)
+                billing_cycle = metadata.get('billing_cycle') if hasattr(metadata, 'get') else getattr(metadata, 'billing_cycle', None)
+                if plan_type:
+                    sub.plan_type = plan_type
+                if billing_cycle:
+                    sub.billing_cycle = billing_cycle
                 
                 sub.save()
             except BusinessInstance.DoesNotExist:
@@ -106,9 +164,11 @@ def stripe_webhook(request):
 
     elif event.type in ['customer.subscription.updated', 'customer.subscription.deleted']:
         subscription = event.data.object
-        customer_id = subscription.get('customer')
-        sub_id = subscription.get('id')
-        status = subscription.get('status')
+        customer_id = getattr(subscription, 'customer', None)
+        sub_id = getattr(subscription, 'id', None)
+        status = getattr(subscription, 'status', None)
+        if event.type == 'customer.subscription.deleted':
+            status = 'canceled'
         
         try:
             sub = BusinessSubscription.objects.get(stripe_subscription_id=sub_id)
@@ -120,8 +180,10 @@ def stripe_webhook(request):
                 sub.status = 'pending'
             
             # Update price if plan changed
-            price_id = subscription.items.data[0].price.id
-            sub.stripe_price_id = price_id
+            items = getattr(subscription, 'items', None)
+            if items and hasattr(items, 'data') and len(items.data) > 0:
+                price_id = items.data[0].price.id
+                sub.stripe_price_id = price_id
             
             sub.save()
         except BusinessSubscription.DoesNotExist:

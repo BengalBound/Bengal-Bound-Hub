@@ -24,6 +24,7 @@ def agent_workspace(request, agent_slug):
     instance = None
     logs = []
     pending_approvals = []
+    chat_messages = []
 
     if biz:
         instance, _ = AgentInstance.objects.get_or_create(
@@ -36,12 +37,21 @@ def agent_workspace(request, agent_slug):
             instance=instance, decision__isnull=True
         ).order_by('-created_at')
 
+        from serea.models import SereaAgent, ConversationMessage
+        serea_agent = SereaAgent.objects.filter(
+            tenant=request.user,
+            hired_employee__agent_catalog=catalog
+        ).first()
+        if serea_agent:
+            chat_messages = ConversationMessage.objects.filter(agent=serea_agent).order_by('created_at')
+
     return render(request, 'console_admin/agent_workspace.html', {
         'catalog': catalog,
         'instance': instance,
         'logs': logs,
         'pending_approvals': pending_approvals,
         'agent_slug': agent_slug,
+        'chat_messages': chat_messages,
     })
 
 

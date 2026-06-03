@@ -532,6 +532,9 @@ def hub_subscription(request, slug):
                 return redirect('hub:hub_advance_quote', slug=slug)
             else:
                 billing = request.POST.get('billing_cycle', 'monthly')
+                if new_plan in ('standard', 'premium'):
+                    return redirect(f'/billing/checkout/{new_plan}/?cycle={billing}&business_id={biz.id}')
+                
                 old_plan = sub.plan_type
                 sub.plan_type = new_plan
                 sub.billing_cycle = billing if billing in ('monthly', 'annual') else 'monthly'
@@ -1010,4 +1013,40 @@ def agent_capabilities(request, slug, agent_slug):
         'content': content,
         'is_owner': biz.owner == request.user,
         'current_business': biz,
+    })
+
+
+@login_required(login_url='/accounts/login/')
+def agent_dashboard(request, slug, agent_slug):
+    biz = _get_business_for_user(slug, request.user)
+    if not biz:
+        return HttpResponseForbidden()
+
+    from agents.models import AgentCatalog, AgentInstance, AgentLog, AgentMemory, AgentIntegration
+    from workspace_admin.models import HiredAIEmployee
+
+    catalog = get_object_or_404(AgentCatalog, slug=agent_slug, is_active=True)
+    instance = get_object_or_404(AgentInstance, business=biz, catalog=catalog)
+
+    logs = AgentLog.objects.filter(instance=instance).order_by('-created_at')[:10]
+    memories = AgentMemory.objects.filter(instance=instance)[:15]
+    integrations = AgentIntegration.objects.filter(instance=instance)
+
+    # Find the HiredAIEmployee matching this catalog and business owner
+    hired_ai = HiredAIEmployee.objects.filter(
+        employer=request.user,
+        agent_catalog=catalog,
+        is_active=True
+    ).first()
+
+    return render(request, 'hub/agent_dashboard.html', {
+        'biz': biz,
+        'catalog': catalog,
+        'instance': instance,
+        'logs': logs,
+        'memories': memories,
+        'integrations': integrations,
+        'hired_ai': hired_ai,
+        'current_business': biz,
+        'is_owner': biz.owner == request.user,
     })

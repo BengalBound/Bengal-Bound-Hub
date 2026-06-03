@@ -17,6 +17,7 @@ urlpatterns = [
     path('<slug:slug>/modules/deactivate/', views.hub_deactivate_module, name='hub_deactivate_module'),
 
     path('<slug:slug>/agents/<str:agent_slug>/capabilities/', views.agent_capabilities, name='agent_capabilities'),
+    path('<slug:slug>/agents/<str:agent_slug>/dashboard/', views.agent_dashboard, name='agent_dashboard'),
 
     path('<slug:slug>/employees/', views.hub_employees, name='hub_employees'),
     path('<slug:slug>/employees/add/', views.hub_add_employee, name='hub_add_employee'),

@@ -1,0 +1,250 @@
+{% extends 'hub/base_hub.html' %}
+
+{% block title %}{{ catalog.name }} Dashboard | {{ biz.name }}{% endblock %}
+{% block page_title %}{{ catalog.name }} Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+.agent-banner {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(56, 189, 248, 0.1));
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 16px;
+    padding: 1.75rem;
+}
+.telemetry-card {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--hub-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+.log-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 0;
+    transition: background 0.2s;
+}
+.log-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+.memory-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.badge-entity { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25); }
+.badge-instruction { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.25); }
+.badge-context { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.25); }
+.badge-outcome { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); }
+
+.outcome-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+.outcome-success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.outcome-failed { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+.outcome-escalated { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.outcome-pending { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header and Controls -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold mb-1" style="font-family:'Outfit',sans-serif;">Agent Dashboard</h2>
+        <p style="color:var(--hub-muted);">Monitor and analyze {{ catalog.name }}'s real-time workspace actions.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hub:hub_employees' slug=biz.slug %}" class="btn btn-hub-outline px-3">
+            <i class="bi bi-arrow-left me-1"></i>Back to Team
+        </a>
+        <a href="{% url 'hub:agent_capabilities' slug=biz.slug agent_slug=catalog.slug %}" class="btn btn-hub-outline px-3">
+            <i class="bi bi-file-text me-1"></i>Capabilities Document
+        </a>
+        {% if hired_ai %}
+        <a href="{% url 'console_admin:ai_chat_with' hired_ai.id %}" class="btn btn-hub-primary px-4">
+            <i class="bi bi-chat-dots me-2"></i>Open Chat Console
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Banner Summary Card -->
+<div class="agent-banner mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width: 56px; height: 56px; background: linear-gradient(135deg, #38bdf8, #8b5cf6); border: 2px solid rgba(255,255,255,0.1);">
+                <i class="bi {{ catalog.icon|default:'bi-robot' }} text-white fs-3"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold text-white mb-0">{{ catalog.name }}</h4>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="badge" style="background:rgba(255,255,255,0.08);color:#c084fc;font-size:0.7rem;">{{ catalog.category }}</span>
+                    <span class="badge" style="background:rgba(255,255,255,0.08);color:var(--hub-muted);font-size:0.7rem;">Tier Required: {{ catalog.tier_required|title }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-4">
+            <div class="text-end">
+                <span class="text-white-50 small d-block">Telemetry Status</span>
+                <div class="d-flex align-items-center gap-2 mt-1 justify-content-end">
+                    <span class="rounded-circle" style="width: 10px; height: 10px; 
+                        {% if instance.status == 'working' %}background:#10b981;
+                        {% elif instance.status == 'waiting' %}background:#f59e0b;
+                        {% elif instance.status == 'offline' %}background:#6b7280;
+                        {% else %}background:#38bdf8;{% endif %}"></span>
+                    <span class="text-white fw-semibold small">{{ instance.get_status_display }}</span>
+                </div>
+            </div>
+            {% if hired_ai %}
+            <a href="{% url 'console_admin:manage_ai' hired_ai.id %}" class="btn btn-sm btn-outline-light" style="border-radius: 8px;">
+                <i class="bi bi-gear-fill"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Resource Usage + Memories -->
+    <div class="col-lg-6">
+        
+        <!-- Resource Telemetry -->
+        <div class="glass-panel mb-4">
+            <h5 class="fw-bold mb-3 text-white font-outfit"><i class="bi bi-cpu text-info me-2"></i>Resource Telemetry</h5>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="telemetry-card">
+                        <span class="text-white-50 small d-block mb-1">Monthly Token Usage</span>
+                        <div class="d-flex align-items-baseline gap-1 text-white">
+                            <span class="fs-3 fw-bold font-outfit">{{ instance.tokens_used_this_month|default:0 }}</span>
+                            {% if hired_ai.tier.token_limit > 0 %}
+                            <span class="text-white-50">/ {{ hired_ai.tier.token_limit }}</span>
+                            {% else %}
+                            <span class="text-white-50">/ Unlimited</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="telemetry-card">
+                        <span class="text-white-50 small d-block mb-1">Last Pipeline Execution</span>
+                        <span class="text-white fw-semibold font-inter small d-block mt-2">
+                            {% if instance.last_run_at %}
+                                {{ instance.last_run_at|date:"M d, Y" }} &middot; {{ instance.last_run_at|time:"H:i" }}
+                            {% else %}
+                                Never executed
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {% if hired_ai.tier.token_limit > 0 %}
+            <div class="mt-4">
+                <div class="d-flex justify-content-between mb-1 small text-white-50">
+                    <span>Usage Allocation</span>
+                    <span>{% widthratio instance.tokens_used_this_month hired_ai.tier.token_limit 100 %}%</span>
+                </div>
+                <div class="progress" style="height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px;">
+                    <div class="progress-bar bg-info" role="progressbar" 
+                         style="width: {% widthratio instance.tokens_used_this_month hired_ai.tier.token_limit 100 %}%" 
+                         aria-valuenow="{{ instance.tokens_used_this_month }}" aria-valuemin="0" aria-valuemax="{{ hired_ai.tier.token_limit }}"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Long-term Memories -->
+        <div class="glass-panel">
+            <h5 class="fw-bold mb-3 text-white font-outfit"><i class="bi bi-database-fill-check text-warning me-2"></i>Long-Term Memories</h5>
+            {% if memories %}
+                <div class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto;">
+                    {% for mem in memories %}
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold text-white small">{{ mem.subject }}</span>
+                            <span class="memory-badge badge-{{ mem.memory_type }}">{{ mem.get_memory_type_display }}</span>
+                        </div>
+                        <p class="small text-white-50 mb-0 mt-2">{{ mem.content }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-white-50 small">
+                    <i class="bi bi-journal-x fs-3 d-block mb-2 text-muted"></i>
+                    No long-term memories compiled yet. Interactions build agent intelligence.
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Right Column: Integrations + Activity Logs -->
+    <div class="col-lg-6">
+        
+        <!-- Connected Platforms / Integrations -->
+        <div class="glass-panel mb-4">
+            <h5 class="fw-bold mb-3 text-white font-outfit"><i class="bi bi-share-fill text-primary me-2"></i>Active Platform Integrations</h5>
+            {% if integrations %}
+                <div class="row g-2">
+                    {% for integration in integrations %}
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <span class="text-white small fw-bold d-block">{{ integration.platform|title }}</span>
+                                <span class="text-white-50" style="font-size: 0.72rem;">{{ integration.label }}</span>
+                            </div>
+                            <span class="badge bg-success bg-opacity-25 text-success small">Connected</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-white-50 small">
+                    <i class="bi bi-plug fs-3 d-block mb-2 text-muted"></i>
+                    No platform credentials connected. Go to 
+                    <a href="{% url 'console_admin:serea_platforms' %}" class="text-info text-decoration-underline">Platform Connections</a> 
+                    to sync credentials.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Activity Log -->
+        <div class="glass-panel">
+            <h5 class="fw-bold mb-3 text-white font-outfit"><i class="bi bi-activity text-success me-2"></i>Recent Activity Log</h5>
+            {% if logs %}
+                <div class="d-flex flex-column" style="max-height: 450px; overflow-y: auto;">
+                    {% for log in logs %}
+                    <div class="log-row">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <span class="text-white small fw-bold d-block">{{ log.action }}</span>
+                                {% if log.detail %}
+                                <p class="small text-white-50 mb-0 mt-1" style="font-size: 0.78rem;">{{ log.detail|truncatechars:120 }}</p>
+                                {% endif %}
+                                <small class="text-white-50 mt-1 d-inline-block" style="font-size: 0.7rem;">
+                                    {{ log.created_at|date:"M d, H:i" }} &middot; {{ log.duration_ms }}ms
+                                </small>
+                            </div>
+                            <span class="outcome-badge outcome-{{ log.outcome }}">{{ log.get_outcome_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-white-50 small">
+                    <i class="bi bi-clock-history fs-3 d-block mb-2 text-muted"></i>
+                    No activities recorded yet. Trigger pipeline tasks to build logs.
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

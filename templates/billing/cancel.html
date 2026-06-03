@@ -1,0 +1,28 @@
+{% extends "hub/base_hub.html" %}
+{% block title %}Payment Cancelled — {{ biz.name }}{% endblock %}
+{% block page_title %}<i class="bi bi-x-circle-fill text-warning me-2"></i>Checkout Cancelled{% endblock %}
+
+{% block content %}
+<div class="container py-5 d-flex justify-content-center">
+    <div class="glass-panel text-center p-5 border border-white border-opacity-10 rounded-4" style="max-width: 550px; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(16px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);">
+        <!-- Glowing Warning Icon -->
+        <div class="d-inline-flex align-items-center justify-content-center mb-4 rounded-circle" style="width: 80px; height: 80px; background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.35); box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);">
+            <i class="bi bi-exclamation-lg text-warning" style="font-size: 3rem;"></i>
+        </div>
+
+        <h3 class="fw-bold text-white mb-2" id="cancelHeader">Checkout Cancelled</h3>
+        <p class="text-white-50 mb-4" id="cancelMessage" style="font-size: 0.95rem;">
+            Your payment session was cancelled. No charges were made, and your subscription has not been changed.
+        </p>
+
+        <div class="d-flex flex-column gap-2">
+            <a href="{% url 'hub:hub_subscription' slug=biz.slug %}" class="btn btn-hub-primary w-100 py-2.5 fw-semibold" id="btnRetryUpgrade" style="border-radius: 10px;">
+                <i class="bi bi-arrow-clockwise me-2"></i>Retry Upgrade
+            </a>
+            <a href="{% url 'hub:hub_dashboard' slug=biz.slug %}" class="btn btn-hub-outline w-100 py-2.5 small" id="btnReturnDashboard" style="border-radius: 10px;">
+                <i class="bi bi-house-door me-2"></i>Return to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

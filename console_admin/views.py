@@ -497,38 +497,83 @@ def hire_ai(request):
     """
     Marketplace directory for the client to view available AI Tiers and "hire" them.
     Handles tier selection, duration, and NowPayments invoice generation.
+    Supports hiring a specific AI Agent catalog item via the 'agent' parameter.
     """
     from workspace_admin.models import AIEmployeeTier, Subscription
+    from agents.models import AgentCatalog
     from django.urls import reverse
 
-    tiers = AIEmployeeTier.objects.all().order_by('?')
+    tiers = list(AIEmployeeTier.objects.all().order_by('monthly_price_usd'))
+
+    agent_slug = request.GET.get('agent', '').strip()
+    agent_catalog = None
+    if agent_slug:
+        agent_catalog = get_object_or_404(AgentCatalog, slug=agent_slug, is_active=True)
+        # Check if already hired
+        if HiredAIEmployee.objects.filter(
+            employer=request.user,
+            agent_catalog=agent_catalog,
+            is_active=True
+        ).exists():
+            messages.info(request, f"You already have an active {agent_catalog.name} employee.")
+            return redirect('console_admin:agents_overview')
+
+    # Annotate tiers with a disabled flag if they don't meet the agent's requirements
+    tier_ranks = {'intern': 0, 'entry': 1, 'mid': 2, 'senior': 3}
+    for t in tiers:
+        t.is_disabled = False
+        if agent_catalog:
+            req_rank = tier_ranks.get(agent_catalog.tier_required, 1)
+            current_rank = tier_ranks.get(t.name, 0)
+            if current_rank < req_rank:
+                t.is_disabled = True
 
     if request.method == 'POST':
         tier_id = request.POST.get('tier_id')
         duration_months = int(request.POST.get('duration_months', 1))
+        post_agent_slug = request.POST.get('agent_slug', '').strip()
 
         tier = get_object_or_404(AIEmployeeTier, id=tier_id)
+
+        # Enforce tier requirement on POST as well
+        post_agent_catalog = None
+        if post_agent_slug:
+            post_agent_catalog = get_object_or_404(AgentCatalog, slug=post_agent_slug, is_active=True)
+            if HiredAIEmployee.objects.filter(
+                employer=request.user,
+                agent_catalog=post_agent_catalog,
+                is_active=True
+            ).exists():
+                messages.warning(request, f"You already have an active {post_agent_catalog.name} employee.")
+                return redirect('console_admin:agents_overview')
+
+            req_rank = tier_ranks.get(post_agent_catalog.tier_required, 1)
+            current_rank = tier_ranks.get(tier.name, 0)
+            if current_rank < req_rank:
+                messages.error(request, f"Hiring {post_agent_catalog.name} requires at least the {post_agent_catalog.tier_required|title} tier.")
+                return redirect(f"{reverse('console_admin:hire_ai')}?agent={post_agent_slug}")
 
         # BYPASS PAYMENT FOR NOW: Instantly provision all tiers
         from django.utils import timezone
         from datetime import timedelta
 
-        # Check if user already has an active AI of this tier
-        existing_ai = HiredAIEmployee.objects.filter(
-            employer=request.user,
-            is_active=True,
-            tier=tier
-        ).exists()
-
-        if existing_ai:
-            messages.warning(request, f"You already have an active {tier.get_name_display()} employee.")
-            return redirect('console_admin:dashboard')
+        # Check if user already has an active AI of this tier (if not hiring a specific agent)
+        if not post_agent_catalog:
+            existing_ai = HiredAIEmployee.objects.filter(
+                employer=request.user,
+                is_active=True,
+                tier=tier
+            ).exists()
+            if existing_ai:
+                messages.warning(request, f"You already have an active {tier.get_name_display()} employee.")
+                return redirect('console_admin:dashboard')
 
         # Provision the actual AI first
         new_ai = HiredAIEmployee.objects.create(
             employer=request.user,
             tier=tier,
-            ai_name=f"Serea ({tier.get_name_display()})"
+            agent_catalog=post_agent_catalog,
+            ai_name=post_agent_catalog.name if post_agent_catalog else f"Serea ({tier.get_name_display()})"
         )
 
         total_price = float(tier.monthly_price_usd) * duration_months
@@ -545,11 +590,14 @@ def hire_ai(request):
             current_period_end=timezone.now() + timedelta(days=30 * duration_months) if tier.monthly_price_usd > 0 else timezone.now() + timedelta(days=365*10)
         )
 
-        messages.success(request, f"{tier.get_name_display()} activated! Say hello to your new AI employee.")
+        messages.success(request, f"{new_ai.ai_name} activated! Say hello to your new AI employee.")
+        if post_agent_catalog:
+            return redirect('console_admin:agent_workspace', agent_slug=post_agent_catalog.slug)
         return redirect('console_admin:serea_onboarding')
 
     return render(request, 'console_admin/hire_ai.html', {
-        'tiers': tiers
+        'tiers': tiers,
+        'agent_catalog': agent_catalog,
     })
 
 from django.views.decorators.csrf import csrf_exempt

@@ -68,7 +68,15 @@
     <div class="glass-panel p-4 mb-4">
       <h6 class="font-outfit fw-bold mb-3" style="color:#e2e8f0;"><i class="bi bi-chat-dots me-2" style="color:var(--bb-accent-cyan);"></i>Talk to {{ catalog.name }}</h6>
       <div id="chat-output" class="mb-3">
-        <span style="color:rgba(226,232,240,0.3);font-size:0.8rem;">Ask {{ catalog.name }} anything — they'll respond as your expert AI employee.</span>
+        {% for msg in chat_messages %}
+          {% if msg.sender == 'serea' %}
+            <div class="msg-agent"><strong>{{ catalog.name }}:</strong> {{ msg.message_text }}</div>
+          {% else %}
+            <div class="msg-user"><strong>You:</strong> {{ msg.message_text }}</div>
+          {% endif %}
+        {% empty %}
+          <span style="color:rgba(226,232,240,0.3);font-size:0.8rem;">Ask {{ catalog.name }} anything — they'll respond as your expert AI employee.</span>
+        {% endfor %}
       </div>
       <div class="chat-form">
         <div class="d-flex gap-2">
@@ -237,6 +245,13 @@ function escHtml(s) {
 
 document.getElementById('chat-input')?.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAgent(); }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const output = document.getElementById('chat-output');
+  if (output) {
+    output.scrollTop = output.scrollHeight;
+  }
 });
 </script>
 {% endblock %}

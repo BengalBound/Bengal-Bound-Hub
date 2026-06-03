@@ -35,7 +35,7 @@ def create_checkout_session(business, plan_type, billing_cycle, base_url):
     if not plan:
         raise ValueError("Plan not found")
 
-    amount = plan.base_price_monthly if billing_cycle == 'monthly' else plan.base_price_annual
+    amount = plan.monthly_price_usd if billing_cycle == 'monthly' else plan.annual_price_usd
     interval = 'month' if billing_cycle == 'monthly' else 'year'
     
     session = stripe.checkout.Session.create(
@@ -55,8 +55,8 @@ def create_checkout_session(business, plan_type, billing_cycle, base_url):
             'quantity': 1,
         }],
         mode='subscription',
-        success_url=f"{base_url}/billing/success/?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{base_url}/billing/cancel/",
+        success_url=f"{base_url}/billing/success/?session_id={{CHECKOUT_SESSION_ID}}&business_id={business.id}",
+        cancel_url=f"{base_url}/billing/cancel/?business_id={business.id}",
         client_reference_id=str(business.id),
         metadata={
             'plan_type': plan_type,

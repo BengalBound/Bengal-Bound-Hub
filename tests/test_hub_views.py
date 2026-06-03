@@ -157,7 +157,7 @@ def test_hub_subscription(client, user_factory):
     response = client.get(url)
     assert response.status_code == 200
     
-    # Change plan
+    # Upgrading to standard plan should redirect to Stripe checkout
     response = client.post(url, {
         'action': 'change_plan',
         'plan_type': 'standard',
@@ -165,5 +165,18 @@ def test_hub_subscription(client, user_factory):
     })
     
     assert response.status_code == 302
+    assert f'/billing/checkout/standard/?cycle=monthly&business_id={biz.id}' in response.url
+    
+    # Swapping/downgrading to freemium plan should execute immediately
     sub = BusinessSubscription.objects.get(business=biz)
-    assert sub.plan_type == 'standard'
+    sub.plan_type = 'premium'
+    sub.save()
+    
+    response = client.post(url, {
+        'action': 'change_plan',
+        'plan_type': 'freemium',
+        'billing_cycle': 'monthly'
+    })
+    assert response.status_code == 302
+    sub.refresh_from_db()
+    assert sub.plan_type == 'freemium'

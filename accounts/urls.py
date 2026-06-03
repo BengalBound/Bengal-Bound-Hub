@@ -21,4 +21,7 @@ urlpatterns = [
     # Two-Factor Authentication
     path('2fa/setup/', views.totp_setup_view, name='totp_setup'),
     path('2fa/challenge/', views.totp_challenge_view, name='totp_challenge'),
+
+    # Firebase Authentication Sync
+    path('firebase-sync/', views.firebase_token_sync, name='firebase_sync'),
 ]

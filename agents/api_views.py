@@ -79,6 +79,8 @@ class AgentRunView(APIView):
 
     def post(self, request, slug, agent_slug):
         from agents.utils import agent_chat
+        from serea.models import ConversationMessage as SereaMsg
+        from serea.logic import SereaBrain, TokenLimitExceeded
 
         business, catalog, instance = _get_instance(request, slug, agent_slug)
 
@@ -89,21 +91,48 @@ class AgentRunView(APIView):
         instance.status = 'working'
         instance.save(update_fields=['status'])
 
+        # Check if this agent instance has a live SereaAgent
+        serea_agent = None
+        if instance.hired_employee:
+            try:
+                serea_agent = instance.hired_employee.serea_agent
+            except Exception:
+                serea_agent = None
+
         t0 = timezone.now()
-        try:
-            result = agent_chat(
-                messages=[
-                    {'role': 'system', 'content': catalog.system_prompt},
-                    {'role': 'user',   'content': user_input},
-                ],
-                business=business,
-                agent_slug=agent_slug,
+        if serea_agent:
+            # ── Custom Serea Agent Chat Flow ──────────────────────────────────
+            # Store the user's message
+            SereaMsg.objects.create(
+                agent=serea_agent,
+                sender=request.user.email,
+                message_text=user_input,
             )
+
+            try:
+                brain = SereaBrain(agent_id=serea_agent.id)
+                result = brain.chat(user_input)
+                outcome = 'success'
+            except TokenLimitExceeded as exc:
+                result = str(exc)
+                outcome = 'failed'
+            except Exception as exc:
+                logger.error("AgentRunView %s/%s SereaBrain error: %s", slug, agent_slug, exc)
+                result = f"I encountered an issue responding. Please try again. ({exc})"
+                outcome = 'failed'
+
+            # Store the agent's reply
+            SereaMsg.objects.create(
+                agent=serea_agent,
+                sender='serea',
+                message_text=result,
+            )
+
             duration_ms = int((timezone.now() - t0).total_seconds() * 1000)
             log = AgentLog.objects.create(
                 instance=instance,
                 action='manual_run',
-                outcome='success',
+                outcome=outcome,
                 detail=result,
                 duration_ms=duration_ms,
             )
@@ -112,15 +141,39 @@ class AgentRunView(APIView):
             instance.save(update_fields=['status', 'last_run_at'])
             return Response({'result': result, 'log_id': log.pk, 'duration_ms': duration_ms})
 
-        except Exception as exc:
-            logger.error("AgentRunView %s/%s: %s", slug, agent_slug, exc)
-            AgentLog.objects.create(
-                instance=instance, action='manual_run',
-                outcome='failed', detail=str(exc),
-            )
-            instance.status = 'idle'
-            instance.save(update_fields=['status'])
-            return Response({'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            # ── Fallback Legacy / General Agent Chat Flow ─────────────────────
+            try:
+                result = agent_chat(
+                    messages=[
+                        {'role': 'system', 'content': catalog.system_prompt},
+                        {'role': 'user',   'content': user_input},
+                    ],
+                    business=business,
+                    agent_slug=agent_slug,
+                )
+                duration_ms = int((timezone.now() - t0).total_seconds() * 1000)
+                log = AgentLog.objects.create(
+                    instance=instance,
+                    action='manual_run',
+                    outcome='success',
+                    detail=result,
+                    duration_ms=duration_ms,
+                )
+                instance.status = 'idle'
+                instance.last_run_at = timezone.now()
+                instance.save(update_fields=['status', 'last_run_at'])
+                return Response({'result': result, 'log_id': log.pk, 'duration_ms': duration_ms})
+
+            except Exception as exc:
+                logger.error("AgentRunView %s/%s: %s", slug, agent_slug, exc)
+                AgentLog.objects.create(
+                    instance=instance, action='manual_run',
+                    outcome='failed', detail=str(exc),
+                )
+                instance.status = 'idle'
+                instance.save(update_fields=['status'])
+                return Response({'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class AgentApprovalsView(APIView):

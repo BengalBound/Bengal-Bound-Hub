@@ -138,6 +138,13 @@
                     {% endif %}
                 </div>
             </div>
+            <div class="d-flex gap-2 mb-2">
+                {% if ai.agent_catalog %}
+                <a href="{% url 'hub:agent_dashboard' slug=biz.slug agent_slug=ai.agent_catalog.slug %}" class="btn btn-hub-primary btn-sm flex-fill">
+                    <i class="bi bi-cpu me-1"></i>Dashboard
+                </a>
+                {% endif %}
+            </div>
             <div class="d-flex gap-2">
                 <a href="{% url 'console_admin:manage_ai' ai.id %}" class="btn btn-hub-outline btn-sm flex-fill">
                     <i class="bi bi-gear me-1"></i>Manage
