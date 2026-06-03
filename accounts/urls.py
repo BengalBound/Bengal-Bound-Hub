@@ -5,8 +5,10 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
+    path('signup/', views.signup_redirect_view, name='signup_redirect'),
     path('register/', views.register_view, name='register'),
     path('verify-otp/', views.verify_otp_view, name='verify_otp'),
+    path('resend-otp/', views.resend_otp_view, name='resend_otp'),
 
     # Custom login handles subdomain-aware redirect
     path('login/', views.custom_login_view, name='login'),

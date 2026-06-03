@@ -70,6 +70,13 @@ def _post_auth_redirect(request, user):
         target_base = CONSOLE_URL
         target_path = f'/hub/{biz.slug}/' if biz else '/'
 
+    # Respect the 'next' parameter if present, but make sure it is a safe local redirect
+    next_path = request.GET.get('next') or request.POST.get('next') or request.session.get('next')
+    if next_path and next_path.startswith('/') and not next_path.startswith('//'):
+        target_path = next_path
+        if 'next' in request.session:
+            request.session.pop('next', None)
+
     host = request.get_host().split(':')[0].lower()
     target_host = target_base.split('//')[1].split(':')[0]
 
@@ -95,6 +102,11 @@ def register_view(request):
     if request.user.is_authenticated:
         return _post_auth_redirect(request, request.user)
 
+    next_param = request.GET.get('next') or request.POST.get('next')
+    if next_param and next_param.startswith('/') and not next_param.startswith('//'):
+        request.session['next'] = next_param
+        request.session.save()
+
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
@@ -117,9 +129,22 @@ def register_view(request):
             messages.error(request, "Password must be at least 8 characters.")
             return render(request, 'accounts/register.html', _register_ctx(request))
 
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "An account with this email already exists.")
-            return render(request, 'accounts/register.html', _register_ctx(request))
+        existing_user = User.objects.filter(email=email).first()
+        if existing_user:
+            if not existing_user.is_email_verified:
+                otp = generate_otp()
+                existing_user.otp = otp
+                existing_user.otp_created_at = timezone.now()
+                existing_user.save(update_fields=['otp', 'otp_created_at'])
+                send_otp_email(existing_user, otp)
+
+                request.session['verify_email'] = email
+                request.session.save()
+                messages.info(request, "This account is pending verification. A new verification code has been sent.")
+                return redirect(f"/accounts/verify-otp/?email={email}")
+            else:
+                messages.error(request, "An account with this email already exists.")
+                return render(request, 'accounts/register.html', _register_ctx(request))
 
         user = User.objects.create_user(
             email=email,
@@ -207,9 +232,14 @@ def _register_ctx(request=None):
     return ctx
 
 
+def _verify_otp_key(group, request):
+    email = request.GET.get('email') or request.session.get('verify_email') or ''
+    return email.lower()
+
+
 # ─── OTP Verification ─────────────────────────────────────────────────────────
 
-@ratelimit(key='post:email', method='POST', rate='3/h', block=False)
+@ratelimit(key=_verify_otp_key, method='POST', rate='3/h', block=False)
 def verify_otp_view(request):
     email = request.GET.get('email') or request.session.get('verify_email')
     if not email:
@@ -250,6 +280,33 @@ def verify_otp_view(request):
     return render(request, 'accounts/verify_otp.html', {'email': email})
 
 
+def resend_otp_view(request):
+    email = request.GET.get('email') or request.session.get('verify_email')
+    if not email:
+        messages.error(request, "Email address is required to resend verification code.")
+        return redirect('accounts:register')
+
+    user = User.objects.filter(email=email).first()
+    if not user:
+        messages.error(request, "No pending registration found for this email.")
+        return redirect('accounts:register')
+
+    if user.is_email_verified:
+        messages.info(request, "Your email is already verified. Please log in.")
+        return redirect('accounts:login')
+
+    otp = generate_otp()
+    user.otp = otp
+    user.otp_created_at = timezone.now()
+    user.save(update_fields=['otp', 'otp_created_at'])
+    send_otp_email(user, otp)
+
+    request.session['verify_email'] = email
+    request.session.save()
+    messages.success(request, "A new verification code has been sent to your email.")
+    return redirect(f"/accounts/verify-otp/?email={email}")
+
+
 # ─── Login ────────────────────────────────────────────────────────────────────
 
 def custom_login_view(request):
@@ -260,6 +317,11 @@ def custom_login_view(request):
     if request.user.is_authenticated:
         return _post_auth_redirect(request, request.user)
 
+    next_param = request.GET.get('next') or request.POST.get('next')
+    if next_param and next_param.startswith('/') and not next_param.startswith('//'):
+        request.session['next'] = next_param
+        request.session.save()
+
     host = request.get_host().split(':')[0].lower()
     email = ''
 
@@ -269,6 +331,19 @@ def custom_login_view(request):
         user = authenticate(request, username=email, password=password)
 
         if user:
+            from django.conf import settings
+            if getattr(settings, 'ACCOUNT_EMAIL_VERIFICATION', 'none') == 'mandatory' and not user.is_email_verified:
+                otp = generate_otp()
+                user.otp = otp
+                user.otp_created_at = timezone.now()
+                user.save(update_fields=['otp', 'otp_created_at'])
+                send_otp_email(user, otp)
+
+                request.session['verify_email'] = user.email
+                request.session.save()
+                messages.info(request, "Your email is not verified. A verification code has been sent to your inbox.")
+                return redirect(f"/accounts/verify-otp/?email={user.email}")
+
             if host == 'workspace.localhost' and not user.is_workspace_user:
                 messages.error(request, "This login is for BengalBound staff only.")
                 return render(request, 'accounts/login.html', {'is_workspace': True, 'social_providers': [], 'username': email})
@@ -291,6 +366,7 @@ def custom_login_view(request):
         'is_workspace': host == 'workspace.localhost',
         'social_providers': _social_providers(request),
         'username': email,
+        'next': next_param,
     })
 
 
@@ -430,3 +506,13 @@ def totp_challenge_view(request):
             messages.error(request, 'Invalid code.')
 
     return render(request, 'accounts/totp_challenge.html')
+
+
+def signup_redirect_view(request):
+    """Redirect default allauth signup page requests to the custom registration view."""
+    next_param = request.GET.get('next') or request.POST.get('next')
+    url = '/accounts/register/'
+    if next_param:
+        from django.utils.http import urlencode
+        url += '?' + urlencode({'next': next_param})
+    return redirect(url)

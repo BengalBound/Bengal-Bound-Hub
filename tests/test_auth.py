@@ -56,6 +56,32 @@ class RegistrationTest(TestCase):
         # Should not create a second user
         self.assertEqual(User.objects.filter(email='dup@example.com').count(), 1)
 
+    @patch('accounts.views.send_otp_email')
+    def test_register_existing_unverified_user_resends_otp(self, mock_send):
+        user = User.objects.create_user(username='unverified@example.com', email='unverified@example.com', password='pass')
+        user.is_email_verified = False
+        user.otp = '111111'
+        user.save()
+
+        resp = self.client.post(reverse('accounts:register'), {
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'unverified@example.com',
+            'password': 'TestPass1234!',
+            'confirm_password': 'TestPass1234!',
+            'business_name': 'Recover Business',
+            'business_type': 'business',
+            'installation_type': 'cloud',
+        })
+        
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/accounts/verify-otp/', resp.url)
+        
+        user.refresh_from_db()
+        self.assertNotEqual(user.otp, '111111')
+        self.assertFalse(user.is_email_verified)
+        mock_send.assert_called_once()
+
 
 class OTPVerifyTest(TestCase):
     def setUp(self):
@@ -90,6 +116,29 @@ class OTPVerifyTest(TestCase):
         self.assertFalse(self.user.is_email_verified)
 
 
+class OTPResendTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='resenduser@example.com',
+            email='resenduser@example.com',
+            password='pass1234',
+        )
+        self.user.otp = '111111'
+        self.user.save()
+
+    @patch('accounts.views.send_otp_email')
+    def test_resend_otp_regenerates_and_sends(self, mock_send):
+        resp = self.client.get(reverse('accounts:resend_otp') + '?email=resenduser@example.com')
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/accounts/verify-otp/', resp.url)
+
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.otp, '111111')
+        self.assertIsNotNone(self.user.otp)
+        mock_send.assert_called_once_with(self.user, self.user.otp)
+
+
 class LoginTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -102,19 +151,42 @@ class LoginTest(TestCase):
 
     def test_correct_credentials_logs_in(self):
         resp = self.client.post(reverse('accounts:login'), {
-            'email': 'login@example.com',
+            'username': 'login@example.com',
             'password': 'correctpass',
         })
-        # Should redirect after login (302) not return 200 with errors
         self.assertIn(resp.status_code, [200, 302])
+        self.assertTrue(resp.wsgi_request.user.is_authenticated)
 
     def test_wrong_password_does_not_log_in(self):
         resp = self.client.post(reverse('accounts:login'), {
-            'email': 'login@example.com',
+            'username': 'login@example.com',
             'password': 'wrongpass',
         })
         # User should not be authenticated
         self.assertFalse(resp.wsgi_request.user.is_authenticated)
+
+    @patch('accounts.views.send_otp_email')
+    def test_login_redirects_unverified_user_to_otp(self, mock_send):
+        unverified_user = User.objects.create_user(
+            username='unverified_login@example.com',
+            email='unverified_login@example.com',
+            password='correctpass',
+            is_email_verified=False,
+        )
+        
+        from django.test import override_settings
+        with override_settings(ACCOUNT_EMAIL_VERIFICATION='mandatory'):
+            resp = self.client.post(reverse('accounts:login'), {
+                'username': 'unverified_login@example.com',
+                'password': 'correctpass',
+            })
+            
+            self.assertEqual(resp.status_code, 302)
+            self.assertIn('/accounts/verify-otp/', resp.url)
+            
+            unverified_user.refresh_from_db()
+            self.assertIsNotNone(unverified_user.otp)
+            mock_send.assert_called_once_with(unverified_user, unverified_user.otp)
 
 
 class OneBizPerOwnerTest(TestCase):
@@ -176,3 +248,68 @@ class UserBusinessMembershipTest(TestCase):
         )
         result = _get_business_for_user('test-biz', self.member)
         self.assertIsNotNone(result)
+
+
+class NextRedirectPreservationTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_allauth_signup_redirects_to_custom_register(self):
+        # Visiting allauth signup page should redirect to custom register
+        resp = self.client.get('/accounts/signup/?next=/foo/bar/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue('/accounts/register/' in resp.url)
+        self.assertTrue('next=%2Ffoo%2Fbar%2F' in resp.url)
+
+    @patch('accounts.views.send_otp_email')
+    def test_registration_preserves_next_parameter(self, mock_send):
+        # Registering with a next parameter should save it to session
+        resp = self.client.post(reverse('accounts:register') + '?next=/target/url/', {
+            'first_name': 'Preserve',
+            'last_name': 'Redirect',
+            'email': 'preserve@example.com',
+            'password': 'TestPass1234!',
+            'confirm_password': 'TestPass1234!',
+            'business_name': 'Redirect Biz',
+            'business_type': 'business',
+            'installation_type': 'cloud',
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/accounts/verify-otp/', resp.url)
+        self.assertEqual(self.client.session.get('next'), '/target/url/')
+
+        user = User.objects.get(email='preserve@example.com')
+        otp = user.otp
+
+        # Create allauth EmailAddress record
+        from allauth.account.models import EmailAddress
+        EmailAddress.objects.get_or_create(
+            user=user,
+            email=user.email,
+            defaults={'primary': True, 'verified': False}
+        )
+
+        resp2 = self.client.post(reverse('accounts:verify_otp') + '?email=preserve@example.com', {'otp': otp})
+        self.assertEqual(resp2.status_code, 200)
+        self.assertContains(resp2, 'value="/target/url/"')
+
+    def test_login_preserves_next_parameter(self):
+        user = User.objects.create_user(
+            username='login_preserve',
+            email='login_preserve@example.com',
+            password='correctpass',
+            is_email_verified=True,
+        )
+        BusinessInstance.objects.create(
+            owner=user,
+            name='Login Target Biz',
+            slug='target-biz',
+            business_type='business',
+        )
+
+        resp = self.client.post(reverse('accounts:login') + '?next=/custom/dashboard/', {
+            'username': 'login_preserve@example.com',
+            'password': 'correctpass',
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'value="/custom/dashboard/"')

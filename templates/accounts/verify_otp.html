@@ -59,7 +59,7 @@
                     </form>
 
                     <p class="mt-4 mb-0" style="font-size:0.78rem;color:rgba(255,255,255,0.35);">
-                        Didn't get the email? Check your spam folder, or <a href="{% url 'accounts:register' %}" style="color:rgba(192,132,252,0.7);text-decoration:none;">try again</a>.
+                        Didn't get the email? Check your spam folder, or <a href="{% url 'accounts:resend_otp' %}?email={{ email }}" style="color:rgba(192,132,252,0.7);text-decoration:none;">resend code</a>.
                     </p>
                 </div>
 

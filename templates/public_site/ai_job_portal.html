@@ -68,7 +68,7 @@
                             <i class="bi bi-robot me-1"></i> Hire This Agent
                         </a>
                     {% else %}
-                        <a href="{% url 'account_signup' %}?next={% url 'console_admin:hire_ai' %}%3Fcatalog={{ agent.slug }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
+                        <a href="{% url 'accounts:register' %}?next={% url 'console_admin:hire_ai' %}%3Fcatalog={{ agent.slug }}" class="btn btn-outline-premium w-100 py-2 fs-6 mt-auto">
                             <i class="bi bi-robot me-1"></i> Create Account to Hire
                         </a>
                     {% endif %}
