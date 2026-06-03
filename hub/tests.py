@@ -19,7 +19,7 @@ class HubAPITests(APITestCase):
             slug="test-biz",
             business_type="agency"
         )
-        self.url = reverse('hub_api:business-list')
+        self.url = reverse('api:hub_api:business-list')
 
     def test_unauthenticated_access_denied(self):
         response = self.client.get(self.url)
@@ -45,6 +45,6 @@ class HubAPITests(APITestCase):
 
 class AgentCatalogAPITests(APITestCase):
     def test_catalog_is_public(self):
-        url = reverse('agents_global_api:catalog-list')
+        url = reverse('api:agents_global_api:catalog-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

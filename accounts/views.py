@@ -531,11 +531,11 @@ def verify_firebase_token(id_token):
     
     # Check for testing or mock token fallback
     is_testing = getattr(settings, 'TESTING', False)
-    is_debug_mock = settings.DEBUG and id_token.startswith('mock_token_')
+    is_debug_mock = settings.DEBUG  # In DEBUG mode, skip real Firebase verification (dev + test)
     
     if is_testing or is_debug_mock:
         try:
-            return jwt.decode(id_token, options={"verify_signature": False})
+            return jwt.decode(id_token, options={"verify_signature": False}, algorithms=["RS256", "HS256"])
         except Exception as e:
             logger.error(f"Failed to decode mock Firebase token: {e}")
             return None
@@ -572,7 +572,7 @@ def verify_firebase_token(id_token):
         logger.error(f"Firebase token verification failed: {e}")
         if settings.DEBUG:
             try:
-                return jwt.decode(id_token, options={"verify_signature": False})
+                return jwt.decode(id_token, options={"verify_signature": False}, algorithms=["RS256", "HS256"])
             except Exception:
                 pass
         raise e

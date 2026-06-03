@@ -12,7 +12,7 @@ class BusinessInstanceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return BusinessInstance.objects.filter(
-            Q(owner=user) | Q(businessemployee__user=user)
+            Q(owner=user) | Q(employees__user=user)
         ).distinct()
 
     def perform_create(self, serializer):
@@ -43,6 +43,6 @@ class BusinessEmployeeViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         businesses = BusinessInstance.objects.filter(
-            Q(owner=user) | Q(businessemployee__user=user)
+            Q(owner=user) | Q(employees__user=user)
         )
         return BusinessEmployee.objects.filter(business__in=businesses).distinct()

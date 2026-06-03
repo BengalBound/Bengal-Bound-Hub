@@ -26,7 +26,7 @@ def run_compliance_evaluation(business, agent_name, action_type, action_payload,
     )
 
     if not rules_qs.exists():
-        return True, "No active rules found.", "", "", 1.0, []
+        return "approved", "No active rules found.", "", "", 1.0, []
 
     rules_list = list(rules_qs.values('id', 'name', 'category', 'standard_ref', 'rule_description'))
     rules_text = "\n".join([f"- [{r['standard_ref']}] Category: {r['category']} - {r['name']}: {r['rule_description']}" for r in rules_list])

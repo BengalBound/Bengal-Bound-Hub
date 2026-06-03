@@ -176,9 +176,13 @@ class SampleOrderModelTest(TestCase):
 
 class E2EFactoryFlowTest(TestCase):
     def setUp(self):
+        from django.contrib.auth import get_user_model
         from hub.models import BusinessInstance
+        User = get_user_model()
+        owner = User.objects.create_user(username='factory_owner', email='factory@test.com', password='pass')
         self.business = BusinessInstance.objects.create(
-            name="Test Factory"
+            name="Test Factory",
+            owner=owner,
         )
 
     def test_full_production_lifecycle(self):

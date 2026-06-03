@@ -78,43 +78,62 @@ Run on **port 1234**: `python manage.py runserver 0.0.0.0:1234`
 
 ---
 
-## Agent Migration (Active Sprint)
+## Sprint Status (as of 2026-06-03)
 
-We are migrating 30 AI agents from a separate codebase into this project.
-**Source** (read-only — never edit): `d:\Bengal bound\Bengal Bound.worktrees\agents-constitutional-fox\api/agents/`
+**ALL Sprints A–H are COMPLETE.** The agent migration is done.
 
-### New app: `agents/`
-All 30 agents live under `agents/<name>/` in this repo.
+| Sprint | What | Status |
+|--------|------|--------|
+| A | AgentCatalog model + 30 agents seeded | ✅ Done |
+| B | Agent sub-apps created (engine.py + tasks.py per agent) | ✅ Done |
+| C | agents/utils.py + CELERY_BEAT_SCHEDULE for all agents | ✅ Done |
+| D | DRF ViewSets, serializers, urls per agent | ✅ Done |
+| E | Agent sprint E tests + coverage | ✅ Done |
+| F | WebSocket real-time permission resolution | ✅ Done |
+| G | Stripe billing integration (checkout, webhooks, success/cancel pages) | ✅ Done |
+| H | Firebase auth bridge (firebase_token_sync, firebase_uid on User model) | ✅ Done |
+| **I** | **Veritas KYB module — NEXT SPRINT** | 🔲 Not started |
 
-### Pattern for every agent app
+---
+
+## Next Sprint: Veritas KYB (Sprint I)
+
+Veritas is the **critical gate** — no AI agent can activate until a client has Green KYB clearance.
+Spec: `docs/platform/veritas_client_kyb_onboarding.md`
+
+### New app: `veritas/`
 
 ```
-agents/
-  <name>/
-    __init__.py
-    apps.py           ← AppConfig name = 'agents.<name>'
-    models.py         ← Domain models, FK to 'bredbound.BusinessInstance'
-    views.py          ← DRF ViewSets, uses agent_chat() from agents.utils
-    serializers.py
-    urls.py           ← app_name = '<name>'
-    migrations/
+veritas/
+  __init__.py
+  apps.py           ← app_name = 'veritas'
+  models.py         ← ClientApplication, KYBDocument, SanctionsCheck, ClientAgreement
+  views.py          ← Application submit, document upload, status check, sign agreements
+  serializers.py
+  urls.py           ← app_name = 'veritas'
+  tasks.py          ← async Celery tasks: registry_check, sanctions_scan, risk_score
+  engine.py         ← AI-powered document OCR + risk analysis via agent_chat()
+  migrations/
 ```
 
-### AgentCatalog model (Sprint A — DO FIRST)
-```python
-class AgentCatalog(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
-    role = models.CharField(max_length=200)
-    description = models.TextField()
-    system_prompt = models.TextField()
-    category = models.CharField(max_length=100)
-    tier_required = models.CharField(max_length=20, default='entry')
-    is_active = models.BooleanField(default=True)
-    icon = models.CharField(max_length=50, blank=True)
-```
+### Core models (from SRS)
+- `ClientApplication` — status choices: submitted → under_review → approved/rejected/amber
+- `KYBDocument` — uploaded docs (trade license, passport, etc.) with AI verification
+- `SanctionsCheck` — OFAC/UN/EU/FATF screening results
+- `ClientAgreement` — digital signatures on TOS, DPA, AUP, AI Ethics docs
 
-### The 30 agents (Sprint A seeds all of these)
+### Inspector gate in veritas
+Before any AI agent endpoint: check `ClientApplication.status == 'approved'` — if not, return `HTTP 403 KYB Required`.
+
+### After Veritas: Sprint J — bKash Payment
+The primary payment method for the Bangladesh market. Stripe handles global; bKash handles BD.
+Spec: `docs/architecture/FULL_AUTOMATION.md` (billing section).
+
+---
+
+## Completed Agent Apps
+
+All 30 agents are in `agents/<name>/` with full engine.py + tasks.py pattern:
 
 | Slug | Name | Category |
 |------|------|----------|
@@ -157,13 +176,19 @@ class AgentCatalog(models.Model):
 # Seed business modules (60+)
 python manage.py seed_modules
 
-# Seed AI agent catalog (30 agents) — Sprint A
+# Seed AI agent catalog (30 agents)
 python manage.py seed_agents
+
+# Seed Inspector compliance rules (40+ global laws)
+python manage.py seed_compliance_rules
 
 # Standard
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py collectstatic    # Production only
+
+# Run tests (use development settings — testing.py also works)
+python manage.py test --settings=bengalbound_core.settings.development
 ```
 
 ---
@@ -174,11 +199,19 @@ python manage.py collectstatic    # Production only
 |---------|------|
 | Installed apps + middleware | `bengalbound_core/settings/base.py` |
 | Root URL table | `bengalbound_core/urls.py` |
+| Workspace URL table | `bengalbound_core/workspace_urls.py` |
 | Business middleware | `hub/middleware.py` |
+| Inspector middleware | `inspector/middleware.py` |
 | Module sidebar routing | `hub/context_processors.py` |
 | Module seeder | `hub/management/commands/seed_modules.py` |
-| Agent seeder | `agents/management/commands/seed_agents.py` (Sprint A) |
-| AI utility | `agents/utils.py` (Sprint C) |
+| Agent seeder | `agents/management/commands/seed_agents.py` |
+| Compliance rules seeder | `inspector/management/commands/seed_compliance_rules.py` |
+| AI utility | `agents/utils.py` |
+| Inspector compliance gate | `inspector/views.py` → `run_compliance_evaluation()` |
+| Stripe billing | `billing/views.py`, `billing/services.py` |
+| Firebase auth bridge | `accounts/views.py` → `firebase_token_sync()` |
+| Hub DRF API | `hub/api_views.py`, `hub/api_urls.py` (namespace: `api:hub_api`) |
+| Agent catalog API | `agents/global_api_urls.py` (namespace: `api:agents_global_api`) |
 | LiteLLM AI models | `SEREA_TASK_MODELS` in `bengalbound_core/settings/base.py` |
 | Env template | `.env.example` |
 
