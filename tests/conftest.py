@@ -1,4 +1,10 @@
+import sys
+import asyncio
 import pytest
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 from pytest_factoryboy import register
 from tests.factories import UserFactory, BusinessInstanceFactory, BusinessEmployeeFactory, AgentCatalogFactory
 
