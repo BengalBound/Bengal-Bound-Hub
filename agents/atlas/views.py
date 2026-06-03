@@ -22,6 +22,7 @@ _ATLAS_PROMPT = (
 
 class ExecTaskViewSet(viewsets.ModelViewSet):
     serializer_class = ExecTaskSerializer
+    queryset = ExecTask.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -41,6 +42,7 @@ class ExecTaskViewSet(viewsets.ModelViewSet):
 
 class MeetingBriefViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingBriefSerializer
+    queryset = MeetingBrief.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

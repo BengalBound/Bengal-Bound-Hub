@@ -24,6 +24,7 @@ _REALT_PROMPT = (
 
 class PropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
+    queryset = Property.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -43,6 +44,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
 class LeadViewSet(viewsets.ModelViewSet):
     serializer_class = LeadSerializer
+    queryset = Lead.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

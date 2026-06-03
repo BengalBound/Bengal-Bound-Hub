@@ -22,6 +22,7 @@ _TEMPO_PROMPT = (
 
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
+    queryset = Event.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -81,6 +82,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
 class AttendeeViewSet(viewsets.ModelViewSet):
     serializer_class = AttendeeSerializer
+    queryset = Attendee.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

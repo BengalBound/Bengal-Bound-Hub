@@ -22,6 +22,7 @@ _CASH_PROMPT = (
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
+    queryset = Employee.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -41,6 +42,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
 class PayrollRunViewSet(viewsets.ModelViewSet):
     serializer_class = PayrollRunSerializer
+    queryset = PayrollRun.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

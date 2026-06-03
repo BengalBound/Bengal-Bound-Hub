@@ -24,6 +24,7 @@ _KAI_PROMPT = (
 
 class PipelineViewSet(viewsets.ModelViewSet):
     serializer_class = PipelineSerializer
+    queryset = Pipeline.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -43,6 +44,7 @@ class PipelineViewSet(viewsets.ModelViewSet):
 
 class IncidentViewSet(viewsets.ModelViewSet):
     serializer_class = IncidentSerializer
+    queryset = Incident.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

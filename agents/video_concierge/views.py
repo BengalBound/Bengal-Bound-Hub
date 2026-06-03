@@ -9,6 +9,7 @@ from .serializers import VideoSessionSerializer
 
 class VideoSessionViewSet(viewsets.ModelViewSet):
     serializer_class = VideoSessionSerializer
+    queryset = VideoSession.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

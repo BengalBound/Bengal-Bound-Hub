@@ -25,6 +25,7 @@ _CLARITY_PROMPT = (
 
 class FeedbackSurveyViewSet(viewsets.ModelViewSet):
     serializer_class = FeedbackSurveySerializer
+    queryset = FeedbackSurvey.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -92,6 +93,7 @@ class FeedbackSurveyViewSet(viewsets.ModelViewSet):
 
 class InsightThemeViewSet(viewsets.ModelViewSet):
     serializer_class = InsightThemeSerializer
+    queryset = InsightTheme.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

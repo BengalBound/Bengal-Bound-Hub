@@ -22,6 +22,7 @@ _MERCH_PROMPT = (
 
 class StoreViewSet(viewsets.ModelViewSet):
     serializer_class = StoreSerializer
+    queryset = Store.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -41,6 +42,7 @@ class StoreViewSet(viewsets.ModelViewSet):
 
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
+    queryset = Product.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

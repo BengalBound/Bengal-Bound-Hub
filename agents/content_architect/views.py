@@ -22,6 +22,7 @@ _GENERATE_PROMPT = (
 
 class ContentCalendarViewSet(viewsets.ModelViewSet):
     serializer_class = ContentCalendarSerializer
+    queryset = ContentCalendar.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -41,6 +42,7 @@ class ContentCalendarViewSet(viewsets.ModelViewSet):
 
 class CalendarEntryViewSet(viewsets.ModelViewSet):
     serializer_class = CalendarEntrySerializer
+    queryset = CalendarEntry.objects.none()
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

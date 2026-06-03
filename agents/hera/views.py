@@ -22,6 +22,7 @@ _HERA_PROMPT = (
 
 class PolicyQueryViewSet(viewsets.ModelViewSet):
     serializer_class = PolicyQuerySerializer
+    queryset = PolicyQuery.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -72,6 +73,7 @@ class PolicyQueryViewSet(viewsets.ModelViewSet):
 
 class OnboardingTaskViewSet(viewsets.ModelViewSet):
     serializer_class = OnboardingTaskSerializer
+    queryset = OnboardingTask.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

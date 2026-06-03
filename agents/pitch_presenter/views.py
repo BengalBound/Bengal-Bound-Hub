@@ -11,6 +11,7 @@ from .serializers import VideoPitchSerializer
 
 class VideoPitchViewSet(viewsets.ModelViewSet):
     serializer_class = VideoPitchSerializer
+    queryset = VideoPitch.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

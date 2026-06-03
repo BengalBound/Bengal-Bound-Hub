@@ -23,6 +23,7 @@ _LUMA_PROMPT = (
 
 class BrandMentionViewSet(viewsets.ModelViewSet):
     serializer_class = BrandMentionSerializer
+    queryset = BrandMention.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -80,6 +81,7 @@ class BrandMentionViewSet(viewsets.ModelViewSet):
 
 class PressReleaseViewSet(viewsets.ModelViewSet):
     serializer_class = PressReleaseSerializer
+    queryset = PressRelease.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

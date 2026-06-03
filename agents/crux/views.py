@@ -22,6 +22,7 @@ _CRUX_PROMPT = (
 
 class ContactViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
+    queryset = Contact.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -68,6 +69,7 @@ class ContactViewSet(viewsets.ModelViewSet):
 
 class InteractionViewSet(viewsets.ModelViewSet):
     serializer_class = InteractionSerializer
+    queryset = Interaction.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

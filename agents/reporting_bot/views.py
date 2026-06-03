@@ -23,6 +23,7 @@ _REPORTING_PROMPT = (
 
 class ReportConfigViewSet(viewsets.ModelViewSet):
     serializer_class = ReportConfigSerializer
+    queryset = ReportConfig.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -95,6 +96,7 @@ class ReportConfigViewSet(viewsets.ModelViewSet):
 
 class ReportViewSet(viewsets.ModelViewSet):
     serializer_class = ReportSerializer
+    queryset = Report.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

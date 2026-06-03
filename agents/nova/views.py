@@ -24,6 +24,7 @@ _NOVA_PROMPT = (
 
 class DataSourceViewSet(viewsets.ModelViewSet):
     serializer_class = DataSourceSerializer
+    queryset = DataSource.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -43,6 +44,7 @@ class DataSourceViewSet(viewsets.ModelViewSet):
 
 class DataQueryViewSet(viewsets.ModelViewSet):
     serializer_class = DataQuerySerializer
+    queryset = DataQuery.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

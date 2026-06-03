@@ -24,6 +24,7 @@ _SHIELD_PROMPT = (
 
 class ITTicketViewSet(viewsets.ModelViewSet):
     serializer_class = ITTicketSerializer
+    queryset = ITTicket.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -92,6 +93,7 @@ class ITTicketViewSet(viewsets.ModelViewSet):
 
 class KnowledgeArticleViewSet(viewsets.ModelViewSet):
     serializer_class = KnowledgeArticleSerializer
+    queryset = KnowledgeArticle.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

@@ -27,6 +27,7 @@ _PULSE_PROMPT = (
 
 class ResearchConfigViewSet(viewsets.ModelViewSet):
     serializer_class = ResearchConfigSerializer
+    queryset = ResearchConfig.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -94,6 +95,7 @@ class ResearchConfigViewSet(viewsets.ModelViewSet):
 
 class ResearchReportViewSet(viewsets.ModelViewSet):
     serializer_class = ResearchReportSerializer
+    queryset = ResearchReport.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

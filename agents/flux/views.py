@@ -22,6 +22,7 @@ _FLUX_PROMPT = (
 
 class SupplierViewSet(viewsets.ModelViewSet):
     serializer_class = SupplierSerializer
+    queryset = Supplier.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -79,6 +80,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
     serializer_class = PurchaseOrderSerializer
+    queryset = PurchaseOrder.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

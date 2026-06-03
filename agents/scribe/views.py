@@ -11,6 +11,7 @@ from .serializers import MeetingSerializer
 
 class MeetingViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingSerializer
+    queryset = Meeting.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

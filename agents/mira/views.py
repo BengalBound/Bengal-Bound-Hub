@@ -23,6 +23,7 @@ _MIRA_PROMPT = (
 
 class ClientHealthViewSet(viewsets.ModelViewSet):
     serializer_class = ClientHealthSerializer
+    queryset = ClientHealth.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -69,6 +70,7 @@ class ClientHealthViewSet(viewsets.ModelViewSet):
 
 class SuccessEmailViewSet(viewsets.ModelViewSet):
     serializer_class = SuccessEmailSerializer
+    queryset = SuccessEmail.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

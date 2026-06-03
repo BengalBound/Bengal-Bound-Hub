@@ -25,6 +25,7 @@ TRIAGE_SYSTEM_PROMPT = (
 
 class MeetingRequestViewSet(viewsets.ModelViewSet):
     serializer_class = MeetingRequestSerializer
+    queryset = MeetingRequest.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -44,6 +45,7 @@ class MeetingRequestViewSet(viewsets.ModelViewSet):
 
 class EmailTriageViewSet(viewsets.ModelViewSet):
     serializer_class = EmailTriageSerializer
+    queryset = EmailTriage.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

@@ -20,6 +20,7 @@ _ARIA_PROMPT = (
 
 class SupportTicketViewSet(viewsets.ModelViewSet):
     serializer_class = SupportTicketSerializer
+    queryset = SupportTicket.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -59,6 +60,7 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
 
 class TicketResponseViewSet(viewsets.ModelViewSet):
     serializer_class = TicketResponseSerializer
+    queryset = TicketResponse.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

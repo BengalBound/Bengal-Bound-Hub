@@ -26,6 +26,7 @@ _ORACLE_PROMPT = (
 
 class WebsiteViewSet(viewsets.ModelViewSet):
     serializer_class = WebsiteSerializer
+    queryset = Website.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -95,6 +96,7 @@ class WebsiteViewSet(viewsets.ModelViewSet):
 
 class SEOIssueViewSet(viewsets.ModelViewSet):
     serializer_class = SEOIssueSerializer
+    queryset = SEOIssue.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

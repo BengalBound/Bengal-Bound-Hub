@@ -22,6 +22,7 @@ _MEDIBOOK_PROMPT = (
 
 class DoctorViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
+    queryset = Doctor.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -41,6 +42,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     serializer_class = AppointmentSerializer
+    queryset = Appointment.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

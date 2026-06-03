@@ -23,6 +23,7 @@ _BABEL_PROMPT = (
 
 class TranslationJobViewSet(viewsets.ModelViewSet):
     serializer_class = TranslationJobSerializer
+    queryset = TranslationJob.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -85,6 +86,7 @@ class TranslationJobViewSet(viewsets.ModelViewSet):
 
 class TranslationOutputViewSet(viewsets.ModelViewSet):
     serializer_class = TranslationOutputSerializer
+    queryset = TranslationOutput.objects.none()
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

@@ -22,6 +22,7 @@ _PAYLOAD_PROMPT = (
 
 class VendorViewSet(viewsets.ModelViewSet):
     serializer_class = VendorSerializer
+    queryset = Vendor.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -41,6 +42,7 @@ class VendorViewSet(viewsets.ModelViewSet):
 
 class RFQViewSet(viewsets.ModelViewSet):
     serializer_class = RFQSerializer
+    queryset = RFQ.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

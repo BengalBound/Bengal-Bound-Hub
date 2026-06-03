@@ -27,6 +27,7 @@ _SCOUT_PROMPT = (
 
 class CompetitorViewSet(viewsets.ModelViewSet):
     serializer_class = CompetitorSerializer
+    queryset = Competitor.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -92,6 +93,7 @@ class CompetitorViewSet(viewsets.ModelViewSet):
 
 class CompetitorChangeViewSet(viewsets.ModelViewSet):
     serializer_class = CompetitorChangeSerializer
+    queryset = CompetitorChange.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

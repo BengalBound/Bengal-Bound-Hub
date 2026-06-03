@@ -29,6 +29,7 @@ _SAGE_PROMPT = (
 
 class LegalDocumentViewSet(viewsets.ModelViewSet):
     serializer_class = LegalDocumentSerializer
+    queryset = LegalDocument.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -106,6 +107,7 @@ class LegalDocumentViewSet(viewsets.ModelViewSet):
 
 class ClauseViewSet(viewsets.ModelViewSet):
     serializer_class = ClauseSerializer
+    queryset = Clause.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

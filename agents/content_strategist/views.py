@@ -21,6 +21,7 @@ _SEREA_SYSTEM = (
 
 class ContentPieceViewSet(viewsets.ModelViewSet):
     serializer_class = ContentPieceSerializer
+    queryset = ContentPiece.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -60,6 +61,7 @@ class ContentPieceViewSet(viewsets.ModelViewSet):
 
 class CampaignViewSet(viewsets.ModelViewSet):
     serializer_class = CampaignSerializer
+    queryset = Campaign.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

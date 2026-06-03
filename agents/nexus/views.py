@@ -23,6 +23,7 @@ _NEXUS_PROMPT = (
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
+    queryset = Course.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -82,6 +83,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = EnrollmentSerializer
+    queryset = Enrollment.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

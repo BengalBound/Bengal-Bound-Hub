@@ -23,6 +23,7 @@ _SCORE_PROMPT = (
 
 class ProspectViewSet(viewsets.ModelViewSet):
     serializer_class = ProspectSerializer
+    queryset = Prospect.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -68,6 +69,7 @@ class ProspectViewSet(viewsets.ModelViewSet):
 
 class OutreachSequenceViewSet(viewsets.ModelViewSet):
     serializer_class = OutreachSequenceSerializer
+    queryset = OutreachSequence.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):

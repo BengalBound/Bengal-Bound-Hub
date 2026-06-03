@@ -24,6 +24,7 @@ _DOX_PROMPT = (
 
 class DocumentationProjectViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentationProjectSerializer
+    queryset = DocumentationProject.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
@@ -94,6 +95,7 @@ class DocumentationProjectViewSet(viewsets.ModelViewSet):
 
 class DocPageViewSet(viewsets.ModelViewSet):
     serializer_class = DocPageSerializer
+    queryset = DocPage.objects.none()
     permission_classes = [IsAuthenticated]
 
     def _get_business(self):
