@@ -376,6 +376,7 @@ class ContentQueue(models.Model):
         help_text="Populated if status='failed'; contains the error message for debugging."
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Content Queue Item'

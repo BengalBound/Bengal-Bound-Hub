@@ -38,7 +38,7 @@ async def main():
         
         # Login
         print("Logging in...")
-        await page.goto("http://127.0.0.1:8000/accounts/login/")
+        await page.goto("http://127.0.0.1:1234/accounts/login/")
         
         # Check what fields exist (id_login usually for allauth)
         if await page.locator("input[name='login']").count() > 0:
@@ -55,7 +55,7 @@ async def main():
             await page.wait_for_url("**/console/**", timeout=10000)
         except Exception:
             # If not redirected automatically, go there manually
-            await page.goto("http://127.0.0.1:8000/console/")
+            await page.goto("http://127.0.0.1:1234/console/")
             await page.wait_for_load_state("networkidle")
             
         # Hide any debug toolbar or sticky footers that might ruin the shot
@@ -75,7 +75,7 @@ async def main():
         cookies = await context.cookies()
         await mobile_context.add_cookies(cookies)
         
-        await mobile_page.goto("http://127.0.0.1:8000/console/")
+        await mobile_page.goto("http://127.0.0.1:1234/console/")
         await mobile_page.wait_for_load_state("networkidle")
         
         await mobile_page.evaluate("""

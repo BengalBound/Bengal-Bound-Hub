@@ -115,6 +115,55 @@
 {% endfor %}
 </div>
 
+<!-- Platform Value & Inclusions Breakdown -->
+<div class="glass-panel p-4 mb-4">
+    <div class="border-bottom border-white border-opacity-10 pb-3 mb-4">
+        <h5 class="fw-semibold text-white mb-1"><i class="bi bi-gift me-2 text-gradient-purple-cyan"></i>Why BengalBound? What Your Subscription Includes</h5>
+        <p class="text-white-50 small mb-0">Every plan powers your business with our unified multi-tenant backoffice system. Here is a breakdown of what you unlock:</p>
+    </div>
+    
+    <div class="row g-4 text-start">
+        <!-- Value 1 -->
+        <div class="col-md-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center p-2" style="background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.2); width: 42px; height: 42px; flex-shrink:0;">
+                    <i class="bi bi-cash-stack" style="color: #c084fc; font-size: 1.2rem;"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-white mb-1" style="font-size:0.9rem;">Consolidated Software Costs</h6>
+                    <p class="text-white-50 mb-0" style="font-size:0.78rem; line-height: 1.5;">Replaces up to 20+ standalone business subscriptions (Salesforce CRM, Google Workspace docs/sheets/mail, Zoom, Slack, Jira) under one single bill, cutting software overhead by over 80%.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Value 2 -->
+        <div class="col-md-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center p-2" style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); width: 42px; height: 42px; flex-shrink:0;">
+                    <i class="bi bi-robot" style="color: #38bdf8; font-size: 1.2rem;"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-white mb-1" style="font-size:0.9rem;">Pluggable AI Marketplace Access</h6>
+                    <p class="text-white-50 mb-0" style="font-size:0.78rem; line-height: 1.5;">Harness pre-trained Serea AI agents directly within your active modules. Run 24/7 background tasks like automated invoice scanning, SEO audits, customer ticket triaging, and social media posting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Value 3 -->
+        <div class="col-md-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center p-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); width: 42px; height: 42px; flex-shrink:0;">
+                    <i class="bi bi-shield-fill-check" style="color: #22c55e; font-size: 1.2rem;"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-white mb-1" style="font-size:0.9rem;">Human-in-the-Loop Safe Guarding</h6>
+                    <p class="text-white-50 mb-0" style="font-size:0.78rem; line-height: 1.5;">Your security is our absolute priority. AI agents operate in a sandbox environment and must broadcast explicit approval requests to your console before dispatching emails, posts, or processing payments.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Hidden plan-change form (submitted via JS) -->
 <form id="planChangeForm" method="post" style="display:none;">
     {% csrf_token %}

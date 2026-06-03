@@ -188,6 +188,8 @@ def create_social_post(
             post_date = parse_datetime(schedule_time)
             if post_date is None:
                 post_date = timezone.now() + datetime.timedelta(hours=1)
+            elif timezone.is_naive(post_date):
+                post_date = timezone.make_aware(post_date)
         else:
             post_date = timezone.now() + datetime.timedelta(minutes=5)
 
@@ -959,6 +961,8 @@ def edit_scheduled_post(
         if schedule_time:
             new_time = parse_datetime(schedule_time)
             if new_time:
+                if timezone.is_naive(new_time):
+                    new_time = timezone.make_aware(new_time)
                 item.post_date = new_time
         item.save()
         return (

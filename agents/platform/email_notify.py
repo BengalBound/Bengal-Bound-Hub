@@ -21,7 +21,7 @@ class EmailAdapter(BaseAgentAdapter):
     def send_permission_request(self, request: AgentPermissionRequest, to_emails: list) -> bool:
         subject = f"[{self.instance.catalog.name}] Permission Required"
 
-        site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000')
+        site_url = getattr(settings, 'SITE_URL', 'http://localhost:1234')
         url = site_url + reverse('agent_permission_respond', args=[request.pk])
 
         body = f"""

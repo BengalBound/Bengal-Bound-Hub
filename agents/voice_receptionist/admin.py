@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.conf import settings
+from django.utils.html import format_html
 from .models import BusinessProfile, Call, Appointment, SpamLog, SpamBlocklist, UserProfile, NotificationTemplate
 
 
@@ -43,11 +44,15 @@ class BusinessProfileAdmin(admin.ModelAdmin):
 
     def webhook_urls(self, obj):
         base = getattr(settings, 'SITE_URL', 'https://yourdomain.com')
-        return (
-            f"Inbound call:      {base}/agents/voice-receptionist/webhook/inbound/\n"
-            f"Gather (keypress): {base}/agents/voice-receptionist/webhook/gather/\n"
-            f"Voicemail:         {base}/agents/voice-receptionist/webhook/voicemail/\n"
-            f"Transfer complete: {base}/agents/voice-receptionist/webhook/transfer-complete/"
+        return format_html(
+            '<code>Inbound call:</code> {}<br>'
+            '<code>Gather (keypress):</code> {}<br>'
+            '<code>Voicemail:</code> {}<br>'
+            '<code>Transfer complete:</code> {}',
+            f'{base}/agents/voice-receptionist/webhook/inbound/',
+            f'{base}/agents/voice-receptionist/webhook/gather/',
+            f'{base}/agents/voice-receptionist/webhook/voicemail/',
+            f'{base}/agents/voice-receptionist/webhook/transfer-complete/',
         )
     webhook_urls.short_description = 'Webhook URLs (paste into Twilio Console)'
 

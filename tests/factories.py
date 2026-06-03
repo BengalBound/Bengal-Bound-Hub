@@ -9,6 +9,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
         django_get_or_create = ('email',)
+        skip_postgeneration_save = True
 
     username = factory.Sequence(lambda n: f'user{n}')
     email = factory.Sequence(lambda n: f'user{n}@example.com')
@@ -16,6 +17,8 @@ class UserFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def password(self, create, extracted, **kwargs):
         self.set_password('testpass123')
+        if create:
+            self.save()
 
 
 class BusinessInstanceFactory(factory.django.DjangoModelFactory):

@@ -69,38 +69,17 @@ class SereaChatConsumer(AsyncWebsocketConsumer):
     def process_chat_message(self, message_text):
         from .models import SereaAgent, ConversationMessage
         from .tasks import process_chat_message_task
-        
-        agent = SereaAgent.objects.get(id=self.agent_id)
-        
-        # Create user message
-        client_msg = ConversationMessage.objects.create(
+
+        try:
+            agent = SereaAgent.objects.get(id=self.agent_id)
+        except SereaAgent.DoesNotExist:
+            return
+
+        # Saving triggers the post_save signal in signals.py which broadcasts to the group.
+        ConversationMessage.objects.create(
             agent=agent,
             sender=self.user.email,
             message_text=message_text,
         )
-        
-        # Broadcast user message back so other clients connected see it immediately
-        from asgiref.sync import async_to_sync
-        from channels.layers import get_channel_layer
-        channel_layer = get_channel_layer()
-        
-        payload = {
-            'id': client_msg.id,
-            'sender': client_msg.sender,
-            'text': client_msg.message_text,
-            'is_permission_request': client_msg.is_permission_request,
-            'permission_granted': client_msg.permission_granted,
-            'created_at': client_msg.created_at.isoformat(),
-        }
-        
-        # Using async_to_sync since this runs in sync thread via database_sync_to_async
-        async_to_sync(channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': payload
-            }
-        )
-        
-        # Dispatch Celery Task for Serea's reply
+
         process_chat_message_task.delay(agent.id, message_text, self.user.email)

@@ -138,35 +138,84 @@
 <!-- Dashboard/App Preview Mockup Section -->
 <section class="py-5 position-relative z-1 mb-5">
     <div class="container fade-up delay-300">
-        <div class="position-relative mx-auto" style="max-width: 1050px;">
-            <!-- Desktop Mockup -->
-            <div class="rounded-4 overflow-hidden border border-white border-opacity-10 shadow-lg"
-                style="width: 100%; max-width: 900px; background: rgba(10,10,15,0.7); backdrop-filter: blur(20px);">
-                <!-- Mockup top bar -->
-                <div class="d-flex align-items-center p-3 border-bottom border-white border-opacity-10"
-                    style="background: rgba(0,0,0,0.5);">
-                    <div class="d-flex gap-2">
-                        <div class="rounded-circle" style="width: 12px; height: 12px; background: #ff5f56;"></div>
-                        <div class="rounded-circle" style="width: 12px; height: 12px; background: #ffbd2e;"></div>
-                        <div class="rounded-circle" style="width: 12px; height: 12px; background: #27c93f;"></div>
+        <div class="row align-items-center g-5">
+            <!-- Left: Feature Column explaining the Command Console -->
+            <div class="col-lg-5">
+                <p class="text-uppercase fw-semibold mb-2" style="letter-spacing: 0.12em; font-size: 0.75rem; color: var(--bb-accent-cyan);">
+                    <i class="bi bi-display me-1"></i> Central Command Center
+                </p>
+                <h2 class="display-5 fw-bold mb-4" style="letter-spacing: -0.03em; line-height: 1.15;">
+                    The Unified <span class="text-gradient-purple-cyan">Dashboard Console</span>
+                </h2>
+                <p class="text-white-50 mb-4 fs-5 font-inter lh-lg">
+                    BengalBound HUB replaces up to 20+ disconnected SaaS tools with a single, secure Command Console. Manage your tenants, coordinate pluggable modules, and monitor your digital workforce in real time.
+                </p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center p-2" style="background: rgba(192,132,252,0.1); border: 1px solid rgba(192,132,252,0.2); width: 38px; height: 38px; flex-shrink: 0;">
+                            <i class="bi bi-grid-3x3-gap text-gradient-purple-cyan"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white fs-6 mb-1">60+ Pluggable SaaS Modules</h5>
+                            <p class="text-white-50 small mb-0">Instantly activate CRM, invoicing, payroll, HR, POS, email, meetings, and documents on your custom domain.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center p-2" style="background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.2); width: 38px; height: 38px; flex-shrink: 0;">
+                            <i class="bi bi-robot text-gradient-purple-cyan"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white fs-6 mb-1">AI Employee Marketplace</h5>
+                            <p class="text-white-50 small mb-0">Deploy and monitor 30 autonomous pre-trained AI employees to run your backoffice on autopilot with safe approval safeguards.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center p-2" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); width: 38px; height: 38px; flex-shrink: 0;">
+                            <i class="bi bi-shield-lock text-gradient-purple-cyan"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-white fs-6 mb-1">IP-Locked &amp; Cryptographic Sync</h5>
+                            <p class="text-white-50 small mb-0">Enforce custom IP whitelist access, or deploy self-hosted instances with real-time encrypted background data sync.</p>
+                        </div>
                     </div>
                 </div>
-                <!-- Mockup content -->
-                <div class="w-100 overflow-hidden" style="min-height: 500px; background: #000;">
-                    <img src="{% static 'img/desktop_dashboard.png' %}" alt="BengalBound SaaS Dashboard" class="img-fluid w-100 h-100" style="object-fit: cover;">
-                </div>
+                <a href="{% url 'public_site:pricing' %}" class="btn btn-premium px-4 py-2 rounded-pill small">See Subscription Inclusions</a>
             </div>
 
-            <!-- Mobile Mockup -->
-            <div class="position-absolute rounded-4 overflow-hidden border border-white border-opacity-25 d-none d-lg-block"
-                style="width: 280px; height: 560px; background: rgba(5,5,8,0.9); backdrop-filter: blur(25px); bottom: -30px; right: 0; z-index: 5; box-shadow: -20px 20px 50px rgba(0,0,0,0.6);">
-                <!-- Mobile top bar (notch/camera) -->
-                <div class="d-flex justify-content-center pt-2 pb-2 border-bottom border-white border-opacity-10" style="background: rgba(0,0,0,0.8);">
-                    <div class="rounded-pill bg-black border border-white border-opacity-10" style="width: 80px; height: 20px;"></div>
-                </div>
-                <!-- Mobile content -->
-                <div class="w-100 overflow-hidden" style="height: calc(100% - 37px); background: #000;">
-                    <img src="{% static 'img/mobile_dashboard.png' %}" alt="BengalBound Multi-Tenant Mobile View" class="img-fluid w-100 h-100" style="object-fit: cover;">
+            <!-- Right: Mockups Column -->
+            <div class="col-lg-7">
+                <div class="position-relative mx-auto" style="max-width: 680px;">
+                    <!-- Desktop Mockup -->
+                    <div class="rounded-4 overflow-hidden border border-white border-opacity-10 shadow-lg"
+                        style="width: 100%; max-width: 580px; background: rgba(10,10,15,0.7); backdrop-filter: blur(20px);">
+                        <!-- Mockup top bar -->
+                        <div class="d-flex align-items-center p-3 border-bottom border-white border-opacity-10"
+                            style="background: rgba(0,0,0,0.5);">
+                            <div class="d-flex gap-2">
+                                <div class="rounded-circle" style="width: 12px; height: 12px; background: #ff5f56;"></div>
+                                <div class="rounded-circle" style="width: 12px; height: 12px; background: #ffbd2e;"></div>
+                                <div class="rounded-circle" style="width: 12px; height: 12px; background: #27c93f;"></div>
+                            </div>
+                            <span class="text-white-50 small ms-3 font-monospace" style="font-size: 0.72rem;">console.localhost:1234</span>
+                        </div>
+                        <!-- Mockup content -->
+                        <div class="w-100 overflow-hidden" style="min-height: 340px; background: #000;">
+                            <img src="{% static 'img/desktop_dashboard.png' %}" alt="BengalBound SaaS Dashboard" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        </div>
+                    </div>
+
+                    <!-- Mobile Mockup -->
+                    <div class="position-absolute rounded-4 overflow-hidden border border-white border-opacity-25 d-none d-md-block"
+                        style="width: 200px; height: 400px; background: rgba(5,5,8,0.9); backdrop-filter: blur(25px); bottom: -40px; right: 0; z-index: 5; box-shadow: -20px 20px 50px rgba(0,0,0,0.6);">
+                        <!-- Mobile top bar -->
+                        <div class="d-flex justify-content-center pt-2 pb-2 border-bottom border-white border-opacity-10" style="background: rgba(0,0,0,0.8);">
+                            <div class="rounded-pill bg-black border border-white border-opacity-10" style="width: 60px; height: 14px;"></div>
+                        </div>
+                        <!-- Mobile content -->
+                        <div class="w-100 overflow-hidden" style="height: calc(100% - 31px); background: #000;">
+                            <img src="{% static 'img/mobile_dashboard.png' %}" alt="BengalBound Multi-Tenant Mobile View" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

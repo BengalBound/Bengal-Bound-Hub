@@ -49,3 +49,4 @@ litellm_config.yaml
 node_modules/
 dist/
 .DS_Store
+visibility_results/

@@ -6,18 +6,19 @@ from playwright.sync_api import sync_playwright
 def run_visibility_test():
     print("Starting Django dev server...")
     server = subprocess.Popen(
-        [".venv\\Scripts\\python.exe", "manage.py", "runserver", "8000"],
+        [".venv\\Scripts\\python.exe", "manage.py", "runserver", "1234"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
     time.sleep(5)  # wait for server to start
 
-    artifact_dir = r"C:\Users\shadm\.gemini\antigravity-ide\brain\238ab3a1-140d-4912-9a46-2624fae823f9"
+    artifact_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'visibility_results')
+    os.makedirs(artifact_dir, exist_ok=True)
     urls = [
-        ("restaurants", "http://127.0.0.1:8000/solutions/restaurants/"),
-        ("retail", "http://127.0.0.1:8000/solutions/retail-ecommerce/"),
-        ("hospitality", "http://127.0.0.1:8000/solutions/hospitality-rentals/"),
-        ("home", "http://127.0.0.1:8000/")
+        ("restaurants", "http://127.0.0.1:1234/solutions/restaurants/"),
+        ("retail", "http://127.0.0.1:1234/solutions/retail-ecommerce/"),
+        ("hospitality", "http://127.0.0.1:1234/solutions/hospitality-rentals/"),
+        ("home", "http://127.0.0.1:1234/")
     ]
 
     try:

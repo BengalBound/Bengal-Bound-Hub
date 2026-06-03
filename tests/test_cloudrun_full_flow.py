@@ -38,7 +38,7 @@ def test_cloud_run_end_to_end_flow():
         page.wait_for_load_state("networkidle")
         
         # Check for login form elements
-        login_input = page.locator('input[name="login"]')
+        login_input = page.locator('input[name="username"]')
         password_input = page.locator('input[name="password"]')
         
         expect(login_input).to_be_visible()
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         context = browser.new_context(viewport={"width": 1280, "height": 900})
         page = context.new_page()
 
-        print(f"--- Starting Full Flow Test on Cloud Run ---")
+        print("--- Starting Full Flow Test on Cloud Run ---")
         print(f"Target: {BASE_URL}")
 
         try:

@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Q
 from .models import BusinessInstance, BusinessEmployee, HubPlanConfig
 from .serializers import BusinessInstanceSerializer, BusinessEmployeeSerializer, HubPlanConfigSerializer
 
@@ -9,11 +10,13 @@ class BusinessInstanceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Users can only see businesses they own or belong to
         user = self.request.user
-        owned = BusinessInstance.objects.filter(owner=user)
-        member = BusinessInstance.objects.filter(businessemployee__user=user)
-        return (owned | member).distinct()
+        return BusinessInstance.objects.filter(
+            Q(owner=user) | Q(businessemployee__user=user)
+        ).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
     @action(detail=True, methods=['get'])
     def team(self, request, pk=None):
@@ -31,12 +34,15 @@ class BusinessInstanceViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response({'detail': 'No active subscription found.'}, status=404)
 
-class BusinessEmployeeViewSet(viewsets.ModelViewSet):
+
+class BusinessEmployeeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only: employee management goes through the hub admin flows."""
     serializer_class = BusinessEmployeeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Users can only see other users in their business instances
         user = self.request.user
-        businesses = BusinessInstance.objects.filter(businessemployee__user=user)
+        businesses = BusinessInstance.objects.filter(
+            Q(owner=user) | Q(businessemployee__user=user)
+        )
         return BusinessEmployee.objects.filter(business__in=businesses).distinct()

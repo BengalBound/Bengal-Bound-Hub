@@ -94,14 +94,15 @@ class TestAuthUAT(TestCase):
     def test_totp_wrong_code_rejected(self):
         from django_otp.plugins.otp_totp.models import TOTPDevice
         TOTPDevice.objects.create(user=self.user, name="Phone", confirmed=True)
-        # Seed the TOTP session (simulating successful password auth)
+        # Seed the TOTP session (simulating successful password auth from testserver).
         session = self.client.session
         session["totp_auth_user_id"] = self.user.id
+        session["totp_auth_host"] = "testserver"  # matches Django test client's default HOST
         session.save()
 
         response = self.client.post(
             reverse("accounts:totp_challenge"),
-            {"otp_token": "000000"},  # almost certainly wrong
+            {"totp_code": "000000"},  # almost certainly wrong; field name matches the view
         )
         # Must not log in — stays on challenge page or shows error
         self.assertEqual(response.status_code, 200, "Wrong TOTP code must not redirect away")
