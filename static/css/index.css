@@ -63,6 +63,18 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     background: linear-gradient(135deg, var(--bb-accent-purple), var(--bb-accent-cyan));
 }
 
+.text-primary-gradient {
+    background: linear-gradient(135deg, #c084fc, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+}
+
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #c084fc, #ec4899) !important;
+}
+
 /* Background Animations */
 .bg-animated-wrapper {
     position: fixed;
@@ -132,6 +144,49 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     box-shadow: var(--bb-glass-shadow);
 }
 
+.glass-card {
+    background: rgba(10, 10, 15, 0.8) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 1.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 30px rgba(157, 78, 221, 0.15);
+}
+
+.glass-card .form-control {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.glass-card .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.glass-card .form-control:focus {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(192, 132, 252, 0.5) !important;
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.15) !important;
+}
+
+.glass-card .form-check-input {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.glass-card .form-check-input:checked {
+    background-color: #c084fc !important;
+    border-color: #c084fc !important;
+}
+
+.glass-card .alert {
+    border-radius: 0.75rem;
+    backdrop-filter: blur(8px);
+}
+
 .bento-card::before {
     content: '';
     position: absolute;
@@ -161,17 +216,21 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 .btn-primary-gradient {
     background: linear-gradient(135deg, #c084fc, #ec4899) !important;
     color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     border: none !important;
     border-radius: 50rem;
     font-weight: 600;
     transition: all 0.3s ease;
     box-shadow: 0 4px 20px rgba(192, 132, 252, 0.35);
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .btn-primary-gradient:hover,
 .btn-primary-gradient:focus {
     background: linear-gradient(135deg, #a855f7, #db2777) !important;
     color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     transform: translateY(-1px);
     box-shadow: 0 8px 28px rgba(192, 132, 252, 0.5);
 }
@@ -236,6 +295,7 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
     font-weight: 500;
     transition: color 0.3s ease;
     padding: 0.5rem 1.2rem !important;
+    white-space: nowrap;
 }
 
 .navbar-nav .nav-link:hover, .navbar-nav .nav-link.active {
