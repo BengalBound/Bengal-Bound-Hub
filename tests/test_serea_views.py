@@ -18,7 +18,7 @@ def agent_setup(user_factory):
     agent.save()
     return user, agent
 
-@patch('serea.views.resume_after_approval.delay')
+@patch('serea.tasks.resume_after_approval.delay')
 def test_permission_respond_approve(mock_resume, agent_setup, client):
     user, agent = agent_setup
     
@@ -28,10 +28,12 @@ def test_permission_respond_approve(mock_resume, agent_setup, client):
     )
     
     client.force_login(user)
-    response = client.post(reverse('serea:permission_respond', args=[msg.id]), {
-        'action': 'approve'
-    })
-    
+    response = client.post(
+        reverse('serea:permission_respond', args=[msg.id]),
+        {'decision': 'approve'},
+        content_type='application/json',
+    )
+
     assert response.status_code == 200
     msg.refresh_from_db()
     assert msg.permission_granted is True
@@ -98,4 +100,4 @@ def test_agent_logs(client, agent_setup):
     assert response.status_code == 200
     data = response.json()
     assert len(data['logs']) == 1
-    assert data['logs'][0]['action_taken'] == 'deleted'
+    assert data['logs'][0]['action'] == 'deleted'

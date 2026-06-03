@@ -28,14 +28,15 @@ class SecurityEnhancementTests(TestCase):
         
         # Try to login
         url = reverse('accounts:login')
-        response = self.client.post(url, {
-            'username': 'mfa@test.com',
-            'password': 'Password123!'
-        }, HTTP_HOST='console.localhost:1234')
+        with self.settings(ALLOWED_HOSTS=['console.localhost', 'localhost', 'testserver']):
+            response = self.client.post(url, {
+                'username': 'mfa@test.com',
+                'password': 'Password123!'
+            }, HTTP_HOST='console.localhost:1234')
         
         # Should redirect to challenge, NOT to the dashboard
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('accounts:totp_challenge'))
-        
+
         # Verify session has the totp_auth_user_id
         self.assertEqual(self.client.session.get('totp_auth_user_id'), self.user.id)
