@@ -14,9 +14,25 @@ This test plan defines the testing strategies, targets, and criteria for the Ben
 
 ## 2. Test Types
 
-### 2.1 Unit Tests (pytest / django.test)
+### 2.1 Unit Tests (pytest + pytest-django)
 *   **Target Coverage:** 80% overall | 95% for security-critical (Inspector, Auth) modules.
-*   **Rules:** Mock external LiteLLM API responses dynamically to prevent slow tests.
+*   **Current state:** 219 tests passing, 0 failures (June 2026).
+*   **Runner:** `python -m pytest` (not `manage.py test`).
+*   **Rules:** Mock external LiteLLM API responses dynamically to prevent slow tests. Use `@patch('serea.tasks.<fn>.delay')` not `serea.views.<fn>.delay` for Celery task mocks.
+
+```bash
+# Run full suite
+python -m pytest
+
+# With coverage
+python -m pytest --cov --cov-report=term-missing
+
+# Single test file
+python -m pytest tests/test_accounts.py -v
+
+# Keyword filter
+python -m pytest -k "aria or crux"
+```
 
 ```python
 # Example: Inspector Fail-Closed Test

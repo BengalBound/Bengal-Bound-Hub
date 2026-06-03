@@ -181,11 +181,14 @@ Rather than maintaining fragile manual boilerplates, the test suite is powered b
 ### Running the Suite
 
 ```bash
-# Generate/Update tests for any newly added modules
-python scripts/generate_tests_for_all.py
+# Run the full suite with pytest (219+ tests)
+python -m pytest
 
-# Run the full suite (typically executes 740+ tests in <3 seconds)
-python manage.py test
+# With coverage report
+python -m pytest --cov --cov-report=term-missing
+
+# Generate/update scaffolded tests for newly added modules
+python scripts/generate_tests_for_all.py
 ```
 
 ---
@@ -336,6 +339,10 @@ LITELLM_BASE_URL=http://your-litellm-proxy:4000
 LITELLM_MASTER_KEY=<your-litellm-key>
 SITE_URL=https://yourdomain.com
 DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+TWILIO_ACCOUNT_SID=<your-twilio-account-sid>
+TWILIO_AUTH_TOKEN=<your-twilio-auth-token>
+TWILIO_PHONE_NUMBER=<your-twilio-number>
+FIELD_ENCRYPTION_KEY=<fernet-key>
 ```
 
 ### Backend Startup
