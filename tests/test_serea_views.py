@@ -3,7 +3,7 @@ from django.urls import reverse
 from serea.models import SereaAgent, ConversationMessage
 from workspace_admin.models import HiredAIEmployee, AIEmployeeTier
 from hub.models import BusinessInstance
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, AsyncMock
 
 pytestmark = pytest.mark.django_db
 
@@ -19,9 +19,14 @@ def agent_setup(user_factory):
     return user, agent
 
 @patch('serea.tasks.resume_after_approval.delay')
-def test_permission_respond_approve(mock_resume, agent_setup, client):
+@patch('channels.layers.get_channel_layer')
+def test_permission_respond_approve(mock_get_channel, mock_resume, agent_setup, client):
     user, agent = agent_setup
     
+    mock_channel_layer = MagicMock()
+    mock_channel_layer.group_send = AsyncMock()
+    mock_get_channel.return_value = mock_channel_layer
+
     msg = ConversationMessage.objects.create(
         agent=agent, sender='serea', message_text="Pls approve",
         is_permission_request=True
@@ -39,12 +44,33 @@ def test_permission_respond_approve(mock_resume, agent_setup, client):
     assert msg.permission_granted is True
     mock_resume.assert_called_with(msg.id)
 
-def test_permission_respond_deny(client, agent_setup):
+    # Verify group_send broadcast for approval
+    mock_channel_layer.group_send.assert_any_call(
+        f'agent_{agent.id}',
+        {
+            'type': 'chat_message',
+            'message': {
+                'id': msg.id,
+                'sender': msg.sender,
+                'text': msg.message_text,
+                'is_permission_request': True,
+                'permission_granted': True,
+                'created_at': msg.created_at.isoformat(),
+            }
+        }
+    )
+
+@patch('channels.layers.get_channel_layer')
+def test_permission_respond_deny(mock_get_channel, client, agent_setup):
     user, agent = agent_setup
     client.force_login(user)
     
+    mock_channel_layer = MagicMock()
+    mock_channel_layer.group_send = AsyncMock()
+    mock_get_channel.return_value = mock_channel_layer
+
     msg = ConversationMessage.objects.create(
-        agent=agent, sender='serea', is_permission_request=True
+        agent=agent, sender='serea', is_permission_request=True, message_text="Pls approve"
     )
     
     url = reverse('serea:permission_respond', kwargs={'msg_id': msg.id})
@@ -58,6 +84,22 @@ def test_permission_respond_deny(client, agent_setup):
     
     # Verify denial message
     assert ConversationMessage.objects.filter(agent=agent, message_text__contains="skip this action").exists()
+
+    # Verify group_send broadcast for denial
+    mock_channel_layer.group_send.assert_any_call(
+        f'agent_{agent.id}',
+        {
+            'type': 'chat_message',
+            'message': {
+                'id': msg.id,
+                'sender': msg.sender,
+                'text': msg.message_text,
+                'is_permission_request': True,
+                'permission_granted': False,
+                'created_at': msg.created_at.isoformat(),
+            }
+        }
+    )
 
 def test_permission_respond_invalid(client, agent_setup):
     user, agent = agent_setup

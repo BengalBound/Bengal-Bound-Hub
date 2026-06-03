@@ -36,6 +36,7 @@ CACHES = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True

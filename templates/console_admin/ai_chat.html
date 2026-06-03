@@ -225,6 +225,19 @@
         
         let html = '';
         if (msg.is_permission_request) {
+            const existingCard = document.getElementById('perm-' + msg.id);
+            if (existingCard) {
+                const actionsDiv = existingCard.querySelector('.perm-actions');
+                if (actionsDiv) {
+                    if (msg.permission_granted === true) {
+                        actionsDiv.innerHTML = '<span class="text-success small"><i class="bi bi-check-circle me-1"></i>Approved &mdash; Serea is executing the action.</span>';
+                    } else if (msg.permission_granted === false) {
+                        actionsDiv.innerHTML = '<span class="text-danger small"><i class="bi bi-x-circle me-1"></i>Denied &mdash; Serea will skip this action.</span>';
+                    }
+                }
+                return;
+            }
+
             html = `
             <div class="d-flex justify-content-start" id="perm-${msg.id}">
                 <div class="px-3 py-3 rounded-3 small w-100"

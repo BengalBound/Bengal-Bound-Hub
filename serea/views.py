@@ -105,6 +105,27 @@ def permission_respond(request, msg_id: int):
             agent.save(update_fields=['status'])
         status_text = 'denied'
 
+    # Broadcast updated permission request state via Channels WebSocket
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    channel_layer = get_channel_layer()
+    if channel_layer:
+        payload = {
+            'id': perm_msg.id,
+            'sender': perm_msg.sender,
+            'text': perm_msg.message_text,
+            'is_permission_request': perm_msg.is_permission_request,
+            'permission_granted': perm_msg.permission_granted,
+            'created_at': perm_msg.created_at.isoformat(),
+        }
+        async_to_sync(channel_layer.group_send)(
+            f'agent_{perm_msg.agent_id}',
+            {
+                'type': 'chat_message',
+                'message': payload
+            }
+        )
+
     is_ajax = 'application/json' in (request.content_type or '')
     if is_ajax:
         return JsonResponse({'status': status_text, 'message_id': msg_id})

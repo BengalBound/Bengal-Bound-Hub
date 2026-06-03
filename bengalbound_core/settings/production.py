@@ -107,6 +107,8 @@ else:
     # No SMTP configured — emails go to Cloud Run logs (safe fallback)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
 # ── Celery — use Redis if available, otherwise run tasks synchronously ────────
 _redis = os.environ.get('REDIS_URL', '')
 if _redis:

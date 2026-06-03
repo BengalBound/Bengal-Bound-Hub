@@ -31,6 +31,7 @@ INTERNAL_IPS = ['127.0.0.1']
 
 # ── Email — print to terminal, no SMTP needed ────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # ── Celery — run tasks synchronously so no broker is required ────────────────
 CELERY_TASK_ALWAYS_EAGER = True
