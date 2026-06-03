@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load socialaccount %}
 
 {% block title %}{% if is_workspace %}Staff Login{% else %}Sign In{% endif %} | BengalBound{% endblock %}
 
@@ -63,27 +62,21 @@
 
                     {% if not is_workspace %}
                     <!-- Social login only for business users -->
+                    {% if social_providers %}
                     <div class="position-relative my-4">
                         <hr class="border-secondary border-opacity-50">
                         <span class="position-absolute top-50 start-50 translate-middle px-2 small text-white-50" style="background:#0f172a;">or continue with</span>
                     </div>
                     <div class="row g-2 mb-4">
+                        {% for provider in social_providers %}
                         <div class="col-4">
-                            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
-                                <i class="bi bi-google"></i>
+                            <a href="{{ provider.url }}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
+                                <i class="{{ provider.icon }}"></i>
                             </a>
                         </div>
-                        <div class="col-4">
-                            <a href="{% provider_login_url 'github' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
-                                <i class="bi bi-github"></i>
-                            </a>
-                        </div>
-                        <div class="col-4">
-                            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-secondary text-white w-100 d-flex align-items-center justify-content-center gap-2 border-secondary border-opacity-50">
-                                <i class="bi bi-facebook"></i>
-                            </a>
-                        </div>
+                        {% endfor %}
                     </div>
+                    {% endif %}
 
                     <p class="text-center text-white-50 small mb-0">
                         Don't have an account? <a href="{% url 'accounts:register' %}" class="text-primary-gradient text-decoration-none fw-medium">Create one free</a>

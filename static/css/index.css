@@ -157,6 +157,34 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 }
 
 /* Buttons */
+/* Primary gradient button — used on all sign-in / sign-up / submit buttons */
+.btn-primary-gradient {
+    background: linear-gradient(135deg, #c084fc, #ec4899) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 50rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(192, 132, 252, 0.35);
+}
+
+.btn-primary-gradient:hover,
+.btn-primary-gradient:focus {
+    background: linear-gradient(135deg, #a855f7, #db2777) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(192, 132, 252, 0.5);
+}
+
+.btn-primary-gradient:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 14px rgba(192, 132, 252, 0.3);
+}
+
+.shadow-glow {
+    box-shadow: 0 0 20px rgba(192, 132, 252, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
 .btn-premium {
     background: linear-gradient(135deg, var(--bb-accent-purple), var(--bb-accent-cyan)) !important;
     color: #ffffff !important;

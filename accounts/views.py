@@ -253,11 +253,11 @@ def custom_login_view(request):
         if user:
             if host == 'workspace.localhost' and not user.is_workspace_user:
                 messages.error(request, "This login is for BengalBound staff only.")
-                return render(request, 'accounts/login.html', {'is_workspace': True})
+                return render(request, 'accounts/login.html', {'is_workspace': True, 'social_providers': []})
 
             if host == 'console.localhost' and user.is_workspace_user:
                 messages.error(request, "Staff accounts log in at workspace.localhost:1234")
-                return render(request, 'accounts/login.html', {'is_workspace': False})
+                return render(request, 'accounts/login.html', {'is_workspace': False, 'social_providers': _social_providers(request)})
 
             if user.totpdevice_set.filter(confirmed=True).exists():
                 request.session['totp_auth_user_id'] = user.id
@@ -270,6 +270,7 @@ def custom_login_view(request):
 
     return render(request, 'accounts/login.html', {
         'is_workspace': host == 'workspace.localhost',
+        'social_providers': _social_providers(request),
     })
 
 
