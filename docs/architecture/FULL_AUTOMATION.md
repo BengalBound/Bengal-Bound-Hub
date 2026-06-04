@@ -234,10 +234,11 @@ LAYER 5: DATA LAYER (Storage)
   ├── PII fields encrypted at column level
   └── No cross-client data access possible
 
-LAYER 6: INFRASTRUCTURE (VPS)
-  ├── Gunicorn + Nginx on VPS (isolated per service)
+LAYER 6: INFRASTRUCTURE (Cloud Run → VPS at scale)
+  ├── Phase 0–1: Google Cloud Run (auto-scaled, zero cold-start management)
+  ├── Phase 2+: Hetzner VPS + Nginx (200+ clients, 98%+ gross margins with Ollama)
   ├── VPC with private networking
-  ├── Secret Manager (no secrets in code)
+  ├── Secret Manager (no secrets in code or logs)
   ├── IAM least-privilege (every service)
   └── Audit logging
 

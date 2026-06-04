@@ -133,7 +133,9 @@ Spec: `docs/architecture/FULL_AUTOMATION.md` (billing section).
 
 ## Completed Agent Apps
 
-All 30 agents are in `agents/<name>/` with full engine.py + tasks.py pattern:
+All 30 cataloged agents are in `agents/<name>/` with full engine.py + tasks.py pattern.
+3 extra sub-apps also exist (added by Gemini, not in AgentCatalog): `pitch_presenter`, `scribe`, `video_concierge`.
+`content_strategist/` = the `serea-content` catalog entry.
 
 | Slug | Name | Category |
 |------|------|----------|

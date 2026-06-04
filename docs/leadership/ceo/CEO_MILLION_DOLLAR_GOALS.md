@@ -41,7 +41,7 @@
 ## 🎯 2026 Focus Goals
 
 1.  **Trade License & Banking:** Complete banking and TIN/VAT setups.
-2.  **VPS & Ollama Deployment:** Hetzner server setup with `mistral:7b` and `phi3:mini`.
+2.  **Cloud Deployment:** ✅ Google Cloud Run live (`bengal-bound-hub`, `serea-ai-agent-489222`). Hetzner VPS + Ollama planned for Phase 2 (200+ clients) to achieve 98%+ gross margins.
 3.  **Phase 1 Release:** Launch API, Inspector Compliance watchdog, and Hiring Console.
 4.  **AppSumo Listing:** Secure listing approval and launch AppSumo LTD.
 5.  **NGO Social Initiative:** Onboard first 5 registered NGOs to free tiers.

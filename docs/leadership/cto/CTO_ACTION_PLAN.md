@@ -13,34 +13,37 @@
 - [ ] **Setup Linear.app** for task breakdowns and tracking.
 - [ ] **Enforce Pre-commit Standards** — Black/Ruff for Python, Prettier/ESLint for frontend styles.
 
-### Week 2 — VPS & Ollama Deployment
-- [ ] **Hetzner Cloud VPS Provisioning:** Hetzner CX42 instance setup ($19/mo, 8 vCPUs, 16GB RAM).
-- [ ] **Install Ollama:**
+### Week 2 — Cloud Infrastructure ✅ DEPLOYED
+- [x] **Google Cloud Run** — `bengal-bound-hub` service deployed in `us-south1`, project `serea-ai-agent-489222`
+  - URL: https://bengal-bound-hub-u5i67kezxa-vp.a.run.app
+  - Gunicorn on port 8080, auto-scaled, PostgreSQL via `DATABASE_URL`
+  - Startup entrypoint runs: `migrate` → `seed_modules` → `seed_agents` → gunicorn
+- [x] **LiteLLM proxy** at `LITELLM_BASE_URL` — routes AI calls (Gemini / OpenRouter fallback)
+- [ ] **Hetzner VPS + Ollama** — planned for Phase 2 (200+ clients) to cut AI inference costs to near-zero
   ```bash
-  curl -fsSL https://ollama.ai/install.sh | sh
-  systemctl enable ollama
-  ollama pull mistral:7b    # 4.1GB - general chat & Serea Content
-  ollama pull phi3:mini     # 2.3GB - quick classification & Inspector compliance
+  # Phase 2 only — NOT current deployment
+  ollama pull mistral:7b    # 4.1GB - general chat
+  ollama pull phi3:mini     # 2.3GB - Inspector compliance
   ```
-- [ ] **Setup Postgres Database:** Provision PostgreSQL 16 database.
-- [ ] **Setup Nginx reverse proxy** and Let's Encrypt SSL certificates.
 
 ### Week 3 — Development Environment
 - [ ] Distribute the **[`docs/dev/DEV_KIT.md`](file:///d:/Bengal%20bound/dev-backoffice/docs/dev/DEV_KIT.md)** to all developers.
 - [ ] Implement Husky / Pre-commit hooks to block commits containing hardcoded secrets.
 
-### Week 4 — Sprints A & B Kickoff
-- [ ] Finalize task assignments for creating `agents/` and porting priority specialist models.
+### Week 4 — Sprints A & B Kickoff ✅ COMPLETE
+- [x] All 30 agents created in `agents/<name>/` with engine.py + tasks.py + DRF views.
+- [x] Sprints A–H complete. Next: Sprint I — Veritas KYB module.
 
 ---
 
 ## 🛠️ Tech Stack Decisions & Fallback Matrix
 
-*   **AI Primary Model:** Self-hosted Ollama on Hetzner VPS (`mistral:7b` + `phi3:mini`). This maintains our **98%+ Blended Gross Margins** and eliminates usage-based API billings.
-*   **AI Fallback Provider:** LiteLLM routes automatically to Gemini 1.5 Flash (via `LITELLM_BASE_URL` proxy) when Ollama is offline or overloaded.
-*   **Task Queue:** Celery + Redis beats for scheduling Serea agents.
+*   **Current Deployment (Phase 0–1):** Google Cloud Run — `bengal-bound-hub` service. Django + Gunicorn on port 8080. AI via LiteLLM proxy → Gemini / OpenRouter. Zero infra management.
+*   **AI Model Routing:** LiteLLM proxy at `LITELLM_BASE_URL` — all AI calls go through `agent_chat()` in `agents/utils.py`. Never call models directly.
+*   **Phase 2 Plan (200+ clients):** Migrate to Hetzner VPS + self-hosted Ollama (`mistral:7b` + `phi3:mini`) to eliminate per-token API costs and achieve 98%+ gross margins.
+*   **Task Queue:** Celery + Redis (currently using CELERY_TASK_ALWAYS_EAGER in dev/Cloud Run).
 
-### VPS Scaling Upgrades Checklist
-*   **50 active clients:** Upgrade Heterzner VPS to AX52 node ($56/mo). Pull `llama3:8b` (4.7GB) or `qwen2.5:14b` (9GB) for higher reasoning capabilities.
-*   **300 active clients:** Upgrade to AX102 nodes ($292/mo).
-*   **1,000+ active clients:** Pull dedicated Hetzner GPU instances ($380/mo) to load `llama3:70b` models.
+### VPS Scaling Plan (Phase 2+)
+*   **200 clients:** Hetzner CX42 ($19/mo) + Ollama `mistral:7b`.
+*   **500 active clients:** Upgrade to AX52 ($56/mo). Pull `llama3:8b` or `qwen2.5:14b`.
+*   **1,000+ active clients:** AX102 ($292/mo) or GPU instances ($380/mo) + `llama3:70b`.
