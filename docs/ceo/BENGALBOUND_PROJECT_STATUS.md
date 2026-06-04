@@ -125,7 +125,8 @@ Console (console.bengalbound.com)  ←→  Workspace (workspace.bengalbound.com)
 | K | FCM push, Slack alerts, Day 1/3/7/30 onboarding sequences | `3c8f4f1` |
 | L | AI Onboarding interview & dynamic package budget configurator | `3c8f4f1` |
 | M | IT Package Assignment & IT/Executive Control Center Dashboard | `3c8f4f1` |
-| Fixes | Bug fixes + full doc alignment (this session) | `3c8f4f1` |
+| N | Onboarding Skip Booking & Pre-Account Negotiator | `84b8158` |
+| Fixes | Bug fixes + full doc alignment (this session) | `84b8158` |
 
 **Bugs fixed in last session (2026-06-03):**
 1. `inspector/views.py` — `return True` → `return "approved"` in no-rules path
@@ -617,17 +618,18 @@ git push showcase dev    # https://github.com/shadman1996/BengalBoundHub.git
 | **K** | Onboarding emails (Day 1/3/7/30) + FCM push + Slack/PagerDuty alerts | 🟠 High | 1–2 weeks | ✅ Done |
 | **L** | AI Dashboard Configurator (6-question onboarding interview) | 🟠 High | 2 weeks | ✅ Done |
 | **M** | Compliance dashboard UI (IT/Executive Center, Package Assignment) | 🟡 Medium | 1 week | ✅ Done |
-| **N** | WhatsApp integration (Concierge agent) | 🟡 Medium | 2 weeks | 📅 Upcoming |
-| **O** | Redis in production + Hetzner VPS + Ollama (200+ clients) | 🟡 Medium (Phase 2) | 1 week | 📅 Upcoming |
-| **P** | AppSumo LTD listing preparation | 🟡 Medium | 1 week | 📅 Upcoming |
-| **Q** | Multi-language support (Bengali, Arabic, Hindi) | 🟢 Low | 2 weeks | 📅 Upcoming |
-| **R** | Mobile app (deferred) | 🟢 Future | — | 📅 Deferred |
+| **N** | Onboarding Skip Booking & Pre-Account Negotiator | 🔴 Critical | 1 week | ✅ Done |
+| **O** | WhatsApp integration (Concierge agent) | 🟡 Medium | 2 weeks | 📅 Upcoming |
+| **P** | Redis in production + Hetzner VPS + Ollama (200+ clients) | 🟡 Medium (Phase 2) | 1 week | 📅 Upcoming |
+| **Q** | AppSumo LTD listing preparation | 🟡 Medium | 1 week | 📅 Upcoming |
+| **R** | Multi-language support (Bengali, Arabic, Hindi) | 🟢 Low | 2 weeks | 📅 Upcoming |
+| **S** | Mobile app (deferred) | 🟢 Future | — | 📅 Deferred |
 
 **Target for first 10 paying clients:** Sprints I + J done (✅ Complete).
 **Target for AppSumo launch:** Sprints I through L done (✅ Complete).
-**Target for September 2026 Bangladesh launch:** Sprints I through N done (Sprints I-M complete, N pending).
+**Target for September 2026 Bangladesh launch:** Sprints I through N done (✅ Complete).
 
 ---
 
 *BengalBound HUB — Living Project Document*
-*Last updated: 2026-06-03 | Maintained by: Claude Code + NeurolinkIT team*
+*Last updated: 2026-06-04 | Maintained by: Claude Code + NeurolinkIT team*

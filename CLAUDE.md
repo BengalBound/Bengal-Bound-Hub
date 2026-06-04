@@ -98,6 +98,7 @@ Run on **port 1234**: `python manage.py runserver 0.0.0.0:1234`
 | **K** | Onboarding emails (Day 1/3/7/30) + FCM push + Slack/PagerDuty alerts | 🟢 Done |
 | **L** | **AI Dashboard Configurator (6-question onboarding interview + custom package & budget)** | ✅ Done |
 | **M** | **IT Officer Package Assignment & IT/Executive Command Center Dashboard** | ✅ Done |
+| **N** | **Onboarding Skip Booking & Pre-Account Negotiator** | ✅ Done |
 ---
 
 ## Future Module Ideas (Home Services)

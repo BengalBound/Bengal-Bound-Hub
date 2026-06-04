@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 ### Added
+- **Sprint N**: Onboarding Skip Booking & Pre-Account Negotiator.
+  - Added the "Skip & Book Demo" card block in `hybrid_onboarding.html` letting clients skip answering wizard questions by booking a demo.
+  - Implemented `skip_onboarding_book` views in `console_admin/views.py` creating an `Appointment` in `booking_calendar` model, provisioning a default workspace, and setting `DashboardConfig.is_configured = True` to bypass the onboarding redirect loop.
+  - Created `templates/public_site/demo_negotiate.html` public negotiator enabling visitors to customize packages, view live conversion prices, and chat with the AI Solutions Architect about budget.
+  - Wired `demo_negotiate` view in `public_site/views.py` writing selected configuration to `request.session['negotiated_package']` before registration and signup.
 - **Sprint M**: IT Officer Package Assignment & IT/Executive Command Center Dashboard.
   - Created a unified, high-fidelity **IT & Executive Command Center** page (`/workspace/control-center/`) with responsive views targeted for CTO/Dev (VPS health, telemetry metrics, and diagnostic terminal tasks), CEO (bookkeeping records, revenue aggregates, and live subscription streams), HR (staff roster list, internal office tasks), and Super Admin (platform-wide maintenance switches).
   - Implemented dynamic vanilla JS script to auto-fluctuate CPU/RAM server statistics to simulate real-time operations.
