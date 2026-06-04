@@ -42,8 +42,6 @@ staticfiles/
 netlify_dist/
 netlify_build.db
 
-# Local LiteLLM proxy (contains model routing, safe to commit but personal config)
-litellm_config.yaml
 
 # Node.js
 node_modules/

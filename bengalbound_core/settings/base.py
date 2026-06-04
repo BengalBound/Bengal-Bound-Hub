@@ -366,6 +366,17 @@ FACEBOOK_OAUTH_REDIRECT_URI = env('FACEBOOK_OAUTH_REDIRECT_URI', default='')
 # ── LiteLLM ───────────────────────────────────────────────────────────────────
 LITELLM_BASE_URL   = env('LITELLM_BASE_URL',   default='https://ai.neurolinkit.com/v1')
 LITELLM_MASTER_KEY = env('LITELLM_MASTER_KEY', default='')
+# Separate Redis DB from Django cache (DB 1) to avoid key collisions
+LITELLM_REDIS_URL  = env('LITELLM_REDIS_URL',  default='redis://127.0.0.1:6379/2')
+
+# Model slots — each maps to a semantically appropriate LiteLLM model alias.
+# Override via environment variables per deployment (dev/staging/prod).
+# quick      → fast/cheap (Inspector checks, OTP, simple lookups)
+# chat       → general agent conversations
+# moderation → conservative safety-focused model
+# content    → long-form generation (blog, copy, reports)
+# analysis   → structured JSON output (KYB risk, compliance scoring)
+# gemini     → multimodal / document OCR (KYB document uploads)
 SEREA_TASK_MODELS  = {
     'chat':       env('SEREA_MODEL_CHAT',       default='neural-chat'),
     'moderation': env('SEREA_MODEL_MODERATION', default='dolphin-mistral'),
