@@ -1,8 +1,41 @@
-# Changelog — Sprint G & Sprint H Implementation
-
-This document logs all changes made during the AI Agent Platform Migration sprints for Stripe Billing Integration (Sprint G) and Firebase Authentication Bridge (Sprint H).
+# Changelog
 
 ---
+
+## [Infra] LiteLLM Enterprise Upgrade + Dokploy Deployment — 2026-06-04
+
+### Overview
+Upgraded the LiteLLM proxy from a basic single-provider config to an enterprise-grade setup with semantic model routing, fallback chains, and Redis semantic caching. Deployed LiteLLM and Redis as managed Dokploy services on Hetzner VPS (`31.97.131.113`).
+
+### Changes
+
+**`litellm_config.yaml`** (root + `litellm/Dockerfile/litellm_config.yaml`)
+- Rewrote from scratch with 6 semantic model aliases replacing duplicate Groq-only mappings
+- Added `usage-based-routing` strategy with 3 retries and 60-second cooldowns
+- Added fallback chains: Groq → OpenRouter → Gemini for all aliases
+- Added Redis semantic caching (DB 2, 1-hour TTL, namespace `bengalbound:litellm`)
+
+**`litellm/Dockerfile/Dockerfile`** (new)
+- Dockerfile for building LiteLLM image in Dokploy (Build Path workaround: directory named `Dockerfile/`)
+
+**`bengalbound_core/settings/base.py`**
+- Added `LITELLM_REDIS_URL` env var (Redis DB 2 — separate from Django cache DB 1)
+- Expanded `SEREA_TASK_MODELS` with `gemini` key pointing to `gemini/gemini-1.5-flash`
+
+**`.env.example`**
+- Added `LITELLM_REDIS_URL=redis://127.0.0.1:6379/2` documentation
+
+**`.gitignore`**
+- Removed `litellm_config.yaml` exclusion (file uses `os.environ/` refs, no secrets)
+
+### Infrastructure deployed
+- **Redis**: Dokploy service `bengalboundinfra-redis-itzjbq`, port 6379
+- **LiteLLM**: Dokploy Docker service (`ghcr.io/berriai/litellm:main-latest`), port 4000
+- **Pending**: `cloudflared` tunnel connector on VPS to reconnect `ai.neurolinkit.com` → `localhost:4000`
+
+---
+
+## [Sprint H] Firebase Authentication Bridge
 
 ## [Sprint H] Firebase Authentication Bridge
 

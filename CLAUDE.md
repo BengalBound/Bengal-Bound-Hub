@@ -78,7 +78,7 @@ Run on **port 1234**: `python manage.py runserver 0.0.0.0:1234`
 
 ---
 
-## Sprint Status (as of 2026-06-03)
+## Sprint Status (as of 2026-06-04)
 
 **ALL Sprints A–H are COMPLETE.** The agent migration is done.
 
@@ -92,7 +92,49 @@ Run on **port 1234**: `python manage.py runserver 0.0.0.0:1234`
 | F | WebSocket real-time permission resolution | ✅ Done |
 | G | Stripe billing integration (checkout, webhooks, success/cancel pages) | ✅ Done |
 | H | Firebase auth bridge (firebase_token_sync, firebase_uid on User model) | ✅ Done |
+| **Infra** | **LiteLLM enterprise upgrade + Dokploy deployment** | 🟡 95% — cloudflared pending |
 | **I** | **Veritas KYB module — NEXT SPRINT** | 🔲 Not started |
+
+---
+
+## Infrastructure: LiteLLM + Redis on Dokploy VPS (Hetzner `31.97.131.113`)
+
+### What was done
+- `litellm_config.yaml` rewritten with 6 semantic model aliases, usage-based routing, fallback chains (Groq → OpenRouter → Gemini), and Redis semantic caching (1-hour TTL, namespace `bengalbound:litellm`)
+- **Redis** deployed as Dokploy service in `bengalbound-infra` project — internal hostname `bengalboundinfra-redis-itzjbq:6379`
+- **LiteLLM** deployed as Dokploy Docker service (`ghcr.io/berriai/litellm:main-latest`) on port 4000
+- Redis DB layout: DB 0 = Celery broker, DB 1 = Django cache, DB 2 = LiteLLM semantic cache
+
+### One remaining step (do tomorrow)
+`ai.neurolinkit.com` routes via Cloudflare Tunnel. The `cloudflared` daemon needs to be installed on the VPS to connect the tunnel to LiteLLM on port 4000:
+
+```bash
+# SSH into VPS: ssh root@31.97.131.113
+curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared.deb
+sudo cloudflared service install <TOKEN_FROM_CLOUDFLARE_ZERO_TRUST>
+sudo systemctl start cloudflared
+```
+The Cloudflare Zero Trust tunnel public hostname must have `ai.neurolinkit.com` → `http://localhost:4000`.
+
+### Key env vars for LiteLLM Dokploy service
+```
+LITELLM_MASTER_KEY=<set in Dokploy env tab>
+GROQ_API_KEY=<groq key>
+LITELLM_REDIS_URL=redis://default:<password>@bengalboundinfra-redis-itzjbq:6379/2
+GEMINI_API_KEY=<gemini key>
+OPENROUTER_API_KEY=<openrouter key>
+```
+
+### Model alias → task type mapping (`SEREA_TASK_MODELS` in base.py)
+| Alias | Task type | Primary provider |
+|-------|-----------|-----------------|
+| `phi4-mini` | quick / cheap | Groq llama-3.1-8b-instant |
+| `neural-chat` | general chat | Groq llama-3.2-11b |
+| `dolphin-mistral` | moderation | Groq mixtral-8x7b |
+| `glm4` | long-form content | OpenRouter llama-3.1-70b |
+| `qwen2.5-coder` | analysis / JSON | Groq llama-3.1-70b |
+| `gemini/gemini-1.5-flash` | vision / OCR | Google Gemini |
 
 ---
 
