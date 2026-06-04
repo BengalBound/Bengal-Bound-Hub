@@ -1,4 +1,4 @@
-# VPS Hosting + Ollama Profit Model
+﻿# VPS Hosting + Ollama Profit Model
 # BengalBound Ltd — Bengal Bound
 **Owner:** CEO + CTO | **Updated:** June 2026
 
@@ -58,7 +58,7 @@ Hetzner is used by major global SaaS companies. Bangladesh devs can manage it vi
 | Hetzner Volume 100GB (database backups) | $5 |
 | django-allauth (built into Django) | $0 |
 | Cloudflare (free tier — CDN + WAF) | $0 |
-| Domain (bengalbound.io — annualised) | $1 |
+| Domain (bengalbound.com — annualised) | $1 |
 | Google Workspace (2 users: CEO + CTO) | $12 |
 | LiteLLM proxy (overflow — ~1M tokens/mo) | $1 |
 | Uptime monitoring (UptimeRobot free) | $0 |

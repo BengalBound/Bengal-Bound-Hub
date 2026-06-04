@@ -1,4 +1,4 @@
-# Full Platform Automation & Zero-Touch Operations
+﻿# Full Platform Automation & Zero-Touch Operations
 # Bengal Bound — "Set it once. Runs forever."
 # BengalBound Ltd | v1.0
 
@@ -106,7 +106,7 @@ class BillingAutomation:
 ### From Signup to Active in 10 Minutes — Zero Human Touch
 
 ```
-MINUTE 0: Client visits bengalbound.io
+MINUTE 0: Client visits bengalbound.com
   → Oracle (SEO agent) brought them here via organic search
 
 MINUTE 1: Client signs up

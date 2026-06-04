@@ -1,4 +1,4 @@
-# Work Breakdown Structure (WBS) + Man-Hours Estimation
+﻿# Work Breakdown Structure (WBS) + Man-Hours Estimation
 # Bengal Bound Platform — NeurolinkIT
 **Version:** 1.0 | **Date:** April 2026 | **Currency:** USD + BDT
 **Classification:** Investor & Management Reference
@@ -25,7 +25,7 @@
 ### 0.1 Infrastructure Setup
 | Task | Hours | Owner |
 |---|---|---|
-| Register bengalbound.io domain + Cloudflare setup | 2 | DevOps |
+| Register bengalbound.com domain + Cloudflare setup | 2 | DevOps |
 | Hetzner VPS + IAM + Secret Manager | 4 | DevOps |
 | Railway.app PostgreSQL + env setup | 2 | DevOps |
 | GitHub Actions CI/CD skeleton | 6 | DevOps |

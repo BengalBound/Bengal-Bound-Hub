@@ -1,4 +1,4 @@
-# BengalBound HUB — Project Status & Work Plan
+﻿# BengalBound HUB — Project Status & Work Plan
 **Date:** 2026-06-03 | **Branch:** `dev` | **Last commit:** `ed0fc3e`
 **Overall completion toward MVP launch: ~65%**
 
@@ -50,10 +50,10 @@
 ## 4. Architecture
 
 ```
-Public Site (bengalbound.io)
+Public Site (bengalbound.com)
         │
         ▼
-Console (console.bengalbound.io)  ←→  Workspace (workspace.bengalbound.io)
+Console (console.bengalbound.com)  ←→  Workspace (workspace.bengalbound.com)
         │                                       │
         ▼                                       ▼
    Django REST API (api/v1/)

@@ -1,4 +1,4 @@
-# CEO Master Action Plan — BengalBound HUB
+﻿# CEO Master Action Plan — BengalBound HUB
 # Bengal Bound Product Launch: Bangladesh → Global
 **Owner:** CEO / Founder
 **Starting Point:** Trade License obtained ✅
@@ -59,7 +59,7 @@
 - [ ] **Set up mobile banking** (bKash Business or Nagad Business for local payments)
 
 ### Week 3: Digital Presence
-- [ ] **Register bengalbound.io domain**
+- [ ] **Register bengalbound.com domain**
   - Registrar: Cloudflare, Namecheap, or GoDaddy (~$10–15/year)
 - [ ] **Register bengalbound.com** (company website)
 - [ ] **Set up Google Workspace** for company email
@@ -67,8 +67,8 @@
   - LinkedIn Company Page (Bengal Bound)
   - Facebook Page (Bengal Bound)
   - Twitter/X (@bengalboundio)
-  - Instagram (@bengalbound.io)
-- [ ] **Set up Google Analytics + Search Console** on bengalbound.io
+  - Instagram (@bengalbound.com)
+- [ ] **Set up Google Analytics + Search Console** on bengalbound.com
 
 ### Week 4: Industry Registration
 - [ ] **Apply for BASIS Membership**

@@ -1,4 +1,4 @@
-# Marketing Kit — BengalBound HUB
+﻿# Marketing Kit — BengalBound HUB
 # BengalBound Ltd | v1.0
 
 ---
@@ -24,7 +24,7 @@
 
 ## 🚀 Go-To-Market Sales Channels
 
-### Channel 1: B2B SaaS Subscriptions (bengalbound.io)
+### Channel 1: B2B SaaS Subscriptions (bengalbound.com)
 Monthly recurring subscriptions for businesses. Billed via U.S. Stripe / local bKash and Nagad.
 *   **Intern:** Free trial (1 agent, limited capacity).
 *   **Starter:** ৳2,500/mo ($29 USD) — 1 configured agent, call logs, standard tools.

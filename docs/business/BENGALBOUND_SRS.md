@@ -1,4 +1,4 @@
-# Software Requirements Specification (SRS)
+﻿# Software Requirements Specification (SRS)
 # Bengal Bound — AI-as-Employee Platform
 **Version:** 1.0 | **By:** NeurolinkIT | **Date:** April 2026
 **Classification:** Confidential — Investor & Development Reference
@@ -22,9 +22,9 @@ Bengal Bound is an **AI-as-Employee (AIaaE) marketplace** enabling businesses to
 ## 2. System Architecture
 
 ```
-Marketing Site (bengalbound.io)  →  Console (console.bengalbound.io)  →  Web (Django templates) — mobile deferred
+Marketing Site (bengalbound.com)  →  Console (console.bengalbound.com)  →  Web (Django templates) — mobile deferred
                                         ↓
-                            Django REST API (api.bengalbound.io)
+                            Django REST API (api.bengalbound.com)
                                         ↓
                             INSPECTOR (always-on compliance gate)
                                         ↓
