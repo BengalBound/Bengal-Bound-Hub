@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 ### Added
+- **Sprint M**: IT Officer Package Assignment & IT/Executive Command Center Dashboard.
+  - Created a unified, high-fidelity **IT & Executive Command Center** page (`/workspace/control-center/`) with responsive views targeted for CTO/Dev (VPS health, telemetry metrics, and diagnostic terminal tasks), CEO (bookkeeping records, revenue aggregates, and live subscription streams), HR (staff roster list, internal office tasks), and Super Admin (platform-wide maintenance switches).
+  - Implemented dynamic vanilla JS script to auto-fluctuate CPU/RAM server statistics to simulate real-time operations.
+  - Implemented `control_center_vps_action` AJAX API endpoints to support live reboot, shut down, and memory compaction actions on VPS nodes, persisting state in session.
+  - Added an interactive diagnostic terminal script to execute background routines (DB backups, cache flushing, agent daemons ping checks) displaying typewriter log feeds.
+  - Implemented `assign_package` view in `workspace_admin/views.py` allowing IT Officers to pre-configure and assign workspace modules, custom agents, and tiers to unconfigured user accounts.
 - **Sprint L**: AI Dashboard Configurator (6-question onboarding interview + custom package & budget negotiation).
   - Created `DashboardConfig` model in `hub/models.py` to persist layout, theme, color, and selected package answers.
   - Implemented `DashboardConfigurator` and `DashboardAIModifier` in `hub/dashboard_configurator.py` using `agent_chat()` with reasoning LLM to handle agent provisioning, layout generation, and natural language dashboard styling updates.
