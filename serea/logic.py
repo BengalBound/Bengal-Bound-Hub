@@ -33,7 +33,7 @@ from django.utils import timezone
 
 from langchain_core.tools import tool
 from langchain_core.callbacks import BaseCallbackHandler
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
 from .models import (
     SereaAgent,
@@ -2263,10 +2263,14 @@ Return: action, confidence, sentiment, reasoning, and reply_text if action is 'r
 
     def _run_messages(self, system_prompt: str, messages: list, task_type: str = 'chat'):
         """
-        Invokes the LangGraph agent with a list of (role, text) tuples.
+        Invokes the LangChain agent with a list of (role, text) tuples.
         Returns (output_text, tokens_used).
         """
-        agent_graph = create_react_agent(self._get_llm(task_type), TOOLS, prompt=system_prompt)
+        agent_graph = create_agent(
+            model=self._get_llm(task_type),
+            tools=TOOLS,
+            system_prompt=system_prompt
+        )
         tracker = _TokenCounterCallback()
         result = agent_graph.invoke(
             {"messages": messages},

@@ -18,12 +18,8 @@ def logic_agent(user_factory):
     agent.save()
     return agent
 
-@patch('serea.logic.ChatOpenAI')
-@patch('serea.logic.create_react_agent')
-def test_serea_brain_init_and_run(mock_create_react, mock_chat, logic_agent):
-    mock_llm = MagicMock()
-    mock_chat.return_value = mock_llm
-    
+@patch('serea.logic.create_agent')
+def test_serea_brain_init_and_run(mock_create_react, logic_agent):
     mock_agent = MagicMock()
     mock_agent.invoke.return_value = {"messages": [MagicMock(content="Hello LLM")]}
     mock_create_react.return_value = mock_agent
