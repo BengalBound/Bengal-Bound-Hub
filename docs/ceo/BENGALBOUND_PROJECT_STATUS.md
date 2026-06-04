@@ -11,6 +11,15 @@
 **Vision:** $10M ARR by 2030. Bangladesh launch September 2026. First market: BD + SE Asia SMEs.
 **Company:** BengalBound Ltd / NeurolinkIT | **CEO target:** 1,000 clients by end of 2027.
 
+**Domains (both being purchased):**
+| Domain | Purpose |
+|--------|---------|
+| `bengalbound.com` | Primary — marketing site, client console, customer-facing |
+| `bengalbound.io` | Secondary — API/developer portal, technical subdomains |
+
+Subdomains on `.com`: `console.bengalbound.com`, `workspace.bengalbound.com`, `app.bengalbound.com`
+Subdomains on `.io`: `api.bengalbound.io`, `docs.bengalbound.io`, `status.bengalbound.io`
+
 ---
 
 ## 2. Live System

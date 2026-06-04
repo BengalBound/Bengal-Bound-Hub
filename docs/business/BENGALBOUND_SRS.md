@@ -24,7 +24,7 @@ Bengal Bound is an **AI-as-Employee (AIaaE) marketplace** enabling businesses to
 ```
 Marketing Site (bengalbound.com)  →  Console (console.bengalbound.com)  →  Web (Django templates) — mobile deferred
                                         ↓
-                            Django REST API (api.bengalbound.com)
+                            Django REST API (api.bengalbound.io)     ← Developer / API portal on .io
                                         ↓
                             INSPECTOR (always-on compliance gate)
                                         ↓

@@ -33,8 +33,10 @@ else:
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.run.app',           # Google Cloud Run
-    'https://*.bengalbound.com',   # Production domain
+    'https://*.bengalbound.com',   # Primary domain
     'https://bengalbound.com',
+    'https://*.bengalbound.io',    # Secondary domain (API / developer portal)
+    'https://bengalbound.io',
 ]
 # Append any extra origins from env: CSRF_TRUSTED_ORIGINS=https://myapp.run.app
 _extra = os.environ.get('CSRF_TRUSTED_ORIGINS_EXTRA', '')
