@@ -93,8 +93,8 @@ Run on **port 1234**: `python manage.py runserver 0.0.0.0:1234`
 | G | Stripe billing integration (checkout, webhooks, success/cancel pages) | ✅ Done |
 | H | Firebase auth bridge (firebase_token_sync, firebase_uid on User model) | ✅ Done |
 | **Infra** | **LiteLLM enterprise upgrade + Dokploy deployment** | 🟡 95% — cloudflared pending |
-| **I** | **Veritas KYB module — NEXT SPRINT** | 🔲 Not started |
-
+| **I** | **Veritas KYB module (Admin Portal & Compliance Gate)** | ✅ Done |
+| **J** | **Veritas KYB module (User Onboarding Portal)** | 🔲 In Progress |
 ---
 
 ## Infrastructure: LiteLLM + Redis on Dokploy VPS (Hetzner `31.97.131.113`)

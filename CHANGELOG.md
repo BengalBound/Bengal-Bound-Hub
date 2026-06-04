@@ -2,6 +2,25 @@
 
 ---
 
+## [Sprint I] Veritas KYB Module & UI Polish — 2026-06-04
+
+### 1. Veritas KYB Admin Portal
+- **Created** `veritas` Django app with models: `ClientApplication`, `KYBDocument`, `SanctionsCheck`, `ClientAgreement`.
+- **Created** `veritas/urls.py` and mounted to `console_admin/urls.py`.
+- **Created** list and detail views for admins to review business verification applications (`kyb_list.html`, `kyb_detail.html`).
+- Implemented approval and rejection workflows altering the application status.
+
+### 2. Inspector Compliance Gate
+- **Modified** `inspector/middleware.py`:
+  - Added strict KYB gate: Any request to `/api/agents/` (except Veritas endpoints) is intercepted.
+  - Queries `ClientApplication` for the current user and blocks access with a 403 response if status is not `approved`.
+
+### 3. UI/UX Enhancements
+- **Modified** `static/css/index.css`: Fixed a duplicate CSS block bug that was shrinking the central infinity logo and breaking the `interactive-hub-container` animation.
+- **Modified** `templates/public_site/home.html`: Added a dynamic vanilla JavaScript typing effect to the hero subtitle to loop through phrases ("Built for Retail.", "Built for Agencies.", "Built for Scale.", "Run by AI Employees.").
+
+---
+
 ## [Infra] LiteLLM Enterprise Upgrade + Dokploy Deployment — 2026-06-04
 
 ### Overview
