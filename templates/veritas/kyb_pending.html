@@ -1,0 +1,36 @@
+{% extends 'console_admin/base.html' %}
+
+{% block title %}Application Pending{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 min-vh-100 d-flex flex-column justify-content-center align-items-center">
+    <div class="text-center" style="max-width: 600px;">
+        <div class="mb-4">
+            <div class="ai-orb-core position-relative mx-auto" style="width: 100px; height: 100px;">
+                <i class="fas fa-shield-alt text-cyan fs-1 position-absolute top-50 start-50 translate-middle"></i>
+            </div>
+        </div>
+        
+        <h2 class="font-outfit text-white mb-3">Application Under Review</h2>
+        <p class="text-white-50 fs-5 mb-5">
+            Your Veritas KYB application for <strong>{{ app.company_legal_name }}</strong> is currently being evaluated by our AI compliance agents. 
+            This process usually takes less than 10 minutes.
+        </p>
+
+        <div class="bento-card bg-dark text-start p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-3">
+                <span class="text-white-50">Status</span>
+                <span class="badge bg-warning text-dark fs-6">{{ app.get_status_display }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-white-50">Submitted On</span>
+                <span class="text-white">{{ app.submitted_at|date:"M d, Y H:i" }}</span>
+            </div>
+        </div>
+
+        <a href="{% url 'console_admin:dashboard' %}" class="btn btn-outline-premium">
+            <i class="fas fa-home me-2"></i>Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

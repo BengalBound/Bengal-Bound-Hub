@@ -1,0 +1,68 @@
+{% extends 'console_admin/base.html' %}
+
+{% block title %}KYB Verification Setup{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center mb-5">
+                <h2 class="font-outfit text-white">Complete Your Business Profile</h2>
+                <p class="text-white-50 fs-5">Veritas compliance requires Know Your Business (KYB) verification before AI agents can be deployed in production.</p>
+            </div>
+
+            <div class="bento-card glow-hover-cyan">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <h4 class="font-outfit text-white mb-4"><i class="fas fa-building me-2 text-cyan"></i> Company Details</h4>
+                    <div class="row g-3 mb-5">
+                        <div class="col-12">
+                            <label class="form-label text-white-50">Legal Company Name</label>
+                            {{ app_form.company_legal_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50">Registration Number</label>
+                            {{ app_form.registration_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50">Tax ID / EIN</label>
+                            {{ app_form.vat_number }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-white-50">Country of Incorporation</label>
+                            {{ app_form.jurisdiction }}
+                        </div>
+                    </div>
+
+                    <h4 class="font-outfit text-white mb-4"><i class="fas fa-file-upload me-2 text-purple"></i> Verification Documents</h4>
+                    <div class="alert bg-dark border-secondary text-white-50 mb-4">
+                        <small><i class="fas fa-info-circle me-1"></i> Please upload a high-quality PDF or image of your official company registration document.</small>
+                    </div>
+
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50">Document Type</label>
+                            {{ doc_form.document_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50">File Upload</label>
+                            {{ doc_form.file }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-5">
+                        <button type="submit" class="btn btn-primary-gradient py-3 fs-5">
+                            Submit Application <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="text-center mt-4">
+                <small class="text-white-50"><i class="fas fa-lock me-1"></i> End-to-end encrypted and secured by Veritas Compliance Protocol.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
