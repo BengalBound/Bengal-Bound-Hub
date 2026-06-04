@@ -1,0 +1,114 @@
+model_list:
+  # ── QUICK tasks: fast, cheap — Inspector checks, OTP confirmations ─────────
+  - model_name: phi4-mini
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+    model_info:
+      mode: chat
+
+  # ── CHAT: general agent conversations ────────────────────────────────────────
+  - model_name: neural-chat
+    litellm_params:
+      model: groq/llama-3.2-11b-text-preview
+      api_key: os.environ/GROQ_API_KEY
+    model_info:
+      mode: chat
+
+  # Fallback for neural-chat when Groq rate-limits
+  - model_name: neural-chat
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.1-70b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+    model_info:
+      mode: chat
+
+  # ── MODERATION: conservative, safety-focused ─────────────────────────────────
+  - model_name: dolphin-mistral
+    litellm_params:
+      model: groq/mixtral-8x7b-32768
+      api_key: os.environ/GROQ_API_KEY
+    model_info:
+      mode: chat
+
+  # ── CONTENT: long-form generation, blog posts, marketing copy ────────────────
+  - model_name: glm4
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.1-70b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+    model_info:
+      mode: chat
+
+  # Fallback for glm4
+  - model_name: glm4
+    litellm_params:
+      model: groq/llama-3.1-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+    model_info:
+      mode: chat
+
+  # ── ANALYSIS: structured JSON output — Veritas KYB, risk scoring, Inspector ──
+  - model_name: qwen2.5-coder
+    litellm_params:
+      model: groq/llama-3.1-70b-versatile
+      api_key: os.environ/GROQ_API_KEY
+    model_info:
+      mode: chat
+
+  # Fallback for qwen2.5-coder
+  - model_name: qwen2.5-coder
+    litellm_params:
+      model: openrouter/qwen/qwen-2.5-coder-32b-instruct:free
+      api_key: os.environ/OPENROUTER_API_KEY
+    model_info:
+      mode: chat
+
+  # ── GEMINI: multimodal, vision, document OCR (KYB document analysis) ─────────
+  - model_name: gemini/gemini-1.5-flash
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+    model_info:
+      mode: chat
+
+router_settings:
+  routing_strategy: usage-based-routing  # prefers the least-loaded provider
+  num_retries: 3
+  retry_after: 5                          # seconds between retries
+  allowed_fails: 2                        # failures before cooldown
+  cooldown_time: 60                       # seconds a failed provider sits out
+
+  fallbacks:
+    - neural-chat:
+        - openrouter/meta-llama/llama-3.1-70b-instruct:free
+        - gemini/gemini-1.5-flash
+    - qwen2.5-coder:
+        - openrouter/qwen/qwen-2.5-coder-32b-instruct:free
+        - gemini/gemini-1.5-flash
+    - glm4:
+        - groq/llama-3.1-70b-versatile
+        - gemini/gemini-1.5-flash
+    - phi4-mini:
+        - neural-chat
+        - gemini/gemini-1.5-flash
+    - dolphin-mistral:
+        - neural-chat
+        - gemini/gemini-1.5-flash
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  max_parallel_requests: 100
+  store_model_in_db: false
+
+litellm_settings:
+  request_timeout: 45
+  drop_params: true        # ignore unsupported params per provider silently
+  cache: true
+  cache_params:
+    type: redis
+    url: os.environ/LITELLM_REDIS_URL
+    ttl: 3600              # 1-hour TTL — safe for compliance checks & analytics
+    namespace: "bengalbound:litellm"
+    supported_call_types:
+      - completion
+      - acompletion
