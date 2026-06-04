@@ -1026,6 +1026,21 @@ ALL_MODULES = [
         'url_namespace': 'garden_ops',
     },
 
+    # ── Field Service Management ──────────────────────────────────────────────
+    {
+        'module_id': 'fsm',
+        'name': 'Field Service Management',
+        'tagline': 'Map-based dispatch, job quoting, and mobile signature capture.',
+        'description': 'A dedicated module for plumbers, carpenters, electricians, and HVAC. Features map-based dispatch, job quoting, parts inventory van-sync, and customer signature capture on mobile.',
+        'category': 'operations',
+        'icon': 'bi-truck-flatbed',
+        'is_free': False,
+        'monthly_price_usd': '29.99',
+        'applicable_to': ['plumber', 'carpenter', 'electrician', 'landscaping', 'other'],
+        'display_order': 865,
+        'url_namespace': 'fsm',
+    },
+
     # ── Data Collection ───────────────────────────────────────────────────────
     {
         'module_id': 'data_collection',

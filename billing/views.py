@@ -158,42 +158,101 @@ def stripe_webhook(request):
         subscription_id = getattr(session, 'subscription', None)
         client_reference_id = getattr(session, 'client_reference_id', None)
 
-        if client_reference_id and subscription_id:
-            try:
-                business = BusinessInstance.objects.get(id=client_reference_id)
-                # Ensure the subscription has this customer
-                sub, created = BusinessSubscription.objects.get_or_create(business=business)
-                
-                # Fetch sub to get price ID
-                stripe_sub = stripe.Subscription.retrieve(subscription_id)
-                price_id = stripe_sub.items.data[0].price.id
-                
-                sub.stripe_subscription_id = subscription_id
-                sub.stripe_price_id = price_id
-                sub.status = 'active'
-                
-                # Extract plan info from metadata if passed in checkout session
-                metadata = getattr(session, 'metadata', {}) or {}
-                plan_type = metadata.get('plan_type') if hasattr(metadata, 'get') else getattr(metadata, 'plan_type', None)
-                billing_cycle = metadata.get('billing_cycle') if hasattr(metadata, 'get') else getattr(metadata, 'billing_cycle', None)
-                if plan_type:
-                    sub.plan_type = plan_type
-                if billing_cycle:
-                    sub.billing_cycle = billing_cycle
-                
-                sub.save()
+        if client_reference_id:
+            metadata = getattr(session, 'metadata', {}) or {}
+            checkout_type = metadata.get('type') if hasattr(metadata, 'get') else getattr(metadata, 'type', None)
 
+            if checkout_type == 'ai_employee':
+                from django.contrib.auth import get_user_model
+                from workspace_admin.models import Subscription, HiredAIEmployee, AIEmployeeTier
+                from agents.models import AgentCatalog
+                from django.utils import timezone
+                from datetime import timedelta
+                
+                User = get_user_model()
                 try:
-                    from bengalbound_core.notifications import send_slack_alert
-                    send_slack_alert(
-                        title="💰 New Subscription (Stripe) 💰",
-                        message=f"Business: {business.name} ({business.slug})\nPlan: {plan_type} ({billing_cycle})",
-                        urgency="high"
+                    user = User.objects.get(id=client_reference_id)
+                    tier_id = metadata.get('tier_id') if hasattr(metadata, 'get') else getattr(metadata, 'tier_id', None)
+                    duration_months = int(metadata.get('duration_months', 1)) if hasattr(metadata, 'get') else int(getattr(metadata, 'duration_months', 1))
+                    agent_slug = metadata.get('agent_slug') if hasattr(metadata, 'get') else getattr(metadata, 'agent_slug', None)
+                    
+                    tier = AIEmployeeTier.objects.get(id=tier_id)
+                    
+                    agent_catalog = None
+                    if agent_slug:
+                        agent_catalog = AgentCatalog.objects.filter(slug=agent_slug, is_active=True).first()
+                        
+                    # Provision the AI
+                    new_ai = HiredAIEmployee.objects.create(
+                        employer=user,
+                        tier=tier,
+                        agent_catalog=agent_catalog,
+                        ai_name=agent_catalog.name if agent_catalog else f"Serea ({tier.get_name_display()})"
                     )
-                except Exception as e:
+                    
+                    amount_paid = (getattr(session, 'amount_total', 0) or 0) / 100.0
+                    
+                    # Create subscription record
+                    Subscription.objects.create(
+                        client=user,
+                        tier=tier,
+                        hired_ai=new_ai,
+                        billing_cycle='annual' if duration_months >= 12 else 'monthly',
+                        status='active',
+                        amount_paid_usd=amount_paid,
+                        started_at=timezone.now(),
+                        current_period_end=timezone.now() + timedelta(days=30 * duration_months) if tier.monthly_price_usd > 0 else timezone.now() + timedelta(days=365*10),
+                        stripe_customer_id=customer_id,
+                        stripe_subscription_id=session.id # Use session.id for one-time payments
+                    )
+                    
+                    try:
+                        from bengalbound_core.notifications import send_slack_alert
+                        send_slack_alert(
+                            title="🤖 New AI Employee Hired 🤖",
+                            message=f"Client: {user.email}\nAI: {new_ai.ai_name}\nTier: {tier.get_name_display()}",
+                            urgency="high"
+                        )
+                    except Exception:
+                        pass
+                except Exception:
                     pass
-            except BusinessInstance.DoesNotExist:
-                pass
+
+            elif subscription_id:
+                try:
+                    business = BusinessInstance.objects.get(id=client_reference_id)
+                    # Ensure the subscription has this customer
+                    sub, created = BusinessSubscription.objects.get_or_create(business=business)
+                    
+                    # Fetch sub to get price ID
+                    stripe_sub = stripe.Subscription.retrieve(subscription_id)
+                    price_id = stripe_sub.items.data[0].price.id
+                    
+                    sub.stripe_subscription_id = subscription_id
+                    sub.stripe_price_id = price_id
+                    sub.status = 'active'
+                    
+                    # Extract plan info from metadata if passed in checkout session
+                    plan_type = metadata.get('plan_type') if hasattr(metadata, 'get') else getattr(metadata, 'plan_type', None)
+                    billing_cycle = metadata.get('billing_cycle') if hasattr(metadata, 'get') else getattr(metadata, 'billing_cycle', None)
+                    if plan_type:
+                        sub.plan_type = plan_type
+                    if billing_cycle:
+                        sub.billing_cycle = billing_cycle
+                    
+                    sub.save()
+
+                    try:
+                        from bengalbound_core.notifications import send_slack_alert
+                        send_slack_alert(
+                            title="💰 New Subscription (Stripe) 💰",
+                            message=f"Business: {business.name} ({business.slug})\nPlan: {plan_type} ({billing_cycle})",
+                            urgency="high"
+                        )
+                    except Exception as e:
+                        pass
+                except BusinessInstance.DoesNotExist:
+                    pass
 
     elif event.type in ['customer.subscription.updated', 'customer.subscription.deleted']:
         subscription = event.data.object

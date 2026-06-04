@@ -23,6 +23,7 @@ from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from modules.forms_builder.views import form_public
 from public_site.sitemaps import StaticPageSitemap, BlogSitemap
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 _sitemaps = {
     'static': StaticPageSitemap,
@@ -31,6 +32,15 @@ _sitemaps = {
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Auth & Tokens
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # API endpoints
+    path('api/hub/', include('hub.api_urls', namespace='hub_api')),
+    path('api/fsm/', include('modules.fsm.api_urls', namespace='fsm_api')),
+
     path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
     path('accounts/', include('allauth.urls')),
     path('billing/', include('billing.urls')),
@@ -174,6 +184,7 @@ urlpatterns = [
     path('hub/<slug:slug>/care/', include('modules.care_manager.urls', namespace='care_manager')),
     path('hub/<slug:slug>/garden/', include('modules.garden_ops.urls', namespace='garden_ops')),
     path('hub/<slug:slug>/data/', include('modules.data_collection.urls', namespace='data_collection')),
+    path('hub/<slug:slug>/fsm/', include('modules.fsm.urls', namespace='fsm')),
 
     # Public form submission (no business slug — accessible without login)
     path('f/<slug:form_slug>/', form_public, name='form_public'),

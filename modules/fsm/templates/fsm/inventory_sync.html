@@ -1,0 +1,63 @@
+{% extends "hub/base_hub.html" %}
+
+{% block title %}Van Inventory Sync{% end block %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h1 class="h3 mb-0 text-gray-800">Van Inventory Sync</h1>
+            <p class="text-muted">Manage your truck's spare parts and tools</p>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Current Stock</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="inventoryTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>SKU</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_items %}
+                        <tr>
+                            <td>{{ item.item_name }}</td>
+                            <td>{{ item.sku }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>
+                                {% if item.quantity <= item.minimum_threshold %}
+                                <span class="badge bg-danger text-white">Low Stock</span>
+                                {% else %}
+                                <span class="badge bg-success text-white">Adequate</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" class="d-flex align-items-center">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                                    <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="form-control form-control-sm me-2" style="width: 80px;">
+                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No inventory items assigned to your van yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

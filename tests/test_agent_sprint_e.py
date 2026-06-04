@@ -55,10 +55,13 @@ def test_hire_ai_page_annotates_disabled_tiers(client, base_setup):
     entry_tier = next(t for t in tiers if t.name == 'entry')
     assert entry_tier.is_disabled is False
 
-def test_hire_ai_flow_post_success(client, base_setup):
+@patch('billing.services.create_ai_checkout_session')
+def test_hire_ai_flow_post_success(mock_checkout, client, base_setup):
     user = base_setup['user']
     catalog = base_setup['catalog']
     tier_entry = base_setup['tier_entry']
+    
+    mock_checkout.return_value = 'https://checkout.stripe.com/test'
     
     client.force_login(user)
     url = reverse('console_admin:hire_ai')
@@ -69,23 +72,10 @@ def test_hire_ai_flow_post_success(client, base_setup):
         'agent_slug': catalog.slug
     })
     
-    # Successful hire redirects to the newly hired agent's workspace
+    # Successful hire redirects to the Stripe Checkout session
     assert response.status_code == 302
-    assert reverse('console_admin:agent_workspace', args=[catalog.slug]) in response.url
-    
-    # Verify HiredAIEmployee was created
-    hired = HiredAIEmployee.objects.get(employer=user, agent_catalog=catalog)
-    assert hired.ai_name == 'Aria'
-    assert hired.tier == tier_entry
-    
-    # Signal should have provisioned SereaAgent
-    agent = SereaAgent.objects.get(hired_employee=hired)
-    assert agent.tenant == user
-    assert agent.status == 'idle'
-    
-    # Signal should have provisioned AgentInstance
-    instance = AgentInstance.objects.get(business=base_setup['biz'], catalog=catalog)
-    assert instance.hired_employee == hired
+    assert response.url == 'https://checkout.stripe.com/test'
+    mock_checkout.assert_called_once()
 
 @patch('serea.logic.SereaBrain.chat')
 def test_agent_run_view_with_serea_agent(mock_chat, client, base_setup):

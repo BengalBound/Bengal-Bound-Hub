@@ -245,6 +245,7 @@ INSTALLED_APPS = [
     'modules.care_manager',
     'modules.garden_ops',
     'modules.data_collection',
+    'modules.fsm',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -721,3 +722,23 @@ else:
             'BACKEND': 'channels.layers.InMemoryChannelLayer'
         }
     }
+# ── REST Framework & JWT ──────────────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}

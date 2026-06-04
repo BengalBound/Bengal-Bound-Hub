@@ -88,9 +88,9 @@ class Subscription(models.Model):
     client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscriptions')
     hired_ai = models.OneToOneField(HiredAIEmployee, on_delete=models.CASCADE, related_name='subscription')
     tier = models.ForeignKey(AIEmployeeTier, on_delete=models.SET_NULL, null=True)
-    # NowPayments Integration Fields
-    nowpayments_order_id = models.CharField(max_length=255, blank=True, null=True, help_text="NowPayments payment ID")
-    nowpayments_invoice_url = models.URLField(blank=True, null=True)
+    # Stripe Integration Fields
+    stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True, help_text="Stripe Subscription ID")
+    stripe_customer_id = models.CharField(max_length=255, blank=True, null=True, help_text="Stripe Customer ID")
     billing_cycle = models.CharField(max_length=20, choices=BILLING_CYCLE, default='monthly')
     status = models.CharField(max_length=20, choices=BILLING_STATUS, default='trialing')
     amount_paid_usd = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

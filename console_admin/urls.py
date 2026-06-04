@@ -34,7 +34,6 @@ urlpatterns = [
     
     path('manage-ai/<int:ai_id>/', views.manage_ai, name='manage_ai'),
     path('fire-ai/<int:ai_id>/', views.fire_ai, name='fire_ai'),
-    path('nowpayments/webhook/', views.nowpayments_webhook, name='nowpayments_webhook'),
 
     # AI Workforce Hub
     path('ai-chat/', views.ai_chat, name='ai_chat'),

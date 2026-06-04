@@ -75,3 +75,53 @@ def create_portal_session(business, base_url):
         return_url=f"{base_url}/console/"
     )
     return session.url
+
+def create_ai_checkout_session(user, tier, duration_months, base_url, agent_slug=None):
+    """
+    Create a Stripe Checkout session for hiring an AI Employee.
+    """
+    try:
+        from .models import StripeCustomer
+        # For individual users hiring AI agents without a business context
+        # (Though they usually have a business, we link it to the user here)
+        customer_list = stripe.Customer.list(email=user.email, limit=1)
+        if customer_list.data:
+            customer_id = customer_list.data[0].id
+        else:
+            customer = stripe.Customer.create(email=user.email, name=user.email)
+            customer_id = customer.id
+    except Exception:
+        customer_id = None
+
+    amount = float(tier.monthly_price_usd)
+    
+    # We will use one-time payment for the duration months instead of subscription
+    # to avoid complex stripe subscription proration unless requested.
+    # We set mode='payment'
+    
+    session = stripe.checkout.Session.create(
+        customer=customer_id,
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {
+                    'name': f"{tier.get_name_display()} AI Employee",
+                    'description': f"{duration_months} Month(s) Hire",
+                },
+                'unit_amount': int(amount * 100),
+            },
+            'quantity': duration_months,
+        }],
+        mode='payment',
+        success_url=f"{base_url}/console/dashboard/",
+        cancel_url=f"{base_url}/console/hire-ai/",
+        client_reference_id=str(user.id),
+        metadata={
+            'type': 'ai_employee',
+            'tier_id': str(tier.id),
+            'duration_months': str(duration_months),
+            'agent_slug': agent_slug or ''
+        }
+    )
+    return session.url

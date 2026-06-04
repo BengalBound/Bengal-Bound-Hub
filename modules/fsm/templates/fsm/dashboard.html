@@ -1,0 +1,63 @@
+{% extends "hub/base_hub.html" %}
+{% load static %}
+{% block title %}FSM Dashboard - {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Field Service Dashboard</h2>
+        <div>
+            <a href="{% url 'fsm:map_dispatch' business.slug %}" class="btn btn-primary"><i class="bi bi-map"></i> Map Dispatch</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Today's Jobs</h5>
+                </div>
+                <div class="card-body">
+                    {% if jobs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Job Title</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Technician</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for job in jobs %}
+                                <tr>
+                                    <td>{{ job.scheduled_datetime|date:"H:i"|default:"Unscheduled" }}</td>
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ job.customer_name }}</td>
+                                    <td>
+                                        <span class="badge {% if job.status == 'completed' %}bg-success{% elif job.status == 'in_progress' %}bg-primary{% elif job.status == 'scheduled' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ job.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ job.technician.name|default:"Unassigned" }}</td>
+                                    <td>
+                                        <a href="{% url 'fsm:quote_builder' business.slug job.id %}" class="btn btn-sm btn-outline-secondary">Quote</a>
+                                        <a href="{% url 'fsm:signature_capture' business.slug job.id %}" class="btn btn-sm btn-outline-success">Sign</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No jobs scheduled for today.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

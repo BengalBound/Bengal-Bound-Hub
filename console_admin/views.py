@@ -573,142 +573,22 @@ def hire_ai(request):
                 messages.error(request, f"Hiring {post_agent_catalog.name} requires at least the {post_agent_catalog.tier_required|title} tier.")
                 return redirect(f"{reverse('console_admin:hire_ai')}?agent={post_agent_slug}")
 
-        # BYPASS PAYMENT FOR NOW: Instantly provision all tiers
-        from django.utils import timezone
-        from datetime import timedelta
-
-        # Check if user already has an active AI of this tier (if not hiring a specific agent)
-        if not post_agent_catalog:
-            existing_ai = HiredAIEmployee.objects.filter(
-                employer=request.user,
-                is_active=True,
-                tier=tier
-            ).exists()
-            if existing_ai:
-                messages.warning(request, f"You already have an active {tier.get_name_display()} employee.")
-                return redirect('console_admin:dashboard')
-
-        # Provision the actual AI first
-        new_ai = HiredAIEmployee.objects.create(
-            employer=request.user,
-            tier=tier,
-            agent_catalog=post_agent_catalog,
-            ai_name=post_agent_catalog.name if post_agent_catalog else f"Serea ({tier.get_name_display()})"
-        )
-
-        total_price = float(tier.monthly_price_usd) * duration_months
-
-        # Create an active subscription linked to the AI
-        sub = Subscription.objects.create(
-            client=request.user,
-            tier=tier,
-            hired_ai=new_ai,
-            billing_cycle='annual' if duration_months >= 12 else 'monthly',
-            status='active',
-            amount_paid_usd=total_price, # Pretend it's paid for now
-            started_at=timezone.now(),
-            current_period_end=timezone.now() + timedelta(days=30 * duration_months) if tier.monthly_price_usd > 0 else timezone.now() + timedelta(days=365*10)
-        )
-
-        messages.success(request, f"{new_ai.ai_name} activated! Say hello to your new AI employee.")
-        if post_agent_catalog:
-            return redirect('console_admin:agent_workspace', agent_slug=post_agent_catalog.slug)
-        return redirect('console_admin:serea_onboarding')
+        # Instead of bypassing payment, redirect to Stripe Checkout
+        from billing.services import create_ai_checkout_session
+        base_url = request.build_absolute_uri('/')[:-1]
+        try:
+            checkout_url = create_ai_checkout_session(request.user, tier, duration_months, base_url, post_agent_slug)
+            return redirect(checkout_url)
+        except Exception as e:
+            messages.error(request, f"Failed to initialize checkout: {e}")
+            if post_agent_slug:
+                return redirect(f"{reverse('console_admin:hire_ai')}?agent={post_agent_slug}")
+            return redirect('console_admin:hire_ai')
 
     return render(request, 'console_admin/hire_ai.html', {
         'tiers': tiers,
         'agent_catalog': agent_catalog,
     })
-
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, JsonResponse
-import json
-from datetime import timedelta
-from django.utils import timezone
-
-@csrf_exempt
-def nowpayments_webhook(request):
-    """
-    Receives secure IPN callbacks from NowPayments.
-    Verifies signature, then upgrades the user's AI tier on 'finished' status.
-    """
-    from console_admin.nowpayments_service import verify_ipn_signature
-    from workspace_admin.models import Subscription, HiredAIEmployee
-
-    if request.method != 'POST':
-        return HttpResponse(status=405)
-
-    signature = request.headers.get('x-nowpayments-sig')
-    if not signature:
-        return JsonResponse({'error': 'Missing signature'}, status=400)
-
-    try:
-        data = json.loads(request.body)
-
-        # Verify webhook signature using the IPN Secret
-        if not verify_ipn_signature(data, signature):
-            return JsonResponse({'error': 'Invalid signature'}, status=403)
-
-        payment_status = data.get('payment_status')
-        order_description = data.get('order_description', '')
-
-        # We passed f"Sub:{trial_sub.id}|Duration:{duration_months}" during checkout
-        if not order_description.startswith('Sub:'):
-            return JsonResponse({'status': 'ignored - not a recognized order format'})
-
-        parts = dict(p.split(':') for p in order_description.split('|'))
-        sub_id = parts.get('Sub')
-        duration_months = int(parts.get('Duration', 1))
-
-        if payment_status == 'finished':
-            sub = Subscription.objects.select_related('client', 'tier').get(id=sub_id)
-
-            # If it's already active, skip (idempotent)
-            if sub.status == 'active':
-                return JsonResponse({'status': 'already processed'})
-
-            # 1. Update the Subscription
-            sub.status = 'active'
-            sub.started_at = timezone.now()
-            # Approximation (30 days per month)
-            days = duration_months * 30
-            sub.current_period_end = timezone.now() + timedelta(days=days)
-            sub.save()
-
-            # 2. Upgrade the HiredAIEmployee (or create one)
-            # The client might already have an Intern tier, let's upgrade their oldest one,
-            # or strictly create a new one based on business logic.
-            # We will try to find an active Intern tier first to upgrade:
-            existing_ai = HiredAIEmployee.objects.filter(
-                employer=sub.client,
-                is_active=True,
-                tier__name='intern'
-            ).first()
-
-            if existing_ai:
-                existing_ai.tier = sub.tier
-                existing_ai.save(update_fields=['tier'])
-                sub.hired_ai = existing_ai
-                sub.save(update_fields=['hired_ai'])
-            else:
-                # No Intern tier to upgrade? Create a fresh AI
-                new_ai = HiredAIEmployee.objects.create(
-                    employer=sub.client,
-                    tier=sub.tier,
-                    ai_name=f"Serea ({sub.tier.get_name_display()})"
-                )
-                sub.hired_ai = new_ai
-                sub.save(update_fields=['hired_ai'])
-
-        return JsonResponse({'status': 'ok'})
-
-    except Subscription.DoesNotExist:
-        return JsonResponse({'error': 'Subscription not found'}, status=404)
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Webhook processing error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
 
 
 # ─── Facebook OAuth helpers ────────────────────────────────────────────────────
