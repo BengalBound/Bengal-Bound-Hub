@@ -1441,78 +1441,7 @@ select.form-control option:checked {
     50% { transform: translateY(-10px); }
 }
 
-/* ── Interactive Hub Map ── */
-.interactive-hub-container {
-    position: relative;
-    width: 100%;
-    height: 800px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-.connection-lines {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 0;
-}
-.connection-path {
-    fill: none;
-    stroke: rgba(255, 255, 255, 0.1);
-    stroke-width: 2;
-    stroke-dasharray: 10;
-    animation: dashAnim 30s linear infinite;
-}
-@keyframes dashAnim {
-    from { stroke-dashoffset: 1000; }
-    to { stroke-dashoffset: 0; }
-}
 
-.sphere-container {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 200px; height: 200px;
-    z-index: 2;
-    display: flex; align-items: center; justify-content: center;
-}
-.animated-sphere {
-    position: absolute;
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(157, 78, 221, 0.3) 0%, transparent 70%);
-    box-shadow: 0 0 50px rgba(0, 245, 212, 0.3);
-    animation: pulseSphere 4s ease-in-out infinite alternate;
-}
-@keyframes pulseSphere {
-    0% { transform: scale(0.9); opacity: 0.7; }
-    100% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 80px rgba(157, 78, 221, 0.5); }
-}
-.center-logo {
-    width: 60px; height: auto; z-index: 3;
-    filter: drop-shadow(0 0 15px rgba(255,255,255,0.5));
-}
-
-.floating-card {
-    background: rgba(10, 10, 15, 0.7);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
-    padding: 1.2rem;
-    width: 260px;
-    z-index: 1;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.floating-card:hover {
-    transform: scale(1.05) translateY(-10px);
-    border-color: var(--bb-accent-cyan);
-    box-shadow: 0 10px 30px rgba(0, 245, 212, 0.2);
-    z-index: 10;
-}
-.card-top-left { top: 15%; left: 15%; }
-.card-top-right { top: 15%; right: 15%; }
-.card-mid-left { top: 45%; left: 5%; }
-.card-mid-right { top: 45%; right: 5%; }
-.card-bottom-left { top: 75%; left: 15%; }
-.card-bottom-right { top: 75%; right: 15%; }
 
 @media (max-width: 991px) {
     .interactive-hub-container { height: auto; min-height: 600px; display: flex; flex-direction: column; align-items: center; gap: 1rem; }

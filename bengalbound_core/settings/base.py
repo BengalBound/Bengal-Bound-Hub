@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'booking_calendar',
     'billing',
     'inspector',
+    'veritas',
     'hub.apps.HubConfig',
     'agents',
     'agents.aria',

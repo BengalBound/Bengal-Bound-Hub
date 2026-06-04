@@ -23,6 +23,27 @@ class InspectorMiddleware:
         if '/inspector/' in request.path:
             return self.get_response(request)
 
+        # 1.5 Veritas KYB Gate
+        if request.path.startswith('/api/agents/') and not request.path.startswith('/api/agents/veritas/'):
+            if not user or not user.is_authenticated:
+                return JsonResponse({"error": "Authentication required"}, status=401)
+            
+            try:
+                from veritas.models import ClientApplication
+                app = ClientApplication.objects.get(user=user)
+                if app.status != 'approved':
+                    return JsonResponse({
+                        "error": "KYB Verification Required", 
+                        "message": "Your business KYB application is pending or rejected."
+                    }, status=403)
+            except ImportError:
+                pass # veritas not installed yet
+            except Exception: # DoesNotExist
+                return JsonResponse({
+                    "error": "KYB Verification Required", 
+                    "message": "You must submit a KYB application before using AI agents."
+                }, status=403)
+
         # 2. Context resolution
         business = getattr(request, 'current_business', None)
         user = getattr(request, 'user', None)
