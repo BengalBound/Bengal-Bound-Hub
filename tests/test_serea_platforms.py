@@ -88,6 +88,7 @@ def test_instagram_adapter(mock_requests, instagram_account):
     adapter.delete_comment('c1')
     
     # reply_to_comment
+    mock_post = MagicMock()
     mock_post.json.return_value = {'id': 'r1'}
     mock_requests.post.return_value = mock_post
     adapter.reply_to_comment('c1', 'thanks')
@@ -106,7 +107,7 @@ def test_instagram_adapter(mock_requests, instagram_account):
     # post text without image (not supported)
     res = adapter.post("text only")
     assert res.success is False
-    assert "media_url is required" in res.error
+    assert "requires a media_url" in res.error
 
 def test_tiktok_adapter(tiktok_account):
     adapter = TikTokAdapter(tiktok_account)
