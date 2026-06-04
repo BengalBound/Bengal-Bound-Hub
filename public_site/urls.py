@@ -40,4 +40,8 @@ urlpatterns = [
     # Legal pages
     path('privacy/', views.privacy, name='privacy'),
     path('terms/', views.terms, name='terms'),
+
+    # Public Negotiator
+    path('demo-negotiate/', views.demo_negotiate, name='demo_negotiate'),
+    path('demo-negotiate/chat/', views.api_demo_chat, name='api_demo_chat'),
 ]

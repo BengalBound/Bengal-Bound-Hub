@@ -1742,6 +1742,8 @@ def hybrid_onboarding(request):
     ai_tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
     agents = AgentCatalog.objects.filter(is_active=True)
 
+    negotiated_package = request.session.pop('negotiated_package', None)
+
     return render(request, 'console_admin/hybrid_onboarding.html', {
         'modules': modules,
         'ai_tiers': ai_tiers,
@@ -1751,6 +1753,7 @@ def hybrid_onboarding(request):
         'industry_module_priority': json.dumps(INDUSTRY_MODULE_PRIORITY),
         'exchange_rates': json.dumps(EXCHANGE_RATES),
         'currency_symbols': json.dumps(CURRENCY_SYMBOLS),
+        'negotiated_package': json.dumps(negotiated_package) if negotiated_package else 'null',
     })
 
 from django.views.decorators.csrf import csrf_exempt
@@ -1872,6 +1875,102 @@ def process_onboarding_checkout(request):
         return redirect('console_admin:dashboard')
         
     return redirect('console_admin:hybrid_onboarding')
+
+
+@csrf_exempt
+@console_user_required(login_url='/accounts/login/')
+def skip_onboarding_book(request):
+    """
+    Endpoint for client to skip onboarding wizard and book a demo.
+    Registers a booking_calendar.models.Appointment and provisions a basic freemium workspace.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+
+    import json
+    from django.http import JsonResponse
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+
+    booking_date = data.get('date')
+    booking_time = data.get('time')
+    booking_notes = data.get('notes', '').strip()
+
+    if not booking_date or not booking_time:
+        return JsonResponse({'success': False, 'error': 'Preferred date and time are required.'}, status=400)
+
+    from booking_calendar.models import Appointment
+    from hub.models import BusinessInstance, DashboardConfig
+    from hub.views import _unique_slug
+    from hub.dashboard_configurator import DashboardConfigurator
+    from django.contrib import messages
+
+    # 1. Create Appointment
+    appointment = Appointment.objects.create(
+        client_name=request.user.get_full_name() or request.user.email,
+        client_email=request.user.email,
+        service_type='bengalbound_demo',
+        date=booking_date,
+        time=booking_time,
+        notes=booking_notes,
+    )
+
+    # 2. Provision default BusinessInstance
+    business_name = f"{request.user.email.split('@')[0]}'s Workspace"
+    slug = _unique_slug(business_name)
+    
+    business, created = BusinessInstance.objects.get_or_create(
+        owner=request.user,
+        defaults={
+            'name': business_name,
+            'slug': slug,
+            'business_type': 'business'
+        }
+    )
+
+    # 3. Create CEO employee profile if missing
+    from hub.models import BusinessEmployee
+    try:
+        BusinessEmployee.objects.get_or_create(
+            business=business,
+            user=request.user,
+            defaults={
+                'name': request.user.get_full_name() or request.user.email,
+                'email': request.user.email,
+                'role': 'ceo',
+            }
+        )
+    except Exception:
+        pass
+
+    # 4. Trigger configuration
+    answers = {
+        'business_type': 'business',
+        'main_challenge': 'getting_leads',
+        'team_size': 'Just me',
+        'platforms': [],
+        'language': 'English',
+        'payment_preference': 'Stripe',
+    }
+    
+    configurator = DashboardConfigurator()
+    configurator.configure(business, answers)
+
+    # Ensure DashboardConfig is marked as configured to prevent further redirect loops
+    db_config = DashboardConfig.objects.filter(business=business).first()
+    if db_config:
+        db_config.is_configured = True
+        db_config.save()
+
+    messages.success(request, f"Onboarding skipped. Your demo is booked for {booking_date} at {booking_time}!")
+    
+    from django.urls import reverse
+    return JsonResponse({
+        'success': True,
+        'redirect_url': reverse('console_admin:dashboard')
+    })
 
 
 @csrf_exempt

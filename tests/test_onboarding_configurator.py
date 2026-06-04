@@ -293,3 +293,91 @@ def test_natural_language_modifier(mock_chat, client, base_setup):
     config.refresh_from_db()
     assert config.primary_color == '#1E40AF'
     assert config.layout[0]['id'] == 'quick_actions'  # actions moved to top order
+
+
+def test_skip_onboarding_and_book_meeting(client, base_setup):
+    from booking_calendar.models import Appointment
+    from hub.models import BusinessInstance, DashboardConfig
+    
+    user, _, _ = base_setup
+    client.force_login(user)
+
+    url = reverse('console_admin:skip_onboarding_book')
+    response = client.post(
+        url,
+        data=json.dumps({
+            'date': '2026-06-10',
+            'time': '14:30',
+            'notes': 'Looking forward to meeting you!'
+        }),
+        content_type='application/json'
+    )
+    
+    assert response.status_code == 200
+    res_data = response.json()
+    assert res_data['success'] is True
+    assert 'redirect_url' in res_data
+    
+    # Assert appointment created
+    appt = Appointment.objects.filter(client_email=user.email).first()
+    assert appt is not None
+    assert appt.service_type == 'bengalbound_demo'
+    assert appt.notes == 'Looking forward to meeting you!'
+    
+    # Assert business created and configured
+    biz = BusinessInstance.objects.filter(owner=user).first()
+    assert biz is not None
+    assert biz.name == f"{user.email.split('@')[0]}'s Workspace"
+    
+    db_config = DashboardConfig.objects.filter(business=biz).first()
+    assert db_config is not None
+    assert db_config.is_configured is True
+
+
+def test_public_negotiator_session(client, base_setup):
+    from django.urls import reverse
+    from modules.veritas.models import ClientApplication
+    
+    user, _, _ = base_setup
+    client.force_login(user)
+
+    # Setup approved KYB so client doesn't get blocked
+    ClientApplication.objects.create(
+        user=user,
+        company_legal_name="Test Legal Corp",
+        registration_number="REG123",
+        jurisdiction="BD",
+        registered_address="Dhaka",
+        director_name="CEO",
+        director_email="ceo@test.com",
+        director_phone="12345",
+        status="approved"
+    )
+    
+    negotiator_url = reverse('public_site:demo_negotiate')
+    
+    # Perform public negotiator POST to claim offer
+    response = client.post(negotiator_url, {
+        'business_name': 'Negotiated Biz',
+        'business_type': 'ecommerce',
+        'custom_modules': ['crm', 'invoicing'],
+        'custom_agents': ['concierge'],
+        'agent_tier_concierge': 'intern'
+    })
+    
+    assert response.status_code == 302
+    assert '/accounts/signup/' in response.url
+    
+    # Check that session key 'negotiated_package' is populated
+    session = client.session
+    assert 'negotiated_package' in session
+    assert session['negotiated_package']['business_name'] == 'Negotiated Biz'
+    
+    # Visit hybrid onboarding view
+    onboarding_url = reverse('console_admin:hybrid_onboarding')
+    onboarding_resp = client.get(onboarding_url)
+    
+    assert onboarding_resp.status_code == 200
+    assert b'Negotiated Biz' in onboarding_resp.content
+    assert b'crm' in onboarding_resp.content
+

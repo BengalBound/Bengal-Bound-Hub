@@ -320,3 +320,75 @@ def solution_retail(request):
 
 def solution_hospitality(request):
     return render(request, 'public_site/solutions/hospitality_rentals.html')
+
+
+def demo_negotiate(request):
+    """
+    Public pre-account budget negotiator page.
+    Enables users to customize a package of modules and agents, chat with the AI Solutions Architect,
+    and claim the offer which stores the parameters in session.
+    """
+    from hub.models import ModuleCatalog, BUSINESS_TYPES, BASIC_MODULE_IDS, INDUSTRY_MODULE_PRIORITY
+    from workspace_admin.models import AIEmployeeTier
+    from agents.models import AgentCatalog
+    import json
+
+    modules = ModuleCatalog.objects.filter(is_available=True)
+    ai_tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
+    agents = AgentCatalog.objects.filter(is_active=True)
+
+    if request.method == 'POST':
+        # User clicks "Claim Offer & Register"
+        custom_modules = request.POST.getlist('custom_modules')
+        custom_agents = request.POST.getlist('custom_agents')
+        
+        agent_tiers = {}
+        for key, val in request.POST.items():
+            if key.startswith('agent_tier_'):
+                agent_slug = key[len('agent_tier_'):]
+                agent_tiers[agent_slug] = val
+                
+        request.session['negotiated_package'] = {
+            'custom_modules': custom_modules,
+            'custom_agents': custom_agents,
+            'agent_tiers': agent_tiers,
+            'business_type': request.POST.get('business_type', 'business'),
+            'business_name': request.POST.get('business_name', '').strip(),
+        }
+        request.session.modified = True
+        return redirect('/accounts/signup/')
+
+    return render(request, 'public_site/demo_negotiate.html', {
+        'modules': modules,
+        'ai_tiers': ai_tiers,
+        'agents': agents,
+        'business_types': BUSINESS_TYPES,
+        'basic_module_ids': json.dumps(BASIC_MODULE_IDS),
+        'industry_module_priority': json.dumps(INDUSTRY_MODULE_PRIORITY),
+        'exchange_rates': json.dumps(EXCHANGE_RATES),
+        'currency_symbols': json.dumps(CURRENCY_SYMBOLS),
+    })
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def api_demo_chat(request):
+    """
+    AJAX endpoint for the public pre-account negotiator chatbot.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            messages = data.get('messages', [])
+            
+            from agents.onboarding_agent import get_onboarding_chat_response
+            response_data = get_onboarding_chat_response(messages)
+            
+            return JsonResponse(response_data)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+

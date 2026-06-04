@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Interactive Budget Negotiator | BengalBound{% endblock %}
+{% block meta_description %}Replicate and negotiate your BengalBound AI employee and module workspace package directly with our Solutions Architect chatbot before signing up.{% endblock %}
+
+{% block content %}
+<style>
+    .glass-panel {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4);
+        border-radius: 1.25rem;
+    }
+    .glass-input {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.25) !important;
+    }
+    .glass-check-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .glass-check-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(56, 189, 248, 0.25);
+    }
+    .glass-check-item.active {
+        background: rgba(56, 189, 248, 0.08) !important;
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.15);
+    }
+    .chat-window {
+        min-height: 380px;
+        max-height: 450px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+</style>
+
+<div class="container py-5 mt-5">
+    <div class="text-center mb-5 fade-in">
+        <h1 class="display-5 fw-bold text-white mb-2 font-outfit">Pre-Account <span class="text-gradient-purple-cyan">Negotiation Suite</span></h1>
+        <p class="lead text-white-50 max-w-xl mx-auto">Customize your workspace architecture, chat with our AI Solutions Architect, and lock in your price before registering.</p>
+    </div>
+
+    <form method="post" id="negotiatorForm">
+        {% csrf_token %}
+        <div class="row g-4">
+            <!-- Left Side: Package Customization Checklist -->
+            <div class="col-lg-7">
+                <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <h4 class="text-white font-outfit fw-bold mb-4 d-flex align-items-center">
+                            <i class="bi bi-sliders text-primary me-2"></i> Workspace Configurator
+                        </h4>
+
+                        <!-- Company Info -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-bold">COMPANY NAME</label>
+                                <input type="text" name="business_name" class="form-control glass-input" placeholder="e.g. Acme International" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white-50 small fw-bold">INDUSTRY VERTICAL</label>
+                                <select name="business_type" id="business_type_select" class="form-select glass-input text-white" required>
+                                    <option value="" disabled selected>Select Industry</option>
+                                    {% for value, label in business_types %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Modules Section -->
+                        <h5 class="text-white small fw-bold text-uppercase tracking-wider mb-3 border-bottom border-white border-opacity-10 pb-1">
+                            <i class="bi bi-puzzle text-primary me-2"></i> Pluggable Modules
+                        </h5>
+                        <div class="row g-2 mb-4 overflow-auto" style="max-height: 200px;">
+                            {% for module in modules %}
+                            <div class="col-md-6">
+                                <div class="glass-check-item p-2 rounded d-flex align-items-center justify-content-between" data-price="{{ module.monthly_price_usd }}">
+                                    <div class="d-flex align-items-center">
+                                        <input class="form-check-input custom-module-checkbox me-2" type="checkbox" name="custom_modules" value="{{ module.module_id }}" id="chk_mod_{{ module.module_id }}">
+                                        <div>
+                                            <label class="form-check-label text-white fw-semibold small" for="chk_mod_{{ module.module_id }}">
+                                                {{ module.name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-secondary font-monospace module-price-tag" data-usd-price="{{ module.monthly_price_usd }}" style="font-size:0.7rem;">Free</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- AI Agents Section -->
+                        <h5 class="text-white small fw-bold text-uppercase tracking-wider mb-3 border-bottom border-white border-opacity-10 pb-1">
+                            <i class="bi bi-robot text-primary me-2"></i> AI Employee Workforce
+                        </h5>
+                        <div class="row g-2 overflow-auto" style="max-height: 250px;">
+                            {% for agent in agents %}
+                            <div class="col-md-6">
+                                <div class="glass-check-item p-2 rounded" data-agent-slug="{{ agent.slug }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex align-items-center">
+                                            <input class="form-check-input custom-agent-checkbox me-2" type="checkbox" name="custom_agents" value="{{ agent.slug }}" id="chk_agt_{{ agent.slug }}">
+                                            <label class="form-check-label text-white fw-bold small" for="chk_agt_{{ agent.slug }}">
+                                                {{ agent.name }}
+                                            </label>
+                                        </div>
+                                        <span class="badge bg-primary font-outfit" style="font-size:0.6rem;">{{ agent.category }}</span>
+                                    </div>
+                                    
+                                    <div class="agent-tier-selector-wrapper d-none">
+                                        <select class="form-select form-select-sm glass-input text-white agent-tier-select py-0 px-2" style="font-size:0.75rem; height:24px;" name="agent_tier_{{ agent.slug }}" id="tier_select_{{ agent.slug }}">
+                                            {% for tier in ai_tiers %}
+                                            <option value="{{ tier.name }}" data-price="{{ tier.monthly_price_usd }}" {% if tier.name == 'intern' %}selected{% endif %}>
+                                                {{ tier.name|title }} (Free)
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Negotiator Chat & Budget Summary -->
+            <div class="col-lg-5">
+                <div class="glass-panel p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <!-- Budget Overview Card -->
+                        <div class="p-3 bg-white bg-opacity-5 rounded-3 mb-4 border border-white border-opacity-10">
+                            <h6 class="text-white font-outfit fw-bold mb-2 pb-1 border-bottom border-white border-opacity-10">
+                                <i class="bi bi-wallet2 text-primary me-2"></i> Budget Lock Guarantee
+                            </h6>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-white-50 small">Modules:</span>
+                                <span class="text-white small font-monospace" id="summaryModulesPrice">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-1 border-bottom border-white border-opacity-10">
+                                <span class="text-white-50 small">AI Employees:</span>
+                                <span class="text-white small font-monospace" id="summaryAgentsPrice">Free</span>
+                            </div>
+                            <div class="text-center py-2 bg-black bg-opacity-35 rounded border border-white border-opacity-5">
+                                <div class="text-white-50 small" style="font-size: 0.7rem;">NEGOTIATED TOTAL PRICE</div>
+                                <h3 class="text-white fw-bold font-outfit mb-0 font-monospace" id="summaryTotalPrice">Free</h3>
+                                <small class="text-primary font-outfit" id="summaryCurrencyNote" style="font-size:0.65rem;">Currency: USD ($)</small>
+                            </div>
+                        </div>
+
+                        <!-- Solutions Architect Chatbot -->
+                        <h6 class="text-white font-outfit fw-bold mb-2"><i class="bi bi-chat-dots-fill text-primary me-2"></i>AI Solutions Architect Chat</h6>
+                        <div class="card bg-black bg-opacity-20 border border-white border-opacity-10 rounded-3 p-3 d-flex flex-column mb-3" style="min-height: 280px;">
+                            <div id="chatWindow" class="chat-window flex-grow-1 mb-2">
+                                <div class="d-flex align-items-start gap-2">
+                                    <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px; height:28px;">
+                                        <i class="bi bi-robot text-primary" style="font-size:0.8rem;"></i>
+                                    </div>
+                                    <div class="p-2 rounded bg-white bg-opacity-5 text-white-50 small" style="max-width: 85%;">
+                                        Greetings! I am the AI Solutions Architect. Ask me about custom modules, agent pricing tiers, or propose a budget. I will adjust the package checklist on the left dynamically!
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" id="chatInput" class="form-control glass-input small py-1" placeholder="Type a message or offer...">
+                                <button class="btn btn-primary px-3 py-1 btn-sm" type="button" id="chatSendBtn">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Register CTA -->
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-glow font-outfit mt-3" style="border-radius: 0.75rem;">
+                        <i class="bi bi-stars me-2"></i> Claim Offer &amp; Register Workspace
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const negotiatorForm = document.getElementById('negotiatorForm');
+    const EXCHANGE_RATES = {{ exchange_rates|safe }};
+    const CURRENCY_SYMBOLS = {{ currency_symbols|safe }};
+    const BASIC_MODULE_IDS = {{ basic_module_ids|safe }};
+    const INDUSTRY_MODULE_PRIORITY = {{ industry_module_priority|safe }};
+
+    const BUSINESS_AGENT_MAP = {
+        "ecommerce":     ["merch", "concierge", "serea-content", "flux"],
+        "agency":        ["lead-hunter", "content-architect", "oracle", "reporting-bot"],
+        "clinic":        ["medibook", "concierge", "hera", "sage"],
+        "restaurant":    ["concierge", "serea-content", "cash", "tempo"],
+        "consulting":    ["lead-hunter", "atlas", "reporting-bot", "sage"],
+        "manufacturing": ["payload", "flux", "hera", "atlas"],
+    };
+
+    let currency = 'USD'; // Default public currency
+
+    function formatPrice(usdPrice, curr) {
+        const rate = EXCHANGE_RATES[curr] || 1.0;
+        const symbol = CURRENCY_SYMBOLS[curr] || '$';
+        const converted = Math.round(usdPrice * rate);
+        if (converted === 0) return 'Free';
+        return `${symbol}${converted.toLocaleString()}/mo`;
+    }
+
+    function recalculateBudget() {
+        // Automatically default BDT for public landing page if user is localized to Bengali
+        if (navigator.language.startsWith('bn')) {
+            currency = 'BDT';
+        }
+        const symbol = CURRENCY_SYMBOLS[currency] || '$';
+        const rate = EXCHANGE_RATES[currency] || 1.0;
+        document.getElementById('summaryCurrencyNote').innerText = `Currency: ${currency} (${symbol})`;
+
+        // Modules
+        let modulesPriceUSD = 0;
+        document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+            const wrapper = chk.closest('.glass-check-item');
+            const priceUSD = parseFloat(wrapper.dataset.price || '0');
+            const badge = wrapper.querySelector('.module-price-tag');
+            if (badge) {
+                badge.innerText = formatPrice(priceUSD, currency);
+            }
+            if (chk.checked) {
+                modulesPriceUSD += priceUSD;
+                wrapper.classList.add('active');
+            } else {
+                wrapper.classList.remove('active');
+            }
+        });
+        document.getElementById('summaryModulesPrice').innerText = formatPrice(modulesPriceUSD, currency);
+
+        // Agents
+        let agentsPriceUSD = 0;
+        document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+            const wrapper = chk.closest('.glass-check-item');
+            const selectWrapper = wrapper.querySelector('.agent-tier-selector-wrapper');
+            const selectEl = wrapper.querySelector('.agent-tier-select');
+            
+            if (selectEl) {
+                Array.from(selectEl.options).forEach(opt => {
+                    const basePriceUSD = parseFloat(opt.dataset.price || '0');
+                    const tierName = opt.value.charAt(0).toUpperCase() + opt.value.slice(1);
+                    opt.text = `${tierName} (${formatPrice(basePriceUSD, currency)})`;
+                });
+            }
+
+            if (chk.checked) {
+                selectWrapper.classList.remove('d-none');
+                wrapper.classList.add('active');
+                
+                const selectedOption = selectEl.options[selectEl.selectedIndex];
+                const tierPriceUSD = parseFloat(selectedOption.dataset.price || '0');
+                agentsPriceUSD += tierPriceUSD;
+            } else {
+                selectWrapper.classList.add('d-none');
+                wrapper.classList.remove('active');
+            }
+        });
+        document.getElementById('summaryAgentsPrice').innerText = formatPrice(agentsPriceUSD, currency);
+
+        // Total
+        const totalPriceUSD = modulesPriceUSD + agentsPriceUSD;
+        const totalConverted = Math.round(totalPriceUSD * rate);
+        document.getElementById('summaryTotalPrice').innerText = totalConverted === 0 ? 'Free' : `${symbol}${totalConverted.toLocaleString()}/mo`;
+    }
+
+    // Bind listeners
+    document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+        chk.addEventListener('change', recalculateBudget);
+        chk.closest('.glass-check-item').addEventListener('click', function(e) {
+            if (e.target !== chk) {
+                chk.checked = !chk.checked;
+                recalculateBudget();
+            }
+        });
+    });
+    document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+        chk.addEventListener('change', recalculateBudget);
+        chk.closest('.glass-check-item').addEventListener('click', function(e) {
+            if (e.target !== chk && e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
+                chk.checked = !chk.checked;
+                recalculateBudget();
+            }
+        });
+    });
+    document.querySelectorAll('.agent-tier-select').forEach(sel => {
+        sel.addEventListener('change', recalculateBudget);
+    });
+
+    // Auto priority select on industry change
+    const indSelect = document.getElementById('business_type_select');
+    indSelect.addEventListener('change', function() {
+        const indVal = indSelect.value;
+        const modulesPriority = INDUSTRY_MODULE_PRIORITY[indVal] || [];
+        const recommendedModules = BASIC_MODULE_IDS.concat(modulesPriority);
+
+        document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+            chk.checked = recommendedModules.includes(chk.value);
+        });
+
+        const bizAgents = BUSINESS_AGENT_MAP[indVal] || [];
+        document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+            chk.checked = bizAgents.includes(chk.value);
+        });
+
+        recalculateBudget();
+    });
+
+    recalculateBudget();
+
+    // Chatbot logic
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const chatWindow = document.getElementById('chatWindow');
+    let messageHistory = [];
+
+    function appendMessage(role, content) {
+        const wrapper = document.createElement('div');
+        wrapper.className = role === 'user' ? 'd-flex align-items-start gap-2 flex-row-reverse' : 'd-flex align-items-start gap-2';
+        
+        const avatar = document.createElement('div');
+        avatar.className = `rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 ${role === 'user' ? 'bg-secondary' : 'bg-primary bg-opacity-25'}`;
+        avatar.style = "width:28px; height:28px;";
+        avatar.innerHTML = role === 'user' ? '<i class="bi bi-person text-white" style="font-size:0.75rem;"></i>' : '<i class="bi bi-robot text-primary" style="font-size:0.75rem;"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = `p-2 rounded small text-white ${role === 'user' ? 'bg-primary' : 'bg-white bg-opacity-5'}`;
+        bubble.style = "max-width: 85%; word-break: break-word;";
+        bubble.innerText = content;
+
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+        chatWindow.appendChild(wrapper);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        if (role === 'user') {
+            messageHistory.push({role: "user", content: content});
+        }
+    }
+
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        appendMessage('user', text);
+        chatInput.value = '';
+        chatInput.disabled = true;
+        chatSendBtn.disabled = true;
+
+        const typingId = 'typing-' + Date.now();
+        const typingHTML = `
+        <div id="${typingId}" class="d-flex align-items-start gap-2">
+            <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px; height:28px;">
+                <i class="bi bi-robot text-primary" style="font-size:0.8rem;"></i>
+            </div>
+            <div class="p-2 rounded bg-white bg-opacity-5 text-white-50 fst-italic small">
+                Thinking...
+            </div>
+        </div>`;
+        chatWindow.insertAdjacentHTML('beforeend', typingHTML);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        try {
+            const response = await fetch("{% url 'public_site:api_demo_chat' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: messageHistory })
+            });
+            const data = await response.json();
+            document.getElementById(typingId).remove();
+
+            if (data.reply) {
+                appendMessage('assistant', data.reply);
+                messageHistory.push({role: "assistant", content: data.reply});
+            }
+
+            if (data.cart_update) {
+                const update = data.cart_update;
+                if (update.add_modules && Array.isArray(update.add_modules)) {
+                    update.add_modules.forEach(modId => {
+                        const chk = document.getElementById(`chk_mod_${modId}`);
+                        if (chk) chk.checked = true;
+                    });
+                }
+                if (update.remove_modules && Array.isArray(update.remove_modules)) {
+                    update.remove_modules.forEach(modId => {
+                        const chk = document.getElementById(`chk_mod_${modId}`);
+                        if (chk) chk.checked = false;
+                    });
+                }
+                if (update.add_agents && Array.isArray(update.add_agents)) {
+                    update.add_agents.forEach(slug => {
+                        const chk = document.getElementById(`chk_agt_${slug}`);
+                        if (chk) chk.checked = true;
+                    });
+                }
+                if (update.remove_agents && Array.isArray(update.remove_agents)) {
+                    update.remove_agents.forEach(slug => {
+                        const chk = document.getElementById(`chk_agt_${slug}`);
+                        if (chk) chk.checked = false;
+                    });
+                }
+                if (update.ai_tier) {
+                    const tierVal = update.ai_tier.toLowerCase();
+                    document.querySelectorAll('.agent-tier-select').forEach(sel => {
+                        if (sel.querySelector(`option[value="${tierVal}"]`)) {
+                            sel.value = tierVal;
+                        }
+                    });
+                }
+                recalculateBudget();
+            }
+        } catch (e) {
+            document.getElementById(typingId).remove();
+            appendMessage('assistant', 'I had trouble connecting. Let me know what you want to add manually.');
+        }
+
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
+        chatInput.focus();
+    }
+
+    chatSendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+});
+</script>
+{% endblock %}

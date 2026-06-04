@@ -416,6 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const CURRENCY_SYMBOLS = {{ currency_symbols|safe }};
     const BASIC_MODULE_IDS = {{ basic_module_ids|safe }};
     const INDUSTRY_MODULE_PRIORITY = {{ industry_module_priority|safe }};
+    const negotiatedPackage = {{ negotiated_package|safe }};
 
     const BUSINESS_AGENT_MAP = {
         "ecommerce":     ["merch", "concierge", "serea-content", "flux"],
@@ -594,32 +595,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (step === 7) {
-            // Apply recommended choices once
+            // Apply recommended or negotiated choices once
             if (!hasPreSelected) {
-                const businessType = onboardingForm.querySelector('select[name="business_type"]').value || 'business';
-                const challenge = onboardingForm.querySelector('input[name="main_challenge"]:checked')?.value || 'getting_leads';
-
-                // Recommend modules
-                const priority = INDUSTRY_MODULE_PRIORITY[businessType] || [];
-                const recommendedModules = BASIC_MODULE_IDS.concat(priority);
-                
-                document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
-                    chk.checked = recommendedModules.includes(chk.value);
-                });
-
-                // Recommend agents
-                const bizAgents = BUSINESS_AGENT_MAP[businessType] || [];
-                const chalAgents = CHALLENGE_AGENT_MAP[challenge] || [];
-                const recommendedAgents = [...new Set([...bizAgents, ...chalAgents])].slice(0, 5);
-
-                document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
-                    const isRec = recommendedAgents.includes(chk.value);
-                    chk.checked = isRec;
-                    const selectEl = chk.closest('.glass-check-item').querySelector('.agent-tier-select');
-                    if (selectEl) {
-                        selectEl.value = 'intern'; // Default to intern (free)
+                if (negotiatedPackage) {
+                    if (negotiatedPackage.business_name) {
+                        onboardingForm.querySelector('input[name="business_name"]').value = negotiatedPackage.business_name;
                     }
-                });
+                    if (negotiatedPackage.business_type) {
+                        onboardingForm.querySelector('select[name="business_type"]').value = negotiatedPackage.business_type;
+                    }
+                    if (negotiatedPackage.custom_modules && Array.isArray(negotiatedPackage.custom_modules)) {
+                        document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+                            chk.checked = negotiatedPackage.custom_modules.includes(chk.value);
+                        });
+                    }
+                    if (negotiatedPackage.custom_agents && Array.isArray(negotiatedPackage.custom_agents)) {
+                        document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+                            const isNeg = negotiatedPackage.custom_agents.includes(chk.value);
+                            chk.checked = isNeg;
+                            if (isNeg && negotiatedPackage.agent_tiers && negotiatedPackage.agent_tiers[chk.value]) {
+                                const selectEl = chk.closest('.glass-check-item').querySelector('.agent-tier-select');
+                                if (selectEl) {
+                                    selectEl.value = negotiatedPackage.agent_tiers[chk.value].toLowerCase();
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    const businessType = onboardingForm.querySelector('select[name="business_type"]').value || 'business';
+                    const challenge = onboardingForm.querySelector('input[name="main_challenge"]:checked')?.value || 'getting_leads';
+
+                    // Recommend modules
+                    const priority = INDUSTRY_MODULE_PRIORITY[businessType] || [];
+                    const recommendedModules = BASIC_MODULE_IDS.concat(priority);
+                    
+                    document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+                        chk.checked = recommendedModules.includes(chk.value);
+                    });
+
+                    // Recommend agents
+                    const bizAgents = BUSINESS_AGENT_MAP[businessType] || [];
+                    const chalAgents = CHALLENGE_AGENT_MAP[challenge] || [];
+                    const recommendedAgents = [...new Set([...bizAgents, ...chalAgents])].slice(0, 5);
+
+                    document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+                        const isRec = recommendedAgents.includes(chk.value);
+                        chk.checked = isRec;
+                        const selectEl = chk.closest('.glass-check-item').querySelector('.agent-tier-select');
+                        if (selectEl) {
+                            selectEl.value = 'intern'; // Default to intern (free)
+                        }
+                    });
+                }
 
                 hasPreSelected = true;
             }
@@ -876,6 +903,97 @@ document.addEventListener('DOMContentLoaded', function() {
         chatInput.disabled = false;
         chatSendBtn.disabled = false;
         chatInput.focus();
+    }
+
+    // Skip Onboarding & Book Demo triggers
+    const skipBookBtn = document.getElementById('skipBookBtn');
+    const cancelBookingBtn = document.getElementById('cancelBookingBtn');
+    const submitBookingBtn = document.getElementById('submitBookingBtn');
+    const stepSkipBook = document.getElementById('stepSkipBook');
+
+    if (skipBookBtn && cancelBookingBtn && submitBookingBtn && stepSkipBook) {
+        skipBookBtn.addEventListener('click', function() {
+            // Hide all wizard steps
+            document.querySelectorAll('.wizard-step').forEach(s => s.classList.add('d-none'));
+            // Show Skip Book step
+            stepSkipBook.classList.remove('d-none');
+            // Hide standard prev/next navigation
+            prevBtn.classList.add('d-none');
+            nextBtn.classList.add('d-none');
+            skipBookBtn.classList.add('d-none');
+            // Hide step indicator and progress bar header info
+            document.getElementById('stepIndicator').innerText = "Book a Demo";
+            document.getElementById('progressBar').style.width = '100%';
+        });
+
+        cancelBookingBtn.addEventListener('click', function() {
+            // Hide Skip Book step
+            stepSkipBook.classList.add('d-none');
+            // Restore standard navigation buttons
+            prevBtn.classList.remove('d-none');
+            nextBtn.classList.remove('d-none');
+            skipBookBtn.classList.remove('d-none');
+            // Restore current step
+            showStep(currentStep);
+        });
+
+        submitBookingBtn.addEventListener('click', async function() {
+            const bookingDate = document.getElementById('booking_date').value;
+            const bookingTime = document.getElementById('booking_time').value;
+            const bookingNotes = document.getElementById('booking_notes').value;
+
+            if (!bookingDate || !bookingTime) {
+                alert("Please select both a preferred date and time for the meeting.");
+                return;
+            }
+
+            submitBookingBtn.disabled = true;
+            submitBookingBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Booking...';
+
+            try {
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+                const response = await fetch("{% url 'console_admin:skip_onboarding_book' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrftoken
+                    },
+                    body: JSON.stringify({
+                        date: bookingDate,
+                        time: bookingTime,
+                        notes: bookingNotes
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert("Error booking meeting: " + (data.error || "Unknown error"));
+                    submitBookingBtn.disabled = false;
+                    submitBookingBtn.innerHTML = '<i class="bi bi-calendar-check-fill me-1"></i> Confirm Meeting &amp; Access Dashboard';
+                }
+            } catch (err) {
+                alert("Failed to submit meeting request. Please check your connection.");
+                submitBookingBtn.disabled = false;
+                submitBookingBtn.innerHTML = '<i class="bi bi-calendar-check-fill me-1"></i> Confirm Meeting &amp; Access Dashboard';
+            }
+        });
     }
 
     chatSendBtn.addEventListener('click', sendMessage);

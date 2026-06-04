@@ -28,6 +28,7 @@ urlpatterns = [
     path('setup/', views.hybrid_onboarding, name='hybrid_onboarding'),
     path('setup/chat/', views.api_onboarding_chat, name='api_onboarding_chat'),
     path('setup/checkout/', views.process_onboarding_checkout, name='process_onboarding_checkout'),
+    path('setup/skip-book/', views.skip_onboarding_book, name='skip_onboarding_book'),
     path('setup/kyb/', include('modules.veritas.user_urls', namespace='veritas_user')),
     path('setup/modify-dashboard/', views.modify_dashboard_layout, name='modify_dashboard_layout'),
     
