@@ -18,7 +18,7 @@ COPY . /app/
 
 EXPOSE 8080
 
-# At startup: collect static → migrate → seed → start gunicorn
+# At startup: collect static → start gunicorn
 # /tmp/staticfiles is always writable in Cloud Run containers
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate --noinput && python seed_marketing.py && python manage.py seed_agents && python manage.py seed_modules && gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 bengalbound_core.wsgi:application"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 bengalbound_core.wsgi:application"]
 

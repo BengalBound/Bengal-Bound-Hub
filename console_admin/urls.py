@@ -15,7 +15,7 @@ urlpatterns = [
     path('serea/', include('serea.urls')),
     
     # Veritas KYB
-    path('veritas/', include('veritas.urls', namespace='veritas')),
+    path('veritas/', include('modules.veritas.urls', namespace='veritas')),
 
     # Core
     path('', views.dashboard, name='dashboard'),
@@ -28,7 +28,7 @@ urlpatterns = [
     path('setup/', views.hybrid_onboarding, name='hybrid_onboarding'),
     path('setup/chat/', views.api_onboarding_chat, name='api_onboarding_chat'),
     path('setup/checkout/', views.process_onboarding_checkout, name='process_onboarding_checkout'),
-    path('setup/kyb/', include('veritas.user_urls', namespace='veritas_user')),
+    path('setup/kyb/', include('modules.veritas.user_urls', namespace='veritas_user')),
     
     path('manage-ai/<int:ai_id>/', views.manage_ai, name='manage_ai'),
     path('fire-ai/<int:ai_id>/', views.fire_ai, name='fire_ai'),

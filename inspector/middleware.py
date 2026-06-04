@@ -30,7 +30,7 @@ class InspectorMiddleware:
                 return JsonResponse({"error": "Authentication required"}, status=401)
             
             try:
-                from veritas.models import ClientApplication
+                from modules.veritas.models import ClientApplication
                 app = ClientApplication.objects.get(user=user)
                 if app.status != 'approved':
                     return JsonResponse({
