@@ -1,0 +1,41 @@
+{% extends 'console_admin/base_console.html' %}
+{% load static %}
+
+{% block title %}Checkout — BengalBound{% endblock %}
+{% block page_title %}Choose Payment Method{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-panel p-5 text-center" style="border:1px solid rgba(192,132,252,0.3);">
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width:64px;height:64px;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(56,189,248,0.2));font-size:1.8rem;">
+                <i class="bi bi-cart-check text-white"></i>
+            </div>
+            
+            <h4 class="font-outfit fw-bold text-white mb-2">Upgrade to {{ plan_type|title }}</h4>
+            <p class="text-white-50 small mb-5">Select your preferred payment method to complete the workspace upgrade.</p>
+
+            <div class="d-flex flex-column gap-3">
+                <a href="{% url 'billing:stripe_initiate' plan_type=plan_type %}?cycle={{ billing_cycle }}&business_id={{ business.id }}" class="btn btn-lg w-100 d-flex align-items-center justify-content-center gap-2" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:12px;font-weight:600;">
+                    <i class="bi bi-credit-card-fill fs-5"></i>
+                    Pay with International Card (Stripe)
+                </a>
+
+                <div class="text-white-50 my-2" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;position:relative;">
+                    <span style="background:var(--surface-1);padding:0 10px;position:relative;z-index:1;">OR</span>
+                    <hr style="position:absolute;top:50%;left:0;width:100%;margin:0;z-index:0;border-color:rgba(255,255,255,0.1);">
+                </div>
+
+                <a href="{% url 'billing:bkash_initiate' plan_type=plan_type %}?cycle={{ billing_cycle }}&business_id={{ business.id }}" class="btn btn-lg w-100 d-flex align-items-center justify-content-center gap-2" style="background:#e2136e;color:#fff;border:none;border-radius:12px;font-weight:600;">
+                    <i class="bi bi-phone-fill fs-5"></i>
+                    Pay with bKash
+                </a>
+            </div>
+
+            <div class="mt-4 text-white-50 small">
+                <i class="bi bi-shield-lock me-1"></i> Secure 256-bit SSL encryption.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

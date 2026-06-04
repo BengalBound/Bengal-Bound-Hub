@@ -93,9 +93,15 @@ Run on **port 1234**: `python manage.py runserver 0.0.0.0:1234`
 | G | Stripe billing integration (checkout, webhooks, success/cancel pages) | ✅ Done |
 | H | Firebase auth bridge (firebase_token_sync, firebase_uid on User model) | ✅ Done |
 | **Infra** | **LiteLLM enterprise upgrade + Dokploy deployment** | 🟡 95% — cloudflared pending |
-| **I** | **Veritas KYB module (Admin Portal & Compliance Gate)** | ✅ Done |
-| **J** | **Veritas KYB module (User Onboarding Portal)** | 🔲 In Progress |
+| **I** | **Veritas KYB module (Admin Portal, User Onboarding, Compliance Gate)** | ✅ Done |
+| **J** | **bKash payment gateway** | ✅ Done |
+| **K** | Onboarding emails (Day 1/3/7/30) + FCM push + Slack/PagerDuty alerts | 🟢 Done |
+| **L** | **AI Dashboard Configurator (6-question onboarding interview + custom package & budget)** | ✅ Done |
+| **M** | **IT Officer Package Assignment & IT/Executive Command Center Dashboard** | ✅ Done |
 ---
+
+## Future Module Ideas (Home Services)
+- **Field Service Management (FSM)**: A dedicated module for plumbers, carpenters, electricians, and HVAC. Needs map-based dispatch, job quoting, parts inventory van-sync, and customer signature capture on mobile.
 
 ## Infrastructure: LiteLLM + Redis on Dokploy VPS (Hetzner `31.97.131.113`)
 

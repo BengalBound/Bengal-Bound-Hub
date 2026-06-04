@@ -1,66 +1,327 @@
 {% extends 'console_admin/base_console.html' %}
 {% load static %}
 
-{% block title %}Setup Workspace | BengalBound{% endblock %}
-{% block page_title %}Workspace Setup{% endblock %}
-{% block page_subtitle %}Build your workspace manually or chat with our AI Solutions Architect.{% endblock %}
+{% block title %}Tailor Your Workspace | BengalBound{% endblock %}
+{% block page_title %}Workspace AI Configurator{% endblock %}
+{% block page_subtitle %}Answer 6 questions and let the AI build your perfect workspace.{% endblock %}
 
 {% block content %}
 <div class="row h-100 g-4">
-    <!-- Left Column: The Checkout Cart Form -->
+    <!-- Left Column: The 6-Question Wizard -->
     <div class="col-lg-7 h-100 d-flex flex-column">
-        <div class="glass-panel p-4 flex-grow-1 overflow-auto">
-            <h4 class="font-outfit fw-bold text-white mb-4">
-                <i class="bi bi-cart3 me-2 text-primary"></i> Your Subscription Package
-            </h4>
-            
-            <form id="checkoutForm" method="post" action="{% url 'console_admin:process_onboarding_checkout' %}">
-                {% csrf_token %}
-                
-                <div class="mb-4">
-                    <label class="form-label text-white-50 small fw-semibold">BUSINESS DETAILS</label>
-                    <input type="text" name="business_name" class="form-control glass-input mb-3" placeholder="Company Name" required>
-                    <select name="business_type" class="form-select glass-input text-white" required>
-                        <option value="" disabled selected>Select Industry</option>
-                        {% for value, label in business_types %}
-                            <option value="{{ value }}">{{ label }}</option>
-                        {% endfor %}
-                    </select>
+        <div class="glass-panel p-4 flex-grow-1 overflow-auto d-flex flex-column justify-content-between" style="min-height: 500px;">
+            <div>
+                <!-- Header with Progress -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="font-outfit fw-bold text-white mb-0" id="wizardTitle">
+                        <i class="bi bi-magic me-2 text-primary"></i> Onboarding Interview
+                    </h4>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 font-outfit" id="stepIndicator">Step 1 of 6</span>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label text-white-50 small fw-semibold">AVAILABLE MODULES</label>
-                    <div class="row g-2" id="modulesList">
-                        {% for mod in modules %}
-                        <div class="col-md-6">
-                            <div class="form-check p-2 rounded border" style="border-color: rgba(255,255,255,0.1) !important;">
-                                <input class="form-check-input ms-1" type="checkbox" name="modules" value="{{ mod.module_id }}" id="mod_{{ mod.module_id }}">
-                                <label class="form-check-label text-white ms-2" for="mod_{{ mod.module_id }}">
-                                    <i class="bi {{ mod.icon }} text-primary me-1"></i> {{ mod.name }}
+                <!-- Progress Bar -->
+                <div class="progress mb-4" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                    <div id="progressBar" class="progress-bar" style="width: 16.66%; background: linear-gradient(90deg, #38bdf8, #c084fc); border-radius: 3px; transition: width 0.3s ease;"></div>
+                </div>
+
+                <form id="onboardingForm" method="post" action="{% url 'console_admin:process_onboarding_checkout' %}">
+                    {% csrf_token %}
+
+                    <!-- Step 1: Business Details -->
+                    <div class="wizard-step" id="step1">
+                        <h5 class="text-white mb-3 font-outfit fw-semibold">1. Tell us about your business</h5>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-semibold">WHAT IS YOUR COMPANY NAME?</label>
+                            <input type="text" name="business_name" class="form-control glass-input" placeholder="e.g. Acme Corp" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-semibold">WHAT INDUSTRY DO YOU OPERATE IN?</label>
+                            <select name="business_type" class="form-select glass-input text-white" required>
+                                <option value="" disabled selected>Select Industry</option>
+                                {% for value, label in business_types %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Challenge -->
+                    <div class="wizard-step d-none" id="step2">
+                        <h5 class="text-white mb-3 font-outfit fw-semibold">2. What is your biggest challenge right now?</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="main_challenge" value="getting_leads" class="d-none" checked>
+                                <i class="bi bi-funnel text-primary me-2"></i> Getting more leads & sales
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="main_challenge" value="social_media" class="d-none">
+                                <i class="bi bi-share text-primary me-2"></i> Managing social media & copy
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="main_challenge" value="customer_support" class="d-none">
+                                <i class="bi bi-chat-heart text-primary me-2"></i> Customer support & ticket resolution
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="main_challenge" value="hr_payroll" class="d-none">
+                                <i class="bi bi-people text-primary me-2"></i> HR, team shifts, & payroll processing
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="main_challenge" value="finance_invoicing" class="d-none">
+                                <i class="bi bi-cash-coin text-primary me-2"></i> Invoicing, billing, & bookkeeping
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="main_challenge" value="project_management" class="d-none">
+                                <i class="bi bi-check2-square text-primary me-2"></i> Managing projects & schedules
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Team Size -->
+                    <div class="wizard-step d-none" id="step3">
+                        <h5 class="text-white mb-3 font-outfit fw-semibold">3. How many people are in your team?</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="team_size" value="Just me" class="d-none" checked>
+                                Just me (Solopreneur)
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="team_size" value="2–5" class="d-none">
+                                2 – 5 people
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="team_size" value="6–20" class="d-none">
+                                6 – 20 people
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="team_size" value="21–100" class="d-none">
+                                21 – 100 people
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="team_size" value="100+" class="d-none">
+                                100+ people
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Platforms -->
+                    <div class="wizard-step d-none" id="step4">
+                        <h5 class="text-white mb-3 font-outfit fw-semibold">4. Which platforms do you use?</h5>
+                        <p class="text-white-50 small mb-3">SELECT ALL THAT APPLY</p>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="btn btn-outline-light text-start w-100 glass-checkbox p-3 border-secondary rounded-3">
+                                    <input type="checkbox" name="platforms" value="WhatsApp Business" class="me-2">
+                                    WhatsApp Business
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="btn btn-outline-light text-start w-100 glass-checkbox p-3 border-secondary rounded-3">
+                                    <input type="checkbox" name="platforms" value="Facebook/Instagram" class="me-2">
+                                    Facebook / Instagram
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="btn btn-outline-light text-start w-100 glass-checkbox p-3 border-secondary rounded-3">
+                                    <input type="checkbox" name="platforms" value="Gmail/Outlook" class="me-2">
+                                    Gmail / Outlook
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="btn btn-outline-light text-start w-100 glass-checkbox p-3 border-secondary rounded-3">
+                                    <input type="checkbox" name="platforms" value="Shopify/WooCommerce" class="me-2">
+                                    Shopify / WooCommerce
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="btn btn-outline-light text-start w-100 glass-checkbox p-3 border-secondary rounded-3">
+                                    <input type="checkbox" name="platforms" value="Google Ads/Meta Ads" class="me-2">
+                                    Google Ads / Meta Ads
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="btn btn-outline-light text-start w-100 glass-checkbox p-3 border-secondary rounded-3">
+                                    <input type="checkbox" name="platforms" value="None yet" class="me-2">
+                                    None yet
                                 </label>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                </div>
 
-                <div class="mb-5">
-                    <label class="form-label text-white-50 small fw-semibold">AI EMPLOYEE TIER</label>
-                    <select name="ai_tier" class="form-select glass-input text-white" id="aiTierSelect">
-                        <option value="">No AI Agent (Self-Managed)</option>
-                        {% for tier in ai_tiers %}
-                            <option value="{{ tier.id }}">{{ tier.get_name_display }} - ${{ tier.monthly_price_usd }}/mo</option>
-                        {% endfor %}
-                    </select>
+                    <!-- Step 5: Language -->
+                    <div class="wizard-step d-none" id="step5">
+                        <h5 class="text-white mb-3 font-outfit fw-semibold">5. What's your preferred language?</h5>
+                        <div class="d-flex flex-column gap-2">
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="language" value="English" class="d-none" checked>
+                                English
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="language" value="বাংলা" class="d-none">
+                                বাংলা (Bengali)
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="language" value="العربية" class="d-none">
+                                العربية (Arabic)
+                            </label>
+                            <label class="btn btn-outline-light text-start glass-radio p-3 border-secondary rounded-3">
+                                <input type="radio" name="language" value="हिंदी" class="d-none">
+                                हिंदी (Hindi)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Step 7: Package & Budget Customization -->
+                    <div class="wizard-step d-none" id="step7">
+                        <h5 class="text-white mb-2 font-outfit fw-semibold"><i class="bi bi-cart-check text-primary me-2"></i> 7. Review & Customize Your Package</h5>
+                        <p class="text-white-50 small mb-3">Customise modules and AI agents to fit your budget. The Solutions Architect on the right can also assist you via chat.</p>
+                        
+                        <div class="row g-3">
+                            <!-- Left: Selections -->
+                            <div class="col-md-7">
+                                <div class="accordion" id="packageAccordion">
+                                    <!-- Modules Accordion -->
+                                    <div class="accordion-item bg-transparent border border-white border-opacity-10 rounded-3 mb-2">
+                                        <h2 class="accordion-header" id="headingModules">
+                                            <button class="accordion-button bg-transparent text-white font-outfit fw-bold border-0 shadow-none collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModules" aria-expanded="false" aria-controls="collapseModules">
+                                                <i class="bi bi-puzzle-fill me-2 text-primary"></i> Workspace Modules (<span id="checkedModulesCount">0</span> Selected)
+                                            </button>
+                                        </h2>
+                                        <div id="collapseModules" class="accordion-collapse collapse" aria-labelledby="headingModules" data-bs-parent="#packageAccordion">
+                                            <div class="accordion-body p-2 overflow-auto" style="max-height: 250px; background: rgba(0,0,0,0.2);">
+                                                {% for module in modules %}
+                                                <div class="glass-check-item p-2 rounded mb-2 d-flex justify-content-between align-items-center" data-price="{{ module.monthly_price_usd }}">
+                                                    <div class="d-flex align-items-center">
+                                                        <input class="form-check-input custom-module-checkbox me-2" type="checkbox" name="custom_modules" value="{{ module.module_id }}" id="chk_mod_{{ module.module_id }}">
+                                                        <div>
+                                                            <label class="form-check-label text-white fw-semibold small" for="chk_mod_{{ module.module_id }}">
+                                                                {{ module.name }}
+                                                            </label>
+                                                            <div class="text-white-50" style="font-size:0.7rem;">{{ module.tagline|truncatechars:45 }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge bg-secondary text-white font-monospace module-price-tag" data-usd-price="{{ module.monthly_price_usd }}">
+                                                        Free
+                                                    </span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Agents Accordion -->
+                                    <div class="accordion-item bg-transparent border border-white border-opacity-10 rounded-3">
+                                        <h2 class="accordion-header" id="headingAgents">
+                                            <button class="accordion-button bg-transparent text-white font-outfit fw-bold border-0 shadow-none py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAgents" aria-expanded="true" aria-controls="collapseAgents">
+                                                <i class="bi bi-robot me-2 text-primary"></i> AI Employees & Tiers (<span id="checkedAgentsCount">0</span> Selected)
+                                            </button>
+                                        </h2>
+                                        <div id="collapseAgents" class="accordion-collapse collapse show" aria-labelledby="headingAgents" data-bs-parent="#packageAccordion">
+                                            <div class="accordion-body p-2 overflow-auto" style="max-height: 250px; background: rgba(0,0,0,0.2);">
+                                                {% for agent in agents %}
+                                                <div class="glass-check-item p-2 rounded mb-2" data-agent-slug="{{ agent.slug }}">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <div class="d-flex align-items-center">
+                                                            <input class="form-check-input custom-agent-checkbox me-2" type="checkbox" name="custom_agents" value="{{ agent.slug }}" id="chk_agt_{{ agent.slug }}">
+                                                            <label class="form-check-label text-white fw-bold small" for="chk_agt_{{ agent.slug }}">
+                                                                {{ agent.name }}
+                                                            </label>
+                                                        </div>
+                                                        <span class="badge bg-primary text-white font-outfit" style="font-size:0.65rem;">{{ agent.category }}</span>
+                                                    </div>
+                                                    <div class="text-white-50 mb-1" style="font-size:0.75rem;">{{ agent.role }}</div>
+                                                    
+                                                    <div class="agent-tier-selector-wrapper d-none">
+                                                        <select class="form-select form-select-sm glass-input text-white agent-tier-select py-0 px-2" style="font-size:0.75rem; height:24px;" name="agent_tier_{{ agent.slug }}" id="tier_select_{{ agent.slug }}">
+                                                            {% for tier in ai_tiers %}
+                                                            <option value="{{ tier.name }}" data-price="{{ tier.monthly_price_usd }}" {% if tier.name == 'intern' %}selected{% endif %}>
+                                                                {{ tier.name|title }} (Free)
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Live Budget Estimate -->
+                            <div class="col-md-5">
+                                <div class="glass-panel p-3 bg-white bg-opacity-5 rounded-3 d-flex flex-column justify-content-between h-100" style="border:1px solid rgba(255,255,255,0.1); min-height: 250px;">
+                                    <div>
+                                        <h6 class="text-white font-outfit fw-bold mb-2 border-bottom border-white border-opacity-10 pb-1">
+                                            <i class="bi bi-wallet2 text-primary me-2"></i> Budget Summary
+                                        </h6>
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-white-50 small">Workspace Modules:</span>
+                                            <span class="text-white small font-monospace" id="summaryModulesPrice">Free</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2 border-bottom border-white border-opacity-10 pb-1">
+                                            <span class="text-white-50 small">AI Employee Tiers:</span>
+                                            <span class="text-white small font-monospace" id="summaryAgentsPrice">Free</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-center py-2 my-2 bg-black bg-opacity-30 rounded-3 border border-white border-opacity-5">
+                                        <div class="text-white-50" style="font-size:0.75rem;">ESTIMATED TOTAL INVESTING</div>
+                                        <h3 class="text-white font-outfit fw-bold mb-0 font-monospace" id="summaryTotalPrice">Free</h3>
+                                        <small class="text-primary" id="summaryCurrencyNote" style="font-size:0.7rem;">Currency: USD ($)</small>
+                                    </div>
+                                    <div class="alert alert-info bg-primary bg-opacity-10 border-primary border-opacity-25 text-white p-2 mb-0 rounded-3" style="font-size:0.7rem;">
+                                        <i class="bi-info-circle-fill me-1"></i> Your first AI employee is activated on the free Intern tier! Customize items as you prefer.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skip Onboarding: Demo Booking Step -->
+                    <div class="wizard-step d-none" id="stepSkipBook">
+                        <h5 class="text-white mb-2 font-outfit fw-semibold"><i class="bi bi-calendar2-event text-warning me-2"></i> Book a Demo / Meeting</h5>
+                        <p class="text-white-50 small mb-3">Skip onboarding layout setup. Choose your preferred date and time, and our Solutions Engineer will walk you through the system live.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-semibold">PREFERRED DATE</label>
+                            <input type="date" id="booking_date" class="form-control glass-input text-white" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-semibold">PREFERRED TIME</label>
+                            <input type="time" id="booking_time" class="form-control glass-input text-white" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50 small fw-semibold">ADDITIONAL NOTES / QUESTIONS</label>
+                            <textarea id="booking_notes" class="form-control glass-input text-white" rows="3" placeholder="Any specific requirements or integrations you want to see?"></textarea>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="button" class="btn btn-warning w-100 py-2 fw-semibold" id="submitBookingBtn">
+                                <i class="bi bi-calendar-check-fill me-1"></i> Confirm Meeting &amp; Access Dashboard
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary py-2" id="cancelBookingBtn">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between mt-5 pt-3 border-top border-white border-opacity-10 align-items-center">
+                <div>
+                    <button type="button" class="btn btn-secondary px-4 disabled" id="prevBtn">
+                        <i class="bi bi-arrow-left me-1"></i> Back
+                    </button>
                 </div>
-                
-                <button type="submit" class="btn btn-primary btn-lg w-100 shadow-glow">
-                    <i class="bi bi-lightning-charge me-2"></i> Launch Workspace Instantly
-                </button>
-                <div class="text-center text-white-50 small mt-2">
-                    <i class="bi bi-shield-check text-success"></i> Payment bypassed for early access.
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-warning px-3" id="skipBookBtn">
+                        <i class="bi bi-calendar-event me-1"></i> Skip &amp; Book Demo
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 shadow-glow" id="nextBtn">
+                        Next <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -73,7 +334,7 @@
                 </div>
                 <div>
                     <h6 class="mb-0 text-white font-outfit fw-bold">Solutions Architect</h6>
-                    <small class="text-primary">Online &bull; Tell me about your business</small>
+                    <small class="text-primary">Online &bull; Ask me anything about layout or budget</small>
                 </div>
             </div>
             
@@ -83,14 +344,14 @@
                         <i class="bi bi-robot text-primary" style="font-size:0.9rem;"></i>
                     </div>
                     <div class="p-3 rounded bg-white bg-opacity-10 text-white shadow-sm" style="max-width: 85%; font-size: 0.9rem;">
-                        Hi! I'm your AI Solutions Architect. Tell me a bit about what your business does, and I'll automatically build the perfect workspace package for you on the left!
+                        Hi! I am your AI Solutions Architect. As you complete the interview questionnaire, I will analyze your industry to plan your dashboard layout. Once you reach the checkout screen, I can help you select modules and negotiate your budget!
                     </div>
                 </div>
             </div>
             
             <div class="p-3 border-top border-white border-opacity-10">
                 <div class="input-group">
-                    <input type="text" id="chatInput" class="form-control glass-input text-white" placeholder="e.g., I run a retail store and need help with inventory...">
+                    <input type="text" id="chatInput" class="form-control glass-input text-white" placeholder="Type a message...">
                     <button class="btn btn-primary px-4" type="button" id="chatSendBtn">
                         <i class="bi bi-send-fill"></i>
                     </button>
@@ -100,12 +361,353 @@
     </div>
 </div>
 
+<style>
+    /* Radio and Checkbox Styling */
+    .glass-radio input[type="radio"]:checked + i,
+    .glass-checkbox input[type="checkbox"]:checked {
+        color: #38bdf8 !important;
+    }
+    .glass-radio, .glass-checkbox {
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
+    }
+    .glass-radio:hover, .glass-checkbox:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+    .glass-radio input[type="radio"]:checked,
+    .glass-checkbox input[type="checkbox"]:checked {
+        border-color: #38bdf8 !important;
+    }
+    .glass-radio.active, .glass-checkbox.active {
+        background: rgba(56, 189, 248, 0.1);
+        border-color: #38bdf8 !important;
+        color: white !important;
+    }
+    .glass-check-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.2s ease;
+    }
+    .glass-check-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(56, 189, 248, 0.2);
+    }
+    .glass-check-item.active {
+        background: rgba(56, 189, 248, 0.08) !important;
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 7;
+    let hasPreSelected = false;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const onboardingForm = document.getElementById('onboardingForm');
+    const stepIndicator = document.getElementById('stepIndicator');
+    const progressBar = document.getElementById('progressBar');
+
+    const EXCHANGE_RATES = {{ exchange_rates|safe }};
+    const CURRENCY_SYMBOLS = {{ currency_symbols|safe }};
+    const BASIC_MODULE_IDS = {{ basic_module_ids|safe }};
+    const INDUSTRY_MODULE_PRIORITY = {{ industry_module_priority|safe }};
+
+    const BUSINESS_AGENT_MAP = {
+        "ecommerce":     ["merch", "concierge", "serea-content", "flux"],
+        "shop":          ["merch", "concierge", "serea-content", "flux"],
+        "retail_chain":  ["merch", "concierge", "serea-content", "flux"],
+        "wholesale":     ["merch", "concierge", "serea-content", "flux"],
+        "agency":        ["lead-hunter", "content-architect", "oracle", "reporting-bot"],
+        "clinic":        ["medibook", "concierge", "hera", "sage"],
+        "salon":         ["medibook", "concierge", "hera", "sage"],
+        "spa":           ["medibook", "concierge", "hera", "sage"],
+        "care_home":     ["medibook", "concierge", "hera", "sage"],
+        "restaurant":    ["concierge", "serea-content", "cash", "tempo"],
+        "hotel":         ["concierge", "serea-content", "cash", "tempo"],
+        "resort":        ["concierge", "serea-content", "cash", "tempo"],
+        "hostel":        ["concierge", "serea-content", "cash", "tempo"],
+        "real_estate_agency": ["realt", "concierge", "lead-hunter", "sage"],
+        "real_estate_agent":  ["realt", "concierge", "lead-hunter", "sage"],
+        "consulting":    ["lead-hunter", "atlas", "reporting-bot", "sage"],
+        "legal":         ["lead-hunter", "atlas", "reporting-bot", "sage"],
+        "accounting_firm": ["lead-hunter", "atlas", "reporting-bot", "sage"],
+        "factory":       ["payload", "flux", "hera", "atlas"],
+        "warehouse":     ["payload", "flux", "hera", "atlas"],
+        "manufacturing": ["payload", "flux", "hera", "atlas"],
+        "plumber":       ["lead-hunter", "concierge", "tempo", "sage"],
+        "carpenter":     ["lead-hunter", "concierge", "tempo", "sage"],
+        "electrician":   ["lead-hunter", "concierge", "tempo", "sage"],
+        "driving_school": ["lead-hunter", "concierge", "tempo", "sage"],
+    };
+
+    const CHALLENGE_AGENT_MAP = {
+        "getting_leads":       ["concierge", "lead-hunter", "serea-content"],
+        "social_media":        ["serea-content", "content-architect", "luma"],
+        "customer_support":    ["shield", "concierge"],
+        "hr_payroll":          ["hera", "tempo"],
+        "finance_invoicing":   ["cash", "sage"],
+        "project_management":  ["atlas", "reporting-bot", "nova"],
+    };
+
+    // Radios and checkbox interactive styles
+    document.querySelectorAll('.glass-radio').forEach(label => {
+        const input = label.querySelector('input');
+        if (input.checked) label.classList.add('active');
+        
+        label.addEventListener('click', function(e) {
+            const stepDiv = label.closest('.wizard-step');
+            stepDiv.querySelectorAll('.glass-radio').forEach(l => l.classList.remove('active'));
+            label.classList.add('active');
+            input.checked = true;
+        });
+    });
+
+    document.querySelectorAll('.glass-checkbox').forEach(label => {
+        const input = label.querySelector('input');
+        label.addEventListener('click', function() {
+            if (input.checked) {
+                label.classList.add('active');
+            } else {
+                label.classList.remove('active');
+            }
+        });
+    });
+
+    function formatPrice(usdPrice, currency) {
+        const rate = EXCHANGE_RATES[currency] || 1.0;
+        const symbol = CURRENCY_SYMBOLS[currency] || '$';
+        const converted = Math.round(usdPrice * rate);
+        if (converted === 0) return 'Free';
+        return `${symbol}${converted.toLocaleString()}/mo`;
+    }
+
+    function recalculateBudget() {
+        const language = onboardingForm.querySelector('input[name="language"]:checked')?.value || 'English';
+        const paymentPreference = onboardingForm.querySelector('input[name="payment_preference"]:checked')?.value || 'Stripe';
+        
+        let currency = 'USD';
+        if (paymentPreference === 'bKash' || language === 'বাংলা') {
+            currency = 'BDT';
+        }
+
+        const symbol = CURRENCY_SYMBOLS[currency] || '$';
+        const rate = EXCHANGE_RATES[currency] || 1.0;
+
+        document.getElementById('summaryCurrencyNote').innerText = `Currency: ${currency} (${symbol})`;
+
+        // Modules
+        let modulesPriceUSD = 0;
+        let checkedModulesCount = 0;
+        document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+            const wrapper = chk.closest('.glass-check-item');
+            const priceUSD = parseFloat(wrapper.dataset.price || '0');
+            
+            // Update badge price display
+            const badge = wrapper.querySelector('.module-price-tag');
+            if (badge) {
+                badge.innerText = formatPrice(priceUSD, currency);
+            }
+
+            if (chk.checked) {
+                modulesPriceUSD += priceUSD;
+                checkedModulesCount++;
+                wrapper.classList.add('active');
+            } else {
+                wrapper.classList.remove('active');
+            }
+        });
+        document.getElementById('checkedModulesCount').innerText = checkedModulesCount;
+        document.getElementById('summaryModulesPrice').innerText = formatPrice(modulesPriceUSD, currency);
+
+        // Agents
+        let agentsPriceUSD = 0;
+        let checkedAgentsCount = 0;
+        document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+            const wrapper = chk.closest('.glass-check-item');
+            const selectWrapper = wrapper.querySelector('.agent-tier-selector-wrapper');
+            const selectEl = wrapper.querySelector('.agent-tier-select');
+            
+            // Update tier option text prices
+            if (selectEl) {
+                Array.from(selectEl.options).forEach(opt => {
+                    const basePriceUSD = parseFloat(opt.dataset.price || '0');
+                    const tierName = opt.value.charAt(0).toUpperCase() + opt.value.slice(1);
+                    opt.text = `${tierName} (${formatPrice(basePriceUSD, currency)})`;
+                });
+            }
+
+            if (chk.checked) {
+                checkedAgentsCount++;
+                selectWrapper.classList.remove('d-none');
+                wrapper.classList.add('active');
+                
+                const selectedOption = selectEl.options[selectEl.selectedIndex];
+                const tierPriceUSD = parseFloat(selectedOption.dataset.price || '0');
+                agentsPriceUSD += tierPriceUSD;
+            } else {
+                selectWrapper.classList.add('d-none');
+                wrapper.classList.remove('active');
+            }
+        });
+        document.getElementById('checkedAgentsCount').innerText = checkedAgentsCount;
+        document.getElementById('summaryAgentsPrice').innerText = formatPrice(agentsPriceUSD, currency);
+
+        // Total
+        const totalPriceUSD = modulesPriceUSD + agentsPriceUSD;
+        const totalConverted = Math.round(totalPriceUSD * rate);
+        document.getElementById('summaryTotalPrice').innerText = totalConverted === 0 ? 'Free' : `${symbol}${totalConverted.toLocaleString()}/mo`;
+    }
+
+    // Set listeners for recalculating budget
+    document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+        chk.addEventListener('change', recalculateBudget);
+    });
+    document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+        chk.addEventListener('change', recalculateBudget);
+    });
+    document.querySelectorAll('.agent-tier-select').forEach(sel => {
+        sel.addEventListener('change', recalculateBudget);
+    });
+
+    function showStep(step) {
+        document.querySelectorAll('.wizard-step').forEach(s => s.classList.add('d-none'));
+        document.getElementById('step' + step).classList.remove('d-none');
+        
+        stepIndicator.innerText = `Step ${step} of ${totalSteps}`;
+        progressBar.style.width = ((step / totalSteps) * 100) + '%';
+
+        if (step === 1) {
+            prevBtn.classList.add('disabled');
+        } else {
+            prevBtn.classList.remove('disabled');
+        }
+
+        if (step === totalSteps) {
+            nextBtn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i> Build Workspace';
+        } else {
+            nextBtn.innerHTML = 'Next <i class="bi bi-arrow-right ms-1"></i>';
+        }
+
+        if (step === 7) {
+            // Apply recommended choices once
+            if (!hasPreSelected) {
+                const businessType = onboardingForm.querySelector('select[name="business_type"]').value || 'business';
+                const challenge = onboardingForm.querySelector('input[name="main_challenge"]:checked')?.value || 'getting_leads';
+
+                // Recommend modules
+                const priority = INDUSTRY_MODULE_PRIORITY[businessType] || [];
+                const recommendedModules = BASIC_MODULE_IDS.concat(priority);
+                
+                document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+                    chk.checked = recommendedModules.includes(chk.value);
+                });
+
+                // Recommend agents
+                const bizAgents = BUSINESS_AGENT_MAP[businessType] || [];
+                const chalAgents = CHALLENGE_AGENT_MAP[challenge] || [];
+                const recommendedAgents = [...new Set([...bizAgents, ...chalAgents])].slice(0, 5);
+
+                document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+                    const isRec = recommendedAgents.includes(chk.value);
+                    chk.checked = isRec;
+                    const selectEl = chk.closest('.glass-check-item').querySelector('.agent-tier-select');
+                    if (selectEl) {
+                        selectEl.value = 'intern'; // Default to intern (free)
+                    }
+                });
+
+                hasPreSelected = true;
+            }
+            recalculateBudget();
+        }
+    }
+
+    nextBtn.addEventListener('click', function() {
+        if (currentStep === 1) {
+            const nameInput = onboardingForm.querySelector('input[name="business_name"]');
+            const typeSelect = onboardingForm.querySelector('select[name="business_type"]');
+            if (!nameInput.value.trim() || !typeSelect.value) {
+                alert("Please fill in your company name and select an industry.");
+                return;
+            }
+        }
+        
+        if (currentStep < totalSteps) {
+            currentStep++;
+            showStep(currentStep);
+        } else {
+            nextBtn.disabled = true;
+            nextBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Customizing...';
+            onboardingForm.submit();
+        }
+    });
+
+    prevBtn.addEventListener('click', function() {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+
+    // Chatbot Implementation
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
     const chatWindow = document.getElementById('chatWindow');
     let messageHistory = [];
+
+    function renderMarkdown(text) {
+        // 1. Escape HTML
+        let html = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // 2. Parse Code blocks
+        const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+        html = html.replace(codeBlockRegex, function(match, lang, code) {
+            const decodedCode = code.trim();
+            const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+            const displayLang = lang ? lang.toLowerCase() : 'txt';
+            const filename = `script_${Math.floor(Math.random()*1000)}.${displayLang === 'python' ? 'py' : (displayLang === 'javascript' ? 'js' : (displayLang === 'bash' ? 'sh' : (displayLang === 'sql' ? 'sql' : 'txt')))}`;
+            return `
+            <div class="code-container my-3 rounded overflow-hidden border border-white border-opacity-10 bg-black bg-opacity-40 text-start">
+                <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-white bg-opacity-5 border-bottom border-white border-opacity-5">
+                    <span class="text-white-50 small fw-bold font-monospace">${displayLang.toUpperCase()}</span>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-light py-0 px-2 btn-copy-code" data-target="${codeId}" style="font-size: 0.75rem;">
+                            <i class="bi bi-clipboard me-1"></i> Copy
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 btn-download-code" data-target="${codeId}" data-filename="${filename}" style="font-size: 0.75rem;">
+                            <i class="bi bi-download me-1"></i> Download
+                        </button>
+                    </div>
+                </div>
+                <pre class="p-3 mb-0 text-white-50 font-monospace overflow-auto" id="${codeId}" style="font-size: 0.8rem; max-height: 300px; white-space: pre-wrap; word-break: break-all;"><code>${decodedCode}</code></pre>
+            </div>`;
+        });
+
+        // 3. Inline code
+        html = html.replace(/`([^`\n]+)`/g, '<code class="px-1 py-0.5 rounded bg-white bg-opacity-10 font-monospace text-primary" style="font-size:0.85em;">$1</code>');
+
+        // 4. Bullet lists
+        html = html.replace(/^\s*[-*]\s+(.+)$/gm, '<li class="ms-3 text-white-50">$1</li>');
+
+        // 5. Ordered lists
+        html = html.replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li class="ms-3 text-white-50 font-outfit" style="list-style-type: decimal;">$2</li>');
+
+        // 6. Bold text
+        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white">$1</strong>');
+
+        // 7. Newlines
+        html = html.replace(/\n\n/g, '<br><br>');
+        
+        return html;
+    }
 
     function appendMessage(role, content) {
         const wrapper = document.createElement('div');
@@ -118,8 +720,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const bubble = document.createElement('div');
         bubble.className = `p-3 rounded text-white shadow-sm ${role === 'user' ? 'bg-primary' : 'bg-white bg-opacity-10'}`;
-        bubble.style = "max-width: 85%; font-size: 0.9rem;";
-        bubble.innerText = content;
+        bubble.style = "max-width: 85%; font-size: 0.9rem; word-break: break-word;";
+        
+        if (role === 'user') {
+            bubble.innerText = content;
+        } else {
+            bubble.innerHTML = renderMarkdown(content);
+        }
 
         wrapper.appendChild(avatar);
         wrapper.appendChild(bubble);
@@ -131,6 +738,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Handle Code copy & download event delegation
+    chatWindow.addEventListener('click', function(e) {
+        // Copy Code
+        const copyBtn = e.target.closest('.btn-copy-code');
+        if (copyBtn) {
+            const targetId = copyBtn.dataset.target;
+            const codeEl = document.getElementById(targetId);
+            if (codeEl) {
+                navigator.clipboard.writeText(codeEl.textContent).then(() => {
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                    copyBtn.classList.remove('btn-outline-light');
+                    copyBtn.classList.add('btn-success');
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                        copyBtn.classList.remove('btn-success');
+                        copyBtn.classList.add('btn-outline-light');
+                    }, 2000);
+                });
+            }
+            return;
+        }
+
+        // Download Code
+        const downloadBtn = e.target.closest('.btn-download-code');
+        if (downloadBtn) {
+            const targetId = downloadBtn.dataset.target;
+            const filename = downloadBtn.dataset.filename;
+            const codeEl = document.getElementById(targetId);
+            if (codeEl) {
+                const blob = new Blob([codeEl.textContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    });
+
     async function sendMessage() {
         const text = chatInput.value.trim();
         if (!text) return;
@@ -140,7 +790,6 @@ document.addEventListener('DOMContentLoaded', function() {
         chatInput.disabled = true;
         chatSendBtn.disabled = true;
 
-        // Show typing indicator
         const typingId = 'typing-' + Date.now();
         const typingHTML = `
         <div id="${typingId}" class="d-flex align-items-start gap-2">
@@ -170,41 +819,63 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data.cart_update) {
-                applyCartUpdate(data.cart_update);
+                const update = data.cart_update;
+                
+                if (update.add_modules && Array.isArray(update.add_modules)) {
+                    update.add_modules.forEach(modId => {
+                        const chk = document.getElementById(`chk_mod_${modId}`);
+                        if (chk) chk.checked = true;
+                    });
+                }
+                if (update.remove_modules && Array.isArray(update.remove_modules)) {
+                    update.remove_modules.forEach(modId => {
+                        const chk = document.getElementById(`chk_mod_${modId}`);
+                        if (chk) chk.checked = false;
+                    });
+                }
+                if (update.add_agents && Array.isArray(update.add_agents)) {
+                    update.add_agents.forEach(slug => {
+                        const chk = document.getElementById(`chk_agt_${slug}`);
+                        if (chk) chk.checked = true;
+                    });
+                }
+                if (update.remove_agents && Array.isArray(update.remove_agents)) {
+                    update.remove_agents.forEach(slug => {
+                        const chk = document.getElementById(`chk_agt_${slug}`);
+                        if (chk) chk.checked = false;
+                    });
+                }
+                if (update.ai_tier) {
+                    const tierVal = update.ai_tier.toLowerCase();
+                    document.querySelectorAll('.agent-tier-select').forEach(sel => {
+                        if (sel.querySelector(`option[value="${tierVal}"]`)) {
+                            sel.value = tierVal;
+                        }
+                    });
+                }
+                
+                recalculateBudget();
+                
+                // Visual feedback (flash cartoon cart box)
+                const summaryPanel = document.getElementById('summaryTotalPrice').closest('.glass-panel');
+                if (summaryPanel) {
+                    summaryPanel.style.transition = 'all 0.3s ease';
+                    summaryPanel.style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.6)';
+                    summaryPanel.style.borderColor = '#38bdf8';
+                    setTimeout(() => {
+                        summaryPanel.style.boxShadow = '';
+                        summaryPanel.style.borderColor = 'rgba(255,255,255,0.1)';
+                    }, 1000);
+                }
             }
-
         } catch (e) {
             document.getElementById(typingId).remove();
-            appendMessage('assistant', 'Sorry, I encountered an error. You can still pick modules manually!');
+            appendMessage('assistant', 'Sorry, I encountered an error. You can continue with the onboarding questionnaire!');
         }
 
         chatInput.disabled = false;
         chatSendBtn.disabled = false;
         chatInput.focus();
-    }
-
-    function applyCartUpdate(update) {
-        if (update.add_modules) {
-            update.add_modules.forEach(modId => {
-                const cb = document.getElementById('mod_' + modId);
-                if (cb) cb.checked = true;
-            });
-        }
-        if (update.remove_modules) {
-            update.remove_modules.forEach(modId => {
-                const cb = document.getElementById('mod_' + modId);
-                if (cb) cb.checked = false;
-            });
-        }
-        if (update.ai_tier) {
-            const select = document.getElementById('aiTierSelect');
-            for (let i = 0; i < select.options.length; i++) {
-                if (select.options[i].text.toLowerCase().includes(update.ai_tier.toLowerCase())) {
-                    select.selectedIndex = i;
-                    break;
-                }
-            }
-        }
     }
 
     chatSendBtn.addEventListener('click', sendMessage);

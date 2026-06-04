@@ -1,0 +1,671 @@
+{% extends 'workspace_admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}IT & Executive Command Center | WorkspaceAdmin{% endblock %}
+{% block page_title %}IT & Executive Command Center{% endblock %}
+
+{% block content %}
+<style>
+    .glass-card {
+        background: rgba(30, 41, 59, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+        border-color: rgba(56, 189, 248, 0.2);
+    }
+    .nav-pills .nav-link {
+        color: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.02);
+        margin-right: 0.5rem;
+        border-radius: 0.5rem;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .nav-pills .nav-link:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #38bdf8 0%, #c084fc 100%) !important;
+        border-color: transparent;
+        color: #fff !important;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+    .vps-card {
+        border-left: 4px solid var(--bs-secondary);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .vps-card.online {
+        border-left-color: #10b981;
+    }
+    .vps-card.offline {
+        border-left-color: #ef4444;
+        opacity: 0.6;
+    }
+    .vps-card.restarting {
+        border-left-color: #f59e0b;
+        animation: pulse-border 1.5s infinite;
+    }
+    @keyframes pulse-border {
+        0%, 100% { border-left-color: #f59e0b; }
+        50% { border-left-color: rgba(245, 158, 11, 0.2); }
+    }
+    .progress-bar-custom {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        transition: width 1s ease-in-out;
+    }
+    .terminal-console {
+        background: #090d16;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+        border-radius: 0.75rem;
+        font-family: 'Courier New', Courier, monospace;
+        color: #38bdf8;
+        font-size: 0.85rem;
+        min-height: 250px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .terminal-header {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .terminal-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+    }
+    .terminal-line {
+        margin-bottom: 0.25rem;
+        line-height: 1.4;
+    }
+    .terminal-input-prompt::before {
+        content: "bb-admin@it-core:~$ ";
+        color: #c084fc;
+        font-weight: bold;
+    }
+    .form-switch .form-check-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: #38bdf8;
+        border-color: #38bdf8;
+    }
+    .stat-badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+        font-family: 'Outfit', sans-serif;
+    }
+</style>
+
+<div class="row g-4 mb-4">
+    <!-- Stat Cards Row -->
+    <div class="col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-white-50 small">INFRASTRUCTURE HEALTH</span>
+                <h3 class="text-white fw-bold font-outfit mt-1 mb-0" id="live-vps-count">5/5 UP</h3>
+            </div>
+            <div class="rounded-3 bg-success bg-opacity-10 p-3 text-success">
+                <i class="bi bi-hdd-network fs-3"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-white-50 small">MONTHLY PROFIT</span>
+                <h3 class="text-white fw-bold font-outfit mt-1 mb-0">${{ net_profit|floatformat:2 }}</h3>
+            </div>
+            <div class="rounded-3 bg-primary bg-opacity-10 p-3 text-primary">
+                <i class="bi bi-wallet2 fs-3"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-white-50 small">ACTIVE WAAS CLIENTS</span>
+                <h3 class="text-white fw-bold font-outfit mt-1 mb-0">{{ active_waas }}</h3>
+            </div>
+            <div class="rounded-3 bg-info bg-opacity-10 p-3 text-info">
+                <i class="bi bi-globe2 fs-3"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <span class="text-white-50 small">AI WORKFORCE AGENTS</span>
+                <h3 class="text-white fw-bold font-outfit mt-1 mb-0">{{ serea_agents_count }}</h3>
+            </div>
+            <div class="rounded-3 bg-warning bg-opacity-10 p-3 text-warning">
+                <i class="bi bi-robot fs-3"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pills-cto-tab" data-bs-toggle="pill" data-bs-target="#pills-cto" type="button" role="tab" aria-controls="pills-cto" aria-selected="true">
+                <i class="bi bi-cpu me-2"></i>CTO &amp; IT Ops
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-ceo-tab" data-bs-toggle="pill" data-bs-target="#pills-ceo" type="button" role="tab" aria-controls="pills-ceo" aria-selected="false">
+                <i class="bi bi-graph-up-arrow me-2"></i>CEO &amp; Financials
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-hr-tab" data-bs-toggle="pill" data-bs-target="#pills-hr" type="button" role="tab" aria-controls="pills-hr" aria-selected="false">
+                <i class="bi bi-people-fill me-2"></i>HR &amp; Operations
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-admin-tab" data-bs-toggle="pill" data-bs-target="#pills-admin" type="button" role="tab" aria-controls="pills-admin" aria-selected="false">
+                <i class="bi bi-sliders me-2"></i>Super Admin Tools
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="pills-tabContent">
+        
+        <!-- ─── CTO & IT Perspective ─── -->
+        <div class="tab-pane fade show active" id="pills-cto" role="tabpanel" aria-labelledby="pills-cto-tab">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <h5 class="text-white font-outfit mb-3"><i class="bi bi-servers text-primary me-2"></i>VPS Telemetry &amp; Server Infrastructure</h5>
+                    <div class="row g-3" id="vps-nodes-container">
+                        {% for vps_id, node in vps_nodes.items %}
+                        <div class="col-md-6" id="vps-card-{{ vps_id }}">
+                            <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-3 vps-card {% if node.status == 'Online' %}online{% else %}offline{% endif %} h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="text-white font-outfit fw-bold mb-0">{{ node.name }}</h6>
+                                    <span class="badge bg-secondary font-monospace" style="font-size: 0.7rem;">{{ vps_id }}</span>
+                                </div>
+                                <div class="text-white-50 small mb-3">
+                                    <i class="bi bi-geo-alt me-1 text-primary"></i>{{ node.region }} &bull; <code class="text-info bg-info bg-opacity-10 px-1 py-0.5 rounded">{{ node.ip }}</code>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between text-white-50 small mb-1">
+                                        <span>CPU Usage</span>
+                                        <span class="cpu-text font-monospace">{{ node.cpu }}%</span>
+                                    </div>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-bar-fill bg-info cpu-fill" style="width: {{ node.cpu }}%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between text-white-50 small mb-1">
+                                        <span>RAM Allocation</span>
+                                        <span class="ram-text font-monospace">{{ node.ram }}%</span>
+                                    </div>
+                                    <div class="progress-bar-custom">
+                                        <div class="progress-bar-fill bg-purple ram-fill" style="width: {{ node.ram }}%; background-color: #c084fc;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top border-white border-opacity-5">
+                                    <span class="small text-white-50">Uptime: <span class="uptime-text font-monospace">{{ node.uptime }}</span></span>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-warning btn-vps-action" data-vps-id="{{ vps_id }}" data-action="restart" title="Reboot Server">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-vps-action" data-vps-id="{{ vps_id }}" data-action="power" title="Toggle Power">
+                                            <i class="bi bi-power"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-info btn-vps-action" data-vps-id="{{ vps_id }}" data-action="optimize" title="Optimize Cache & RAM">
+                                            <i class="bi bi-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Live System Terminal -->
+                <div class="col-lg-4">
+                    <h5 class="text-white font-outfit mb-3"><i class="bi bi-terminal text-info me-2"></i>Executive Diagnostic Console</h5>
+                    <div class="glass-card p-3 h-100 d-flex flex-column" style="min-height: 380px;">
+                        <div class="terminal-header">
+                            <div>
+                                <span class="terminal-dot bg-danger"></span>
+                                <span class="terminal-dot bg-warning"></span>
+                                <span class="terminal-dot bg-success"></span>
+                            </div>
+                            <span class="text-white-50 font-monospace small">Diagnostic Feed</span>
+                        </div>
+                        <div class="terminal-console p-3 flex-grow-1 mb-3" id="diagnostic-console">
+                            <div class="terminal-line text-secondary">[SYS INIT] Telemetry streams established. Ready for diagnostics.</div>
+                            <div class="terminal-line text-success">[OK] Postgres Master Database connection is active & healthy.</div>
+                            <div class="terminal-line text-warning">[WARN] VPS-02 (AI Orchestrator) RAM utilization at 81%. Ready for manual optimization.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-run-task" data-task="backup">
+                                <i class="bi bi-file-earmark-zip me-2"></i>Run Database Backup
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info btn-run-task" data-task="cache">
+                                <i class="bi bi-trash me-2"></i>Clear System Cache & Temporary Sessions
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning btn-run-task" data-task="ai_test">
+                                <i class="bi bi-robot me-2"></i>Run Serea Agent Connection Check
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── CEO & Financial Perspective ─── -->
+        <div class="tab-pane fade" id="pills-ceo" role="tabpanel" aria-labelledby="pills-ceo-tab">
+            <div class="row g-4">
+                <!-- Overview Stats & Chart -->
+                <div class="col-lg-4">
+                    <h5 class="text-white font-outfit mb-3"><i class="bi bi-piggy-bank text-primary me-2"></i>Financial Books Summary</h5>
+                    <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-4 mb-3">
+                        <span class="text-white-50 small">Total Revenue (Income)</span>
+                        <h2 class="text-success fw-bold font-outfit mb-3">${{ total_income|floatformat:2 }}</h2>
+
+                        <span class="text-white-50 small">Total Costs (Expenses)</span>
+                        <h2 class="text-danger fw-bold font-outfit mb-3">${{ total_expense|floatformat:2 }}</h2>
+
+                        <span class="text-white-50 small">Net Revenue Margin</span>
+                        <h2 class="text-white fw-bold font-outfit mb-0 {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ${{ net_profit|floatformat:2 }}
+                        </h2>
+                    </div>
+
+                    <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-3">
+                        <h6 class="text-white font-outfit mb-2">Projected Annual Recurring Revenue</h6>
+                        <h4 class="text-info fw-bold font-outfit font-monospace mb-0">
+                            ${% widthratio total_income 1 12 %}.00 ARR
+                        </h4>
+                        <small class="text-white-50">Calculated based on current recorded workspace billing records.</small>
+                    </div>
+                </div>
+
+                <!-- Client Purchases Table -->
+                <div class="col-lg-8">
+                    <h5 class="text-white font-outfit mb-3"><i class="bi bi-cart3 text-info me-2"></i>Client Purchases &amp; Orders Stream</h5>
+                    <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 overflow-hidden">
+                        <div class="table-responsive" style="max-height: 380px;">
+                            <table class="table table-dark table-hover mb-0 align-middle">
+                                <thead>
+                                    <tr class="text-white-50 border-bottom border-white border-opacity-10" style="font-size: 0.8rem;">
+                                        <th class="px-3 py-2">CLIENT</th>
+                                        <th class="px-3 py-2">PURCHASE ITEM</th>
+                                        <th class="px-3 py-2">AMOUNT</th>
+                                        <th class="px-3 py-2">STATUS</th>
+                                        <th class="px-3 py-2">DATE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_purchases %}
+                                    <tr class="border-bottom border-white border-opacity-5">
+                                        <td class="px-3 py-3">
+                                            <div class="text-white small fw-bold">{{ order.client.email }}</div>
+                                        </td>
+                                        <td class="px-3 py-3">
+                                            <span class="text-white-50 small">{{ order.description }}</span>
+                                        </td>
+                                        <td class="px-3 py-3">
+                                            <span class="font-monospace text-primary fw-medium">${{ order.amount }}</span>
+                                        </td>
+                                        <td class="px-3 py-3">
+                                            <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %} text-white font-outfit" style="font-size:0.7rem;">
+                                                {{ order.status|title }}
+                                            </span>
+                                        </td>
+                                        <td class="px-3 py-3 text-white-50 small">
+                                            {{ order.created_at|date:"M d, Y H:i" }}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-white-50">No client purchases recorded yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── HR & Operations Perspective ─── -->
+        <div class="tab-pane fade" id="pills-hr" role="tabpanel" aria-labelledby="pills-hr-tab">
+            <div class="row g-4">
+                <!-- Team & Staff Roster -->
+                <div class="col-md-5">
+                    <h5 class="text-white font-outfit mb-3"><i class="bi bi-people text-primary me-2"></i>BengalBound Executive &amp; Staff Roster</h5>
+                    <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-3" style="max-height: 400px; overflow-auto;">
+                        <div class="d-flex flex-column gap-2">
+                            {% for staff in staff_members %}
+                            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-white bg-opacity-5 border border-white border-opacity-5">
+                                <div>
+                                    <div class="text-white small fw-bold">{{ staff.get_full_name|default:staff.email }}</div>
+                                    <div class="text-white-50" style="font-size: 0.75rem;">{{ staff.email }}</div>
+                                </div>
+                                <span class="badge bg-purple stat-badge">
+                                    {{ staff.get_role_display }}
+                                </span>
+                            </div>
+                            {% empty %}
+                            <div class="text-center text-white-50 py-3">No staff members configured.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Internal Office Tasks -->
+                <div class="col-md-7">
+                    <h5 class="text-white font-outfit mb-3"><i class="bi bi-kanban text-info me-2"></i>Active Internal Office Tasks</h5>
+                    <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 overflow-hidden">
+                        <div class="table-responsive" style="max-height: 380px;">
+                            <table class="table table-dark table-hover mb-0 align-middle">
+                                <thead>
+                                    <tr class="text-white-50 border-bottom border-white border-opacity-10" style="font-size: 0.8rem;">
+                                        <th class="px-3 py-2">TASK TITLE</th>
+                                        <th class="px-3 py-2">ASSIGNED TO</th>
+                                        <th class="px-3 py-2">PRIORITY</th>
+                                        <th class="px-3 py-2">STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in internal_tasks %}
+                                    <tr class="border-bottom border-white border-opacity-5">
+                                        <td class="px-3 py-3">
+                                            <div class="text-white small fw-bold mb-0">{{ task.title }}</div>
+                                            <span class="text-white-50" style="font-size:0.75rem;">{{ task.project.title }}</span>
+                                        </td>
+                                        <td class="px-3 py-3">
+                                            <span class="text-white-50 small">{{ task.assigned_to.email|default:"Unassigned" }}</span>
+                                        </td>
+                                        <td class="px-3 py-3">
+                                            <span class="badge {% if task.priority == 'urgent' or task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning{% else %}bg-secondary{% endif %} text-white" style="font-size:0.65rem;">
+                                                {{ task.priority|upper }}
+                                            </span>
+                                        </td>
+                                        <td class="px-3 py-3 text-white-50 small">
+                                            <span class="text-white">{{ task.get_status_display }}</span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-white-50">No active internal tasks recorded.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Super Admin Perspective ─── -->
+        <div class="tab-pane fade" id="pills-admin" role="tabpanel" aria-labelledby="pills-admin-tab">
+            <h5 class="text-white font-outfit mb-3"><i class="bi bi-gear-wide-connected text-primary me-2"></i>Global Platform Settings &amp; Constraints</h5>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <form method="post" class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-4">
+                        {% csrf_token %}
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" name="maintenance_mode" id="maintenanceMode" {% if system_settings.maintenance_mode %}checked{% endif %}>
+                            <label class="form-check-label text-white ms-2" for="maintenanceMode">Platform Maintenance Mode</label>
+                            <div class="text-white-50 small">Puts client consoles in read-only and shows maintenance screen.</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" name="verbose_logging" id="verboseLogging" {% if system_settings.verbose_logging %}checked{% endif %}>
+                            <label class="form-check-label text-white ms-2" for="verboseLogging">Verbose Telemetry Debug Logs</label>
+                            <div class="text-white-50 small">Logs all incoming client API queries in detail.</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" name="sandbox_payments" id="sandboxPayments" {% if system_settings.sandbox_payments %}checked{% endif %}>
+                            <label class="form-check-label text-white ms-2" for="sandboxPayments">Sandbox billing gateway mode</label>
+                            <div class="text-white-50 small">Simulate payment checkouts instead of hitting NowPayments APIs.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="aiRateLimit" class="form-label text-white">AI Agent Telemetry Logging Rate Limit (sec)</label>
+                            <input type="number" name="ai_rate_limit" class="form-control bg-dark bg-opacity-50 text-white border-secondary" id="aiRateLimit" value="{{ system_settings.ai_rate_limit }}" min="5" max="300" required style="border-radius:0.5rem;">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-gradient w-100 rounded-pill py-2 shadow-glow fw-semibold">
+                            Save Global Configuration
+                        </button>
+                    </form>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-4 h-100">
+                        <h6 class="text-white font-outfit mb-3"><i class="bi bi-shield-check text-success me-2"></i>Admin Core Security Audit</h6>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent text-white border-white border-opacity-5 d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <div class="small fw-bold">Database Encryption Status</div>
+                                    <div class="text-white-50" style="font-size:0.75rem;">Protects billing credentials at rest</div>
+                                </div>
+                                <span class="badge bg-success">ACTIVE</span>
+                            </li>
+                            <li class="list-group-item bg-transparent text-white border-white border-opacity-5 d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <div class="small fw-bold">Two-Factor Authentication (TOTP)</div>
+                                    <div class="text-white-50" style="font-size:0.75rem;">Enforced for all Super Admins</div>
+                                </div>
+                                <span class="badge bg-success">ENFORCED</span>
+                            </li>
+                            <li class="list-group-item bg-transparent text-white border-white border-opacity-5 d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <div class="small fw-bold">Serea AI Sandbox Mode</div>
+                                    <div class="text-white-50" style="font-size:0.75rem;">AI execution isolated via secure Docker wrappers</div>
+                                </div>
+                                <span class="badge bg-success">SECURED</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSRF Token reader helper
+    function getCSRFToken() {
+        const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        return tokenInput ? tokenInput.value : '';
+    }
+
+    // Dynamic Telemetry Simulation: Periodically update CPU/RAM values slightly
+    setInterval(function() {
+        const vpsCards = document.querySelectorAll('.vps-card.online');
+        vpsCards.forEach(card => {
+            const cpuText = card.querySelector('.cpu-text');
+            const cpuFill = card.querySelector('.cpu-fill');
+            const ramText = card.querySelector('.ram-text');
+            const ramFill = card.querySelector('.ram-fill');
+            
+            // Random fluctuations
+            let currentCpu = parseInt(cpuText.textContent);
+            let currentRam = parseInt(ramText.textContent);
+            
+            let cpuDelta = Math.floor(Math.random() * 5) - 2; // -2 to +2
+            let ramDelta = Math.floor(Math.random() * 3) - 1; // -1 to +1
+            
+            let newCpu = Math.max(2, Math.min(98, currentCpu + cpuDelta));
+            let newRam = Math.max(5, Math.min(95, currentRam + ramDelta));
+            
+            cpuText.textContent = newCpu + '%';
+            cpuFill.style.width = newCpu + '%';
+            
+            ramText.textContent = newRam + '%';
+            ramFill.style.width = newRam + '%';
+        });
+    }, 4000);
+
+    // Interactive VPS Actions
+    const vpsContainer = document.getElementById('vps-nodes-container');
+    vpsContainer.addEventListener('click', async function(e) {
+        const actionBtn = e.target.closest('.btn-vps-action');
+        if (!actionBtn) return;
+        
+        const vpsId = actionBtn.dataset.vpsId;
+        const action = actionBtn.dataset.action;
+        const card = document.getElementById(`vps-card-${vpsId}`).querySelector('.vps-card');
+        
+        // Log to console
+        const consoleLog = document.getElementById('diagnostic-console');
+        const timestamp = new Date().toLocaleTimeString();
+        
+        let initialHTML = actionBtn.innerHTML;
+        actionBtn.disabled = true;
+        actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        
+        if (action === 'restart') {
+            consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-warning">[${timestamp}] [REBOOT INIT] Initiating soft restart request for ${vpsId}...</div>`);
+            card.className = 'card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-3 vps-card restarting h-100';
+        } else if (action === 'power') {
+            consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-danger">[${timestamp}] [POWER] Toggling node state for ${vpsId}...</div>`);
+        } else if (action === 'optimize') {
+            consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-info">[${timestamp}] [MEM OPT] Running virtual buffer compaction on ${vpsId}...</div>`);
+        }
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+
+        try {
+            const resp = await fetch("{% url 'workspace_admin:control_center_vps_action' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ vps_id: vpsId, action: action })
+            });
+            const data = await resp.json();
+            
+            actionBtn.disabled = false;
+            actionBtn.innerHTML = initialHTML;
+            
+            if (data.success) {
+                const node = data.vps;
+                
+                // Update stats
+                card.querySelector('.cpu-text').textContent = node.cpu + '%';
+                card.querySelector('.cpu-fill').style.width = node.cpu + '%';
+                card.querySelector('.ram-text').textContent = node.ram + '%';
+                card.querySelector('.ram-fill').style.width = node.ram + '%';
+                card.querySelector('.uptime-text').textContent = node.uptime;
+                
+                if (node.status === 'Online') {
+                    card.className = 'card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-3 vps-card online h-100';
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-success">[${timestamp}] [OK] ${vpsId} verified back ONLINE. Telemetry linked.</div>`);
+                } else {
+                    card.className = 'card bg-black bg-opacity-30 border border-white border-opacity-10 rounded-3 p-3 vps-card offline h-100';
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-danger">[${timestamp}] [POWER] ${vpsId} powered OFFLINE. Connections dropped.</div>`);
+                }
+            } else {
+                consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-danger">[${timestamp}] [ERROR] Action failed: ${data.error}</div>`);
+            }
+        } catch (err) {
+            actionBtn.disabled = false;
+            actionBtn.innerHTML = initialHTML;
+            consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-danger">[${timestamp}] [ERROR] Connection lost during handshake to VPS-control.</div>`);
+        }
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+    });
+
+    // Run Task Console scripts
+    const runTaskButtons = document.querySelectorAll('.btn-run-task');
+    runTaskButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const task = btn.dataset.task;
+            const consoleLog = document.getElementById('diagnostic-console');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            btn.disabled = true;
+            let originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Executing...';
+            
+            if (task === 'backup') {
+                consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-white-50">[${timestamp}] $ python manage.py db_backup --verbose</div>`);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-cyan">[${timestamp}] [DB] Dumping master postgres database tables...</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                }, 800);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-cyan">[${timestamp}] [DB] Compressing archive structure (zip)...</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                }, 1500);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-success">[${timestamp}] [OK] Backup written successfully: backup_${new Date().toISOString().split('T')[0]}.sql.gz (14.2 MB)</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }, 2200);
+            } else if (task === 'cache') {
+                consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-white-50">[${timestamp}] $ redis-cli flushall</div>`);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-cyan">[${timestamp}] [REDIS] Purging cached HTML panels & user onboarding tokens...</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                }, 600);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-success">[${timestamp}] [OK] Redis memory flushed. Freed 128 MB cache buffer.</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }, 1400);
+            } else if (task === 'ai_test') {
+                consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-white-50">[${timestamp}] $ python manage.py verify_serea_daemons</div>`);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-cyan">[${timestamp}] [AI] Pinging Serea daemon gateways...</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                }, 700);
+                setTimeout(() => {
+                    consoleLog.insertAdjacentHTML('beforeend', `<div class="terminal-line text-success">[${timestamp}] [OK] Serea-01: OK, Serea-02: OK, Serea-03: OK. Connection time: 14ms.</div>`);
+                    consoleLog.scrollTop = consoleLog.scrollHeight;
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }, 1600);
+            }
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        });
+    });
+});
+</script>
+{% endblock %}

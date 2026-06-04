@@ -40,12 +40,16 @@ INDUSTRY_MODULE_PRIORITY = {
     'landscaping':   ['garden_ops', 'crm', 'invoicing', 'pos', 'inventory', 'shift_planning', 'hr', 'payroll', 'accounting', 'data_collection', 'reports'],
     'nursery':       ['garden_ops', 'pos', 'inventory', 'crm', 'invoicing', 'ecommerce', 'accounting', 'data_collection', 'reports'],
     'florist':       ['pos', 'inventory', 'crm', 'invoicing', 'garden_ops', 'booking', 'email_marketing', 'accounting', 'reports'],
+    'plumber':       ['crm', 'invoicing', 'pos', 'inventory', 'booking', 'shift_planning', 'task_board', 'accounting', 'reports'],
+    'carpenter':     ['crm', 'invoicing', 'pos', 'inventory', 'booking', 'shift_planning', 'task_board', 'accounting', 'reports'],
+    'electrician':   ['crm', 'invoicing', 'pos', 'inventory', 'booking', 'shift_planning', 'task_board', 'accounting', 'reports'],
     # Education
     'school':        ['sis', 'lms', 'assessments', 'timetable', 'parent_portal', 'hr', 'attendance', 'payroll', 'invoicing', 'announcements', 'business_calendar', 'docs'],
     'training_center': ['lms', 'assessments', 'sis', 'timetable', 'invoicing', 'crm', 'hr', 'attendance', 'business_calendar', 'video_meet', 'docs'],
     'university':    ['sis', 'lms', 'assessments', 'timetable', 'parent_portal', 'hr', 'payroll', 'invoicing', 'crm', 'announcements', 'docs', 'business_calendar', 'contracts'],
     'tutoring_center': ['lms', 'assessments', 'timetable', 'sis', 'invoicing', 'crm', 'booking', 'business_calendar', 'video_meet'],
     'corporate_training': ['lms', 'assessments', 'data_studio', 'process_mapper', 'invoicing', 'crm', 'hr', 'docs', 'slides', 'video_meet'],
+    'driving_school': ['crm', 'invoicing', 'booking', 'business_calendar', 'accounting', 'documents', 'reports', 'team_chat'],
     # Logistics
     'warehouse':     ['inventory', 'delivery', 'order_mgmt', 'bom', 'maintenance', 'hr'],
     # Professional Services
@@ -91,6 +95,7 @@ BUSINESS_TYPES = [
     ('university', 'University / College'),
     ('tutoring_center', 'Tutoring Center'),
     ('corporate_training', 'Corporate Training Provider'),
+    ('driving_school', 'Driving School'),
     # Real Estate
     ('real_estate_agency', 'Real Estate Agency'),
     ('real_estate_agent', 'Independent Real Estate Agent'),
@@ -122,6 +127,9 @@ BUSINESS_TYPES = [
     ('landscaping', 'Landscaping & Garden Services'),
     ('nursery', 'Garden Nursery / Plant Shop'),
     ('florist', 'Florist'),
+    ('plumber', 'Plumbing & Home Services'),
+    ('carpenter', 'Carpentry & Woodwork'),
+    ('electrician', 'Electrical Services'),
     # Consulting & Professional Services
     ('consulting', 'Business Consulting Firm'),
     ('supply_chain_consulting', 'Supply Chain Consulting'),
@@ -894,3 +902,24 @@ class StorageIncreaseRequest(models.Model):
 
     def __str__(self):
         return f"{self.business.name}: +{self.requested_gb}GB ({self.get_status_display()})"
+
+
+class DashboardConfig(models.Model):
+    business = models.OneToOneField(BusinessInstance, on_delete=models.CASCADE, related_name='dashboard_config')
+    recommended_agents = models.JSONField(default=list, blank=True)
+    layout = models.JSONField(default=dict, blank=True)  # contains widgets, layout, primary_color_suggestion
+    language = models.CharField(max_length=50, default='English')
+    currency = models.CharField(max_length=10, default='USD')
+    payment_method = models.CharField(max_length=50, default='Stripe')
+    dashboard_theme = models.CharField(max_length=50, default='default')
+    primary_color = models.CharField(max_length=50, default='#63DCB8')
+    is_configured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"DashboardConfig for {self.business.name}"
+

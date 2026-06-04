@@ -3,6 +3,34 @@
 {% block title %}Dashboard — BengalBound Console{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
+{% block extra_head %}
+{% if dashboard_config %}
+<style>
+  :root {
+    --bb-accent-cyan: {{ dashboard_config.primary_color }} !important;
+    --bb-accent-purple: {{ dashboard_config.primary_color }} !important;
+    --primary: {{ dashboard_config.primary_color }} !important;
+  }
+  .btn-primary, .stat-tile .stat-icon i, .module-tile:hover .mod-name, .text-primary, .sb-link.active, .sb-link.active i {
+    color: {{ dashboard_config.primary_color }} !important;
+  }
+  .btn-primary, .chat-send-btn, .progress-bar {
+    background: {{ dashboard_config.primary_color }} !important;
+    border-color: {{ dashboard_config.primary_color }} !important;
+  }
+  .glass-panel {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+  {% if dashboard_config.dashboard_theme != 'default' %}
+  body {
+    /* Subtle background adjustment for theme personality */
+    background: radial-gradient(circle at top right, {{ dashboard_config.primary_color }}10, #0a0a0f 80%) !important;
+  }
+  {% endif %}
+</style>
+{% endif %}
+{% endblock %}
+
 {% block header_actions %}
   {% if console_biz %}
   <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm me-1" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:0.78rem;">
@@ -150,350 +178,363 @@
   </div>
 </div>
 
-
-<!-- ── Quick Actions ──────────────────────────────────────────────────────── -->
-<div class="row g-2 mb-4">
-  <div class="col-12">
-    <div style="font-size:0.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Quick Actions</div>
-  </div>
-  {% if console_biz %}
-  <div class="col-6 col-md-3">
-    <a href="{% url 'hub:hub_members' slug=console_biz.slug %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(192,132,252,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
-      <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(192,132,252,0.1);"><i class="bi bi-person-badge" style="color:#c084fc;font-size:0.85rem;"></i></div>
-      <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Team Members</div><div style="font-size:0.65rem;color:var(--muted);">Invite & manage</div></div>
-    </a>
-  </div>
-  {% endif %}
-  <div class="col-6 col-md-3">
-    <a href="{% url 'console_admin:billing_overview' %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(56,189,248,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
-      <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(56,189,248,0.1);"><i class="bi bi-receipt" style="color:#38bdf8;font-size:0.85rem;"></i></div>
-      <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Billing</div><div style="font-size:0.65rem;color:var(--muted);">Plans & invoices</div></div>
-    </a>
-  </div>
-  <div class="col-6 col-md-3">
-    <a href="{% url 'console_admin:totp_verify' %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(34,197,94,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
-      <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(34,197,94,0.1);"><i class="bi bi-shield-check" style="color:#22c55e;font-size:0.85rem;"></i></div>
-      <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Security (2FA)</div><div style="font-size:0.65rem;color:var(--muted);">Authenticator app</div></div>
-    </a>
-  </div>
-  <div class="col-6 col-md-3">
-    <a href="{% url 'console_admin:notifications_list' %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(251,191,36,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
-      <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(251,191,36,0.1);">
-        <i class="bi bi-bell{% if unread_notification_count %}-fill{% endif %}" style="color:#fbbf24;font-size:0.85rem;"></i>
-      </div>
-      <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Notifications{% if unread_notification_count %} <span class="badge rounded-pill ms-1" style="background:rgba(239,68,68,0.2);color:#f87171;font-size:0.55rem;">{{ unread_notification_count }}</span>{% endif %}</div><div style="font-size:0.65rem;color:var(--muted);">Activity alerts</div></div>
-    </a>
-  </div>
-</div>
-
-<!-- ── Main 2-col ─────────────────────────────────────────────────────────── -->
+<!-- ── Dynamic Sorted Layout Container ─────────────────────────────────────────── -->
 <div class="row g-4 mb-4">
+  {% for widget in widgets %}
 
-  <!-- Left: Active Modules grid -->
-  <div class="col-lg-8">
-    <div class="info-card h-100">
-      <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-          <div class="fw-semibold" style="font-size:0.875rem;">Active Modules</div>
-          <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Your installed business tools</div>
-        </div>
-        {% if console_biz %}
-        <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm d-flex align-items-center gap-1" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:0.75rem;">
-          <i class="bi bi-plus" style="font-size:0.9rem;"></i> Add Module
-        </a>
-        {% endif %}
-      </div>
-
-      {% if tenant_modules %}
+    {% if widget.id == 'quick_actions' %}
+    <!-- Quick Actions Widget -->
+    <div class="col-12" data-widget-id="quick_actions">
+      <div style="font-size:0.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;">Quick Actions</div>
       <div class="row g-2">
-        {% for item in tenant_modules %}
-        <div class="col-6 col-md-4 col-xl-3">
-          <a href="{{ item.url }}" class="module-tile">
-            <div class="mod-icon"><i class="bi {{ item.tm.module.icon }}"></i></div>
-            <div class="mod-name">{{ item.tm.module.name }}</div>
+        {% if console_biz %}
+        <div class="col-6 col-md-3">
+          <a href="{% url 'hub:hub_members' slug=console_biz.slug %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(192,132,252,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
+            <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(192,132,252,0.1);"><i class="bi bi-person-badge" style="color:#c084fc;font-size:0.85rem;"></i></div>
+            <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Team Members</div><div style="font-size:0.65rem;color:var(--muted);">Invite & manage</div></div>
           </a>
         </div>
-        {% endfor %}
-      </div>
-      {% elif console_biz %}
-      <div class="text-center py-5">
-        <div style="font-size:2.5rem;opacity:0.15;margin-bottom:0.75rem;">📦</div>
-        <div style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem;">No modules installed yet</div>
-        <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm px-4" style="background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3);color:#c084fc;border-radius:8px;">Browse Module Store</a>
-      </div>
-      {% else %}
-      <div class="text-center py-5">
-        <div style="font-size:2.5rem;opacity:0.15;margin-bottom:0.75rem;">🏢</div>
-        <div style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem;">Create your business to start using modules</div>
-        <a href="{% url 'hub:hub_create' %}" class="btn btn-sm px-4" style="background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3);color:#c084fc;border-radius:8px;">Create Business</a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Right: Business + AI cards stacked -->
-  <div class="col-lg-4 d-flex flex-column gap-3">
-
-    <!-- Business Info -->
-    {% if console_biz %}
-    <div class="info-card" style="border-color:rgba(192,132,252,0.2);">
-      <div class="d-flex align-items-center gap-3 mb-3">
-        <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(236,72,153,0.2));font-size:1.2rem;">
-          {% if console_biz.logo %}
-          <img src="{{ console_biz.logo.url }}" class="w-100 h-100 rounded-3 object-fit-cover" alt="">
-          {% else %}
-          <i class="bi {{ console_biz.get_icon }}" style="color:#c084fc;"></i>
-          {% endif %}
-        </div>
-        <div class="min-w-0 flex-grow-1">
-          <div class="fw-semibold text-truncate" style="font-size:0.875rem;">{{ console_biz.name }}</div>
-          <div style="font-size:0.7rem;color:var(--muted);">{{ console_biz.get_business_type_display }}</div>
-        </div>
-        {% if biz_sub %}
-        <span class="badge flex-shrink-0" style="font-size:0.65rem;background:{% if biz_sub.plan_type == 'advance' %}rgba(236,72,153,0.15);color:#ec4899;{% elif biz_sub.plan_type == 'premium' %}rgba(192,132,252,0.15);color:#c084fc;{% else %}rgba(56,189,248,0.15);color:#38bdf8;{% endif %};">{{ biz_sub.get_plan_type_display }}</span>
         {% endif %}
-      </div>
-      <!-- Storage -->
-      <div class="mb-3">
-        <div class="d-flex justify-content-between mb-1" style="font-size:0.7rem;color:var(--muted);">
-          <span>Storage</span>
-          <span>{{ console_biz.storage_used_mb|floatformat:1 }} / {{ console_biz.storage_limit_mb }} MB</span>
+        <div class="col-6 col-md-3">
+          <a href="{% url 'console_admin:billing_overview' %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(56,189,248,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
+            <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(56,189,248,0.1);"><i class="bi bi-receipt" style="color:#38bdf8;font-size:0.85rem;"></i></div>
+            <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Billing</div><div style="font-size:0.65rem;color:var(--muted);">Plans & invoices</div></div>
+          </a>
         </div>
-        <div class="progress" style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;">
-          <div class="progress-bar" style="width:{{ console_biz.storage_percent }}%;background:linear-gradient(90deg,#c084fc,#ec4899);border-radius:4px;"></div>
+        <div class="col-6 col-md-3">
+          <a href="{% url 'console_admin:totp_verify' %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(34,197,94,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
+            <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(34,197,94,0.1);"><i class="bi bi-shield-check" style="color:#22c55e;font-size:0.85rem;"></i></div>
+            <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Security (2FA)</div><div style="font-size:0.65rem;color:var(--muted);">Authenticator app</div></div>
+          </a>
         </div>
-      </div>
-      <div class="d-flex gap-2">
-        <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm flex-grow-1 fw-semibold" style="background:linear-gradient(135deg,rgba(192,132,252,0.25),rgba(236,72,153,0.2));border:1px solid rgba(192,132,252,0.3);color:#c084fc;border-radius:8px;font-size:0.78rem;">
-          Module Store <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-        <a href="{% url 'hub:hub_settings' slug=console_biz.slug %}" class="btn btn-sm" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);border-radius:8px;font-size:0.78rem;">
-          <i class="bi bi-gear"></i>
-        </a>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- AI Employee -->
-    {% if hired_ai and serea_agent %}
-    <div class="info-card" style="border-color:rgba(56,189,248,0.2);">
-      <div class="d-flex align-items-start gap-3 mb-3">
-        <div class="position-relative flex-shrink-0">
-          <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:linear-gradient(135deg,#38bdf8,#6366f1,#8b5cf6);box-shadow:0 0 18px rgba(56,189,248,0.2);">
-            <i class="bi bi-robot text-white" style="font-size:1.1rem;"></i>
-          </div>
-          <span class="position-absolute bottom-0 end-0 rounded-circle" style="width:11px;height:11px;border:2px solid #0d1526;{% if serea_agent.status == 'working' %}background:#10b981;{% elif serea_agent.status == 'waiting' %}background:#f59e0b;{% elif serea_agent.status == 'offline' %}background:#6b7280;{% else %}background:#38bdf8;{% endif %}"></span>
-        </div>
-        <div class="flex-grow-1 min-w-0">
-          <div class="fw-semibold" style="font-size:0.875rem;">{{ hired_ai.ai_name }}</div>
-          <div style="font-size:0.7rem;color:var(--muted);">{{ hired_ai.tier.get_name_display }}</div>
-        </div>
-        <span class="badge flex-shrink-0" style="font-size:0.65rem;background:{% if serea_agent.status == 'working' %}rgba(16,185,129,0.15);color:#10b981;{% elif serea_agent.status == 'waiting' %}rgba(245,158,11,0.15);color:#f59e0b;{% elif serea_agent.status == 'offline' %}rgba(100,116,139,0.15);color:#6b7280;{% else %}rgba(56,189,248,0.15);color:#38bdf8;{% endif %}">{{ serea_agent.get_status_display }}</span>
-      </div>
-
-      <!-- 4 mini stats -->
-      <div class="row g-2 mb-3">
-        <div class="col-6"><div class="text-center py-2 rounded-2" style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.12);">
-          <div class="fw-bold" style="color:#38bdf8;font-size:1.1rem;line-height:1;">{{ mod_count }}</div>
-          <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Moderated</div>
-        </div></div>
-        <div class="col-6"><div class="text-center py-2 rounded-2" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.12);">
-          <div class="fw-bold" style="color:#22c55e;font-size:1.1rem;line-height:1;">{{ content_count }}</div>
-          <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Published</div>
-        </div></div>
-        <div class="col-6"><div class="text-center py-2 rounded-2" style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.12);">
-          <div class="fw-bold" style="color:#818cf8;font-size:1.1rem;line-height:1;">{{ report_count }}</div>
-          <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Reports</div>
-        </div></div>
-        <div class="col-6"><div class="text-center py-2 rounded-2" style="background:{% if pending_approvals > 0 %}rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);{% else %}rgba(255,255,255,0.03);border:1px solid var(--border-2);{% endif %}">
-          <div class="fw-bold" style="color:{% if pending_approvals > 0 %}#f59e0b{% else %}var(--text){% endif %};font-size:1.1rem;line-height:1;">{{ pending_approvals }}</div>
-          <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Approvals</div>
-        </div></div>
-      </div>
-
-      <!-- Token bar -->
-      <div class="d-flex justify-content-between mb-1" style="font-size:0.68rem;color:var(--muted);">
-        <span>Monthly tokens</span>
-        <span style="color:#38bdf8;">{{ serea_agent.tokens_used_this_month }}{% if serea_agent.effective_token_limit %} / {{ serea_agent.effective_token_limit }}{% endif %}</span>
-      </div>
-      <div class="progress mb-2" style="height:3px;background:rgba(255,255,255,0.06);border-radius:4px;">
-        {% if serea_agent.effective_token_limit and serea_agent.effective_token_limit > 0 %}
-        <div class="progress-bar" style="width:{% widthratio serea_agent.tokens_used_this_month serea_agent.effective_token_limit 100 %}%;background:linear-gradient(90deg,#38bdf8,#8b5cf6);border-radius:4px;"></div>
-        {% else %}
-        <div class="progress-bar" style="width:4%;background:#38bdf8;border-radius:4px;"></div>
-        {% endif %}
-      </div>
-      <div style="font-size:0.65rem;color:var(--muted);">Model: <span style="color:#38bdf8;">{{ serea_agent.get_ai_model_display }}</span></div>
-    </div>
-
-    {% elif hired_ai %}
-    <div class="info-card d-flex flex-column align-items-center justify-content-center text-center py-4" style="border-color:rgba(56,189,248,0.15);min-height:140px;">
-      <div style="font-size:2rem;opacity:0.3;margin-bottom:0.5rem;">⚙️</div>
-      <div class="fw-semibold" style="font-size:0.82rem;">{{ hired_ai.ai_name }} — Setting Up</div>
-      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">You'll be notified when she's ready.</div>
-    </div>
-
-    {% else %}
-    <div class="info-card d-flex flex-column align-items-center justify-content-center text-center py-4" style="border:1px dashed rgba(56,189,248,0.2);min-height:140px;">
-      <i class="bi bi-robot mb-2" style="font-size:1.75rem;color:rgba(56,189,248,0.3);"></i>
-      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">No AI employee yet</div>
-      <a href="{% url 'console_admin:hire_ai' %}" class="btn btn-sm px-4" style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;border-radius:8px;font-size:0.78rem;">Hire Serea</a>
-    </div>
-    {% endif %}
-
-  </div>
-</div>
-
-
-<!-- ── AI Chat & Activity Panel ───────────────────────────────────────────── -->
-{% if hired_ai and serea_agent %}
-
-{% if pending_approvals %}
-<div class="mb-3 px-4 py-2 d-flex align-items-center gap-2 rounded-3" style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);">
-  <i class="bi bi-exclamation-triangle text-warning" style="font-size:0.85rem;"></i>
-  <span style="font-size:0.8rem;color:#f59e0b;">{{ pending_approvals }} pending approval{{ pending_approvals|pluralize }} — open Chat below to review.</span>
-</div>
-{% endif %}
-
-<div class="ai-panel">
-  <!-- Tab bar -->
-  <div class="ai-tab-bar" id="aiTabBar">
-    <button class="ai-tab active" data-target="tab-chat"><i class="bi bi-chat-dots"></i>Chat</button>
-    <button class="ai-tab" data-target="tab-moderation"><i class="bi bi-shield-check"></i>Moderation</button>
-    <button class="ai-tab" data-target="tab-queue"><i class="bi bi-calendar-event"></i>Content Queue</button>
-    <button class="ai-tab" data-target="tab-reports"><i class="bi bi-file-text"></i>Reports</button>
-  </div>
-
-  <!-- Chat Tab -->
-  <div id="tab-chat" class="ai-tab-panel">
-    <div style="height:440px;overflow-y:auto;padding:1.25rem;" id="chatMessages">
-      {% for msg in recent_messages %}
-      <div class="d-flex mb-3 {% if msg.sender != 'serea' %}flex-row-reverse{% endif %}">
-        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {% if msg.sender == 'serea' %}me-2{% else %}ms-2{% endif %}"
-             style="width:28px;height:28px;{% if msg.sender == 'serea' %}background:linear-gradient(135deg,#38bdf8,#6366f1);{% else %}background:rgba(255,255,255,0.1);{% endif %}">
-          <i class="bi {% if msg.sender == 'serea' %}bi-robot{% else %}bi-person-fill{% endif %} text-white" style="font-size:0.7rem;"></i>
-        </div>
-        <div>
-          {% if msg.is_permission_request %}
-          <div class="chat-bubble permission">
-            <div style="font-size:0.72rem;color:#f59e0b;font-weight:600;margin-bottom:4px;"><i class="bi bi-exclamation-triangle me-1"></i>Permission Request</div>
-            <div style="font-size:0.82rem;">{{ msg.message_text }}</div>
-            {% if msg.permission_granted is None %}
-            <div class="d-flex gap-2 mt-2">
-              <form method="post" action="/serea/permission/{{ msg.id }}/respond/" class="d-inline">{% csrf_token %}<button type="submit" name="decision" value="approve" class="btn btn-success btn-sm py-1 px-3" style="font-size:0.75rem;">Approve</button></form>
-              <form method="post" action="/serea/permission/{{ msg.id }}/respond/" class="d-inline">{% csrf_token %}<button type="submit" name="decision" value="deny" class="btn btn-outline-danger btn-sm py-1 px-3" style="font-size:0.75rem;">Deny</button></form>
+        <div class="col-6 col-md-3">
+          <a href="{% url 'console_admin:notifications_list' %}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--border-2);transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(251,191,36,0.3)'" onmouseout="this.style.borderColor='var(--border-2)'">
+            <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:30px;height:30px;background:rgba(251,191,36,0.1);">
+              <i class="bi bi-bell{% if unread_notification_count %}-fill{% endif %}" style="color:#fbbf24;font-size:0.85rem;"></i>
             </div>
-            {% elif msg.permission_granted %}<div style="font-size:0.72rem;color:#10b981;margin-top:4px;"><i class="bi bi-check-circle me-1"></i>Approved</div>
-            {% else %}<div style="font-size:0.72rem;color:#ef4444;margin-top:4px;"><i class="bi bi-x-circle me-1"></i>Denied</div>{% endif %}
+            <div><div class="fw-semibold" style="font-size:0.75rem;color:var(--text);">Notifications</div><div style="font-size:0.65rem;color:var(--muted);">Activity alerts</div></div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {% elif widget.id == 'modules_grid' %}
+    <!-- Modules Grid Widget -->
+    <div class="col-lg-8" data-widget-id="modules_grid">
+      <div class="info-card h-100">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <div class="fw-semibold" style="font-size:0.875rem;">Active Modules</div>
+            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">Your installed business tools</div>
           </div>
-          {% else %}
-          <div class="chat-bubble {% if msg.sender == 'serea' %}from-ai{% else %}from-user{% endif %}">{{ msg.message_text }}</div>
+          {% if console_biz %}
+          <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm d-flex align-items-center gap-1" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:0.75rem;">
+            <i class="bi bi-plus" style="font-size:0.9rem;"></i> Add Module
+          </a>
           {% endif %}
-          <div class="{% if msg.sender != 'serea' %}text-end{% endif %}" style="font-size:0.6rem;color:var(--muted);margin-top:3px;">{{ msg.created_at|date:"M d, H:i" }}</div>
         </div>
-      </div>
-      {% empty %}
-      <div class="d-flex flex-column align-items-center justify-content-center h-100" style="opacity:0.4;">
-        <i class="bi bi-chat" style="font-size:2rem;margin-bottom:0.5rem;"></i>
-        <div style="font-size:0.82rem;">Say hello to {{ hired_ai.ai_name }}!</div>
-      </div>
-      {% endfor %}
-    </div>
-    <div class="chat-input-wrap">
-      <form method="post" action="/" class="d-flex gap-2" id="chatForm">
-        {% csrf_token %}
-        <input type="text" name="message" class="form-control chat-input flex-grow-1"
-               placeholder="Message {{ hired_ai.ai_name }}…" autocomplete="off" id="chatInput">
-        <button type="submit" class="chat-send-btn"><i class="bi bi-send-fill" style="font-size:0.85rem;"></i></button>
-      </form>
-    </div>
-  </div>
 
-  <!-- Moderation Tab -->
-  <div id="tab-moderation" class="ai-tab-panel d-none">
-    {% if moderation_logs %}
-    <div class="table-responsive">
-      <table class="table table-dark table-hover table-borderless align-middle mb-0" style="font-size:0.79rem;">
-        <thead><tr style="color:rgba(255,255,255,0.3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);">
-          <th class="px-4 py-3">Platform</th><th>Comment</th><th>Action</th><th>Confidence</th><th>Sentiment</th><th class="pe-4">Time</th>
-        </tr></thead>
-        <tbody>
-        {% for log in moderation_logs %}
-        <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
-          <td class="px-4"><span class="badge" style="background:rgba(99,102,241,0.15);color:#818cf8;font-size:0.65rem;">{{ log.platform }}</span></td>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);">{{ log.comment_text|truncatechars:55 }}</td>
-          <td><span class="badge" style="font-size:0.65rem;{% if log.action_taken == 'delete' %}background:rgba(239,68,68,0.15);color:#f87171;{% elif log.action_taken == 'reply' %}background:rgba(34,197,94,0.15);color:#4ade80;{% else %}background:rgba(245,158,11,0.15);color:#fbbf24;{% endif %}">{{ log.get_action_taken_display }}</span></td>
-          <td>{% if log.confidence_score is not None %}<div class="d-flex align-items-center gap-1"><div style="width:34px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="width:{% widthratio log.confidence_score 1 100 %}%;height:100%;background:{% if log.confidence_score >= 0.7 %}#10b981{% elif log.confidence_score >= 0.4 %}#f59e0b{% else %}#ef4444{% endif %};"></div></div><span style="color:var(--muted);font-size:0.75rem;">{{ log.confidence_score|floatformat:2 }}</span></div>{% else %}—{% endif %}</td>
-          <td><span style="color:{% if log.sentiment_score >= 0.6 %}#4ade80{% elif log.sentiment_score >= 0.4 %}#fbbf24{% else %}#f87171{% endif %};">{% if log.sentiment_score is not None %}{{ log.sentiment_score|floatformat:2 }}{% else %}—{% endif %}</span></td>
-          <td class="pe-4" style="color:var(--muted);">{{ log.created_at|date:"M d, H:i" }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="d-flex flex-column align-items-center justify-content-center py-5" style="opacity:0.4;">
-      <i class="bi bi-shield-check" style="font-size:2rem;margin-bottom:0.5rem;"></i>
-      <div style="font-size:0.82rem;">No moderation activity yet.</div>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- Queue Tab -->
-  <div id="tab-queue" class="ai-tab-panel d-none">
-    {% if content_queue %}
-    <div class="table-responsive">
-      <table class="table table-dark table-hover table-borderless align-middle mb-0" style="font-size:0.79rem;">
-        <thead><tr style="color:rgba(255,255,255,0.3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);">
-          <th class="px-4 py-3">Title</th><th>Platform</th><th>Scheduled</th><th class="pe-4">Status</th>
-        </tr></thead>
-        <tbody>
-        {% for item in content_queue %}
-        <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
-          <td class="px-4 fw-medium">{{ item.title }}</td>
-          <td><span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.65rem;">{{ item.platform }}</span></td>
-          <td style="color:var(--muted);">{{ item.post_date|date:"M d, Y H:i" }}</td>
-          <td class="pe-4"><span class="badge" style="font-size:0.65rem;{% if item.status == 'posted' %}background:rgba(34,197,94,0.15);color:#4ade80;{% elif item.status == 'failed' %}background:rgba(239,68,68,0.15);color:#f87171;{% else %}background:rgba(100,116,139,0.15);color:#94a3b8;{% endif %}">{{ item.get_status_display }}</span></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="d-flex flex-column align-items-center justify-content-center py-5" style="opacity:0.4;">
-      <i class="bi bi-calendar-event" style="font-size:2rem;margin-bottom:0.5rem;"></i>
-      <div style="font-size:0.82rem;">No content queued yet.</div>
-    </div>
-    {% endif %}
-  </div>
-
-  <!-- Reports Tab -->
-  <div id="tab-reports" class="ai-tab-panel d-none">
-    <div class="p-4">
-      {% if reports %}
-      {% for report in reports %}
-      <div class="mb-3 p-3 rounded-3" style="background:rgba(255,255,255,0.02);border:1px solid var(--border-2);">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge" style="font-size:0.62rem;background:rgba(99,102,241,0.15);color:#818cf8;">{{ report.get_report_type_display }}</span>
-            <span class="fw-semibold" style="font-size:0.82rem;">{{ report.title }}</span>
+        {% if tenant_modules %}
+        <div class="row g-2">
+          {% for item in tenant_modules %}
+          <div class="col-6 col-md-4 col-xl-3">
+            <a href="{{ item.url }}" class="module-tile">
+              <div class="mod-icon"><i class="bi {{ item.tm.module.icon }}"></i></div>
+              <div class="mod-name">{{ item.tm.module.name }}</div>
+            </a>
           </div>
-          <span style="font-size:0.68rem;color:var(--muted);white-space:nowrap;">{{ report.created_at|date:"M d, Y" }}</span>
+          {% endfor %}
         </div>
-        <p style="font-size:0.78rem;color:var(--muted);line-height:1.6;margin:0;white-space:pre-line;">{{ report.body|truncatechars:300 }}</p>
+        {% elif console_biz %}
+        <div class="text-center py-5">
+          <div style="font-size:2.5rem;opacity:0.15;margin-bottom:0.75rem;">📦</div>
+          <div style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem;">No modules installed yet</div>
+          <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm px-4" style="background:rgba(192,132,252,0.15);border:1px solid rgba(192,132,252,0.3);color:#c084fc;border-radius:8px;">Browse Module Store</a>
+        </div>
+        {% endif %}
       </div>
-      {% endfor %}
+    </div>
+
+    {% elif widget.id == 'business_info' %}
+    <!-- Business Info Widget -->
+    <div class="col-lg-4 d-flex flex-column gap-3" data-widget-id="business_info">
+      
+      <!-- AI Design Copilot Modifier -->
+      <div class="info-card" style="border: 1px solid rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.03);">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-palette text-primary fs-6"></i>
+          <div class="fw-semibold text-white font-outfit" style="font-size:0.85rem;">AI Design Copilot</div>
+        </div>
+        <p class="text-white-50 mb-3" style="font-size:0.7rem;">Change your theme color, widgets order, or layout using natural language.</p>
+        <div class="input-group">
+          <input type="text" id="copilotInput" class="form-control glass-input text-white" style="font-size:0.75rem;" placeholder="e.g. 'Use a dark purple theme'...">
+          <button class="btn btn-primary px-3" type="button" id="copilotSendBtn">
+            <i class="bi bi-magic"></i>
+          </button>
+        </div>
+        <div id="copilotFeedback" class="small mt-2 d-none text-white-50" style="font-size:0.7rem;"></div>
+      </div>
+
+      <!-- Business Card -->
+      {% if console_biz %}
+      <div class="info-card">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(236,72,153,0.2));font-size:1.2rem;">
+            {% if console_biz.logo %}
+            <img src="{{ console_biz.logo.url }}" class="w-100 h-100 rounded-3 object-fit-cover" alt="">
+            {% else %}
+            <i class="bi {{ console_biz.get_icon }}" style="color:#c084fc;"></i>
+            {% endif %}
+          </div>
+          <div class="min-w-0 flex-grow-1">
+            <div class="fw-semibold text-truncate" style="font-size:0.875rem;">{{ console_biz.name }}</div>
+            <div style="font-size:0.7rem;color:var(--muted);">{{ console_biz.get_business_type_display }}</div>
+          </div>
+          {% if biz_sub %}
+          <span class="badge flex-shrink-0" style="font-size:0.65rem;background:{% if biz_sub.plan_type == 'advance' %}rgba(236,72,153,0.15);color:#ec4899;{% elif biz_sub.plan_type == 'premium' %}rgba(192,132,252,0.15);color:#c084fc;{% else %}rgba(56,189,248,0.15);color:#38bdf8;{% endif %};">{{ biz_sub.get_plan_type_display }}</span>
+          {% endif %}
+        </div>
+        <!-- Storage -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1" style="font-size:0.7rem;color:var(--muted);">
+            <span>Storage</span>
+            <span>{{ console_biz.storage_used_mb|floatformat:1 }} / {{ console_biz.storage_limit_mb }} MB</span>
+          </div>
+          <div class="progress" style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;">
+            <div class="progress-bar" style="width:{{ console_biz.storage_percent }}%;"></div>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'hub:hub_module_store' slug=console_biz.slug %}" class="btn btn-sm flex-grow-1 fw-semibold" style="background:linear-gradient(135deg,rgba(192,132,252,0.25),rgba(236,72,153,0.2));border:1px solid rgba(192,132,252,0.3);color:#c084fc;border-radius:8px;font-size:0.78rem;">
+            Module Store <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+          <a href="{% url 'hub:hub_settings' slug=console_biz.slug %}" class="btn btn-sm" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);border-radius:8px;font-size:0.78rem;">
+            <i class="bi bi-gear"></i>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- AI Employee Status Card -->
+      {% if hired_ai and serea_agent %}
+      <div class="info-card" style="border-color:rgba(56,189,248,0.2);">
+        <div class="d-flex align-items-start gap-3 mb-3">
+          <div class="position-relative flex-shrink-0">
+            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:linear-gradient(135deg,#38bdf8,#6366f1,#8b5cf6);box-shadow:0 0 18px rgba(56,189,248,0.2);">
+              <i class="bi bi-robot text-white" style="font-size:1.1rem;"></i>
+            </div>
+            <span class="position-absolute bottom-0 end-0 rounded-circle" style="width:11px;height:11px;border:2px solid #0d1526;{% if serea_agent.status == 'working' %}background:#10b981;{% elif serea_agent.status == 'waiting' %}background:#f59e0b;{% elif serea_agent.status == 'offline' %}background:#6b7280;{% else %}background:#38bdf8;{% endif %}"></span>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold" style="font-size:0.875rem;">{{ hired_ai.ai_name }}</div>
+            <div style="font-size:0.7rem;color:var(--muted);">{{ hired_ai.tier.get_name_display }}</div>
+          </div>
+          <span class="badge flex-shrink-0" style="font-size:0.65rem;background:{% if serea_agent.status == 'working' %}rgba(16,185,129,0.15);color:#10b981;{% elif serea_agent.status == 'waiting' %}rgba(245,158,11,0.15);color:#f59e0b;{% elif serea_agent.status == 'offline' %}rgba(100,116,139,0.15);color:#6b7280;{% else %}rgba(56,189,248,0.15);color:#38bdf8;{% endif %}">{{ serea_agent.get_status_display }}</span>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6"><div class="text-center py-2 rounded-2" style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.12);">
+            <div class="fw-bold text-primary" style="font-size:1.1rem;line-height:1;">{{ mod_count }}</div>
+            <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Moderated</div>
+          </div></div>
+          <div class="col-6"><div class="text-center py-2 rounded-2" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.12);">
+            <div class="fw-bold" style="color:#22c55e;font-size:1.1rem;line-height:1;">{{ content_count }}</div>
+            <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Published</div>
+          </div></div>
+          <div class="col-6"><div class="text-center py-2 rounded-2" style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.12);">
+            <div class="fw-bold" style="color:#818cf8;font-size:1.1rem;line-height:1;">{{ report_count }}</div>
+            <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Reports</div>
+          </div></div>
+          <div class="col-6"><div class="text-center py-2 rounded-2" style="background:{% if pending_approvals > 0 %}rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);{% else %}rgba(255,255,255,0.03);border:1px solid var(--border-2);{% endif %}">
+            <div class="fw-bold" style="color:{% if pending_approvals > 0 %}#f59e0b{% else %}var(--text){% endif %};font-size:1.1rem;line-height:1;">{{ pending_approvals }}</div>
+            <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;">Approvals</div>
+          </div></div>
+        </div>
+
+        <div class="d-flex justify-content-between mb-1" style="font-size:0.68rem;color:var(--muted);">
+          <span>Monthly tokens</span>
+          <span class="text-primary">{{ serea_agent.tokens_used_this_month }}{% if serea_agent.effective_token_limit %} / {{ serea_agent.effective_token_limit }}{% endif %}</span>
+        </div>
+        <div class="progress mb-2" style="height:3px;background:rgba(255,255,255,0.06);border-radius:4px;">
+          {% if serea_agent.effective_token_limit and serea_agent.effective_token_limit > 0 %}
+          <div class="progress-bar" style="width:{% widthratio serea_agent.tokens_used_this_month serea_agent.effective_token_limit 100 %}%;"></div>
+          {% else %}
+          <div class="progress-bar" style="width:4%;"></div>
+          {% endif %}
+        </div>
+        <div style="font-size:0.65rem;color:var(--muted);">Model: <span class="text-primary">{{ serea_agent.get_ai_model_display }}</span></div>
+      </div>
+      {% elif hired_ai %}
+      <div class="info-card d-flex flex-column align-items-center justify-content-center text-center py-4" style="border-color:rgba(56,189,248,0.15);min-height:140px;">
+        <div style="font-size:2rem;opacity:0.3;margin-bottom:0.5rem;">⚙️</div>
+        <div class="fw-semibold" style="font-size:0.82rem;">{{ hired_ai.ai_name }} — Setting Up</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">You'll be notified when she's ready.</div>
+      </div>
       {% else %}
-      <div class="d-flex flex-column align-items-center justify-content-center py-5" style="opacity:0.4;">
-        <i class="bi bi-file-text" style="font-size:2rem;margin-bottom:0.5rem;"></i>
-        <div style="font-size:0.82rem;">No reports yet.</div>
+      <div class="info-card d-flex flex-column align-items-center justify-content-center text-center py-4" style="border:1px dashed rgba(56,189,248,0.2);min-height:140px;">
+        <i class="bi bi-robot mb-2" style="font-size:1.75rem;color:rgba(56,189,248,0.3);"></i>
+        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">No AI employee yet</div>
+        <a href="{% url 'console_admin:hire_ai' %}" class="btn btn-sm px-4" style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);color:#38bdf8;border-radius:8px;font-size:0.78rem;">Hire Serea</a>
       </div>
       {% endif %}
     </div>
-  </div>
 
+    {% elif widget.id == 'ai_chat' %}
+    <!-- Serea AI panel Widget -->
+    <div class="col-12" data-widget-id="ai_chat">
+      {% if hired_ai and serea_agent %}
+      
+      {% if pending_approvals %}
+      <div class="mb-3 px-4 py-2 d-flex align-items-center gap-2 rounded-3" style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);">
+        <i class="bi bi-exclamation-triangle text-warning" style="font-size:0.85rem;"></i>
+        <span style="font-size:0.8rem;color:#f59e0b;">{{ pending_approvals }} pending approval{{ pending_approvals|pluralize }} — open Chat below to review.</span>
+      </div>
+      {% endif %}
+
+      <div class="ai-panel">
+        <!-- Tab bar -->
+        <div class="ai-tab-bar" id="aiTabBar">
+          <button class="ai-tab active" data-target="tab-chat"><i class="bi bi-chat-dots"></i>Chat</button>
+          <button class="ai-tab" data-target="tab-moderation"><i class="bi bi-shield-check"></i>Moderation</button>
+          <button class="ai-tab" data-target="tab-queue"><i class="bi bi-calendar-event"></i>Content Queue</button>
+          <button class="ai-tab" data-target="tab-reports"><i class="bi bi-file-text"></i>Reports</button>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="tab-chat" class="ai-tab-panel">
+          <div style="height:440px;overflow-y:auto;padding:1.25rem;" id="chatMessages">
+            {% for msg in recent_messages %}
+            <div class="d-flex mb-3 {% if msg.sender != 'serea' %}flex-row-reverse{% endif %}">
+              <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {% if msg.sender == 'serea' %}me-2{% else %}ms-2{% endif %}"
+                   style="width:28px;height:28px;{% if msg.sender == 'serea' %}background:linear-gradient(135deg,#38bdf8,#6366f1);{% else %}background:rgba(255,255,255,0.1);{% endif %}">
+                <i class="bi {% if msg.sender == 'serea' %}bi-robot{% else %}bi-person-fill{% endif %} text-white" style="font-size:0.7rem;"></i>
+              </div>
+              <div>
+                {% if msg.is_permission_request %}
+                <div class="chat-bubble permission">
+                  <div style="font-size:0.72rem;color:#f59e0b;font-weight:600;margin-bottom:4px;"><i class="bi bi-exclamation-triangle me-1"></i>Permission Request</div>
+                  <div style="font-size:0.82rem;">{{ msg.message_text }}</div>
+                  {% if msg.permission_granted is None %}
+                  <div class="d-flex gap-2 mt-2">
+                    <form method="post" action="/serea/permission/{{ msg.id }}/respond/" class="d-inline">{% csrf_token %}<button type="submit" name="decision" value="approve" class="btn btn-success btn-sm py-1 px-3" style="font-size:0.75rem;">Approve</button></form>
+                    <form method="post" action="/serea/permission/{{ msg.id }}/respond/" class="d-inline">{% csrf_token %}<button type="submit" name="decision" value="deny" class="btn btn-outline-danger btn-sm py-1 px-3" style="font-size:0.75rem;">Deny</button></form>
+                  </div>
+                  {% elif msg.permission_granted %}<div style="font-size:0.72rem;color:#10b981;margin-top:4px;"><i class="bi bi-check-circle me-1"></i>Approved</div>
+                  {% else %}<div style="font-size:0.72rem;color:#ef4444;margin-top:4px;"><i class="bi bi-x-circle me-1"></i>Denied</div>{% endif %}
+                </div>
+                {% else %}
+                <div class="chat-bubble {% if msg.sender == 'serea' %}from-ai{% else %}from-user{% endif %}">{{ msg.message_text }}</div>
+                {% endif %}
+                <div class="{% if msg.sender != 'serea' %}text-end{% endif %}" style="font-size:0.6rem;color:var(--muted);margin-top:3px;">{{ msg.created_at|date:"M d, H:i" }}</div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="d-flex flex-column align-items-center justify-content-center h-100" style="opacity:0.4;">
+              <i class="bi bi-chat" style="font-size:2rem;margin-bottom:0.5rem;"></i>
+              <div style="font-size:0.82rem;">Say hello to {{ hired_ai.ai_name }}!</div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="chat-input-wrap">
+            <form method="post" action="/" class="d-flex gap-2" id="chatForm">
+              {% csrf_token %}
+              <input type="text" name="message" class="form-control chat-input flex-grow-1"
+                     placeholder="Message {{ hired_ai.ai_name }}…" autocomplete="off" id="chatInput">
+              <button type="submit" class="chat-send-btn"><i class="bi bi-send-fill" style="font-size:0.85rem;"></i></button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Moderation Tab -->
+        <div id="tab-moderation" class="ai-tab-panel d-none">
+          {% if moderation_logs %}
+          <div class="table-responsive">
+            <table class="table table-dark table-hover table-borderless align-middle mb-0" style="font-size:0.79rem;">
+              <thead><tr style="color:rgba(255,255,255,0.3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);">
+                <th class="px-4 py-3">Platform</th><th>Comment</th><th>Action</th><th>Confidence</th><th>Sentiment</th><th class="pe-4">Time</th>
+              </tr></thead>
+              <tbody>
+              {% for log in moderation_logs %}
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td class="px-4"><span class="badge" style="background:rgba(99,102,241,0.15);color:#818cf8;font-size:0.65rem;">{{ log.platform }}</span></td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);">{{ log.comment_text|truncatechars:55 }}</td>
+                <td><span class="badge" style="font-size:0.65rem;{% if log.action_taken == 'delete' %}background:rgba(239,68,68,0.15);color:#f87171;{% elif log.action_taken == 'reply' %}background:rgba(34,197,94,0.15);color:#4ade80;{% else %}background:rgba(245,158,11,0.15);color:#fbbf24;{% endif %}">{{ log.get_action_taken_display }}</span></td>
+                <td>{% if log.confidence_score is not None %}<div class="d-flex align-items-center gap-1"><div style="width:34px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="width:{% widthratio log.confidence_score 1 100 %}%;height:100%;background:{% if log.confidence_score >= 0.7 %}#10b981{% elif log.confidence_score >= 0.4 %}#f59e0b{% else %}#ef4444{% endif %};"></div></div><span style="color:var(--muted);font-size:0.75rem;">{{ log.confidence_score|floatformat:2 }}</span></div>{% else %}—{% endif %}</td>
+                <td><span style="color:{% if log.sentiment_score >= 0.6 %}#4ade80{% elif log.sentiment_score >= 0.4 %}#fbbf24{% else %}#f87171{% endif %};">{% if log.sentiment_score is not None %}{{ log.sentiment_score|floatformat:2 }}{% else %}—{% endif %}</span></td>
+                <td class="pe-4" style="color:var(--muted);">{{ log.created_at|date:"M d, H:i" }}</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="d-flex flex-column align-items-center justify-content-center py-5" style="opacity:0.4;">
+            <i class="bi bi-shield-check" style="font-size:2rem;margin-bottom:0.5rem;"></i>
+            <div style="font-size:0.82rem;">No moderation activity yet.</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Queue Tab -->
+        <div id="tab-queue" class="ai-tab-panel d-none">
+          {% if content_queue %}
+          <div class="table-responsive">
+            <table class="table table-dark table-hover table-borderless align-middle mb-0" style="font-size:0.79rem;">
+              <thead><tr style="color:rgba(255,255,255,0.3);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);">
+                <th class="px-4 py-3">Title</th><th>Platform</th><th>Scheduled</th><th class="pe-4">Status</th>
+              </tr></thead>
+              <tbody>
+              {% for item in content_queue %}
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td class="px-4 fw-medium">{{ item.title }}</td>
+                <td><span class="badge" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.65rem;">{{ item.platform }}</span></td>
+                <td style="color:var(--muted);">{{ item.post_date|date:"M d, Y H:i" }}</td>
+                <td class="pe-4"><span class="badge" style="font-size:0.65rem;{% if item.status == 'posted' %}background:rgba(34,197,94,0.15);color:#4ade80;{% elif item.status == 'failed' %}background:rgba(239,68,68,0.15);color:#f87171;{% else %}background:rgba(100,116,139,0.15);color:#94a3b8;{% endif %}">{{ item.get_status_display }}</span></td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="d-flex flex-column align-items-center justify-content-center py-5" style="opacity:0.4;">
+            <i class="bi bi-calendar-event" style="font-size:2rem;margin-bottom:0.5rem;"></i>
+            <div style="font-size:0.82rem;">No content queued yet.</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="tab-reports" class="ai-tab-panel d-none">
+          <div class="p-4">
+            {% if reports %}
+            {% for report in reports %}
+            <div class="mb-3 p-3 rounded-3" style="background:rgba(255,255,255,0.02);border:1px solid var(--border-2);">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge" style="font-size:0.62rem;background:rgba(99,102,241,0.15);color:#818cf8;">{{ report.get_report_type_display }}</span>
+                  <span class="fw-semibold" style="font-size:0.82rem;">{{ report.title }}</span>
+                </div>
+                <span style="font-size:0.68rem;color:var(--muted);white-space:nowrap;">{{ report.created_at|date:"M d, Y" }}</span>
+              </div>
+              <p style="font-size:0.78rem;color:var(--muted);line-height:1.6;margin:0;white-space:pre-line;">{{ report.body|truncatechars:300 }}</p>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="d-flex flex-column align-items-center justify-content-center py-5" style="opacity:0.4;">
+              <i class="bi bi-file-text" style="font-size:2rem;margin-bottom:0.5rem;"></i>
+              <div style="font-size:0.82rem;">No reports yet.</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  {% endfor %}
 </div>
-{% endif %}
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
@@ -518,6 +559,56 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Copilot modifier layout updates
+  const copilotInput = document.getElementById('copilotInput');
+  const copilotSendBtn = document.getElementById('copilotSendBtn');
+  const copilotFeedback = document.getElementById('copilotFeedback');
+
+  if (copilotSendBtn && copilotInput) {
+    async function runCopilot() {
+      const text = copilotInput.value.trim();
+      if (!text) return;
+
+      copilotInput.disabled = true;
+      copilotSendBtn.disabled = true;
+      copilotFeedback.classList.remove('d-none');
+      copilotFeedback.className = "small mt-2 text-primary-50 text-info";
+      copilotFeedback.innerText = "Applying configuration changes...";
+
+      try {
+        const response = await fetch("{% url 'console_admin:modify_dashboard_layout' %}", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: JSON.stringify({ request: text })
+        });
+        const data = await response.json();
+        if (data.success) {
+          copilotFeedback.className = "small mt-2 text-success";
+          copilotFeedback.innerText = data.message + " Refreshing dashboard...";
+          setTimeout(() => { window.location.reload(); }, 1500);
+        } else {
+          copilotFeedback.className = "small mt-2 text-danger";
+          copilotFeedback.innerText = data.message;
+          copilotInput.disabled = false;
+          copilotSendBtn.disabled = false;
+        }
+      } catch (e) {
+        copilotFeedback.className = "small mt-2 text-danger";
+        copilotFeedback.innerText = "Error: " + e;
+        copilotInput.disabled = false;
+        copilotSendBtn.disabled = false;
+      }
+    }
+
+    copilotSendBtn.addEventListener('click', runCopilot);
+    copilotInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') runCopilot();
+    });
+  }
 });
 </script>
 {% endblock %}

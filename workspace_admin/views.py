@@ -941,3 +941,249 @@ def advance_quotes(request):
         'quotes': quotes,
         'status_filter': status_filter,
     })
+
+
+@workspace_admin_required
+def assign_package(request):
+    """
+    IT Officer panel to pre-assign a complete package of modules and agents to a client user.
+    Once assigned, the client bypasses onboarding and lands straight on the KYB page / dashboard.
+    """
+    from hub.models import ModuleCatalog, BusinessInstance, DashboardConfig, BUSINESS_TYPES
+    from workspace_admin.models import AIEmployeeTier
+    from agents.models import AgentCatalog
+    
+    users = User.objects.filter(is_active=True).exclude(is_superuser=True, is_staff=True).order_by('email')
+    modules = ModuleCatalog.objects.filter(is_available=True).order_by('name')
+    agents = AgentCatalog.objects.filter(is_active=True).order_by('name')
+    tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
+    
+    if request.method == 'POST':
+        user_id = request.POST.get('client_user_id')
+        business_name = request.POST.get('business_name', '').strip()
+        business_type = request.POST.get('business_type', 'business').strip()
+        selected_modules = request.POST.getlist('custom_modules')
+        selected_agents = request.POST.getlist('custom_agents')
+        
+        agent_tiers = {}
+        for key, val in request.POST.items():
+            if key.startswith('agent_tier_'):
+                agent_slug = key[len('agent_tier_'):]
+                agent_tiers[agent_slug] = val
+                
+        client_user = get_object_or_404(User, id=user_id)
+        
+        from hub.views import _unique_slug
+        from hub.dashboard_configurator import DashboardConfigurator
+        
+        # 1. Create Business
+        slug = _unique_slug(business_name or f"{client_user.email.split('@')[0]}-business")
+        business, _ = BusinessInstance.objects.get_or_create(
+            owner=client_user,
+            defaults={
+                'name': business_name or f"{client_user.email.split('@')[0]}'s Workspace",
+                'slug': slug,
+                'business_type': business_type
+            }
+        )
+        
+        # 2. Provision selected modules
+        from hub.models import TenantModule
+        for mod_id in selected_modules:
+            try:
+                module = ModuleCatalog.objects.get(module_id=mod_id)
+                TenantModule.objects.get_or_create(
+                    business=business,
+                    module=module,
+                    defaults={'tier': 'free', 'is_active': True}
+                )
+            except ModuleCatalog.DoesNotExist:
+                continue
+                
+        # Create a BusinessEmployee for the client as CEO
+        from hub.models import BusinessEmployee
+        try:
+            BusinessEmployee.objects.get_or_create(
+                business=business,
+                user=client_user,
+                defaults={
+                    'name': client_user.get_full_name() or client_user.email,
+                    'email': client_user.email,
+                    'role': 'ceo',
+                }
+            )
+        except Exception:
+            pass
+            
+        # 3. Configure layout and hire custom agents
+        answers = {
+            'business_type': business_type,
+            'main_challenge': 'getting_leads',
+            'team_size': 'Just me',
+            'platforms': [],
+            'language': 'English',
+            'payment_preference': 'Stripe',
+        }
+        
+        configurator = DashboardConfigurator()
+        configurator.configure(business, answers,
+                               custom_agents=selected_agents if selected_agents else None,
+                               agent_tiers=agent_tiers)
+                               
+        messages.success(request, f"Successfully pre-assigned package for {client_user.email}.")
+        return redirect('workspace_admin:assign_package')
+        
+    return render(request, 'workspace_admin/assign_package.html', {
+        'users': users,
+        'modules': modules,
+        'agents': agents,
+        'tiers': tiers,
+        'business_types': BUSINESS_TYPES,
+    })
+
+
+@workspace_admin_required
+def control_center(request):
+    """
+    BengalBound IT & Executive Command Center.
+    Aggregates simulated infrastructure, financials, staff directories,
+    global admin settings, and Serea AI system queues.
+    """
+    from django.db.models import Sum
+    from workspace_admin.models import FinanceRecord, Project, Task, WaaSSite, Subscription, Order, HiredAIEmployee
+    from serea.models import SereaAgent
+    
+    # Financial indicators
+    total_income = FinanceRecord.objects.filter(record_type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_expense = FinanceRecord.objects.filter(record_type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    net_profit = total_income - total_expense
+    
+    # Client stats
+    active_waas = WaaSSite.objects.filter(is_active=True).count()
+    total_subscriptions = Subscription.objects.filter(status='active').count()
+    recent_purchases = Order.objects.select_related('client').order_by('-created_at')[:10]
+    
+    # Staff / HR
+    staff_members = User.objects.filter(role__in=['super_admin', 'manager', 'employee', 'contractor', 'auditor']).order_by('role')
+    internal_tasks = Task.objects.select_related('assigned_to', 'project').order_by('-priority', '-due_date')[:15]
+    
+    # Serea AI oversight
+    active_hired_ais = HiredAIEmployee.objects.select_related('employer', 'tier').filter(is_active=True).order_by('-hired_at')[:10]
+    serea_agents = SereaAgent.objects.select_related('tenant').all()
+    
+    # Dynamic list of VPS systems.
+    if 'vps_nodes' not in request.session:
+        request.session['vps_nodes'] = {
+            'VPS-01': {'name': 'Primary Dev-Backoffice', 'ip': '143.198.88.10', 'status': 'Online', 'cpu': 24, 'ram': 42, 'uptime': '14d 6h', 'region': 'US-East'},
+            'VPS-02': {'name': 'AI Agent Orchestrator', 'ip': '143.198.88.22', 'status': 'Online', 'cpu': 68, 'ram': 81, 'uptime': '2d 11h', 'region': 'EU-West'},
+            'VPS-03': {'name': 'Postgres Primary DB', 'ip': '143.198.88.3', 'status': 'Online', 'cpu': 12, 'ram': 55, 'uptime': '35d 2h', 'region': 'US-East'},
+            'VPS-04': {'name': 'Public Landing CMS', 'ip': '143.198.88.45', 'status': 'Online', 'cpu': 8, 'ram': 19, 'uptime': '112d 18h', 'region': 'AS-East'},
+            'VPS-05': {'name': 'Community Forums Node', 'ip': '143.198.88.99', 'status': 'Online', 'cpu': 15, 'ram': 34, 'uptime': '9d 5h', 'region': 'EU-West'},
+        }
+        request.session.modified = True
+
+    # Global system settings simulation
+    if 'system_settings' not in request.session:
+        request.session['system_settings'] = {
+            'maintenance_mode': False,
+            'verbose_logging': True,
+            'sandbox_payments': False,
+            'ai_rate_limit': 60,
+        }
+        request.session.modified = True
+
+    if request.method == 'POST' and not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Handle regular form POST from the Super Admin panel settings save
+        maintenance = request.POST.get('maintenance_mode') == 'on'
+        logging = request.POST.get('verbose_logging') == 'on'
+        sandbox = request.POST.get('sandbox_payments') == 'on'
+        rate_limit = int(request.POST.get('ai_rate_limit', 60))
+        
+        request.session['system_settings'] = {
+            'maintenance_mode': maintenance,
+            'verbose_logging': logging,
+            'sandbox_payments': sandbox,
+            'ai_rate_limit': rate_limit,
+        }
+        request.session.modified = True
+        messages.success(request, "Global system configurations updated successfully.")
+        return redirect('workspace_admin:control_center')
+
+    context = {
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'net_profit': net_profit,
+        'active_waas': active_waas,
+        'total_subscriptions': total_subscriptions,
+        'recent_purchases': recent_purchases,
+        'staff_members': staff_members,
+        'internal_tasks': internal_tasks,
+        'active_hired_ais': active_hired_ais,
+        'serea_agents_count': serea_agents.count(),
+        'vps_nodes': request.session['vps_nodes'],
+        'system_settings': request.session['system_settings'],
+    }
+    
+    return render(request, 'workspace_admin/control_center.html', context)
+
+
+@workspace_admin_required
+def control_center_vps_action(request):
+    """
+    AJAX API endpoint for VPS action toggles (restart, shut_down, optimize).
+    Persists simulated health metrics in user session.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+        
+    import json
+    import random
+    from django.http import JsonResponse
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+
+    vps_id = data.get('vps_id')
+    action = data.get('action')
+    
+    if 'vps_nodes' not in request.session:
+        return JsonResponse({'success': False, 'error': 'No active VPS session'}, status=400)
+        
+    vps_nodes = request.session['vps_nodes']
+    if vps_id not in vps_nodes:
+        return JsonResponse({'success': False, 'error': 'VPS not found'}, status=404)
+        
+    vps = vps_nodes[vps_id]
+    
+    if action == 'restart':
+        vps['status'] = 'Online'
+        vps['cpu'] = random.randint(5, 20)
+        vps['ram'] = random.randint(15, 30)
+        vps['uptime'] = '0h 0m (Just Restarted)'
+    elif action == 'power':
+        if vps['status'] == 'Online':
+            vps['status'] = 'Offline'
+            vps['cpu'] = 0
+            vps['ram'] = 0
+        else:
+            vps['status'] = 'Online'
+            vps['cpu'] = random.randint(15, 45)
+            vps['ram'] = random.randint(30, 50)
+            vps['uptime'] = '0h 0m'
+    elif action == 'optimize':
+        if vps['status'] == 'Online':
+            vps['ram'] = max(10, vps['ram'] - random.randint(15, 30))
+            vps['cpu'] = max(5, vps['cpu'] - random.randint(5, 15))
+        else:
+            return JsonResponse({'success': False, 'error': 'Cannot optimize offline VPS'}, status=400)
+            
+    request.session['vps_nodes'] = vps_nodes
+    request.session.modified = True
+    
+    return JsonResponse({
+        'success': True,
+        'vps_id': vps_id,
+        'vps': vps
+    })
+

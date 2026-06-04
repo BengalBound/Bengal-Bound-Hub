@@ -5,8 +5,16 @@
 {% block sidebar_subtitle %}Admin{% endblock %}
 
 {% block sidebar_nav %}
-    <!-- Staff Management -->
+    <!-- Command Center -->
     <div class="sb-section mt-1">
+        <div class="sb-section-label">COMMAND CENTER</div>
+        <a href="{% url 'workspace_admin:control_center' %}" class="sb-link {% if '/control-center' in request.path %}active{% endif %}">
+            <i class="bi bi-cpu-fill text-warning animate-pulse"></i> IT &amp; Executive Center
+        </a>
+    </div>
+
+    <!-- Staff Management -->
+    <div class="sb-section">
         <div class="sb-section-label">INTERNAL</div>
         <a href="{% url 'workspace_admin:manage_user' %}" class="sb-link {% if '/users/manage' in request.path %}active{% endif %}">
             <i class="bi bi-people-fill"></i> Manage Staff
@@ -91,6 +99,9 @@
         </a>
         <a href="{% url 'workspace_admin:advance_quotes' %}" class="sb-link {% if '/hub/advance-quotes' in request.path %}active{% endif %}">
             <i class="bi bi-stars"></i> Advance Quotes
+        </a>
+        <a href="{% url 'workspace_admin:assign_package' %}" class="sb-link {% if '/hub/assign-package' in request.path %}active{% endif %}">
+            <i class="bi bi-person-plus-fill"></i> Assign Package
         </a>
     </div>
 

@@ -57,5 +57,9 @@ urlpatterns = [
     path('hub/subscriptions/', views.hub_subscriptions, name='hub_subscriptions'),
     path('hub/storage-requests/', views.storage_requests, name='storage_requests'),
     path('hub/advance-quotes/', views.advance_quotes, name='advance_quotes'),
+    path('hub/assign-package/', views.assign_package, name='assign_package'),
+    path('control-center/', views.control_center, name='control_center'),
+    path('control-center/api/vps/', views.control_center_vps_action, name='control_center_vps_action'),
 ] + static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static') \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

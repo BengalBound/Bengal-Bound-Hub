@@ -358,6 +358,17 @@ def dashboard(request):
     """
     Unified console dashboard — business overview + AI employee panel in one place.
     """
+    # 1. Veritas KYB Gate
+    try:
+        from modules.veritas.models import ClientApplication
+        kyb_app = ClientApplication.objects.filter(user=request.user).first()
+        if not kyb_app or kyb_app.status != 'approved':
+            if not kyb_app:
+                return redirect('console_admin:veritas_user:kyb_apply')
+            return redirect('console_admin:veritas_user:kyb_pending')
+    except ImportError:
+        pass
+
     from hub.models import BusinessInstance
     from .models import ConsoleModuleActivation
     from serea.models import ConversationMessage, ModerationLog, ContentQueue, SereaReport, SereaTask
@@ -365,6 +376,11 @@ def dashboard(request):
     biz = BusinessInstance.objects.filter(owner=request.user, is_active=True).first()
     
     if not biz:
+        return redirect('console_admin:hybrid_onboarding')
+
+    from hub.models import DashboardConfig
+    dashboard_config, _ = DashboardConfig.objects.get_or_create(business=biz)
+    if not dashboard_config.is_configured:
         return redirect('console_admin:hybrid_onboarding')
 
     active_module_records = ConsoleModuleActivation.objects.filter(client=request.user, is_active=True)
@@ -455,6 +471,8 @@ def dashboard(request):
         },
     ]
 
+    widgets = sorted(dashboard_config.layout.get('widgets', []), key=lambda x: x.get('order', 99))
+
     return render(request, 'console_admin/dashboard.html', {
         'biz': biz,
         'biz_sub': biz_sub,
@@ -475,6 +493,8 @@ def dashboard(request):
         'report_count': reports.count() if hasattr(reports, 'query') else len(reports),
         'task_count': tasks.count() if hasattr(tasks, 'query') else len(tasks),
         'marketplace_catalog': marketplace_catalog,
+        'dashboard_config': dashboard_config,
+        'widgets': widgets,
     })
 
 @console_user_required(login_url='/accounts/login/')
@@ -1699,21 +1719,38 @@ def export_moderation_logs_csv(request):
 def hybrid_onboarding(request):
     """
     The Hybrid Onboarding interface. 
-    Shows a traditional form (business details + module checklist) alongside the AI assistant.
+    Shows a 6-question AI onboarding interview to configure the workspace automatically.
     """
-    from hub.models import ModuleCatalog, BUSINESS_TYPES
+    # 1. Veritas KYB Gate
+    try:
+        from modules.veritas.models import ClientApplication
+        kyb_app = ClientApplication.objects.filter(user=request.user).first()
+        if not kyb_app or kyb_app.status != 'approved':
+            if not kyb_app:
+                return redirect('console_admin:veritas_user:kyb_apply')
+            return redirect('console_admin:veritas_user:kyb_pending')
+    except ImportError:
+        pass
+
+    from hub.models import ModuleCatalog, BUSINESS_TYPES, BASIC_MODULE_IDS, INDUSTRY_MODULE_PRIORITY
     from workspace_admin.models import AIEmployeeTier
-    
-    # If the user already has an active business, maybe redirect them to the dashboard
-    # but we'll allow them to access it for now.
-    
+    from agents.models import AgentCatalog
+    from public_site.views import EXCHANGE_RATES, CURRENCY_SYMBOLS
+    import json
+
     modules = ModuleCatalog.objects.filter(is_available=True)
     ai_tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
-    
+    agents = AgentCatalog.objects.filter(is_active=True)
+
     return render(request, 'console_admin/hybrid_onboarding.html', {
         'modules': modules,
         'ai_tiers': ai_tiers,
-        'business_types': BUSINESS_TYPES
+        'agents': agents,
+        'business_types': BUSINESS_TYPES,
+        'basic_module_ids': json.dumps(BASIC_MODULE_IDS),
+        'industry_module_priority': json.dumps(INDUSTRY_MODULE_PRIORITY),
+        'exchange_rates': json.dumps(EXCHANGE_RATES),
+        'currency_symbols': json.dumps(CURRENCY_SYMBOLS),
     })
 
 from django.views.decorators.csrf import csrf_exempt
@@ -1743,32 +1780,61 @@ def api_onboarding_chat(request):
 @console_user_required(login_url='/accounts/login/')
 def process_onboarding_checkout(request):
     """
-    Processes the cart payload from the hybrid onboarding page.
-    Bypasses NowPayments/Stripe and instantly provisions everything.
+    Processes the onboarding interview answers and customised package, then provisions the workspace.
     """
     if request.method == 'POST':
-        business_name = request.POST.get('business_name', 'My Business')
-        industry = request.POST.get('business_type', 'business')
-        selected_modules = request.POST.getlist('modules')
-        ai_tier_id = request.POST.get('ai_tier')
-        
+        business_name = request.POST.get('business_name', 'My Business').strip()
+        business_type = request.POST.get('business_type', 'business').strip()
+        main_challenge = request.POST.get('main_challenge', 'getting_leads').strip()
+        team_size = request.POST.get('team_size', 'Just me').strip()
+        platforms = request.POST.getlist('platforms')
+        language = request.POST.get('language', 'English').strip()
+        payment_preference = request.POST.get('payment_preference', 'Stripe').strip()
+
+        answers = {
+            'business_type': business_type,
+            'main_challenge': main_challenge,
+            'team_size': team_size,
+            'platforms': platforms,
+            'language': language,
+            'payment_preference': payment_preference,
+        }
+
         from hub.models import BusinessInstance, TenantModule, ModuleCatalog
         from workspace_admin.models import HiredAIEmployee, Subscription, AIEmployeeTier
         from django.utils import timezone
         from datetime import timedelta
+        from hub.views import _unique_slug
+        from hub.dashboard_configurator import DashboardConfigurator
+        from agents.models import AgentCatalog
         
         # 1. Create Business
+        slug = _unique_slug(business_name)
         business, created = BusinessInstance.objects.get_or_create(
             owner=request.user,
             defaults={
                 'name': business_name,
-                'slug': business_name.lower().replace(' ', '-').replace('_', '-') + f'-{request.user.id}',
-                'business_type': industry
+                'slug': slug,
+                'business_type': business_type
             }
         )
         
-        # 2. Provision Modules
-        for mod_id in selected_modules:
+        # 2. Provision custom modules if specified, else basic modules plus priority business modules
+        custom_modules = request.POST.getlist('custom_modules')
+        custom_agents = request.POST.getlist('custom_agents')
+        
+        agent_tiers = {}
+        for key, val in request.POST.items():
+            if key.startswith('agent_tier_'):
+                agent_slug = key[len('agent_tier_'):]
+                agent_tiers[agent_slug] = val
+
+        if not custom_modules:
+            from hub.models import BASIC_MODULE_IDS, INDUSTRY_MODULE_PRIORITY
+            priority_modules = INDUSTRY_MODULE_PRIORITY.get(business_type, [])
+            custom_modules = BASIC_MODULE_IDS + priority_modules
+
+        for mod_id in custom_modules:
             try:
                 module = ModuleCatalog.objects.get(module_id=mod_id)
                 TenantModule.objects.get_or_create(
@@ -1778,33 +1844,58 @@ def process_onboarding_checkout(request):
                 )
             except ModuleCatalog.DoesNotExist:
                 continue
-                
-        # 3. Hire AI Agent
-        if ai_tier_id:
-            try:
-                tier = AIEmployeeTier.objects.get(id=ai_tier_id)
-                new_ai = HiredAIEmployee.objects.create(
-                    employer=request.user,
-                    tier=tier,
-                    ai_name=f"Serea ({tier.get_name_display()})"
-                )
-                
-                # Activate Subscription (Bypass payment)
-                Subscription.objects.create(
-                    client=request.user,
-                    tier=tier,
-                    hired_ai=new_ai,
-                    billing_cycle='monthly',
-                    status='active',
-                    amount_paid_usd=tier.monthly_price_usd,
-                    started_at=timezone.now(),
-                    current_period_end=timezone.now() + timedelta(days=30)
-                )
-            except AIEmployeeTier.DoesNotExist:
-                pass
-                
+
+        # Create a BusinessEmployee for the owner as CEO
+        from hub.models import BusinessEmployee
+        from django.core.exceptions import ObjectDoesNotExist
+        try:
+            BusinessEmployee.objects.get_or_create(
+                business=business,
+                user=request.user,
+                defaults={
+                    'name': request.user.get_full_name() or request.user.email,
+                    'email': request.user.email,
+                    'role': 'ceo',
+                }
+            )
+        except Exception:
+            pass
+            
+        # 3. Trigger AI dashboard configuration
+        configurator = DashboardConfigurator()
+        configurator.configure(business, answers,
+                               custom_agents=custom_agents if custom_agents else None,
+                               agent_tiers=agent_tiers)
+            
         from django.contrib import messages
-        messages.success(request, f"Welcome aboard! Your workspace '{business.name}' is ready.")
+        messages.success(request, f"Welcome! Your workspace '{business.name}' is ready.")
         return redirect('console_admin:dashboard')
         
     return redirect('console_admin:hybrid_onboarding')
+
+
+@csrf_exempt
+@console_user_required(login_url='/accounts/login/')
+def modify_dashboard_layout(request):
+    """
+    AJAX endpoint to modify dashboard layout/theme via natural language.
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            request_text = data.get('request', '').strip()
+            if not request_text:
+                return JsonResponse({"success": False, "message": "Request text cannot be empty."})
+            
+            from hub.models import BusinessInstance
+            business = BusinessInstance.objects.filter(owner=request.user, is_active=True).first()
+            if not business:
+                return JsonResponse({"success": False, "message": "Business not found."})
+
+            from hub.dashboard_configurator import DashboardAIModifier
+            modifier = DashboardAIModifier()
+            result = modifier.modify(business, request_text)
+            return JsonResponse(result)
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+    return JsonResponse({"success": False, "message": "Invalid method"}, status=400)

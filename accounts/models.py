@@ -17,6 +17,7 @@ class User(AbstractUser):
     otp = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
     firebase_uid = models.CharField(max_length=128, unique=True, blank=True, null=True)
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
 
     # Use email as the primary login field
     USERNAME_FIELD = 'email'

@@ -1,0 +1,170 @@
+{% extends "workspace_admin/base_admin.html" %}
+
+{% block title %}Assign Package | WorkspaceAdmin{% endblock %}
+{% block page_title %}Assign Workspace Package{% endblock %}
+
+{% block content %}
+<style>
+    .form-custom-input {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        transition: all 0.2s ease;
+    }
+    .form-custom-input:focus {
+        border-color: var(--bb-accent-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(56,189,248,0.25) !important;
+    }
+    .glass-check-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.2s ease;
+    }
+    .glass-check-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(56, 189, 248, 0.2);
+    }
+    .glass-check-item.active {
+        background: rgba(56, 189, 248, 0.08) !important;
+        border-color: #38bdf8 !important;
+    }
+</style>
+
+{% if messages %}
+<div class="mb-4">
+    {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}success{% endif %} border border-{% if m.tags == 'error' %}danger{% else %}success{% endif %} border-opacity-25 bg-{% if m.tags == 'error' %}danger{% else %}success{% endif %} bg-opacity-10 text-{% if m.tags == 'error' %}danger{% else %}success{% endif %} d-flex align-items-center gap-3 rounded-pill py-2 px-4 shadow-sm">
+        <i class="bi bi-info-circle-fill fs-5"></i>
+        <div class="small fw-medium">{{ m }}</div>
+        <button type="button" class="btn-close btn-close-white ms-auto opacity-50" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="glass-panel p-4 mb-4 border border-white border-opacity-10">
+    <div class="border-bottom border-white border-opacity-10 pb-3 mb-4">
+        <h5 class="text-white font-outfit fw-bold mb-1"><i class="bi bi-person-plus-fill text-primary me-2"></i> Client Workspace Package Configurator</h5>
+        <p class="text-white-50 small mb-0">Pre-configure and activate a tailored workspace for a client. The client will skip the questionnaire and go straight to document verification or the active dashboard.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-4">
+            <!-- Left: Client & Business Identity -->
+            <div class="col-lg-4">
+                <div class="card bg-transparent border-0 h-100">
+                    <h6 class="text-white font-outfit fw-bold mb-3"><i class="bi bi-person-bounding-box text-primary me-2"></i> Client &amp; Business Info</h6>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50 fw-semibold">SELECT CLIENT USER</label>
+                        <select name="client_user_id" class="form-select form-custom-input text-white" required>
+                            <option value="" disabled selected>-- Select Client --</option>
+                            {% for u in users %}
+                                <option value="{{ u.id }}">{{ u.email }} ({% if u.get_full_name %}{{ u.get_full_name }}{% else %}No Name{% endif %})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50 fw-semibold">BUSINESS NAME</label>
+                        <input type="text" name="business_name" class="form-control form-custom-input" placeholder="e.g. Acme Corp" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-white-50 fw-semibold">BUSINESS VERTICAL (INDUSTRY)</label>
+                        <select name="business_type" class="form-select form-custom-input text-white" required>
+                            {% for value, label in business_types %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 mt-4 shadow-glow fw-semibold">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Provision Workspace
+                    </button>
+                </div>
+            </div>
+
+            <!-- Middle: Modules Selection -->
+            <div class="col-lg-4">
+                <h6 class="text-white font-outfit fw-bold mb-3"><i class="bi bi-puzzle-fill text-primary me-2"></i> Activate Modules</h6>
+                <div class="overflow-auto pe-2" style="max-height: 450px;">
+                    {% for module in modules %}
+                    <div class="glass-check-item p-2 rounded mb-2 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input custom-module-checkbox me-2" type="checkbox" name="custom_modules" value="{{ module.module_id }}" id="chk_mod_{{ module.module_id }}">
+                            <div>
+                                <label class="form-check-label text-white fw-semibold small" for="chk_mod_{{ module.module_id }}">
+                                    {{ module.name }}
+                                </label>
+                                <div class="text-white-50" style="font-size:0.7rem;">{{ module.tagline|truncatechars:35 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Right: Hired AI Agents Selection -->
+            <div class="col-lg-4">
+                <h6 class="text-white font-outfit fw-bold mb-3"><i class="bi bi-robot text-primary me-2"></i> Hire AI Employees</h6>
+                <div class="overflow-auto pe-2" style="max-height: 450px;">
+                    {% for agent in agents %}
+                    <div class="glass-check-item p-2 rounded mb-2" id="agent_card_{{ agent.slug }}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center">
+                                <input class="form-check-input custom-agent-checkbox me-2" type="checkbox" name="custom_agents" value="{{ agent.slug }}" id="chk_agt_{{ agent.slug }}">
+                                <label class="form-check-label text-white fw-bold small" for="chk_agt_{{ agent.slug }}">
+                                    {{ agent.name }}
+                                </label>
+                            </div>
+                            <span class="badge bg-dark border border-secondary text-white-50" style="font-size:0.65rem;">{{ agent.category }}</span>
+                        </div>
+                        <div class="text-white-50 mb-1" style="font-size:0.75rem;">{{ agent.role }}</div>
+                        
+                        <div class="agent-tier-selector-wrapper d-none">
+                            <select class="form-select form-select-sm form-custom-input text-white py-0 px-2" style="font-size:0.75rem; height:24px;" name="agent_tier_{{ agent.slug }}">
+                                {% for tier in tiers %}
+                                    <option value="{{ tier.name }}" {% if tier.name == 'intern' %}selected{% endif %}>{{ tier.name|title }} (${{ tier.monthly_price_usd }}/mo)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add/remove active classes and toggles
+    document.querySelectorAll('.custom-module-checkbox').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const card = chk.closest('.glass-check-item');
+            if (chk.checked) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    });
+
+    document.querySelectorAll('.custom-agent-checkbox').forEach(chk => {
+        chk.addEventListener('change', function() {
+            const card = chk.closest('.glass-check-item');
+            const wrapper = card.querySelector('.agent-tier-selector-wrapper');
+            if (chk.checked) {
+                card.classList.add('active');
+                wrapper.classList.remove('d-none');
+            } else {
+                card.classList.remove('active');
+                wrapper.classList.add('d-none');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

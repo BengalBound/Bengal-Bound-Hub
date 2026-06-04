@@ -2,6 +2,28 @@
 
 ---
 
+## [Unreleased]
+### Added
+- **Sprint L**: AI Dashboard Configurator (6-question onboarding interview + custom package & budget negotiation).
+  - Created `DashboardConfig` model in `hub/models.py` to persist layout, theme, color, and selected package answers.
+  - Implemented `DashboardConfigurator` and `DashboardAIModifier` in `hub/dashboard_configurator.py` using `agent_chat()` with reasoning LLM to handle agent provisioning, layout generation, and natural language dashboard styling updates.
+  - Enforced Veritas KYB check inside `console_admin:dashboard` view (redirecting unapproved users).
+  - Created Step 7 Package Customization & Budget screen in `hybrid_onboarding.html` displaying all modules and hired agents with real-time budget calculator.
+  - Integrated exchange rates to display estimates in USD or BDT depending on payment method and language preference.
+  - Wired interactive Solutions Architect chatbot to dynamically update checkboxes/tiers in the cart using `<CART_UPDATE>` parsing.
+  - Updated prompt to enable onboarding Solutions Architect to generate Python scripts (copy/download) for data pulling or IoT/webhook setups, step-by-step instructions, and database migrations.
+- **Sprint K**: Notification Infrastructure (FCM Push, Slack Alerts, Onboarding Email Drip Campaigns).
+- Added `bengalbound_core.notifications` utility for centralized dispatching.
+- Added `/api/accounts/fcm-token/` endpoint and `fcm_token` to `User` model.
+- Added Slack webhook alerts for new signups and successful subscription payments (Stripe & bKash).
+- **New Business Verticals**: Added Driving Schools, Plumbers, Carpenters, Electricians to core `BUSINESS_TYPES`.
+- **New Agents**: Created `Steer` (Driving Instructor Scheduler) and `Wrench` (Home Services Dispatcher) agents for Celery operations.
+- **Sprint J**: bKash Payment Gateway integration in `billing` module.
+- bKash checkout flow (initiate, callback, cancel) with tokenized API.
+- Payment method selection UI (Stripe vs bKash) during Workspace plan upgrades (`billing:checkout`).
+
+---
+
 ## [Sprint I] Veritas KYB Module & UI Polish — 2026-06-04
 
 ### 1. Veritas KYB Admin Portal

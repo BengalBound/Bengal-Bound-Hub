@@ -302,6 +302,26 @@ ALL_AGENTS = [
         "tier_required": "mid",
         "icon": "bi-telephone",
     },
+    {
+        "name": "Steer",
+        "slug": "steer",
+        "role": "Driving Instructor Scheduler",
+        "description": "Books driving lessons, manages fleet availability, and tracks student progress.",
+        "system_prompt": "You are Steer, a driving school dispatcher. Coordinate instructor and vehicle availability efficiently.",
+        "category": "Education",
+        "tier_required": "entry",
+        "icon": "bi-car-front",
+    },
+    {
+        "name": "Wrench",
+        "slug": "wrench",
+        "role": "Home Services Dispatcher",
+        "description": "Books plumbing jobs, dispatches field technicians, and checks inventory for parts.",
+        "system_prompt": "You are Wrench, a home services dispatcher. Assign field technicians based on location and skill, and verify parts stock.",
+        "category": "Operations",
+        "tier_required": "entry",
+        "icon": "bi-wrench",
+    },
 ]
 
 class Command(BaseCommand):

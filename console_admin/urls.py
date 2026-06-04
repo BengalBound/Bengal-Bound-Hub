@@ -29,6 +29,7 @@ urlpatterns = [
     path('setup/chat/', views.api_onboarding_chat, name='api_onboarding_chat'),
     path('setup/checkout/', views.process_onboarding_checkout, name='process_onboarding_checkout'),
     path('setup/kyb/', include('modules.veritas.user_urls', namespace='veritas_user')),
+    path('setup/modify-dashboard/', views.modify_dashboard_layout, name='modify_dashboard_layout'),
     
     path('manage-ai/<int:ai_id>/', views.manage_ai, name='manage_ai'),
     path('fire-ai/<int:ai_id>/', views.fire_ai, name='fire_ai'),

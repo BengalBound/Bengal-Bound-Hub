@@ -30,6 +30,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'insecure-default-change-me-in-production')
 
+# bKash API Credentials
+BKASH_APP_KEY = os.environ.get('BKASH_APP_KEY', '')
+BKASH_APP_SECRET = os.environ.get('BKASH_APP_SECRET', '')
+BKASH_USERNAME = os.environ.get('BKASH_USERNAME', '')
+BKASH_PASSWORD = os.environ.get('BKASH_PASSWORD', '')
+BKASH_BASE_URL = os.environ.get('BKASH_BASE_URL', 'https://tokenized.pay.bka.sh/v1.2.0-beta')
+
 DEBUG = env('DEBUG')                                # False by default (safe)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
@@ -392,6 +399,9 @@ TWILIO_ACCOUNT_SID  = env('TWILIO_ACCOUNT_SID',  default='')
 TWILIO_AUTH_TOKEN   = env('TWILIO_AUTH_TOKEN',   default='')
 TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER', default='')
 
+# ── Slack ────────────────────────────────────────────────────────────────────
+SLACK_INTERNAL_WEBHOOK_URL = env('SLACK_INTERNAL_WEBHOOK_URL', default='')
+
 # ── Payments (NowPayments) ────────────────────────────────────────────────────
 NOWPAYMENTS_API_KEY  = env('NOWPAYMENTS_API_KEY',  default='')
 NOWPAYMENTS_IPN_SECRET = env('NOWPAYMENTS_IPN_SECRET', default='')
@@ -431,6 +441,9 @@ CELERY_BEAT_SCHEDULE = {
     'content-strategist-all':  {'task': 'serea.tasks.dispatch_content_to_all_agents',  'schedule': 300},
     'serea-briefing-all': {'task': 'serea.tasks.dispatch_briefing_to_all_agents', 'schedule': 86400},
     'serea-report-all':   {'task': 'serea.tasks.dispatch_reports_to_all_agents',  'schedule': 86400},
+
+    # ── Accounts / Onboarding ─────────────────────────────────────────────────
+    'onboarding-emails':  {'task': 'accounts.tasks.process_daily_onboarding_emails', 'schedule': 86400}, # daily
 
     # ── Aria — Customer Support ───────────────────────────────────────────────
     'aria-sla-check':        {'task': 'agents.aria.sla_breach_check',       'schedule': 1800},   # every 30 min

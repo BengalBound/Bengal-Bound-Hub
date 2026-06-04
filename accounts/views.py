@@ -190,6 +190,16 @@ def register_view(request):
         user.save(update_fields=['otp', 'otp_created_at'])
         send_otp_email(user, otp)
 
+        try:
+            from bengalbound_core.notifications import send_slack_alert
+            send_slack_alert(
+                title="New Business Signup",
+                message=f"Name: {first_name} {last_name}\nEmail: {email}\nBusiness: {business_name} ({business_type})",
+                urgency="normal"
+            )
+        except Exception as e:
+            logger.error(f"Slack alert failed on signup: {e}")
+
         request.session['verify_email'] = email
         request.session.save()
         return redirect(f"/accounts/verify-otp/?email={email}")
@@ -702,3 +712,29 @@ def firebase_token_sync(request):
             "firebase_uid": user.firebase_uid,
         }
     }, status=200)
+
+@csrf_exempt
+def update_fcm_token(request):
+    import json
+    from django.http import JsonResponse
+
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed. Use POST."}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Unauthorized. Please log in."}, status=401)
+
+    try:
+        body = json.loads(request.body)
+        fcm_token = body.get('fcm_token')
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"error": "Invalid JSON body."}, status=400)
+
+    if not fcm_token:
+        return JsonResponse({"error": "Missing 'fcm_token' in request body."}, status=400)
+
+    request.user.fcm_token = fcm_token
+    request.user.save(update_fields=['fcm_token'])
+
+    return JsonResponse({"status": "success", "message": "FCM token updated."})
+

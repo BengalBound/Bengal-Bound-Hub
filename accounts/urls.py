@@ -24,4 +24,5 @@ urlpatterns = [
 
     # Firebase Authentication Sync
     path('firebase-sync/', views.firebase_token_sync, name='firebase_sync'),
+    path('fcm-token/', views.update_fcm_token, name='update_fcm_token'),
 ]
