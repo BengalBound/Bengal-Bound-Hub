@@ -25,6 +25,7 @@ class InspectorMiddleware:
 
         # 1.5 Veritas KYB Gate
         if request.path.startswith('/api/agents/') and not request.path.startswith('/api/agents/veritas/'):
+            user = getattr(request, 'user', None)
             if not user or not user.is_authenticated:
                 return JsonResponse({"error": "Authentication required"}, status=401)
             

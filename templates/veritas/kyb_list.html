@@ -1,0 +1,62 @@
+{% extends 'console_admin/base.html' %}
+
+{% block title %}Veritas KYB Applications{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="font-outfit text-white mb-0">Veritas KYB Applications</h2>
+    </div>
+
+    <div class="bento-card">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                <thead>
+                    <tr>
+                        <th>Company Name</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Risk Score</th>
+                        <th>Submitted At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td>{{ app.company_name }}</td>
+                        <td>{{ app.user.email }}</td>
+                        <td>
+                            {% if app.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                            {% elif app.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">{{ app.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if app.risk_score %}
+                                <span class="{% if app.risk_score > 70 %}text-danger{% elif app.risk_score > 30 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ app.risk_score }}/100
+                                </span>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ app.submitted_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'console_admin:veritas:kyb_detail' app.id %}" class="btn btn-sm btn-outline-premium">Review</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-white-50 py-4">No applications found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

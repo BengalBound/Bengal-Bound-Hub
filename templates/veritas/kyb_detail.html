@@ -1,0 +1,100 @@
+{% extends 'console_admin/base.html' %}
+
+{% block title %}Application: {{ app.company_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'console_admin:veritas:kyb_list' %}" class="text-white-50 text-decoration-none">
+            <i class="fas fa-arrow-left me-2"></i>Back to Applications
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="bento-card mb-4">
+                <h4 class="font-outfit text-white mb-4">Company Details</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="text-white-50">Company Name</label>
+                        <p class="text-white fs-5">{{ app.company_name }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-white-50">Registration Number</label>
+                        <p class="text-white fs-5">{{ app.registration_number }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-white-50">Tax ID</label>
+                        <p class="text-white fs-5">{{ app.tax_id }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="text-white-50">Country</label>
+                        <p class="text-white fs-5">{{ app.country_of_incorporation }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="bento-card mb-4">
+                <h4 class="font-outfit text-white mb-4">Uploaded Documents</h4>
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for doc in documents %}
+                    <div class="list-group-item bg-transparent text-white border-bottom border-secondary d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <span class="fw-bold">{{ doc.get_document_type_display }}</span><br>
+                            <small class="text-white-50">Status: {{ doc.get_status_display }}</small>
+                        </div>
+                        {% if doc.file %}
+                        <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-info">View File</a>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-white-50">No documents uploaded.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="col-lg-4">
+            <div class="bento-card mb-4">
+                <h5 class="font-outfit text-white mb-3">Application Status</h5>
+                <p class="mb-4">
+                    {% if app.status == 'approved' %}
+                    <span class="badge bg-success fs-6">Approved</span>
+                    {% elif app.status == 'rejected' %}
+                    <span class="badge bg-danger fs-6">Rejected</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark fs-6">{{ app.get_status_display }}</span>
+                    {% endif %}
+                </p>
+
+                <h5 class="font-outfit text-white mb-3">Risk Assessment</h5>
+                <p class="mb-2">Score: 
+                    <strong class="{% if app.risk_score > 70 %}text-danger{% elif app.risk_score > 30 %}text-warning{% else %}text-success{% endif %}">
+                        {{ app.risk_score|default:"N/A" }}
+                    </strong>
+                </p>
+
+                <hr class="border-secondary my-4">
+
+                {% if app.status != 'approved' and app.status != 'rejected' %}
+                <div class="d-grid gap-2">
+                    <form method="POST" action="{% url 'console_admin:veritas:kyb_approve' app.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100 mb-2">Approve Application</button>
+                    </form>
+                    <form method="POST" action="{% url 'console_admin:veritas:kyb_reject' app.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">Reject Application</button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="text-white-50 text-center">No further actions required.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

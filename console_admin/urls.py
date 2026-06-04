@@ -13,6 +13,9 @@ urlpatterns = [
 
     # Include Serea agent endpoints (for chat API, permissions, etc.)
     path('serea/', include('serea.urls')),
+    
+    # Veritas KYB
+    path('veritas/', include('veritas.urls', namespace='veritas')),
 
     # Core
     path('', views.dashboard, name='dashboard'),
