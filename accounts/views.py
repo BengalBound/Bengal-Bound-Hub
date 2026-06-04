@@ -531,7 +531,7 @@ def verify_firebase_token(id_token):
     
     # Check for testing or mock token fallback
     is_testing = getattr(settings, 'TESTING', False)
-    is_debug_mock = settings.DEBUG  # In DEBUG mode, skip real Firebase verification (dev + test)
+    is_debug_mock = settings.DEBUG and id_token.startswith('mock_token_')
     
     if is_testing or is_debug_mock:
         try:

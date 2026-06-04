@@ -12,6 +12,7 @@ Active when DJANGO_SETTINGS_MODULE=bengalbound_core.settings.development
 from .base import *  # noqa: F401, F403
 
 DEBUG = True
+TESTING = True  # Enables mock Firebase token bypass in accounts/views.py
 
 ALLOWED_HOSTS += [                              # noqa: F405
     '.localhost',
