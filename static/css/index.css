@@ -488,9 +488,8 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 /* SVG Connection Lines */
 .connection-lines {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     z-index: 1;
@@ -1436,7 +1435,7 @@ select.form-control option:checked {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
 }
-@keyframes floatingLogo {
+@keyframes floatingLogoSimple {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
 }

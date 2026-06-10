@@ -40,6 +40,7 @@ urlpatterns = [
     # API endpoints
     path('api/hub/', include('hub.api_urls', namespace='hub_api')),
     path('api/fsm/', include('modules.fsm.api_urls', namespace='fsm_api')),
+    path('api/agents/veritas/', include('modules.veritas.api_urls', namespace='veritas_api')),
 
     path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
     path('accounts/', include('allauth.urls')),
