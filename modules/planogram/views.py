@@ -28,7 +28,7 @@ def planogram_home(request, slug):
         if action == 'create_layout':
             StoreLayout.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 store_location=request.POST.get('store_location', ''),
                 description=request.POST.get('description', ''),
                 created_by=emp,
@@ -66,7 +66,7 @@ def layout_detail(request, slug, layout_id):
         if action == 'add_section':
             PlanogramSection.objects.create(
                 layout=layout,
-                name=request.POST['section_name'],
+                name=request.POST.get('section_name', ''),
                 display_order=request.POST.get('display_order', 0),
             )
             messages.success(request, 'Section added.')
@@ -74,7 +74,7 @@ def layout_detail(request, slug, layout_id):
             section = get_object_or_404(PlanogramSection, pk=request.POST.get('section_id'), layout=layout)
             PlanogramSlot.objects.create(
                 section=section,
-                product_name=request.POST['product_name'],
+                product_name=request.POST.get('product_name', ''),
                 sku=request.POST.get('sku', ''),
                 shelf_number=request.POST.get('shelf_number', ''),
                 position=request.POST.get('position', ''),

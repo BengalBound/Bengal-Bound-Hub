@@ -53,7 +53,7 @@ def channel_list(request, slug):
         if action == 'create_channel':
             SalesChannel.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 channel_type=request.POST.get('channel_type', 'other'),
                 url=request.POST.get('url', ''),
                 notes=request.POST.get('notes', ''),
@@ -87,7 +87,7 @@ def channel_detail(request, slug, channel_id):
             ChannelListing.objects.create(
                 business=biz,
                 channel=channel,
-                product_name=request.POST['product_name'],
+                product_name=request.POST.get('product_name', ''),
                 sku=request.POST.get('sku', ''),
                 channel_sku=request.POST.get('channel_sku', ''),
                 listed_price=request.POST.get('listed_price') or None,

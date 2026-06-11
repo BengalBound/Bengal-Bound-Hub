@@ -66,7 +66,7 @@ def quiz_create(request, slug):
     if request.method == 'POST':
         quiz = Quiz.objects.create(
             business=biz,
-            title=request.POST['title'],
+            title=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
             course_ref=request.POST.get('course_ref', ''),
             time_limit_minutes=request.POST.get('time_limit_minutes') or None,
@@ -97,7 +97,7 @@ def quiz_detail(request, slug, quiz_id):
         if action == 'add_question':
             q = Question.objects.create(
                 quiz=quiz,
-                question_text=request.POST['question_text'],
+                question_text=request.POST.get('question_text', ''),
                 question_type=request.POST.get('question_type', 'mc'),
                 points=request.POST.get('points', 1),
                 order=quiz.questions.count() + 1,

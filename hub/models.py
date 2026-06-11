@@ -12,12 +12,16 @@ INDUSTRY_MODULE_PRIORITY = {
     # Real Estate
     'real_estate_agency': ['property_listings', 'deal_flow', 'crm', 'leads', 'commission', 're_marketing', 're_client_portal', 'contracts', 'documents', 'business_calendar', 'task_board', 'hr', 'reports_analytics', 'data_studio'],
     'real_estate_agent':  ['property_listings', 'deal_flow', 'crm', 'leads', 're_marketing', 're_client_portal', 'contracts', 'documents', 'business_calendar', 'task_board'],
-    'wholesale':     ['inventory', 'order_mgmt', 'b2b_portal', 'wms', 'erp', 'crm', 'invoicing', 'tms', 'data_studio', 'product_catalog', 'accounting', 'leads', 'contracts'],
+    'wholesale':     ['inventory', 'order_mgmt', 'b2b_portal', 'wms', 'erp', 'crm', 'invoicing', 'tms', 'data_studio', 'product_catalog', 'accounting', 'accounts_payable', 'bank_reconciliation', 'tax_compliance', 'leads', 'contracts'],
     'retail_chain':  ['pos', 'inventory', 'store_ops', 'omnichannel', 'planogram', 'order_mgmt', 'crm', 'loyalty', 'data_studio', 'hr', 'payroll', 'reports_analytics'],
+    # Enterprise & Tech
+    'fintech':       ['ai_ops', 'neural_security', 'data_ecosystem', 'cloud_infra', 'accounting', 'crm', 'reports'],
+    'healthcare':    ['data_ecosystem', 'automation_bots', 'care_manager', 'booking', 'crm', 'documents', 'reports', 'ai_ops', 'cloud_infra'],
+    'ecommerce':     ['cloud_infra', 'ai_assistant', 'omnichannel', 'inventory', 'wms', 'crm', 'ecommerce', 'reports'],
     # Manufacturing
-    'factory':       ['erp', 'mes', 'plm', 'production', 'bom', 'inventory', 'quality_control', 'maintenance', 'asset_management', 'cadcam', 'payroll', 'hr', 'attendance'],
+    'factory':       ['erp', 'mes', 'plm', 'production', 'bom', 'inventory', 'quality_control', 'maintenance', 'asset_management', 'cadcam', 'payroll', 'hr', 'attendance', 'accounts_payable', 'bank_reconciliation', 'tax_compliance', 'autonomous_ops', 'iot_network'],
     # General Business
-    'business':      ['crm', 'invoicing', 'hr', 'payroll', 'accounting', 'task_board', 'contracts', 'docs', 'business_calendar', 'call_center'],
+    'business':      ['crm', 'invoicing', 'hr', 'payroll', 'accounting', 'accounts_payable', 'bank_reconciliation', 'tax_compliance', 'task_board', 'contracts', 'docs', 'business_calendar', 'call_center'],
     # Service Station
     'station':       ['pos', 'inventory', 'maintenance', 'crm', 'invoicing', 'shift_planning'],
     # Hospitality & Food
@@ -68,7 +72,7 @@ INDUSTRY_MODULE_PRIORITY = {
     'supply_chain_consulting':['process_mapper', 'data_studio', 'tms', 'wms', 'crm', 'leads', 'invoicing', 'contracts', 'docs', 'reports'],
     'it_consulting':          ['crm', 'leads', 'invoicing', 'contracts', 'task_board', 'docs', 'sheets', 'reports', 'ai_assistant', 'cloud_drive'],
     'legal':                  ['contracts', 'documents', 'crm', 'invoicing', 'billing', 'task_board', 'hr', 'business_calendar'],
-    'accounting_firm':        ['accounting', 'invoicing', 'crm', 'payroll', 'documents', 'contracts', 'reports', 'budgeting'],
+    'accounting_firm':        ['accounting', 'accounts_payable', 'bank_reconciliation', 'tax_compliance', 'invoicing', 'crm', 'payroll', 'documents', 'contracts', 'reports', 'budgeting'],
     'other':                  ['crm', 'invoicing', 'hr', 'task_board', 'documents'],
 }
 
@@ -136,6 +140,9 @@ BUSINESS_TYPES = [
     ('it_consulting', 'IT / Technology Consulting'),
     ('legal', 'Legal / Law Firm'),
     ('accounting_firm', 'Accounting / Audit Firm'),
+    ('fintech', 'Financial Technology (Fintech)'),
+    ('healthcare', 'Healthcare (HealthCXare)'),
+    ('ecommerce', 'E-commerce & Retail'),
     ('other', 'Other'),
 ]
 
@@ -230,6 +237,7 @@ class ModuleCatalog(models.Model):
         ('ai', 'AI & Automation'),
         ('web', 'Website & Marketing'),
         ('projects', 'Project Management'),
+        ('it', 'Enterprise IT & Infrastructure'),
     ]
 
     module_id = models.CharField(max_length=50, unique=True)

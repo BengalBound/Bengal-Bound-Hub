@@ -83,8 +83,8 @@ def student_add(request, slug):
         student = Student.objects.create(
             business=biz,
             enrollment_number=request.POST.get('enrollment_number', ''),
-            first_name=request.POST['first_name'],
-            last_name=request.POST['last_name'],
+            first_name=request.POST.get('first_name', ''),
+            last_name=request.POST.get('last_name', ''),
             date_of_birth=request.POST.get('date_of_birth') or None,
             gender=request.POST.get('gender', ''),
             email=request.POST.get('email', ''),
@@ -118,8 +118,8 @@ def student_detail(request, slug, student_id):
         if action == 'add_grade':
             SubjectGrade.objects.create(
                 student=student,
-                subject=request.POST['subject'],
-                period=request.POST['period'],
+                subject=request.POST.get('subject', ''),
+                period=request.POST.get('period', ''),
                 score=request.POST.get('score') or None,
                 max_score=request.POST.get('max_score') or 100,
                 grade_letter=request.POST.get('grade_letter', ''),
@@ -131,7 +131,7 @@ def student_detail(request, slug, student_id):
         elif action == 'mark_attendance':
             StudentAttendance.objects.update_or_create(
                 student=student,
-                date=request.POST['att_date'],
+                date=request.POST.get('att_date', ''),
                 subject=request.POST.get('att_subject', ''),
                 defaults={
                     'status': request.POST.get('att_status', 'present'),
@@ -144,7 +144,7 @@ def student_detail(request, slug, student_id):
         elif action == 'add_parent':
             ParentGuardian.objects.create(
                 student=student,
-                name=request.POST['parent_name'],
+                name=request.POST.get('parent_name', ''),
                 relationship=request.POST.get('relationship', 'guardian'),
                 email=request.POST.get('parent_email', ''),
                 phone=request.POST.get('parent_phone', ''),
@@ -155,9 +155,9 @@ def student_detail(request, slug, student_id):
         elif action == 'update_status':
             student.status = request.POST.get('status', student.status)
             if request.POST.get('class_group'):
-                student.class_group = request.POST['class_group']
+                student.class_group = request.POST.get('class_group', '')
             if request.POST.get('section'):
-                student.section = request.POST['section']
+                student.section = request.POST.get('section', '')
             student.save()
             messages.success(request, 'Student record updated.')
 

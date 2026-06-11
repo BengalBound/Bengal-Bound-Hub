@@ -78,7 +78,7 @@ def commission_list(request, slug):
             CommissionEntry.objects.create(
                 business=biz,
                 agent=agent,
-                deal_reference=request.POST['deal_reference'],
+                deal_reference=request.POST.get('deal_reference', ''),
                 client_name=request.POST.get('client_name', ''),
                 close_date=request.POST.get('close_date') or None,
                 gross_commission=gci,
@@ -100,7 +100,7 @@ def commission_list(request, slug):
             agent = BusinessEmployee.objects.filter(pk=agent_id, business=biz).first() if agent_id else None
             CommissionRule.objects.create(
                 business=biz,
-                name=request.POST['rule_name'],
+                name=request.POST.get('rule_name', ''),
                 agent=agent,
                 agent_split_pct=request.POST.get('agent_split_pct', 70),
                 broker_split_pct=request.POST.get('broker_split_pct', 30),

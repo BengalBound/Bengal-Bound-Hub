@@ -88,9 +88,9 @@ def deal_add(request, slug):
         agent = BusinessEmployee.objects.filter(pk=agent_id, business=biz).first() if agent_id else emp
         deal = Deal.objects.create(
             business=biz,
-            title=request.POST['title'],
-            property_address=request.POST['property_address'],
-            client_name=request.POST['client_name'],
+            title=request.POST.get('title', ''),
+            property_address=request.POST.get('property_address', ''),
+            client_name=request.POST.get('client_name', ''),
             client_email=request.POST.get('client_email', ''),
             client_phone=request.POST.get('client_phone', ''),
             deal_type=request.POST.get('deal_type', 'purchase'),
@@ -139,7 +139,7 @@ def deal_detail(request, slug, deal_id):
         elif action == 'add_document' and level >= 2:
             DealDocument.objects.create(
                 deal=deal,
-                document_name=request.POST['document_name'],
+                document_name=request.POST.get('document_name', ''),
                 is_required='is_required' in request.POST,
                 file_url=request.POST.get('file_url', ''),
                 notes=request.POST.get('notes', ''),
@@ -155,12 +155,12 @@ def deal_detail(request, slug, deal_id):
             doc.save()
 
         elif action == 'add_note':
-            DealNote.objects.create(deal=deal, content=request.POST['content'], created_by=emp)  # noqa: deal_notes
+            DealNote.objects.create(deal=deal, content=request.POST.get('content', ''), created_by=emp)  # noqa: deal_notes
 
         elif action == 'add_milestone' and level >= 2:
             DealMilestone.objects.create(
                 deal=deal,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 due_date=request.POST.get('due_date') or None,
             )
 

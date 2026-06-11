@@ -60,7 +60,7 @@ def store_list(request, slug):
             manager = BusinessEmployee.objects.filter(pk=mgr_id, business=biz).first() if mgr_id else None
             RetailStore.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 address=request.POST.get('address', ''),
                 phone=request.POST.get('phone', ''),
                 manager=manager,
@@ -93,7 +93,7 @@ def store_detail(request, slug, store_id):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'add_report' and level >= 2:
-            report_date = request.POST['report_date']
+            report_date = request.POST.get('report_date', '')
             report, created = StoreReport.objects.update_or_create(
                 store=store, report_date=report_date,
                 defaults={
@@ -110,7 +110,7 @@ def store_detail(request, slug, store_id):
             assignee = BusinessEmployee.objects.filter(pk=assignee_id, business=biz).first() if assignee_id else None
             StoreTask.objects.create(
                 store=store,
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 description=request.POST.get('description', ''),
                 assigned_to=assignee,
                 due_date=request.POST.get('due_date') or None,

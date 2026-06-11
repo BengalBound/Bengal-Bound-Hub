@@ -58,13 +58,13 @@ def rfp_list(request, slug):
         if action == 'create_rfp':
             rfp = GroupRFP.objects.create(
                 business=biz,
-                group_name=request.POST['group_name'],
-                contact_name=request.POST['contact_name'],
+                group_name=request.POST.get('group_name', ''),
+                contact_name=request.POST.get('contact_name', ''),
                 contact_email=request.POST.get('contact_email', ''),
                 contact_phone=request.POST.get('contact_phone', ''),
                 event_type=request.POST.get('event_type', 'conference'),
-                arrival_date=request.POST['arrival_date'],
-                departure_date=request.POST['departure_date'],
+                arrival_date=request.POST.get('arrival_date', ''),
+                departure_date=request.POST.get('departure_date', ''),
                 rooms_required=request.POST.get('rooms_required', 1),
                 adults=request.POST.get('adults', 1),
                 children=request.POST.get('children', 0),
@@ -105,7 +105,7 @@ def rfp_detail(request, slug, rfp_id):
         if action == 'add_block' and level >= 2:
             GroupBlock.objects.create(
                 rfp=rfp,
-                room_type_name=request.POST['room_type_name'],
+                room_type_name=request.POST.get('room_type_name', ''),
                 rooms_blocked=request.POST.get('rooms_blocked', 1),
                 rate_per_night=request.POST.get('rate_per_night', 0),
                 currency=request.POST.get('currency', 'USD'),
@@ -117,10 +117,10 @@ def rfp_detail(request, slug, rfp_id):
         elif action == 'add_guest' and level >= 2:
             RoomingListEntry.objects.create(
                 rfp=rfp,
-                guest_name=request.POST['guest_name'],
+                guest_name=request.POST.get('guest_name', ''),
                 room_type_name=request.POST.get('room_type_name', ''),
-                check_in=request.POST['check_in'],
-                check_out=request.POST['check_out'],
+                check_in=request.POST.get('check_in', ''),
+                check_out=request.POST.get('check_out', ''),
                 special_requests=request.POST.get('special_requests', ''),
             )
             messages.success(request, 'Guest added to rooming list.')

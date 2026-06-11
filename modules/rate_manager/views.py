@@ -49,10 +49,10 @@ def seasons(request, slug):
         if action == 'add_season':
             season = Season.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 season_type=request.POST.get('season_type', 'shoulder'),
-                start_date=request.POST['start_date'],
-                end_date=request.POST['end_date'],
+                start_date=request.POST.get('start_date', ''),
+                end_date=request.POST.get('end_date', ''),
                 rate_multiplier=request.POST.get('rate_multiplier') or 1.00,
                 notes=request.POST.get('notes', ''),
             )
@@ -77,10 +77,10 @@ def base_rates(request, slug):
         if action == 'add_rate':
             rate = RoomRateBase.objects.create(
                 business=biz,
-                room_type_name=request.POST['room_type_name'],
-                base_rate=request.POST['base_rate'],
+                room_type_name=request.POST.get('room_type_name', ''),
+                base_rate=request.POST.get('base_rate', ''),
                 currency=request.POST.get('currency', 'USD'),
-                effective_from=request.POST['effective_from'],
+                effective_from=request.POST.get('effective_from', ''),
                 effective_to=request.POST.get('effective_to') or None,
             )
             messages.success(request, f'Base rate for "{rate.room_type_name}" added.')
@@ -108,11 +108,11 @@ def yield_rules(request, slug):
         if action == 'add_rule':
             rule = YieldRule.objects.create(
                 business=biz,
-                name=request.POST['name'],
-                rule_type=request.POST['rule_type'],
-                threshold_value=request.POST['threshold_value'],
+                name=request.POST.get('name', ''),
+                rule_type=request.POST.get('rule_type', ''),
+                threshold_value=request.POST.get('threshold_value', ''),
                 adjustment_type=request.POST.get('adjustment_type', 'percent'),
-                adjustment_value=request.POST['adjustment_value'],
+                adjustment_value=request.POST.get('adjustment_value', ''),
                 priority=request.POST.get('priority') or 0,
             )
             messages.success(request, f'Yield rule "{rule.name}" added.')
@@ -125,11 +125,11 @@ def yield_rules(request, slug):
         elif action == 'add_restriction':
             restriction = RateRestriction.objects.create(
                 business=biz,
-                room_type_name=request.POST['room_type_name'],
-                restriction_type=request.POST['restriction_type'],
+                room_type_name=request.POST.get('room_type_name', ''),
+                restriction_type=request.POST.get('restriction_type', ''),
                 value=request.POST.get('value') or 1,
-                start_date=request.POST['start_date'],
-                end_date=request.POST['end_date'],
+                start_date=request.POST.get('start_date', ''),
+                end_date=request.POST.get('end_date', ''),
                 notes=request.POST.get('notes', ''),
             )
             messages.success(request, f'Restriction "{restriction.get_restriction_type_display()}" added.')
@@ -155,12 +155,12 @@ def special_offers(request, slug):
         if action == 'add_offer':
             offer = SpecialOffer.objects.create(
                 business=biz,
-                name=request.POST['name'],
-                offer_type=request.POST['offer_type'],
+                name=request.POST.get('name', ''),
+                offer_type=request.POST.get('offer_type', ''),
                 discount_type=request.POST.get('discount_type', 'percent'),
-                discount_value=request.POST['discount_value'],
-                valid_from=request.POST['valid_from'],
-                valid_to=request.POST['valid_to'],
+                discount_value=request.POST.get('discount_value', ''),
+                valid_from=request.POST.get('valid_from', ''),
+                valid_to=request.POST.get('valid_to', ''),
                 promo_code=request.POST.get('promo_code', ''),
                 description=request.POST.get('description', ''),
             )

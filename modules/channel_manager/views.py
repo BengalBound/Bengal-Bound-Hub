@@ -51,7 +51,7 @@ def channel_list(request, slug):
         if action == 'add_channel':
             channel = Channel.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 channel_type=request.POST.get('channel_type', 'ota'),
                 api_endpoint=request.POST.get('api_endpoint', ''),
                 api_key=request.POST.get('api_key', ''),
@@ -85,7 +85,7 @@ def rate_plans(request, slug):
         if action == 'add_plan':
             plan = RatePlan.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 code=request.POST.get('code', ''),
                 description=request.POST.get('description', ''),
                 meal_plan=request.POST.get('meal_plan', 'ro'),
@@ -99,11 +99,11 @@ def rate_plans(request, slug):
             ChannelRate.objects.create(
                 channel=channel,
                 rate_plan=rate_plan,
-                room_type_name=request.POST['room_type_name'],
-                rate_amount=request.POST['rate_amount'],
+                room_type_name=request.POST.get('room_type_name', ''),
+                rate_amount=request.POST.get('rate_amount', ''),
                 currency=request.POST.get('currency', 'USD'),
-                valid_from=request.POST['valid_from'],
-                valid_to=request.POST['valid_to'],
+                valid_from=request.POST.get('valid_from', ''),
+                valid_to=request.POST.get('valid_to', ''),
             )
             messages.success(request, 'Channel rate added.')
         return redirect('channel_manager:rates', slug=slug)
@@ -130,8 +130,8 @@ def availability(request, slug):
     if request.method == 'POST' and level >= 2:
         action = request.POST.get('action')
         if action == 'set_availability':
-            block_date = request.POST['date']
-            room_type = request.POST['room_type_name']
+            block_date = request.POST.get('date', '')
+            room_type = request.POST.get('room_type_name', '')
             block, created = AvailabilityBlock.objects.get_or_create(
                 business=biz,
                 room_type_name=room_type,

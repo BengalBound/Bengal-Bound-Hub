@@ -145,7 +145,7 @@ def kpi_dashboard(request, slug):
     if request.method == 'POST':
         ProductionKPISnapshot.objects.update_or_create(
             business=biz,
-            snapshot_date=request.POST['snapshot_date'],
+            snapshot_date=request.POST.get('snapshot_date', ''),
             period=request.POST.get('period', 'daily'),
             defaults={
                 'orders_due': request.POST.get('orders_due', 0) or 0,

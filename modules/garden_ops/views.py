@@ -65,7 +65,7 @@ def site_list(request, slug):
             assigned = BusinessEmployee.objects.filter(pk=assigned_id, business=biz).first() if assigned_id else None
             site = ClientSite.objects.create(
                 business=biz,
-                client_name=request.POST['client_name'],
+                client_name=request.POST.get('client_name', ''),
                 site_name=request.POST.get('site_name', ''),
                 address=request.POST.get('address', ''),
                 site_type=request.POST.get('site_type', 'residential'),
@@ -111,7 +111,7 @@ def site_detail(request, slug, site_id):
             GardenJob.objects.create(
                 business=biz,
                 site=site,
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 job_type=request.POST.get('job_type', 'maintenance'),
                 status='scheduled',
                 scheduled_date=request.POST.get('scheduled_date') or None,
@@ -191,7 +191,7 @@ def inventory(request, slug):
         if action == 'add_item':
             GardenInventoryItem.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 category=request.POST.get('category', 'plant'),
                 quantity=request.POST.get('quantity', 0),
                 unit=request.POST.get('unit', 'each'),

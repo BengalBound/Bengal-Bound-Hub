@@ -51,8 +51,8 @@ def client_list(request, slug):
         if action == 'create_access':
             ClientPortalAccess.objects.create(
                 business=biz,
-                client_name=request.POST['client_name'],
-                client_email=request.POST['client_email'],
+                client_name=request.POST.get('client_name', ''),
+                client_email=request.POST.get('client_email', ''),
                 deal_reference=request.POST.get('deal_reference', ''),
                 expires_at=request.POST.get('expires_at') or None,
                 welcome_message=request.POST.get('welcome_message', ''),
@@ -84,7 +84,7 @@ def client_detail(request, slug, access_id):
         if action == 'add_document':
             PortalDocument.objects.create(
                 access=access,
-                document_name=request.POST['document_name'],
+                document_name=request.POST.get('document_name', ''),
                 doc_type=request.POST.get('doc_type', 'other'),
                 source='agent',
                 file_url=request.POST.get('file_url', ''),

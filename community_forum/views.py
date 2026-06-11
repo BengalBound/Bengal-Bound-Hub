@@ -132,12 +132,12 @@ def create_topic(request, slug):
             email = request.POST.get('email', '').strip()
             if not email:
                 messages.error(request, "Email is required to post.")
-                return redirect('create_topic', slug=category.slug)
+                return redirect('community_forum:create_topic', slug=category.slug)
 
             new_user, error_msg = get_or_create_viewer_user(request, email)
             if error_msg:
                 messages.error(request, error_msg)
-                return redirect('create_topic', slug=category.slug)
+                return redirect('community_forum:create_topic', slug=category.slug)
 
             author = new_user
 
@@ -149,7 +149,7 @@ def create_topic(request, slug):
                 content=content,
                 topic_type=topic_type,
             )
-            return redirect('topic_detail', pk=topic.pk)
+            return redirect('community_forum:topic_detail', pk=topic.pk)
 
     return render(request, 'community_forum/create_topic.html', {
         'category': category,
@@ -165,7 +165,7 @@ def create_post(request, pk):
 
     if topic.is_locked:
         messages.error(request, "This topic is locked and cannot receive new replies.")
-        return redirect('topic_detail', pk=topic.pk)
+        return redirect('community_forum:topic_detail', pk=topic.pk)
 
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
@@ -175,12 +175,12 @@ def create_post(request, pk):
             email = request.POST.get('email', '').strip()
             if not email:
                 messages.error(request, "Email is required to reply.")
-                return redirect('topic_detail', pk=topic.pk)
+                return redirect('community_forum:topic_detail', pk=topic.pk)
 
             new_user, error_msg = get_or_create_viewer_user(request, email)
             if error_msg:
                 messages.error(request, error_msg)
-                return redirect('topic_detail', pk=topic.pk)
+                return redirect('community_forum:topic_detail', pk=topic.pk)
 
             author = new_user
 
@@ -197,7 +197,7 @@ def create_post(request, pk):
                     "Your reply has been sent for review by our AI moderator (Serea) before it becomes visible."
                 )
 
-    return redirect('topic_detail', pk=topic.pk)
+    return redirect('community_forum:topic_detail', pk=topic.pk)
 
 def reply_to_post(request, pk):
     """View to handle threading/replies to specific posts"""
@@ -209,7 +209,7 @@ def reply_to_post(request, pk):
 
     if topic.is_locked:
         messages.error(request, "This topic is locked and cannot receive new replies.")
-        return redirect('topic_detail', pk=topic.pk)
+        return redirect('community_forum:topic_detail', pk=topic.pk)
 
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
@@ -219,12 +219,12 @@ def reply_to_post(request, pk):
             email = request.POST.get('email', '').strip()
             if not email:
                 messages.error(request, "Email is required to reply.")
-                return redirect('topic_detail', pk=topic.pk)
+                return redirect('community_forum:topic_detail', pk=topic.pk)
 
             new_user, error_msg = get_or_create_viewer_user(request, email)
             if error_msg:
                 messages.error(request, error_msg)
-                return redirect('topic_detail', pk=topic.pk)
+                return redirect('community_forum:topic_detail', pk=topic.pk)
 
             author = new_user
 
@@ -241,7 +241,7 @@ def reply_to_post(request, pk):
                     "Your reply has been sent for review by our AI moderator (Serea) before it becomes visible."
                 )
 
-    return redirect('topic_detail', pk=topic.pk)
+    return redirect('community_forum:topic_detail', pk=topic.pk)
 
 # ─── Workspace Admin Moderation ───────────────────────────────────────────────
 
@@ -305,7 +305,7 @@ def moderation_panel(request):
             ForumModerationLog.objects.create(topic=topic, actor=request.user.email, action='admin_mark_solved')
             messages.success(request, "Topic marked as solved.")
 
-        return redirect('moderation_panel')
+        return redirect('community_forum:moderation_panel')
 
     return render(request, 'community_forum/moderation_panel.html', {
         'flagged_posts': flagged_posts,

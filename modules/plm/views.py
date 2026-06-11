@@ -190,7 +190,7 @@ def shoe_articles(request, slug):
         if action == 'create_article':
             ShoeArticle.objects.create(
                 business=biz,
-                article_code=request.POST['article_code'].strip(),
+                article_code=request.POST.get('article_code', '').strip(),
                 sku_code=request.POST.get('sku_code', '').strip(),
                 name=request.POST.get('name', '').strip(),
                 category=request.POST.get('category', 'other'),

@@ -62,7 +62,7 @@ def client_list(request, slug):
             assigned = BusinessEmployee.objects.filter(pk=assigned_id, business=biz).first() if assigned_id else emp
             client = CareClient.objects.create(
                 business=biz,
-                full_name=request.POST['full_name'],
+                full_name=request.POST.get('full_name', ''),
                 date_of_birth=request.POST.get('date_of_birth') or None,
                 contact_name=request.POST.get('contact_name', ''),
                 contact_phone=request.POST.get('contact_phone', ''),
@@ -112,12 +112,12 @@ def client_detail(request, slug, client_id):
             assigned = BusinessEmployee.objects.filter(pk=assigned_id, business=biz).first() if assigned_id else None
             CarePlan.objects.create(
                 client=client,
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 care_type=request.POST.get('care_type', 'personal'),
-                description=request.POST['description'],
+                description=request.POST.get('description', ''),
                 frequency=request.POST.get('frequency', 'daily'),
                 assigned_to=assigned,
-                start_date=request.POST['start_date'],
+                start_date=request.POST.get('start_date', ''),
                 review_date=request.POST.get('review_date') or None,
                 notes=request.POST.get('notes', ''),
             )
@@ -130,7 +130,7 @@ def client_detail(request, slug, client_id):
                 client=client,
                 care_plan=plan,
                 performed_by=emp,
-                session_date=request.POST['session_date'],
+                session_date=request.POST.get('session_date', ''),
                 session_time=request.POST.get('session_time') or None,
                 duration_minutes=request.POST.get('duration_minutes', 30),
                 status=request.POST.get('status', 'completed'),
@@ -181,9 +181,9 @@ def staff_rota(request, slug):
             StaffRota.objects.create(
                 business=biz,
                 employee=employee,
-                shift_date=request.POST['shift_date'],
-                start_time=request.POST['start_time'],
-                end_time=request.POST['end_time'],
+                shift_date=request.POST.get('shift_date', ''),
+                start_time=request.POST.get('start_time', ''),
+                end_time=request.POST.get('end_time', ''),
                 role=request.POST.get('role', ''),
                 notes=request.POST.get('notes', ''),
                 is_confirmed='is_confirmed' in request.POST,
@@ -222,7 +222,7 @@ def compliance(request, slug):
         if action == 'add_document':
             ComplianceDocument.objects.create(
                 business=biz,
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 doc_type=request.POST.get('doc_type', 'policy'),
                 description=request.POST.get('description', ''),
                 file_url=request.POST.get('file_url', ''),

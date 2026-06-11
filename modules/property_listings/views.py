@@ -81,11 +81,11 @@ def property_add(request, slug):
         agent = BusinessEmployee.objects.filter(pk=agent_id, business=biz).first() if agent_id else emp
         prop = Property.objects.create(
             business=biz,
-            title=request.POST['title'],
+            title=request.POST.get('title', ''),
             property_type=request.POST.get('property_type', 'house'),
             listing_type=request.POST.get('listing_type', 'sale'),
             status=request.POST.get('status', 'active'),
-            address=request.POST['address'],
+            address=request.POST.get('address', ''),
             city=request.POST.get('city', ''),
             region=request.POST.get('region', ''),
             country=request.POST.get('country', ''),
@@ -129,10 +129,10 @@ def property_detail(request, slug, property_id):
             agent = BusinessEmployee.objects.filter(pk=agent_id, business=biz).first() if agent_id else emp
             PropertyShowing.objects.create(
                 property=prop,
-                contact_name=request.POST['contact_name'],
+                contact_name=request.POST.get('contact_name', ''),
                 contact_phone=request.POST.get('contact_phone', ''),
                 contact_email=request.POST.get('contact_email', ''),
-                scheduled_at=request.POST['scheduled_at'],
+                scheduled_at=request.POST.get('scheduled_at', ''),
                 agent=agent,
                 notes=request.POST.get('notes', ''),
             )

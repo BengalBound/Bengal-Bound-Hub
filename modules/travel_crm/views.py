@@ -61,7 +61,7 @@ def client_list(request, slug):
             assigned = BusinessEmployee.objects.filter(pk=assigned_id, business=biz).first() if assigned_id else emp
             client = TravelClient.objects.create(
                 business=biz,
-                full_name=request.POST['full_name'],
+                full_name=request.POST.get('full_name', ''),
                 email=request.POST.get('email', ''),
                 phone=request.POST.get('phone', ''),
                 nationality=request.POST.get('nationality', ''),
@@ -107,10 +107,10 @@ def client_detail(request, slug, client_id):
             itin = Itinerary.objects.create(
                 business=biz,
                 client=client,
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 destination=request.POST.get('destination', ''),
-                start_date=request.POST['start_date'],
-                end_date=request.POST['end_date'],
+                start_date=request.POST.get('start_date', ''),
+                end_date=request.POST.get('end_date', ''),
                 status=request.POST.get('status', 'draft'),
                 total_budget=request.POST.get('total_budget') or None,
                 currency=request.POST.get('currency', 'USD'),
@@ -126,10 +126,10 @@ def client_detail(request, slug, client_id):
                 itinerary=Itinerary.objects.filter(
                     pk=request.POST.get('itinerary_id'), business=biz
                 ).first() if request.POST.get('itinerary_id') else None,
-                booking_reference=request.POST['booking_reference'],
+                booking_reference=request.POST.get('booking_reference', ''),
                 booking_type=request.POST.get('booking_type', 'other'),
                 supplier=request.POST.get('supplier', ''),
-                travel_date=request.POST['travel_date'],
+                travel_date=request.POST.get('travel_date', ''),
                 return_date=request.POST.get('return_date') or None,
                 amount=request.POST.get('amount', 0),
                 currency=request.POST.get('currency', 'USD'),
@@ -193,7 +193,7 @@ def itinerary_detail(request, slug, itin_id):
                 itinerary=itin,
                 day_number=request.POST.get('day_number', 1),
                 item_type=request.POST.get('item_type', 'other'),
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 description=request.POST.get('description', ''),
                 supplier=request.POST.get('supplier', ''),
                 confirmation_code=request.POST.get('confirmation_code', ''),

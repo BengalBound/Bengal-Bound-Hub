@@ -53,7 +53,7 @@ def form_list(request, slug):
         if action == 'create_form':
             form = DataForm.objects.create(
                 business=biz,
-                title=request.POST['title'],
+                title=request.POST.get('title', ''),
                 description=request.POST.get('description', ''),
                 form_type=request.POST.get('form_type', 'survey'),
                 is_anonymous='is_anonymous' in request.POST,
@@ -98,7 +98,7 @@ def form_builder(request, slug, form_id):
             FormField.objects.create(
                 form=form,
                 field_type=request.POST.get('field_type', 'text'),
-                label=request.POST['label'],
+                label=request.POST.get('label', ''),
                 placeholder=request.POST.get('placeholder', ''),
                 options=request.POST.get('options', ''),
                 is_required='is_required' in request.POST,

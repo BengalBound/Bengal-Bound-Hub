@@ -172,7 +172,7 @@ def shoe_defect_log(request, slug):
     if request.method == 'POST':
         ShoeDefectRecord.objects.create(
             business=biz,
-            inspection_stage=request.POST['inspection_stage'],
+            inspection_stage=request.POST.get('inspection_stage', ''),
             inspection_date=request.POST.get('inspection_date') or timezone.now().date(),
             article_code=request.POST.get('article_code', '').strip(),
             lot_reference=request.POST.get('lot_reference', '').strip(),

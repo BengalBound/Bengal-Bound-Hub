@@ -80,7 +80,7 @@ def housekeeping(request, slug):
             )
             HousekeepingSchedule.objects.create(
                 business=biz,
-                room_identifier=request.POST['room_identifier'],
+                room_identifier=request.POST.get('room_identifier', ''),
                 task_type=request.POST.get('task_type', 'checkout_clean'),
                 status=request.POST.get('status', 'pending'),
                 assigned_to=assigned,
@@ -141,7 +141,7 @@ def maintenance(request, slug):
                 room_identifier=request.POST.get('room_identifier', ''),
                 location=request.POST.get('location', ''),
                 category=request.POST.get('category', 'general'),
-                description=request.POST['description'],
+                description=request.POST.get('description', ''),
                 priority=request.POST.get('priority', 'normal'),
                 reported_by=emp,
                 estimated_cost=request.POST.get('estimated_cost') or None,
@@ -209,7 +209,7 @@ def service_requests(request, slug):
                 room_identifier=request.POST.get('room_identifier', ''),
                 guest_name=request.POST.get('guest_name', ''),
                 request_type=request.POST.get('request_type', 'concierge'),
-                description=request.POST['description'],
+                description=request.POST.get('description', ''),
                 priority=request.POST.get('priority', 'normal'),
                 assigned_to=assigned,
                 notes=request.POST.get('notes', ''),
@@ -255,9 +255,9 @@ def concierge(request, slug):
         if action == 'add_note':
             ConciergeNote.objects.create(
                 business=biz,
-                guest_name=request.POST['guest_name'],
+                guest_name=request.POST.get('guest_name', ''),
                 note_type=request.POST.get('note_type', 'preference'),
-                content=request.POST['content'],
+                content=request.POST.get('content', ''),
                 created_by=emp,
             )
             messages.success(request, 'Concierge note added.')

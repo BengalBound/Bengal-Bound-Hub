@@ -266,7 +266,7 @@ def footwear_schedule_list(request, slug):
             buyer=request.POST.get('buyer', '').strip(),
             footwear_type=request.POST.get('footwear_type', 'other'),
             total_pairs_planned=request.POST.get('total_pairs_planned', 0) or 0,
-            start_date=request.POST['start_date'],
+            start_date=request.POST.get('start_date', ''),
             created_by=request.user,
         )
         # Auto-create 12 day entries from the standard plan

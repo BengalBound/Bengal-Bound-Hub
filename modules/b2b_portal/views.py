@@ -52,8 +52,8 @@ def customer_list(request, slug):
     if request.method == 'POST' and level >= 3:
         B2BCustomer.objects.create(
             business=biz,
-            company_name=request.POST['company_name'],
-            contact_name=request.POST['contact_name'],
+            company_name=request.POST.get('company_name', ''),
+            contact_name=request.POST.get('contact_name', ''),
             email=request.POST.get('email', ''),
             phone=request.POST.get('phone', ''),
             address=request.POST.get('address', ''),
@@ -134,7 +134,7 @@ def order_detail(request, slug, order_id):
         if action == 'add_line':
             B2BOrderLine.objects.create(
                 order=order,
-                product_name=request.POST['product_name'],
+                product_name=request.POST.get('product_name', ''),
                 sku=request.POST.get('sku', ''),
                 qty=request.POST.get('qty', 1),
                 unit_price=request.POST.get('unit_price', 0),

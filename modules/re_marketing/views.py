@@ -48,7 +48,7 @@ def flyer_list(request, slug):
     if request.method == 'POST' and level >= 2:
         ListingFlyer.objects.create(
             business=biz,
-            property_address=request.POST['property_address'],
+            property_address=request.POST.get('property_address', ''),
             template=request.POST.get('template', 'standard'),
             headline=request.POST.get('headline', ''),
             tagline=request.POST.get('tagline', ''),
@@ -85,7 +85,7 @@ def campaign_list(request, slug):
         if action == 'create_campaign':
             DripCampaign.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 target_audience=request.POST.get('target_audience', 'all'),
                 description=request.POST.get('description', ''),
                 created_by=emp,
@@ -96,7 +96,7 @@ def campaign_list(request, slug):
             DripMessage.objects.create(
                 campaign=campaign,
                 subject=request.POST.get('subject', ''),
-                body=request.POST['body'],
+                body=request.POST.get('body', ''),
                 delay_days=request.POST.get('delay_days', 0),
                 message_type=request.POST.get('message_type', 'email'),
             )
@@ -127,7 +127,7 @@ def social_posts(request, slug):
                 business=biz,
                 post_type=request.POST.get('post_type', 'just_listed'),
                 property_address=request.POST.get('property_address', ''),
-                caption=request.POST['caption'],
+                caption=request.POST.get('caption', ''),
                 platform=request.POST.get('platform', 'both'),
                 scheduled_for=request.POST.get('scheduled_for') or None,
                 created_by=emp,

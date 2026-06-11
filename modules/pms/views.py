@@ -142,8 +142,8 @@ def reservation_add(request, slug):
         room_type_id = request.POST.get('room_type_id')
         room_type = RoomType.objects.filter(pk=room_type_id, business=biz).first() if room_type_id else None
 
-        check_in_date = request.POST['check_in_date']
-        check_out_date = request.POST['check_out_date']
+        check_in_date = request.POST.get('check_in_date', '')
+        check_out_date = request.POST.get('check_out_date', '')
         rate_per_night = request.POST.get('rate_per_night', 0)
 
         reservation = Reservation(
@@ -221,8 +221,8 @@ def reservation_detail(request, slug, res_id):
             FolioCharge.objects.create(
                 reservation=reservation,
                 charge_type=request.POST.get('charge_type', 'other'),
-                description=request.POST['description'],
-                amount=request.POST['amount'],
+                description=request.POST.get('description', ''),
+                amount=request.POST.get('amount', ''),
                 currency=request.POST.get('currency', reservation.currency),
                 posted_by=emp,
             )
@@ -256,7 +256,7 @@ def guest_list(request, slug):
         if action == 'add_guest':
             GuestProfile.objects.create(
                 business=biz,
-                full_name=request.POST['full_name'],
+                full_name=request.POST.get('full_name', ''),
                 email=request.POST.get('email', ''),
                 phone=request.POST.get('phone', ''),
                 nationality=request.POST.get('nationality', ''),

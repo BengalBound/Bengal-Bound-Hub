@@ -63,7 +63,7 @@ def room_list(request, slug):
         if action == 'create_room':
             Room.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 room_type=request.POST.get('room_type', 'classroom'),
                 capacity=request.POST.get('capacity') or None,
                 building=request.POST.get('building', ''),
@@ -97,22 +97,22 @@ def session_manage(request, slug):
         if action == 'create_slot':
             TimeSlot.objects.create(
                 business=biz,
-                label=request.POST['slot_label'],
-                day_of_week=request.POST['day_of_week'],
-                start_time=request.POST['start_time'],
-                end_time=request.POST['end_time'],
+                label=request.POST.get('slot_label', ''),
+                day_of_week=request.POST.get('day_of_week', ''),
+                start_time=request.POST.get('start_time', ''),
+                end_time=request.POST.get('end_time', ''),
             )
             messages.success(request, 'Time slot created.')
 
         elif action == 'create_session':
             ClassSession.objects.create(
                 business=biz,
-                subject=request.POST['subject'],
+                subject=request.POST.get('subject', ''),
                 class_group=request.POST.get('class_group', ''),
                 instructor_id=request.POST.get('instructor_id') or None,
                 room_id=request.POST.get('room_id') or None,
                 time_slot_id=request.POST.get('time_slot_id') or None,
-                effective_from=request.POST['effective_from'],
+                effective_from=request.POST.get('effective_from', ''),
                 effective_until=request.POST.get('effective_until') or None,
                 notes=request.POST.get('notes', ''),
             )
@@ -126,7 +126,7 @@ def session_manage(request, slug):
             sess = get_object_or_404(ClassSession, pk=request.POST.get('session_id'), business=biz)
             ScheduleException.objects.create(
                 session=sess,
-                exception_date=request.POST['exception_date'],
+                exception_date=request.POST.get('exception_date', ''),
                 reason=request.POST.get('reason', ''),
                 is_cancelled='is_cancelled' in request.POST,
                 substitute_instructor_id=request.POST.get('sub_instructor_id') or None,

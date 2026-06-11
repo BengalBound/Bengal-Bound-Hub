@@ -84,6 +84,9 @@ urlpatterns = [
     path('hub/<slug:slug>/accounting/', include('modules.accounting.urls', namespace='accounting')),
     path('hub/<slug:slug>/budgeting/', include('modules.budgeting.urls', namespace='budgeting')),
     path('hub/<slug:slug>/financials/', include('modules.financials.urls', namespace='financials')),
+    path('hub/<slug:slug>/accounts-payable/', include('modules.accounts_payable.urls', namespace='accounts_payable')),
+    path('hub/<slug:slug>/bank-reconciliation/', include('modules.bank_reconciliation.urls', namespace='bank_reconciliation')),
+    path('hub/<slug:slug>/tax-compliance/', include('modules.tax_compliance.urls', namespace='tax_compliance')),
 
     # Project Management
     path('hub/<slug:slug>/projects/', include('modules.projects.urls', namespace='projects')),
@@ -130,6 +133,15 @@ urlpatterns = [
     path('hub/<slug:slug>/meet/', include('modules.video_meet.urls', namespace='video_meet')),
     path('hub/<slug:slug>/drive/', include('modules.cloud_drive.urls', namespace='cloud_drive')),
     path('hub/<slug:slug>/calendar/', include('modules.business_calendar.urls', namespace='business_calendar')),
+
+    # Enterprise IT & Infrastructure
+    path('hub/<slug:slug>/ai-ops/', include('modules.ai_ops.urls', namespace='ai_ops')),
+    path('hub/<slug:slug>/neural-security/', include('modules.neural_security.urls', namespace='neural_security')),
+    path('hub/<slug:slug>/data-ecosystem/', include('modules.data_ecosystem.urls', namespace='data_ecosystem')),
+    path('hub/<slug:slug>/automation-bots/', include('modules.automation_bots.urls', namespace='automation_bots')),
+    path('hub/<slug:slug>/autonomous-ops/', include('modules.autonomous_ops.urls', namespace='autonomous_ops')),
+    path('hub/<slug:slug>/iot-network/', include('modules.iot_network.urls', namespace='iot_network')),
+    path('hub/<slug:slug>/cloud-infra/', include('modules.cloud_infra.urls', namespace='cloud_infra')),
 
     # Manufacturing & Industrial
     path('hub/erp/', include('modules.erp.urls', namespace='erp')),

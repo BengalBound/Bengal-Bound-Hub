@@ -49,7 +49,7 @@ def catalog_detail(request, slug, catalog_id):
         if action == 'add_category':
             CatalogCategory.objects.create(
                 catalog=catalog,
-                name=request.POST['category_name'],
+                name=request.POST.get('category_name', ''),
                 display_order=request.POST.get('display_order', 0),
             )
             messages.success(request, 'Category added.')
@@ -59,7 +59,7 @@ def catalog_detail(request, slug, catalog_id):
             CatalogItem.objects.create(
                 catalog=catalog,
                 category=category,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 sku=request.POST.get('sku', ''),
                 description=request.POST.get('description', ''),
                 price=request.POST.get('price') or None,
@@ -102,7 +102,7 @@ def catalog_create(request, slug):
     if request.method == 'POST':
         cat = ProductCatalog.objects.create(
             business=biz,
-            title=request.POST['title'],
+            title=request.POST.get('title', ''),
             description=request.POST.get('description', ''),
             created_by=emp,
         )

@@ -68,7 +68,7 @@ def course_create(request, slug):
     if request.method == 'POST':
         course = Course.objects.create(
             business=biz,
-            title=request.POST['title'],
+            title=request.POST.get('title', ''),
             code=request.POST.get('code', ''),
             description=request.POST.get('description', ''),
             instructor_id=request.POST.get('instructor_id') or None,
@@ -104,17 +104,17 @@ def course_detail(request, slug, course_id):
         if action == 'add_module':
             CourseModule.objects.create(
                 course=course,
-                title=request.POST['module_title'],
+                title=request.POST.get('module_title', ''),
                 description=request.POST.get('module_description', ''),
                 order=course.modules.count() + 1,
             )
             messages.success(request, 'Module added.')
 
         elif action == 'add_lesson':
-            mod = get_object_or_404(CourseModule, pk=request.POST['module_id'], course=course)
+            mod = get_object_or_404(CourseModule, pk=request.POST.get('module_id', ''), course=course)
             Lesson.objects.create(
                 module=mod,
-                title=request.POST['lesson_title'],
+                title=request.POST.get('lesson_title', ''),
                 content_type=request.POST.get('content_type', 'text'),
                 content_text=request.POST.get('content_text', ''),
                 content_url=request.POST.get('content_url', ''),

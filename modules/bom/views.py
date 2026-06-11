@@ -159,7 +159,7 @@ def shoe_bom_list(request, slug):
     if request.method == 'POST':
         ShoeArticleBOM.objects.create(
             business=biz,
-            article_code=request.POST['article_code'].strip(),
+            article_code=request.POST.get('article_code', '').strip(),
             article_name=request.POST.get('article_name', '').strip(),
             last_code=request.POST.get('last_code', '').strip(),
             size_run=request.POST.get('size_run', '').strip(),
@@ -200,7 +200,7 @@ def shoe_bom_detail(request, slug, bom_id):
                         pass
             ShoeColorwayEntry.objects.create(
                 bom=bom,
-                leather_code=request.POST['leather_code'].strip(),
+                leather_code=request.POST.get('leather_code', '').strip(),
                 size_data=raw_sizes,
                 pairs_per_carton=request.POST.get('pairs_per_carton', 12) or 12,
                 sets=request.POST.get('sets', 1) or 1,
@@ -217,7 +217,7 @@ def shoe_bom_detail(request, slug, bom_id):
                 bom=bom,
                 colorway_id=colorway_id if colorway_id else None,
                 category=request.POST.get('category', 'upper'),
-                material_name=request.POST['material_name'].strip(),
+                material_name=request.POST.get('material_name', '').strip(),
                 uom=request.POST.get('uom', 'S/ft').strip(),
                 cons_per_pair=request.POST.get('cons_per_pair', 1) or 1,
                 order_qty=request.POST.get('order_qty') or None,

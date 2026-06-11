@@ -55,11 +55,11 @@ def report_list(request, slug):
         if action == 'create_report':
             report = ProgressReport.objects.create(
                 business=biz,
-                student_name=request.POST['student_name'],
+                student_name=request.POST.get('student_name', ''),
                 student_ref=request.POST.get('student_ref', ''),
                 class_group=request.POST.get('class_group', ''),
-                period=request.POST['period'],
-                report_date=request.POST['report_date'],
+                period=request.POST.get('period', ''),
+                report_date=request.POST.get('report_date', ''),
                 overall_grade=request.POST.get('overall_grade', ''),
                 gpa=request.POST.get('gpa') or None,
                 attendance_pct=request.POST.get('attendance_pct') or None,
@@ -96,7 +96,7 @@ def report_detail(request, slug, report_id):
         if action == 'add_subject':
             ReportSubjectLine.objects.create(
                 report=report,
-                subject=request.POST['subject'],
+                subject=request.POST.get('subject', ''),
                 score=request.POST.get('score', ''),
                 grade=request.POST.get('grade', ''),
                 teacher=request.POST.get('teacher', ''),
@@ -142,11 +142,11 @@ def message_list(request, slug):
         ParentMessage.objects.create(
             business=biz,
             from_employee=emp,
-            parent_name=request.POST['parent_name'],
+            parent_name=request.POST.get('parent_name', ''),
             parent_email=request.POST.get('parent_email', ''),
-            student_name=request.POST['student_name'],
-            subject=request.POST['subject'],
-            body=request.POST['body'],
+            student_name=request.POST.get('student_name', ''),
+            subject=request.POST.get('subject', ''),
+            body=request.POST.get('body', ''),
             is_urgent='is_urgent' in request.POST,
         )
         messages.success(request, 'Message logged.')
@@ -169,8 +169,8 @@ def announcement_list(request, slug):
         if action == 'post':
             Announcement.objects.create(
                 business=biz,
-                title=request.POST['title'],
-                body=request.POST['body'],
+                title=request.POST.get('title', ''),
+                body=request.POST.get('body', ''),
                 audience=request.POST.get('audience', 'all'),
                 class_group=request.POST.get('class_group', ''),
                 posted_by=emp,

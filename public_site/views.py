@@ -257,7 +257,7 @@ def trial_request(request):
                 company_name=company_name, use_case=use_case
             )
             messages.success(request, "Your trial request has been submitted! We will contact you shortly.")
-        return redirect('trial_request')
+        return redirect('public_site:trial_request')
 
     return render(request, 'public_site/trial_request.html')
 

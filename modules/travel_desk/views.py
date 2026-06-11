@@ -56,9 +56,9 @@ def accounts(request, slug):
         if action == 'add_account':
             CorporateAccount.objects.create(
                 business=biz,
-                company_name=request.POST['company_name'],
-                contact_name=request.POST['contact_name'],
-                contact_email=request.POST['contact_email'],
+                company_name=request.POST.get('company_name', ''),
+                contact_name=request.POST.get('contact_name', ''),
+                contact_email=request.POST.get('contact_email', ''),
                 contact_phone=request.POST.get('contact_phone', ''),
                 credit_limit=request.POST.get('credit_limit', 0),
                 currency=request.POST.get('currency', 'USD'),
@@ -93,7 +93,7 @@ def policy(request, slug):
         if action == 'add_policy':
             TravelPolicy.objects.create(
                 business=biz,
-                name=request.POST['name'],
+                name=request.POST.get('name', ''),
                 applies_to=request.POST.get('applies_to', 'all'),
                 max_hotel_rate_usd=request.POST.get('max_hotel_rate_usd') or None,
                 max_flight_economy=request.POST.get('max_flight_economy') == 'on',
@@ -134,10 +134,10 @@ def requests(request, slug):
                 requester=emp,
                 corporate_account=corporate_account,
                 trip_purpose=request.POST.get('trip_purpose', ''),
-                departure_date=request.POST['departure_date'],
+                departure_date=request.POST.get('departure_date', ''),
                 return_date=request.POST.get('return_date') or None,
                 origin=request.POST.get('origin', ''),
-                destination=request.POST['destination'],
+                destination=request.POST.get('destination', ''),
                 travel_type=request.POST.get('travel_type', 'flight_hotel'),
                 estimated_cost=request.POST.get('estimated_cost', 0),
                 currency=request.POST.get('currency', 'USD'),
@@ -201,9 +201,9 @@ def request_detail(request, slug, req_id):
         if action == 'add_expense' and level >= 2:
             TravelExpense.objects.create(
                 travel_request=tr,
-                expense_type=request.POST['expense_type'],
-                description=request.POST['description'],
-                amount=request.POST['amount'],
+                expense_type=request.POST.get('expense_type', ''),
+                description=request.POST.get('description', ''),
+                amount=request.POST.get('amount', ''),
                 currency=request.POST.get('currency', 'USD'),
                 receipt_url=request.POST.get('receipt_url', ''),
             )
