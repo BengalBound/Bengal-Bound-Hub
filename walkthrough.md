@@ -542,6 +542,11 @@ Each agent sub-app follows this pattern:
 - [ ] Add `firebase_uid` field to `accounts/models.py`
 - [ ] Auth view accepting Firebase ID token → allauth user sync
 
+**Recent Updates (Maintenance)**
+- [x] Fixed `NoReverseMatch` 500 errors in `workspace_admin/views.py` missing namespace prefixes.
+- [x] Ran `update_docs.py` replacing old hosting provider references with Cloud Run.
+- [x] Pushed all changes to `origin`, `newhub`, and `showcase`.
+
 ---
 
 *Walkthrough reflects the `dev` branch as of 2026-05-26. For line-accurate behavior, follow the linked source files.*
