@@ -114,7 +114,7 @@ Every module view:
 1. Checks the user is authenticated
 2. Checks the user is a `BusinessEmployee` of this business
 3. Checks the module is activated for this business
-4. Renders module UI scoped to this business only (multi-tenant isolation)
+4. Cloud Runs module UI scoped to this business only (multi-tenant isolation)
 
 See individual module manuals:
 - [CRM & Sales](02_CRM_AND_SALES.md)

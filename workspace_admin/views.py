@@ -75,7 +75,7 @@ def project_control(request):
             project.description = f"{project.description}\n\n[Milestone — {new_status}]: {milestone}"
         project.save()
         messages.success(request, f"Project '{project.name}' updated to {project.get_status_display()}.")
-        return redirect('project_control')
+        return redirect('workspace_admin:project_control')
 
     all_projects_qs = WorkspaceProject.objects.select_related('client').order_by('-created_at')
     paginator = Paginator(all_projects_qs, 25)
@@ -116,7 +116,7 @@ def crm_support(request):
             consult_id = request.POST.get('consult_id')
             ConsultationBooking.objects.filter(id=consult_id).update(is_confirmed=True)
             messages.success(request, "Consultation confirmed.")
-        return redirect('crm_support')
+        return redirect('workspace_admin:crm_support')
 
     tickets_qs = SupportTicket.objects.select_related('client').order_by('-created_at')
     paginator = Paginator(tickets_qs, 20)
@@ -262,7 +262,7 @@ def marketing(request):
                 UserNotification(user=u, title=title, message=msg) for u in target_users
             ])
             messages.success(request, f"Notification sent to {target_users.count()} users.")
-        return redirect('marketing')
+        return redirect('workspace_admin:marketing')
 
     return render(request, 'workspace_admin/marketing.html', {
         'blogs': blogs,
@@ -439,7 +439,7 @@ def ai_tiers(request):
         except ValueError:
             messages.error(request, "Invalid input values. Please check token limits and pricing.")
 
-        return redirect('ai_tiers')
+        return redirect('workspace_admin:ai_tiers')
 
     tiers = AIEmployeeTier.objects.all().order_by('monthly_price_usd')
     return render(request, 'workspace_admin/ai_tiers.html', {'tiers': tiers})
@@ -488,7 +488,7 @@ def cms_list(request, model_name):
     """Dynamically list instances of the requested CMS model."""
     if model_name not in CMS_MODELS:
         messages.error(request, "CMS Module not found.")
-        return redirect('cms_control')
+        return redirect('workspace_admin:cms_control')
 
     model_class = CMS_MODELS[model_name]
     object_list = model_class.objects.all().order_by('-id') if hasattr(model_class, 'id') else model_class.objects.all()
@@ -526,7 +526,7 @@ def cms_list(request, model_name):
 def cms_form(request, model_name, pk=None):
     """Dynamically handle Create/Update forms for the requested CMS model."""
     if model_name not in CMS_MODELS:
-        return redirect('cms_control')
+        return redirect('workspace_admin:cms_control')
 
     model_class = CMS_MODELS[model_name]
     instance = get_object_or_404(model_class, pk=pk) if pk else None
@@ -579,7 +579,7 @@ def forum_management(request):
             topic = get_object_or_404(ForumTopic, id=topic_id)
             topic.delete()
             messages.success(request, "Topic deleted successfully.")
-            return redirect('forum_management')
+            return redirect('workspace_admin:forum_management')
 
     return render(request, 'workspace_admin/forum_management.html', {
         'topics': topics,
@@ -787,10 +787,17 @@ def module_pricing(request):
         cfg.module_name = mod.name
         cfg.monthly_price_usd = request.POST.get('monthly_price_usd', cfg.monthly_price_usd)
         cfg.annual_price_usd = request.POST.get('annual_price_usd', cfg.annual_price_usd)
+        
+        is_free = request.POST.get('is_free') == 'on'
+        mod.is_free = is_free
+        if is_free:
+            cfg.monthly_price_usd = 0
+            mod.monthly_price_usd = 0
+        else:
+            mod.monthly_price_usd = cfg.monthly_price_usd
+
         cfg.save()
-        # Also update ModuleCatalog price
-        mod.monthly_price_usd = cfg.monthly_price_usd
-        mod.save(update_fields=['monthly_price_usd'])
+        mod.save(update_fields=['monthly_price_usd', 'is_free'])
         messages.success(request, f'Pricing for {mod.name} updated.')
         return redirect('workspace_admin:module_pricing')
 

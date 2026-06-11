@@ -278,6 +278,8 @@
                             allowfullscreen referrerpolicy="strict-origin-when-cross-origin"
                             style="width:100%;height:100%;border:none;display:block;">
                         </iframe>
+                        {% elif '.webp' in featured_video.video_url %}
+                        <img src="{{ featured_video.video_url }}" alt="{{ featured_video.title }}" style="width:100%;height:100%;object-fit:cover;display:block;">
                         {% else %}
                         <video autoplay muted loop playsinline controls style="width:100%;height:100%;object-fit:cover;display:block;">
                             <source src="{{ featured_video.video_url }}">
